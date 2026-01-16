@@ -1,15 +1,17 @@
 ---
 description: "01) New doc: create canonical architecture doc from template."
-argument-hint: TITLE="<title>" DATE=YYYY-MM-DD
+argument-hint: <blurb>
 ---
 Execution rule: do not block on unrelated dirty files in git; ignore unrecognized changes. If committing, stage only files you touched (or as instructed).
 Do not preface with a plan or restate these instructions. Begin work immediately. If a tool-call preamble is required by system policy, keep it to a single terse line with no step list. Console output must ONLY use the specified format; no extra narrative.
+Use the freeform blurb provided after the command ($ARGUMENTS) as the working intent.
 Create a new architecture document in `docs/` using the template below.
 Name the file yourself using this rule:
 - `docs/<TITLE_SCREAMING_SNAKE>_<DATE>.md`
-- TITLE_SCREAMING_SNAKE = TITLE uppercased, spaces → `_`, punctuation removed.
-Example: TITLE="PSV2 — Foo — Architecture Plan" DATE=2026-01-16
-→ `docs/PSV2_FOO_ARCHITECTURE_PLAN_2026-01-16.md`
+- TITLE_SCREAMING_SNAKE = derived from the blurb as a short 5–9 word title, uppercased, spaces → `_`, punctuation removed.
+- DATE = today's date in YYYY-MM-DD (no user input required).
+Example: blurb="Redesign replay phase machine to be SSOT"
+→ `docs/REDESIGN_REPLAY_PHASE_MACHINE_TO_BE_SSOT_2026-01-16.md`
 Apply the **single-document rule**: all planning and decisions live in this doc.
 Do not create additional planning docs.
 Write the filled template into the new doc file. Do not paste the full document to the console.
