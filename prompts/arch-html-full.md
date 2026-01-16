@@ -18,6 +18,7 @@ Goal: Generate a clean, static HTML view of an architecture doc using the framew
    - The subagent must:
      - Read DOC_PATH fully.
      - Read `~/.codex/templates/arch_skill/arch_doc_template.html` and follow its structure.
+     - Compute WORKLOG_PATH as `<DOC_BASENAME>_WORKLOG.md` in the same directory as DOC_PATH and fill the {{WORKLOG_PATH}} placeholder.
      - Produce a static HTML file (no React/JS interactivity).
      - Preserve full content with ZERO omissions.
      - If any text does not fit a section, include it in a final “Unclassified content” block.

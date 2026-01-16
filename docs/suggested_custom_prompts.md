@@ -27,8 +27,8 @@ Restart Codex after updating prompts.
 | `arch_skill/prompts/arch-ui-ascii.md` | `/prompts:arch-ui-ascii` | Add ASCII mockups for current/target UI states. |
 | `arch_skill/prompts/arch-ascii.md` | `/prompts:arch-ascii` | Render a simple ASCII chart for the current topic/pipeline. |
 | `arch_skill/prompts/arch-research.md` | `/prompts:arch-research` | Populate Research Grounding (external + internal anchors). |
-| `arch_skill/prompts/arch-progress.md` | `/prompts:arch-progress` | Update the canonical doc with phase progress + Decision Log. |
-| `arch_skill/prompts/arch-implement.md` | `/prompts:arch-implement` | Execute the next phase and update the doc + tests/review. |
+| `arch_skill/prompts/arch-progress.md` | `/prompts:arch-progress` | Update the worklog with phase progress (plan doc only for decisions). |
+| `arch_skill/prompts/arch-implement.md` | `/prompts:arch-implement` | Execute the next phase, update worklog, tests/review. |
 | `arch_skill/prompts/arch-ramp-up.md` | `/prompts:arch-ramp-up` | Ramp up on an existing plan doc + code before taking action. |
 | `arch_skill/prompts/arch-devx.md` | `/prompts:arch-devx` | Add Dev Experience targets (CLI/output mocks, artifacts, commands). |
 | `arch_skill/prompts/arch-audit.md` | `/prompts:arch-audit` | In‑process audit: code vs plan, add Gaps & Concerns list. |
