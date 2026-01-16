@@ -1,0 +1,25 @@
+---
+description: Populate research grounding (internal + external anchors).
+argument-hint: DOC_PATH=<path>
+---
+Execution rule: do not block on unrelated dirty files in git; ignore unrecognized changes. If committing, stage only files you touched (or as instructed).
+Fill the Research Grounding section in $DOC_PATH.
+- External anchors: what to adopt vs reject.
+- Internal ground truth: file paths + behaviors.
+- Open questions + evidence needed.
+
+OUTPUT FORMAT:
+# 3) Research Grounding (external + internal “ground truth”)
+## 3.1 External anchors (papers, systems, prior art)
+- <source> — <what we borrow / what we reject> — <why it applies>
+
+## 3.2 Internal ground truth (code as spec)
+- **Authoritative behavior anchors (do not reinvent):**
+  - `<path>` — <what it defines>
+- **Existing patterns we will reuse:**
+  - `<path>` — <pattern>
+
+## 3.3 Open questions from research
+- Q1:
+- Q2:
+- What evidence would settle them:
