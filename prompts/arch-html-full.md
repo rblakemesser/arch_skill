@@ -13,9 +13,8 @@ Goal: Generate a clean, static HTML view of an architecture doc using the framew
    - Otherwise infer the most relevant arch doc from $ARGUMENTS + conversation.
    - If ambiguous, ask the user to choose from the top 2–3 candidates.
 
-2) Use a subagent (Codex CLI) to produce HTML:
-   - Model: gpt-5.2-codex
-   - Reasoning: xhigh
+2) Use a subagent (Codex CLI) to produce HTML and write it to disk:
+   - Profile: yolo (gpt-5.2-codex, xhigh, full access)
    - The subagent must:
      - Read DOC_PATH fully.
      - Read `~/.codex/templates/arch_skill/arch_doc_template.html` and follow its structure.
@@ -23,10 +22,11 @@ Goal: Generate a clean, static HTML view of an architecture doc using the framew
      - Preserve full content with ZERO omissions.
      - If any text does not fit a section, include it in a final “Unclassified content” block.
      - Append a final “Full Source (verbatim)” appendix that includes the entire doc inside a <pre>.
-     - Output ONLY the HTML.
+     - Write the HTML to: `docs/prototypes/<DOC_BASENAME>_full.html` (relative to repo root).
+     - After writing, print ONLY the output path to stdout.
 
    Command:
-   `codex exec --model gpt-5.2-codex --reasoning-effort xhigh --output-last-message /tmp/arch_html_full.html "<SUBAGENT_PROMPT>"`
+   `codex exec -c profile="yolo" "<SUBAGENT_PROMPT>"`
 
 3) Write output to:
    `docs/prototypes/<DOC_BASENAME>_full.html`
