@@ -28,6 +28,7 @@ Restart Codex after updating prompts.
 | `arch_skill/prompts/arch-ascii.md` | `/prompts:arch-ascii` | Render a simple ASCII chart for the current topic/pipeline. |
 | `arch_skill/prompts/arch-research.md` | `/prompts:arch-research` | Populate Research Grounding (external + internal anchors). |
 | `arch_skill/prompts/arch-progress.md` | `/prompts:arch-progress` | Update the canonical doc with phase progress + Decision Log. |
+| `arch_skill/prompts/arch-implement.md` | `/prompts:arch-implement` | Execute the next phase and update the doc + tests/review. |
 | `arch_skill/prompts/arch-ramp-up.md` | `/prompts:arch-ramp-up` | Ramp up on an existing plan doc + code before taking action. |
 | `arch_skill/prompts/arch-devx.md` | `/prompts:arch-devx` | Add Dev Experience targets (CLI/output mocks, artifacts, commands). |
 | `arch_skill/prompts/arch-audit.md` | `/prompts:arch-audit` | In‑process audit: code vs plan, add Gaps & Concerns list. |
@@ -43,7 +44,7 @@ Restart Codex after updating prompts.
 2) `/prompts:arch-research …`
 3) `/prompts:arch-deep-dive …`
 4) `/prompts:arch-phase-plan …`
-5) `/prompts:arch-progress …`
+5) `/prompts:arch-implement …` (execute phase; updates doc/tests/review)
 
 ### Full flow (large change)
 1) `/prompts:arch-new …`
@@ -55,4 +56,5 @@ Restart Codex after updating prompts.
 7) `/prompts:arch-devx …` (if CLI/output mocks are required)
 8) `/prompts:arch-audit-subagent …` (subagent code vs plan check)
 9) `/prompts:arch-review-gate …`
-10) `/prompts:arch-progress …` (each phase)
+10) `/prompts:arch-implement …` (execute each phase; updates doc/tests/review)
+11) `/prompts:arch-progress …` (optional if not covered by implement)
