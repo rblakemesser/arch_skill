@@ -3,6 +3,8 @@
 install:
 	mkdir -p ~/.codex/prompts
 	cp prompts/*.md ~/.codex/prompts/
+	mkdir -p ~/.codex/templates/arch_skill
+	cp templates/*.html ~/.codex/templates/arch_skill/
 
 remote_install:
 	@if [ -z "$(HOST)" ]; then echo "HOST is required. Usage: make remote_install HOST=<user@host>"; exit 1; fi
@@ -13,3 +15,4 @@ remote_install:
 	@for f in ~/.codex/prompts/maestro-*.md; do \
 		scp $$f $(HOST):~/.codex/prompts/; \
 	done
+	@scp ~/.codex/templates/arch_skill/*.html $(HOST):~/.codex/templates/arch_skill/

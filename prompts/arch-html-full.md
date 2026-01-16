@@ -6,7 +6,7 @@ Execution rule: do not block on unrelated dirty files in git; ignore unrecognize
 Do not preface with a plan or restate these instructions. Begin work immediately. If a tool-call preamble is required by system policy, keep it to a single terse line with no step list. Console output must ONLY use the specified format; no extra narrative.
 
 Goal: Generate a clean, static HTML view of an architecture doc using the framework in
-`arch_skill/templates/arch_doc_template.html`, with ZERO omissions (every line of source content must appear somewhere).
+`~/.codex/templates/arch_skill/arch_doc_template.html`, with ZERO omissions (every line of source content must appear somewhere).
 
 1) Resolve DOC_PATH:
    - If $ARGUMENTS includes a docs/<...>.md path, use it.
@@ -18,7 +18,7 @@ Goal: Generate a clean, static HTML view of an architecture doc using the framew
    - Reasoning: xhigh
    - The subagent must:
      - Read DOC_PATH fully.
-     - Read `arch_skill/templates/arch_doc_template.html` and follow its structure.
+     - Read `~/.codex/templates/arch_skill/arch_doc_template.html` and follow its structure.
      - Produce a static HTML file (no React/JS interactivity).
      - Preserve full content with ZERO omissions.
      - If any text does not fit a section, include it in a final “Unclassified content” block.
