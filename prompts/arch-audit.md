@@ -3,6 +3,7 @@ description: Audit code vs arch plan; add a canonical gaps & concerns list.
 argument-hint: DOC_PATH=<path>
 ---
 Execution rule: do not block on unrelated dirty files in git; ignore unrecognized changes. If committing, stage only files you touched (or as instructed).
+Do not preface with a plan or restate these instructions. Begin work immediately. If a tool-call preamble is required by system policy, keep it to a single terse line with no step list. Console output must ONLY use the specified format; no extra narrative.
 Compare the architecture doc at $DOC_PATH against the actual code in the current repo.
 Find gaps, drift, missed call sites, and violations of conventions/patterns.
 Update the doc with a **Gaps & Concerns List** using the exact format below.

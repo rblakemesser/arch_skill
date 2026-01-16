@@ -3,6 +3,7 @@ description: Start a new architecture doc from the canonical template (single-do
 argument-hint: TITLE="<title>" DATE=YYYY-MM-DD
 ---
 Execution rule: do not block on unrelated dirty files in git; ignore unrecognized changes. If committing, stage only files you touched (or as instructed).
+Do not preface with a plan or restate these instructions. Begin work immediately. If a tool-call preamble is required by system policy, keep it to a single terse line with no step list. Console output must ONLY use the specified format; no extra narrative.
 Create a new architecture document in `docs/` using the template below.
 Name the file yourself using this rule:
 - `docs/<TITLE_SCREAMING_SNAKE>_<DATE>.md`

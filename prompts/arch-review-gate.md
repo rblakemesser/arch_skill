@@ -3,6 +3,7 @@ description: Request external review for completeness/idiomatic fit.
 argument-hint: DOC_PATH=<path>
 ---
 Execution rule: do not block on unrelated dirty files in git; ignore unrecognized changes. If committing, stage only files you touched (or as instructed).
+Do not preface with a plan or restate these instructions. Begin work immediately. If a tool-call preamble is required by system policy, keep it to a single terse line with no step list. Console output must ONLY use the specified format; no extra narrative.
 Request reviews from opus/gemini with the explicit question:
 “Is this idiomatic and complete relative to the plan?”
 Provide any files they request. Integrate feedback you agree with.

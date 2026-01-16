@@ -3,6 +3,7 @@ description: Update canonical architecture doc with execution progress.
 argument-hint: DOC_PATH=<path> PHASE=<n>
 ---
 Execution rule: do not block on unrelated dirty files in git; ignore unrecognized changes. If committing, stage only files you touched (or as instructed).
+Do not preface with a plan or restate these instructions. Begin work immediately. If a tool-call preamble is required by system policy, keep it to a single terse line with no step list. Console output must ONLY use the specified format; no extra narrative.
 Update $DOC_PATH with progress for Phase $PHASE.
 Add decisions to Decision Log.
 Do not create additional planning docs.

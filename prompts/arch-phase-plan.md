@@ -3,6 +3,7 @@ description: Add a depth-first phased implementation plan to the architecture do
 argument-hint: DOC_PATH=<path>
 ---
 Execution rule: do not block on unrelated dirty files in git; ignore unrecognized changes. If committing, stage only files you touched (or as instructed).
+Do not preface with a plan or restate these instructions. Begin work immediately. If a tool-call preamble is required by system policy, keep it to a single terse line with no step list. Console output must ONLY use the specified format; no extra narrative.
 Insert a depth-first phased plan at the top of $DOC_PATH.
 Each phase must include: Goal, Work, Test plan, Exit criteria, Rollback.
 More phases are better than fewer. Keep them concrete.

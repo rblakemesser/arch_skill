@@ -3,6 +3,7 @@ description: Run arch audit in a subagent and insert Gaps & Concerns into the do
 argument-hint: DOC_PATH=<path>
 ---
 Execution rule: do not block on unrelated dirty files in git; ignore unrecognized changes. If committing, stage only files you touched (or as instructed).
+Do not preface with a plan or restate these instructions. Begin work immediately. If a tool-call preamble is required by system policy, keep it to a single terse line with no step list. Console output must ONLY use the specified format; no extra narrative.
 
 Use a subagent (non‑interactive Codex CLI) to perform the audit, then insert its output into $DOC_PATH.
 Do not paste the full gaps list to the console; only summarize and list open questions.

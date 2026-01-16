@@ -3,6 +3,7 @@ description: Add dev experience targets (CLI/output mocks, artifacts, commands).
 argument-hint: DOC_PATH=<path>
 ---
 Execution rule: do not block on unrelated dirty files in git; ignore unrecognized changes. If committing, stage only files you touched (or as instructed).
+Do not preface with a plan or restate these instructions. Begin work immediately. If a tool-call preamble is required by system policy, keep it to a single terse line with no step list. Console output must ONLY use the specified format; no extra narrative.
 Add a Dev Experience section to $DOC_PATH.
 Capture developer-facing outputs and commands:
 - CLI/console mockups (startup + summary)
