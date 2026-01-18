@@ -30,6 +30,13 @@ Stop conditions:
 - Stop as soon as the root cause is proven with evidence anchors.
 - If you cannot reach certainty quickly, stop with the single smallest next experiment that will settle it.
 
+Stop-the-line (MANDATORY; prevents “wandering”):
+- You MUST write the structured theory doc + brutal test plan into DIAG_PATH BEFORE touching code or running experiments.
+  - Minimum bar: at least 3 top theories + at least 3 brutal tests (B1–B3) written down.
+- Brutal tests are TRAPS / NEGATIVE PROOF — not logs.
+  - A brutal test must force a binary outcome by changing the world (disable/bypass/short-circuit/clamp/replace), not merely observe.
+  - “Add logs” is instrumentation, not a brutal test, and does not count as B*.
+
 Process (optimize for binary isolation):
 1) Parse $ARGUMENTS into: expected vs actual, repro steps (if any), scope notes (what is NOT affected), and any evidence already present (logs, screenshots).
 2) Build a short hypothesis list (max 6). Each hypothesis must be falsifiable and must name a likely earliest failure site.
@@ -46,7 +53,8 @@ Process (optimize for binary isolation):
      - Freeze state updates (force a constant snapshot) to rule out state churn.
      - Force a single mount (assert only one provider/scene exists).
 4) Instrumentation rules (fast, disposable):
-   - Add logs at the earliest failure site (and 1–2 key boundaries) only if needed to prove causality.
+   - Logs are NOT a brutal test. Logs are only for pinpointing the exact line AFTER a trap isolates the guilty subsystem.
+   - Add logs at the earliest failure site (and 1–2 key boundaries) only if needed to prove causality after hard-cut tests narrow the search.
    - Avoid hot-loop logs unless absolutely necessary.
    - You MAY keep logs/instrumentation in place until the issue is fixed; do not prematurely clean up.
 5) Track “files modified” continuously so we can revert quickly.
@@ -67,20 +75,34 @@ Date: <YYYY-MM-DD>
 ## Evidence
 - <logs/traces/observations already known>
 
-## Theories and tests
-### T1 — <hypothesis>
-Why plausible:
-Test (brutal cut):
-Result:
-Status: <ruled out | likely | proven>
+## Top theories (structured; must be written before coding)
+- T1 — <hypothesis (falsifiable)>
+  - Earliest failure site: `<path#symbol>`
+  - Trap (negative proof): <disable/bypass/clamp/replace>
+  - Pass/fail signal: <what proves/disproves>
+  - Status: <untried|ruled out|likely|proven>
+- T2 — ...
+- T3 — ...
 
-## Brutal tests (fast binary isolation)
-### B1 — <hard cut>
-Goal:
-Change:
-Expected:
-Observed:
-Conclusion:
+## Brutal test plan (TRAPS; not logs)
+> Rule: B* tests must change the world to force a binary outcome (disable/bypass/short-circuit/clamp/replace). Logging is not a B* test.
+- B1 — <short name>
+  - Change (trap): <hard cut / bypass / clamp / replace>
+  - What it proves (binary): <proves/disproves>
+  - Expected (if theory true):
+  - Expected (if theory false):
+  - Revert notes: <how to revert fast>
+- B2 — ...
+- B3 — ...
+
+## Experiments run (append-only; keep it tight)
+- B1 — <what you changed (trap)>
+  - Result: <pass|fail>
+  - What it proved: <ruled out / narrowed to>
+  - Files modified:
+    - <path>
+    - <path>
+- B2 — ...
 
 ## Root cause (proven)
 - <one sentence>
