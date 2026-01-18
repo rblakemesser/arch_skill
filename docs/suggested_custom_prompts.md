@@ -21,7 +21,7 @@ Restart Codex after updating prompts.
 | Prompt file | Command | Purpose |
 | --- | --- | --- |
 | `arch_skill/prompts/arch-new.md` | `/prompts:arch-new` | Create a new plan doc and draft the TL;DR + North Star from the blurb, then confirm with user. |
-| `arch_skill/prompts/arch-kickoff.md` | `/prompts:arch-kickoff` | Start Phase 1 research and checkpoint before Phase 2. |
+| `arch_skill/prompts/arch-kickoff.md` | `/prompts:arch-kickoff` | Start Phase 1 (Research) and checkpoint before Phase 2 (Architectural planning: current/target architecture + call-site audit). |
 | `arch_skill/prompts/arch-phase-plan.md` | `/prompts:arch-phase-plan` | Insert the phased implementation plan block. |
 | `arch_skill/prompts/arch-deep-dive.md` | `/prompts:arch-deep-dive` | Fill Current/Target architecture + Call‑Site Audit sections. |
 | `arch_skill/prompts/arch-plan-audit.md` | `/prompts:arch-plan-audit` | Audit plan readiness across phases (emphasis: fully specified target architecture, fully idiomatic, call sites audited). |

@@ -1393,7 +1393,7 @@ Proceed? (yes/no)
 **User:**
 yes
 
-**arch_skill (Phase 1 summary):**
+**arch_skill (Phase 1 (Research) summary):**
 Internal ground truth anchors:
 - `apps/mobile/.../usePuzzleSkiaScrubber.ts` — UI cursor SSOT + snapback lifecycle
 - `apps/mobile/.../TableTaskCore.tsx` — phase machine + apply orchestration
@@ -1405,7 +1405,7 @@ External anchors:
 Open questions:
 - Can we introduce a single atomic “commit” boundary without UI thread regression?
 
-Pause for Phase 1 sign‑off. Continue? (yes/no)
+Pause for Phase 1 (Research) sign‑off. Continue? (yes/no)
 
 **User:**
 yes
@@ -1425,12 +1425,12 @@ Proceed? (yes/no)
 **User:**
 yes
 
-**arch_skill (Phase 2 draft highlights):**
+**arch_skill (Phase 2 (Architectural planning — target design) draft highlights):**
 - North Star claim: “If we enforce atomic replay commits across UI/JS boundaries, then replay index will never regress under snapback within 1 frame, measured by replay-log invariant X.”
 - Target architecture: introduce a single commit token and unify phase + apply boundary.
 - Call‑site audit table started (12 entries).
 
-Pause for Phase 2 sign‑off. Continue? (yes/no)
+Pause for Phase 2 (Architectural planning — target design) sign‑off. Continue? (yes/no)
 
 **User:**
 continue
@@ -1449,22 +1449,22 @@ Proceed? (yes/no)
 **User:**
 yes
 
-**arch_skill (Phase 3 plan snapshot):**
+**arch_skill (Phase 3 (Implementation planning — execution design) plan snapshot):**
 Phase 0: baseline invariant logging + tests
 Phase 1: introduce commit token + no‑regression invariant
 Phase 2: migrate apply pipeline to token gating
 Phase 3: cleanup + remove old paths
 
-Pause for Phase 3 sign‑off. Continue to execution? (yes/no)
+Pause for Phase 3 (Implementation planning — execution design) sign‑off. Continue to execution? (yes/no)
 
 **User:**
-not yet — add a rollback for Phase 2
+not yet — add a rollback for Phase 2 (migrate apply pipeline to token gating)
 
 **arch_skill:**
-Acknowledged. I’ll update Phase 2 rollback and re‑present for sign‑off.
+Acknowledged. I’ll update Phase 2 (migrate apply pipeline to token gating) rollback and re‑present for sign‑off.
 
 **arch_skill (Phase 3 updated):**
-Phase 2 rollback: restore previous apply gate and disable commit token enforcement via single flag.
+Phase 2 (migrate apply pipeline to token gating) rollback: restore previous apply gate and disable commit token enforcement via single flag.
 
 Proceed to execution? (yes/no)
 
@@ -1475,7 +1475,7 @@ yes
 
 ### Phase 4 — Execution (iterative delivery)
 **arch_skill:**
-Executing Phase 0. I will:
+Executing Phase 0 (baseline invariant logging + tests). I will:
 - Add invariant logs
 - Add baseline tests
 - Update the architecture doc with completed work + decision log
@@ -1486,7 +1486,7 @@ Executing Phase 0. I will:
 - Added invariant logs and baseline tests
 - Updated doc sections 4, 7, 10
 
-Proceed to Phase 1? (yes/no)
+Proceed to Phase 1 (introduce commit token + no‑regression invariant)? (yes/no)
 
 **User:**
 yes
@@ -1495,4 +1495,3 @@ yes
 
 **arch_skill (Final):**
 All phases complete. Definition of done satisfied. Please verify in real usage; I’ll keep instrumentation until you confirm.
-

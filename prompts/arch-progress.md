@@ -17,13 +17,13 @@ Stop-the-line gates (must pass before updating progress)
 - UX Scope Gate: explicit UX in-scope/out-of-scope (what users see changes vs does not change).
 If either gate does not pass, STOP and ask the user to fix/confirm in the plan doc before proceeding.
 Derive WORKLOG_PATH from DOC_PATH using the same directory and suffix: `<DOC_BASENAME>_WORKLOG.md`. If missing, create it. Add cross-links: plan doc should reference the worklog near the top; worklog should link back to the plan doc.
-Update the worklog with progress for the current phase. If a phase is explicitly provided by the user, use it. Otherwise infer it from the doc (latest “Phase <n> Progress Update” or the most recent phase with incomplete exit criteria). If ambiguous, ask which phase to update.
+Update the worklog with progress for the current phase. If a phase is explicitly provided by the user, use it. Otherwise infer it from the doc (latest “Phase <n> (<phase name>) Progress Update” or the most recent phase with incomplete exit criteria). If ambiguous, ask which phase to update.
 Add decisions to the plan doc Decision Log only if a real decision was made.
 Do not create additional planning docs.
 Write the progress update into WORKLOG_PATH. Do not paste the full block to the console.
 
 WORKLOG INSERT FORMAT:
-## Phase <n> Progress Update
+## Phase <n> (<phase name>) Progress Update
 - Work completed:
   - <item>
 - Tests run + results:

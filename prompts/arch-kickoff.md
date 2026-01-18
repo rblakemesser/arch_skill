@@ -25,7 +25,7 @@ Stop-the-line: UX Scope Gate (must pass before ANY research/architecture work)
 If the UX Scope Gate does not pass, STOP and ask the user to fix/confirm scope in the doc before proceeding.
 
 Start Phase 1 (Research). Ask clarifying questions only for product-level ambiguity or missing external constraints.
-Summarize research anchors and pause for a lightweight check before Phase 2.
+Summarize research anchors and pause for a lightweight check before Phase 2 (Architectural planning: current/target architecture + call-site audit).
 Write the kickoff + summary block into DOC_PATH (anti-fragile placement; do not assume template section numbers).
 Placement rule (in order):
 1) If a block marker exists, replace the content inside it:
@@ -56,12 +56,12 @@ DOCUMENT INSERT FORMAT:
 - Open questions:
   - <Q> — <evidence needed>
 
-Decision: proceed to Phase 2? (yes/no)
+Decision: proceed to Phase 2 (Architectural planning: current/target architecture + call-site audit)? (yes/no)
 <!-- arch_skill:block:phase1_kickoff:end -->
 
 CONSOLE OUTPUT FORMAT (summary + open questions only):
 Summary:
 - <bullet>
 Open questions:
-- Proceed to Phase 2? (yes/no)
+- Proceed to Phase 2 (Architectural planning: current/target architecture + call-site audit)? (yes/no)
 - <other open questions, if any>
