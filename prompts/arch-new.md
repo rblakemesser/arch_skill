@@ -1,6 +1,6 @@
 ---
-description: "01) New doc: create canonical architecture doc from template."
-argument-hint: <blurb>
+description: "01) New doc: create canonical plan doc + draft North Star from blurb, then confirm with user."
+argument-hint: "<Paste the change request / symptoms / goal. This becomes the draft TL;DR + North Star. No structured args needed.>"
 ---
 Execution rule: do not block on unrelated dirty files in git; ignore unrecognized changes. If committing, stage only files you touched (or as instructed).
 Do not preface with a plan or restate these instructions. Begin work immediately. If a tool-call preamble is required by system policy, keep it to a single terse line with no step list. Console output must ONLY use the specified format; no extra narrative.
@@ -14,7 +14,12 @@ Example: blurb="Redesign replay phase machine to be SSOT"
 → `docs/REDESIGN_REPLAY_PHASE_MACHINE_TO_BE_SSOT_2026-01-16.md`
 Apply the **single-document rule**: all planning and decisions live in this doc.
 Do not create additional planning docs.
-Write the filled template into the new doc file. Do not paste the full document to the console.
+CRITICAL: The North Star MUST be correct.
+- Draft the TL;DR and Section 0 (Holistic North Star) from $ARGUMENTS (do not leave placeholders there).
+- Then STOP and ask the user to confirm/correct the North Star before proceeding to research/architecture execution.
+- If the user provides edits, update the doc and re-ask for confirmation until the user says “yes”.
+
+Write the filled template into the new doc file. Do not paste the full document to the console (you may print only the drafted TL;DR + North Star for confirmation).
 
 DOCUMENT CONTENT FORMAT (write to the new doc file):
 
@@ -45,15 +50,23 @@ related:
 > <If we do X, then Y is true, measured by Z, by date/condition W>
 
 ## 0.2 In scope
-- <explicitly list what this plan covers>
+- UX surfaces (what users will see change):
+  - <screen/state/flow>
+- Technical scope (what code will change):
+  - <module/contract/boundary>
 
 ## 0.3 Out of scope
-- <explicitly list what this plan will NOT do>
+- UX surfaces (what users must NOT see change):
+  - <screen/state/flow>
+- Technical scope (explicit exclusions):
+  - <module/boundary we will not touch>
 
-## 0.4 Definition of done (acceptance tests)
+## 0.4 Definition of done (acceptance evidence)
 - <observable acceptance criteria, not vibes>
-- Metrics / thresholds:
-  - <metric>: <threshold>, measured via <harness>
+- Evidence plan (common-sense; non-blocking):
+  - <test/harness OR instrumentation/log signature OR manual QA checklist> — <pass/fail signal>
+- Metrics / thresholds (if relevant):
+  - <metric>: <threshold> — measured via <dash/test/log>
 
 ## 0.5 Stop-the-line invariants
 - <if these fail, we stop and fix before continuing>
@@ -242,7 +255,9 @@ related:
 
 ---
 
-# 8) Test Strategy (beyond per-phase tests)
+# 8) Test Strategy (common-sense; non-blocking)
+
+> Principle: avoid “proof ladders.” Prefer the smallest existing signal. If sim/video/screenshot capture is flaky or slow, rely on targeted instrumentation + a short manual QA checklist and keep moving.
 
 ## 8.1 Unit tests (contracts)
 
@@ -256,7 +271,7 @@ related:
 ## 8.3 E2E / device tests (realistic)
 
 * Scenarios:
-* Artifacts captured:
+* Evidence / artifacts (optional; do not block):
 
 ---
 
@@ -293,9 +308,20 @@ related:
 
 ---
 
-CONSOLE OUTPUT FORMAT (summary + open questions only):
+CONSOLE OUTPUT FORMAT (summary + north star confirmation only):
 Summary:
 - Created doc: <path>
-- <other summary item>
+- Draft TL;DR:
+  - Outcome: <one sentence>
+  - Problem: <one sentence>
+  - Approach: <one sentence>
+  - Plan: <1–2 lines>
+- Draft North Star (for confirmation):
+  - Claim: <one sentence, falsifiable>
+  - In scope: <tight bullets>
+  - Out of scope: <tight bullets>
+  - Definition of done: <observable acceptance evidence>
+  - Stop-the-line invariants: <3–7 bullets>
 Open questions:
-- <open question, if any>
+- Confirm North Star + UX scope as written? (yes/no)
+- If “no”: paste edits to the claim + UX scope + DoD + invariants (no need to be polite, be precise).

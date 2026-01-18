@@ -1,113 +1,152 @@
 ---
 description: "04) Deep dive: current-target architecture + call-site audit."
-argument-hint: DOC_PATH=<path> (optional)
+argument-hint: "<Freeform guidance. Include a docs/<...>.md path anywhere to pin the plan doc (optional).>"
 ---
 Execution rule: do not block on unrelated dirty files in git; ignore unrecognized changes. If committing, stage only files you touched (or as instructed).
 Do not preface with a plan or restate these instructions. Begin work immediately. If a tool-call preamble is required by system policy, keep it to a single terse line with no step list. Console output must ONLY use the specified format; no extra narrative.
-If DOC_PATH is not provided, locate the most relevant architecture doc by semantic match to $ARGUMENTS and the current conversation; prefer the doc that explicitly matches the topic and is most recently updated among relevant candidates. If you cannot determine a clear winner, ask the user to choose from the top 2–3 candidates.
-Do not ask the user questions during investigation. Resolve by reading more code and searching the repo. Ask only if required information is not present in the repo or doc and cannot be inferred (e.g., product choice or external constraint).
-Populate sections 4–6 in $DOC_PATH:
-- Current architecture (on-disk tree, control paths, object model, failure behavior).
-- Target architecture (future tree, flows, APIs, invariants).
-- Call-site audit table (exhaustive inventory).
-Reference ground truth code paths for every claim.
-Write the updated sections into $DOC_PATH (replace sections 4–6 in-place). Do not paste the full block to the console.
+Inputs: $ARGUMENTS is freeform steering (user intent, constraints, random notes). Process it intelligently.
+Resolve DOC_PATH from $ARGUMENTS + the current conversation. If the doc is not obvious, ask the user to choose from the top 2–3 candidates.
+Question policy (strict):
+- Do NOT ask the user technical questions you can answer by reading code or the plan doc; go look and decide.
+- Ask the user only for true product decisions / external constraints not present in the repo/doc, or to disambiguate between multiple equally plausible docs.
+- If multiple viable technical approaches exist, pick the most idiomatic default and note alternatives in the doc (do not ask “what do you want to do?”).
+Do not ask the user questions during investigation. Resolve by reading more code and searching the repo. Ask only if required by a stop-the-line gate or if required information is not present in the repo/doc and cannot be inferred.
 
-DOCUMENT INSERT FORMAT (replace sections 4–6 in-place):
-# 4) Current Architecture (as-is)
+Stop-the-line: North Star Gate (must pass before current/target architecture + call-site audit)
+- Falsifiable + verifiable: the North Star states a concrete claim AND how we will prove it (acceptance evidence: tests/harness/instrumentation/manual QA + stop-the-line invariants).
+- Bounded + coherent: the North Star clearly states in-scope + out-of-scope and does not contradict the TL;DR/plan.
+If the North Star Gate does not pass, STOP and ask the user to fix/confirm the North Star in the doc before proceeding.
 
-## 4.1 On-disk structure
+Stop-the-line: UX Scope Gate (must pass before current/target architecture + call-site audit)
+- The doc explicitly states UX in-scope and UX out-of-scope: what screens/states/behaviors change vs do NOT change.
+- UX scope is coherent with the North Star and does not silently expand.
+If the UX Scope Gate does not pass, STOP and ask the user to fix/confirm scope in the doc before proceeding.
+
+You are designing architecture. Produce/update THREE artifacts in DOC_PATH:
+1) Current architecture (as-is): on-disk tree, 2–4 primary control paths, ownership boundaries, failure behavior.
+2) Target architecture (to-be): future tree, future flows, explicit new/changed contracts, invariants/boundaries.
+3) Call-site audit: exhaustive inventory of what changes where (and why), grounded in code.
+
+Hard rules (drift-proof):
+- Code is ground truth: every claim is anchored in file paths (include symbols when helpful).
+- No competing sources of truth: prefer centralized contracts/primitives; delete/avoid parallel implementations.
+- Do not ask the user technical questions you can answer by reading code; go look and decide.
+- If multiple viable technical approaches exist, pick the most idiomatic default and note alternatives in the doc (do not ask “what do you want to do?”).
+
+Pattern Consolidation Sweep (anti-blinders; confirm with user)
+- If this design introduces/updates a central pattern (SSOT, lifecycle primitive, layout contract, policy resolver, etc.), look for other places that should adopt it.
+- Capture candidates and recommend: Now / Next / Never.
+- Ask the user to confirm what is in-scope now vs deferred (this is a scope decision, not a technical question).
+
+DOC UPDATE RULES (anti-fragile; do NOT assume section numbers match the template)
+Placement rule (in order):
+1) If block markers exist, replace the content inside them:
+   - `<!-- arch_skill:block:current_architecture:start -->` … `<!-- arch_skill:block:current_architecture:end -->`
+   - `<!-- arch_skill:block:target_architecture:start -->` … `<!-- arch_skill:block:target_architecture:end -->`
+   - `<!-- arch_skill:block:call_site_audit:start -->` … `<!-- arch_skill:block:call_site_audit:end -->`
+2) Else, update in place if semantically matching headings exist (case-insensitive match):
+   - Current: "Current Architecture", "As-is"
+   - Target: "Target Architecture", "To-be"
+   - Audit: "Call-Site Audit", "Change map", "Change inventory"
+3) Else, insert missing top-level sections:
+   - Prefer inserting after research/problem sections,
+   - and before phased plan / test strategy / rollout sections.
+Numbering rule:
+- If the doc uses numbered headings ("# 4) ..."), preserve existing numbering; do not renumber the rest of the document.
+Do not paste the full inserted blocks to the console.
+
+DOCUMENT CONTENT SKELETON (adapt to existing headings; do not blindly paste duplicates)
+<!-- arch_skill:block:current_architecture:start -->
+# Current Architecture (as-is)
+
+## On-disk structure
 ```text
 <tree of relevant dirs/files>
 ```
 
-## 4.2 Control paths (runtime)
-
+## Control paths (runtime)
 * Flow A:
-
   * Step 1 → Step 2 → Step 3
 * Flow B:
-
   * ...
 
-## 4.3 Object model + key abstractions
-
+## Object model + key abstractions
 * Key types:
 * Ownership boundaries:
 * Public APIs:
-
   * `Foo.doThing(args) -> Result`
 
-## 4.4 Observability + failure behavior today
-
+## Observability + failure behavior today
 * Logs:
 * Metrics:
 * Failure surfaces:
 * Common failure modes:
 
-## 4.5 UI surfaces (ASCII mockups, if UI work)
-
+## UI surfaces (ASCII mockups, if UI work)
 ```ascii
 <ASCII mockups for current UI states, if relevant>
 ```
+<!-- arch_skill:block:current_architecture:end -->
 
 ---
 
-# 5) Target Architecture (to-be)
+<!-- arch_skill:block:target_architecture:start -->
+# Target Architecture (to-be)
 
-## 5.1 On-disk structure (future)
-
+## On-disk structure (future)
 ```text
 <new/changed tree>
 ```
 
-## 5.2 Control paths (future)
-
+## Control paths (future)
 * Flow A (new):
 * Flow B (new):
 
-## 5.3 Object model + abstractions (future)
-
+## Object model + abstractions (future)
 * New types/modules:
 * Explicit contracts:
 * Public APIs (new/changed):
-
   * `Foo.doThingV2(args) -> Result`
   * Migration notes:
 
-## 5.4 Invariants and boundaries
-
+## Invariants and boundaries
 * Fail-loud boundaries:
 * Single source of truth:
 * Determinism contracts (time/randomness):
 * Performance / allocation boundaries:
 
-CONSOLE OUTPUT FORMAT (summary + open questions only):
-Summary:
-- <bullet>
-Open questions:
-- <open question>
-
-## 5.5 UI surfaces (ASCII mockups, if UI work)
-
+## UI surfaces (ASCII mockups, if UI work)
 ```ascii
 <ASCII mockups for target UI states, if relevant>
 ```
+<!-- arch_skill:block:target_architecture:end -->
 
 ---
 
-# 6) Call-Site Audit (exhaustive change inventory)
+<!-- arch_skill:block:call_site_audit:start -->
+# Call-Site Audit (exhaustive change inventory)
 
-## 6.1 Change map (table)
+## Change map (table)
+| Area | File | Symbol / Call site | Current behavior | Required change | Why | New API / contract | Tests impacted |
+| ---- | ---- | ------------------ | ---------------- | --------------- | --- | ------------------ | -------------- |
+| <module> | <path> | <fn/cls> | <today> | <diff> | <rationale> | <new usage> | <tests> |
 
-| Area     | File   | Symbol / Call site | Current behavior | Required change | Why         | New API / contract | Tests impacted |
-| -------- | ------ | ------------------ | ---------------- | --------------- | ----------- | ------------------ | -------------- |
-| <module> | <path> | <fn/cls>           | <today>          | <diff>          | <rationale> | <new usage>        | <tests>        |
-
-## 6.2 Migration notes
-
+## Migration notes
 * Deprecated APIs:
 * Compatibility shims (if any):
 * Delete list (what must be removed):
 
----
+## Pattern Consolidation Sweep (anti-blinders; confirm scope)
+| Area | File / Symbol | Pattern to adopt | Why (drift prevented) | Recommend (Now/Next/Never) |
+| ---- | ------------- | ---------------- | ---------------------- | -------------------------- |
+| <area> | <path> | <pattern> | <reason> | <Now/Next/Never> |
+<!-- arch_skill:block:call_site_audit:end -->
+
+CONSOLE OUTPUT FORMAT (summary + open questions only):
+Summary:
+- Doc updated: <path>
+- Sections updated/added: <Current/Target/Audit>
+- Pattern sweep: <n> candidates (top: <2–4>)
+Open questions:
+- Confirm pattern sweep scope: which candidates are Now vs Next vs Never?
+- <other open questions, if any>

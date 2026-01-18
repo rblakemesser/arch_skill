@@ -32,15 +32,23 @@ related:
 > <If we do X, then Y is true, measured by Z, by date/condition W>
 
 ## 0.2 In scope
-- <explicitly list what this plan covers>
+- UX surfaces (what users will see change):
+  - <screen/state/flow>
+- Technical scope (what code will change):
+  - <module/contract/boundary>
 
 ## 0.3 Out of scope
-- <explicitly list what this plan will NOT do>
+- UX surfaces (what users must NOT see change):
+  - <screen/state/flow>
+- Technical scope (explicit exclusions):
+  - <module/boundary we will not touch>
 
-## 0.4 Definition of done (acceptance tests)
+## 0.4 Definition of done (acceptance evidence)
 - <observable acceptance criteria, not vibes>
-- Metrics / thresholds:
-  - <metric>: <threshold>, measured via <harness>
+- Evidence plan (common-sense; non-blocking):
+  - <test/harness OR instrumentation/log signature OR manual QA checklist> — <pass/fail signal>
+- Metrics / thresholds (if relevant):
+  - <metric>: <threshold> — measured via <dash/test/log>
 
 ## 0.5 Stop-the-line invariants
 - <if these fail, we stop and fix before continuing>
@@ -229,7 +237,9 @@ related:
 
 ---
 
-# 8) Test Strategy (beyond per-phase tests)
+# 8) Test Strategy (common-sense; non-blocking)
+
+> Principle: avoid “proof ladders.” Prefer the smallest existing signal. If sim/video/screenshot capture is flaky or slow, rely on targeted instrumentation + a short manual QA checklist and keep moving.
 
 ## 8.1 Unit tests (contracts)
 
@@ -243,7 +253,7 @@ related:
 ## 8.3 E2E / device tests (realistic)
 
 * Scenarios:
-* Artifacts captured:
+* Evidence / artifacts (optional; do not block):
 
 ---
 
@@ -288,11 +298,11 @@ related:
 
 **What good looks like**
 - One falsifiable claim + crisp scope.
-- “Done” is measurable via explicit harnesses and thresholds.
+- “Done” is measurable via explicit evidence (tests/instrumentation/QA), not vibes.
 - Stop-the-line invariants (fail fast on contract drift).
 
 **Example pattern**
-- A tight “prove/disprove the claim” north star with explicit scope and “treat failures as contract bugs, not tuning problems” is exactly what makes the rest of the plan coherent. :contentReference[oaicite:0]{index=0}
+- A tight “prove/disprove the claim” north star with explicit scope and “treat failures as contract bugs, not tuning problems” is exactly what makes the rest of the plan coherent.
 
 **Common failure modes**
 - Outcome is a vibe (“make it better”).
@@ -310,7 +320,7 @@ related:
 - Explicit tradeoffs with rejected alternatives (so reviewers don’t relitigate).
 
 **Example pattern**
-- “Fail-loud boundaries,” “single source of truth,” and “no business logic in widgets” as non-negotiables make later refactors safe and reviewable. :contentReference[oaicite:1]{index=1}
+- “Fail-loud boundaries,” “single source of truth,” and “no business logic in widgets” as non-negotiables make later refactors safe and reviewable.
 
 ---
 
@@ -322,7 +332,7 @@ related:
 - Problems stated as concrete symptoms and missing behaviors, not “this code is messy.”
 
 **Example pattern**
-- A problem statement that enumerates what’s present (files, screens, repositories) and what parity/behavior is missing keeps the work anchored. :contentReference[oaicite:2]{index=2}
+- A problem statement that enumerates what’s present (files, screens, repositories) and what parity/behavior is missing keeps the work anchored.
 
 ---
 

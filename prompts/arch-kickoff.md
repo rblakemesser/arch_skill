@@ -1,23 +1,47 @@
 ---
 description: "02) Phase 1 kickoff: research setup + checkpoints."
-argument-hint: DOC_PATH=<path> (optional)
+argument-hint: "<Freeform guidance. Include a docs/<...>.md path anywhere to pin the plan doc (optional).>"
 ---
 Execution rule: do not block on unrelated dirty files in git; ignore unrecognized changes. If committing, stage only files you touched (or as instructed).
 Do not preface with a plan or restate these instructions. Begin work immediately. If a tool-call preamble is required by system policy, keep it to a single terse line with no step list. Console output must ONLY use the specified format; no extra narrative.
-If DOC_PATH is not provided, locate the most relevant architecture doc by semantic match to $ARGUMENTS and the current conversation; prefer the doc that explicitly matches the topic and is most recently updated among relevant candidates. If you cannot determine a clear winner, ask the user to choose from the top 2–3 candidates.
-Do not ask the user questions during investigation. Resolve by reading more code and searching the repo. Ask only if required information is not present in the repo or doc and cannot be inferred (e.g., product choice or external constraint).
-We will work out of a single canonical doc at $DOC_PATH.
-Start Phase 1 (Research). Ask clarifying questions only if there are multiple viable options or ambiguity.
-Summarize research anchors and pause for a lightweight check before Phase 2.
-Write the kickoff + summary block into $DOC_PATH (insert after TL;DR, before #0). Do not paste the full block to the console.
+Inputs: $ARGUMENTS is freeform steering (user intent, constraints, random notes). Process it intelligently.
+Resolve DOC_PATH from $ARGUMENTS + the current conversation. If the doc is not obvious, ask the user to choose from the top 2–3 candidates.
+Question policy (strict):
+- Do NOT ask the user technical questions you can answer by reading code or the plan doc; go look and decide.
+- Ask the user only for true product decisions / external constraints not present in the repo/doc, or to disambiguate between multiple equally plausible docs.
+- If multiple viable technical approaches exist, pick the most idiomatic default and note alternatives in the doc (do not ask “what do you want to do?”).
+Do not ask the user questions during investigation. Resolve by reading more code and searching the repo. Ask only if required by a stop-the-line gate or if required information is not present in the repo/doc and cannot be inferred.
+We will work out of a single canonical doc at DOC_PATH.
 
-DOCUMENT INSERT FORMAT (insert after TL;DR, before #0):
+Stop-the-line: North Star Gate (must pass before ANY research/architecture work)
+- Falsifiable + verifiable: the North Star states a concrete claim AND how we will prove it (acceptance evidence: tests/harness/instrumentation/manual QA + stop-the-line invariants).
+- Bounded + coherent: the North Star clearly states in-scope + out-of-scope and does not contradict the TL;DR/plan.
+If the North Star Gate does not pass, STOP and ask the user to fix/confirm the North Star in the doc before proceeding.
+
+Stop-the-line: UX Scope Gate (must pass before ANY research/architecture work)
+- The doc explicitly states UX in-scope and UX out-of-scope: what screens/states/behaviors change vs do NOT change.
+- UX scope is coherent with the North Star and does not silently expand.
+If the UX Scope Gate does not pass, STOP and ask the user to fix/confirm scope in the doc before proceeding.
+
+Start Phase 1 (Research). Ask clarifying questions only for product-level ambiguity or missing external constraints.
+Summarize research anchors and pause for a lightweight check before Phase 2.
+Write the kickoff + summary block into DOC_PATH (anti-fragile placement; do not assume template section numbers).
+Placement rule (in order):
+1) If a block marker exists, replace the content inside it:
+   - `<!-- arch_skill:block:phase1_kickoff:start -->` … `<!-- arch_skill:block:phase1_kickoff:end -->`
+2) Else insert immediately after the TL;DR section if present.
+3) Else insert immediately after YAML front matter if present.
+4) Else insert at the top of the document.
+Do not paste the full block to the console.
+
+DOCUMENT INSERT FORMAT:
+<!-- arch_skill:block:phase1_kickoff:start -->
 ## Phase 1 Kickoff (Research)
 - Repo: <current>
 - Target doc: <path>
 - Assumptions:
   - <list>
-- Questions (only if ambiguous):
+- Questions (ONLY if required for a product decision / external constraint):
   - <Q1> (or "None")
 - Plan:
   1) <step>
@@ -32,6 +56,7 @@ DOCUMENT INSERT FORMAT (insert after TL;DR, before #0):
   - <Q> — <evidence needed>
 
 Decision: proceed to Phase 2? (yes/no)
+<!-- arch_skill:block:phase1_kickoff:end -->
 
 CONSOLE OUTPUT FORMAT (summary + open questions only):
 Summary:
