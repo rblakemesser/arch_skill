@@ -1,0 +1,82 @@
+---
+description: "Plan enhancer: turn an existing plan into the best possible architecture by your standards."
+argument-hint: "<Paste anything. If you have a doc, include docs/<...>.md somewhere in the text.>"
+---
+Execution rule: ignore unrelated dirty git files; if committing, stage only what you touched.
+Do not preface with a plan. Begin work immediately.
+
+# North Star (authoritative)
+Given DOC_PATH + the repo, produce the best possible target architecture and plan for this change by my standards — i.e. the most idiomatic, simplest design that is correct‑by‑construction, single‑source‑of‑truth, and hard to drift. It must proactively consolidate related patterns across the codebase, define enforceable boundaries/invariants (structure, APIs, deletions, tests/CI where appropriate), and eliminate parallel implementations. The only remaining open questions are true product/UX scope decisions that cannot be derived from code or the stated North Star.
+
+$ARGUMENTS is freeform steering. Treat it as intent + constraints + random thoughts.
+
+DOC_PATH:
+- If $ARGUMENTS includes a docs/<...>.md path, use it.
+- Otherwise infer from the conversation.
+- If ambiguous, ask me to pick from the top 2–3 candidates.
+
+Question policy (strict: no dumb questions):
+- Do NOT ask technical questions you can answer by reading the plan/code/tests. Go look and decide.
+- Ask only when you need a product/UX scope decision, or DOC_PATH is ambiguous.
+- Never ask “what do you want to do?” about technical approaches. Pick the most idiomatic default and document it.
+
+Work you do (high-level, no ceremony):
+- Read DOC_PATH fully.
+- Read enough code to make real decisions (code is ground truth).
+- Improve the plan/architecture aggressively:
+  - Make SSOT explicit; remove parallel solutions.
+  - Make boundaries/invariants enforceable (module/API structure, deletes/cleanup, fail-loud behavior).
+  - Find and list all call sites; include adoption/migration steps.
+  - Drift sweep: identify other places that should adopt the central pattern; propose Now/Next/Never (only ask me if it expands UX scope or meaningfully expands work).
+  - Evidence plan must be common-sense and non-blocking: prefer existing tests/harness; otherwise instrumentation/log signature or a short manual checklist. Avoid proof ladders.
+
+Stop-the-line gates (must pass before heavy edits)
+- North Star Gate: doc has a falsifiable + verifiable claim, and explicit stop-the-line invariants.
+- UX Scope Gate: explicit UX in-scope and UX out-of-scope (what users see changes vs does not change).
+If either gate fails, STOP and ask me to fix/confirm those sections (no other questions).
+
+Update DOC_PATH by inserting/replacing this block (do NOT assume section numbers):
+1) If `<!-- arch_skill:block:plan_enhancer:start -->` exists, replace inside markers.
+2) Else insert near the end before Decision Log, or just append.
+
+<!-- arch_skill:block:plan_enhancer:start -->
+# Plan Enhancer Notes (authoritative)
+
+## What I changed (plan upgrades)
+- <bullets>
+
+## Architecture verdict
+- Is this now “best possible by our standards”? <yes/no>
+- Biggest remaining risks:
+  - <bullets>
+
+## Enforceable rules (drift-proofing)
+- <rules we will enforce architecturally, not socially>
+
+## Call sites + migration
+- Must-change call sites:
+  - `<path>` — <symbol> — <why>
+- Deletes / cleanup (no parallel paths):
+  - `<path>` — <what gets deleted>
+
+## Consolidation sweep (anti-blinders)
+- Other places that should adopt the new central pattern:
+  - <area> — Recommend: <Now|Next|Never> — <why>
+
+## Evidence (non-blocking)
+- Proof we’ll rely on:
+  - <test/harness OR instrumentation/log signature OR manual checklist> — <pass/fail>
+- What we will not block on:
+  - <e.g. “screen recordings”, “sim screenshot baselines”>
+
+## Questions (ONLY if truly needed)
+- <product/UX scope decision>
+<!-- arch_skill:block:plan_enhancer:end -->
+
+Console output (only):
+Summary:
+- Doc updated: <path>
+- Verdict: <best-possible yes/no>
+Open questions:
+- <only real product/UX scope/doc-path questions>
+- Proceed to implementation? (yes/no)
