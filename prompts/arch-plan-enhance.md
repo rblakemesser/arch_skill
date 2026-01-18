@@ -28,7 +28,7 @@ Work you do (high-level, no ceremony):
   - Make SSOT explicit; remove parallel solutions.
   - Make boundaries/invariants enforceable (module/API structure, deletes/cleanup, fail-loud behavior).
   - Find and list all call sites; include adoption/migration steps.
-  - Drift sweep: identify other places that should adopt the central pattern; propose Now/Next/Never (only ask me if it expands UX scope or meaningfully expands work).
+  - Drift sweep: identify other places that should adopt the central pattern; propose include in this plan vs follow-up vs ignore (only ask me if it expands UX scope or meaningfully expands work).
   - Evidence plan must be common-sense and non-blocking: prefer existing tests/harness; otherwise instrumentation/log signature or a short manual checklist. Avoid proof ladders.
 
 Stop-the-line gates (must pass before heavy edits)
@@ -62,7 +62,7 @@ Update DOC_PATH by inserting/replacing this block (do NOT assume section numbers
 
 ## Consolidation sweep (anti-blinders)
 - Other places that should adopt the new central pattern:
-  - <area> — Recommend: <Now|Next|Never> — <why>
+  - <area> — Proposed: <include|follow-up|ignore> — <why>
 
 ## Evidence (non-blocking)
 - Proof we’ll rely on:

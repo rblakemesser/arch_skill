@@ -24,6 +24,7 @@ Restart Codex after updating prompts.
 | `arch_skill/prompts/arch-kickoff.md` | `/prompts:arch-kickoff` | Start Phase 1 research and checkpoint before Phase 2. |
 | `arch_skill/prompts/arch-phase-plan.md` | `/prompts:arch-phase-plan` | Insert the phased implementation plan block. |
 | `arch_skill/prompts/arch-deep-dive.md` | `/prompts:arch-deep-dive` | Fill Current/Target architecture + Call‑Site Audit sections. |
+| `arch_skill/prompts/arch-plan-audit.md` | `/prompts:arch-plan-audit` | Audit plan readiness across phases (emphasis: fully specified target architecture, fully idiomatic, call sites audited). |
 | `arch_skill/prompts/arch-plan-enhance.md` | `/prompts:arch-plan-enhance` | Enhance an existing plan to be best-possible: idiomatic + SSOT + call‑site complete + drift-proof. |
 | `arch_skill/prompts/arch-ui-ascii.md` | `/prompts:arch-ui-ascii` | Add ASCII mockups for current/target UI states. |
 | `arch_skill/prompts/arch-ascii.md` | `/prompts:arch-ascii` | Render a simple ASCII chart for the current topic/pipeline. |

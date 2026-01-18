@@ -36,8 +36,8 @@ Hard rules (drift-proof):
 
 Pattern Consolidation Sweep (anti-blinders; confirm with user)
 - If this design introduces/updates a central pattern (SSOT, lifecycle primitive, layout contract, policy resolver, etc.), look for other places that should adopt it.
-- Capture candidates and recommend: Now / Next / Never.
-- Ask the user to confirm what is in-scope now vs deferred (this is a scope decision, not a technical question).
+- Capture candidates with file paths and your default recommendation: include in this plan vs defer (follow-up) vs exclude.
+- Do not ask cryptic scope questions. If you need user confirmation, list the concrete candidates (paths/symbols) and your default, then ask for override.
 
 DOC UPDATE RULES (anti-fragile; do NOT assume section numbers match the template)
 Placement rule (in order):
@@ -138,16 +138,17 @@ DOCUMENT CONTENT SKELETON (adapt to existing headings; do not blindly paste dupl
 * Delete list (what must be removed):
 
 ## Pattern Consolidation Sweep (anti-blinders; confirm scope)
-| Area | File / Symbol | Pattern to adopt | Why (drift prevented) | Recommend (Now/Next/Never) |
-| ---- | ------------- | ---------------- | ---------------------- | -------------------------- |
-| <area> | <path> | <pattern> | <reason> | <Now/Next/Never> |
+| Area | File / Symbol | Pattern to adopt | Why (drift prevented) | Proposed scope (include/defer/exclude) |
+| ---- | ------------- | ---------------- | ---------------------- | ------------------------------------- |
+| <area> | <path> | <pattern> | <reason> | <include/defer/exclude> |
 <!-- arch_skill:block:call_site_audit:end -->
 
 CONSOLE OUTPUT FORMAT (summary + open questions only):
 Summary:
 - Doc updated: <path>
 - Sections updated/added: <Current/Target/Audit>
-- Pattern sweep: <n> candidates (top: <2–4>)
+- Pattern sweep candidates (top, with context):
+  - <path> — <pattern> — <why> (or "None")
 Open questions:
-- Confirm pattern sweep scope: which candidates are Now vs Next vs Never?
+- Consolidation sweep confirmation (only if needed): I will include the above in-scope items in this plan. Any exclusions? (yes/no + list) (or "None")
 - <other open questions, if any>
