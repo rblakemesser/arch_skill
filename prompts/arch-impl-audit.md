@@ -28,7 +28,10 @@ Hard rules:
 - You MUST update DOC_PATH.
 - You MUST output a friendly human-readable report to the console.
 - Code is ground truth: validate “complete” claims by reading code and searching the repo.
-- Avoid proof ladders: evidence should be common-sense and fast (existing tests/harness, instrumentation/log signatures, or a short manual checklist).
+- This audit is about whether the CODE was built right.
+  - Do NOT reopen phases or mark NOT COMPLETE solely because manual QA/screenshot evidence wasn’t captured.
+  - If manual QA is pending, record it as a non-blocking follow-up (it may be important, but it is not “missing code”).
+- Avoid proof ladders: evidence should be common-sense and fast (existing tests/harness, instrumentation/log signatures). Manual QA can be listed as follow-up, but it is not a gating criterion for “code complete”.
 
 What you are auditing for (highest bar):
 1) ABSOLUTE completeness:
@@ -49,15 +52,19 @@ Audit procedure (do this in order):
    - Call-site audit / change inventory (table or equivalent)
    - Phase plan + which phases are marked complete (any “Status: complete”, checkmarks, “done”, etc.)
    - Delete list / cleanup expectations (if present)
-   - “Definition of done” evidence expectations
+   - Any “Definition of done” evidence expectations, but split them into:
+     - Code/verifiable evidence (tests, invariants, automation, assertions)
+     - Manual evidence (manual QA, screenshots) — track as non-blocking follow-up
 3) Validate completeness against code:
    - For each call-site audit item: verify the code has the required change (path + symbol usage).
    - Search for old APIs/old patterns/old paths to find misses (do not trust the table blindly).
    - Verify SSOT enforcement: look for lingering writers/readers of the old source of truth.
    - Verify deletions/cleanup: if the plan says “remove X”, confirm X is removed OR no longer referenced.
-   - Verify evidence: if the plan claims a test/log/invariant proves the North Star, confirm it exists and is wired to the real failure site.
+   - Verify code-evidence: if the plan claims a test/automation/invariant/assertion proves the North Star, confirm it exists and is wired to the real failure site.
+   - Do NOT treat missing manual QA evidence as “missing implementation”.
 4) Determine phase truth:
-   - If a phase is marked complete but any required work is missing → REOPEN it.
+   - If a phase is marked complete but CODE work is missing → REOPEN it.
+   - If a phase is code-complete but only manual QA evidence is missing → do NOT reopen; instead record “Manual QA pending (non-blocking)” as follow-up.
    - Always refer to phases as `Phase <n> (<what it does>)` (use the phase heading text; if missing, infer from that phase’s Goal/Work bullets).
 5) Second opinions (required):
    - Get two independent reviews:
@@ -76,19 +83,29 @@ Placement rule (in order):
 <!-- arch_skill:block:implementation_audit:start -->
 # Implementation Audit (authoritative)
 Date: <YYYY-MM-DD>
-Verdict: <COMPLETE|NOT COMPLETE>
+Verdict (code): <COMPLETE|NOT COMPLETE>
+Manual QA: <pending|complete|n/a> (non-blocking)
 
-## Top blockers (why we’re not done)
-- <bullets>
+## Code blockers (why code isn’t done)
+- <bullets only about missing/incorrect code>
 
 ## Reopened phases (false-complete fixes)
 - Phase <n> (<what it does>) — reopened because:
   - <missing items>
 
-## Missing items (evidence-anchored)
-| Area | Evidence anchor | Plan expects | Code does | Fix |
-| ---- | -------------- | ------------ | --------- | --- |
-| <area> | <path:line> | <expected> | <actual> | <fix> |
+## Missing items (code gaps; evidence-anchored; no tables)
+- <area>
+  - Evidence anchors:
+    - <path:line>
+  - Plan expects:
+    - <expected>
+  - Code reality:
+    - <actual>
+  - Fix:
+    - <fix>
+
+## Non-blocking follow-ups (manual QA / screenshots / human verification)
+- <follow-up item>
 
 ## External second opinions
 - Opus: <received|pending>
@@ -103,14 +120,19 @@ Verdict: <COMPLETE|NOT COMPLETE>
 
 B) Reopen phases in-place (only when needed):
 - Find the phase section in the doc.
-- Add/replace a status line directly under the phase heading:
-  - `Status: REOPENED (audit found missing work)`
-- Add a short `Missing:` list with concrete items (file paths/symbols/tests/deletes).
+- If CODE work is missing:
+  - Add/replace a status line directly under the phase heading:
+    - `Status: REOPENED (audit found missing code work)`
+  - Add a short `Missing (code):` list with concrete items (file paths/symbols/tests/deletes).
+- If code is complete but manual QA is pending:
+  - Do NOT reopen.
+  - Add (or update) a short `Manual QA (non-blocking):` note with the smallest checklist needed.
 
 CONSOLE OUTPUT (friendly + decisive; no cryptic questions):
 Summary:
 - Doc: <path>
-- Verdict: <COMPLETE|NOT COMPLETE> (<short reason>)
+- Verdict (code): <COMPLETE|NOT COMPLETE> (<short reason>)
+- Manual QA: <pending|complete|n/a> (non-blocking)
 - Reopened phases:
   - <Phase n (what)> — <why>
 - External second opinions:
