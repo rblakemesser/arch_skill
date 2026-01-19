@@ -35,6 +35,15 @@ Autonomy policy (this is autopilot):
 - Use the QA worklog doc as your running transcript. Keep executing until you hit a real Stop condition or you’re genuinely done.
 - Only print a console summary when you are about to STOP (complete / blocked / timeboxed).
 
+Execution discipline (single-threaded; one test at a time):
+- Maintain an explicit queue of fundamental behaviors/tests.
+- Execute ONE queue item at a time:
+  - Run it.
+  - If it fails due to an obvious build/compile/test issue → fix and re-run.
+  - If it fails due to a product bug → capture repro + evidence (and fix if clearly in-scope, otherwise record).
+  - Record the outcome and mark the queue item as [x] pass or [ ] unverified with a reason.
+- Do NOT stop after a successful run to tell the user “Next: …”. Just continue to the next queue item.
+
 Operating principles:
 - Start with fundamentals: the smallest, highest-signal smoke tests first.
 - Prefer existing QA harnesses. Do not invent new frameworks if one already exists.
@@ -69,6 +78,7 @@ Process (systematic):
    - If DOC_PATH exists, read it and extract: North Star, UX in-scope/out-of-scope, any acceptance evidence expectations, and any known risky surfaces.
    - Determine the minimal “fundamental behaviors” to validate first (core flows, not edge cases).
    - Write these as a short checklist in the QA worklog doc. This checklist is your autopilot queue.
+   - If the app has multiple top-level navigation roots (tabs/routes/modes), include each as a checklist item (e.g., each tab should have at least one smoke validation).
 2) Preflight (only if needed):
    - Verify app + server readiness using the “Environment preflight” rules above.
    - Record what you checked in the QA worklog doc (briefly).
@@ -177,5 +187,5 @@ Summary:
   - <none|bullet list>
 Status:
 - <complete|blocked>
-Next:
-- <single next most fundamental test to run OR decision needed>
+Next (only if blocked/timeboxed):
+- <decision needed OR smallest unblock step OR remaining unverified checklist item>
