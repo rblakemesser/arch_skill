@@ -43,25 +43,35 @@ Stop conditions:
 - If you discover a product-level issue that requires a decision: STOP and report (no guessing).
 - If QA is impossible due to infra/environment issues: STOP and report the single smallest unblock step.
 
+Environment preflight (fast; do early; don't repeat needlessly):
+- If this is the first time you’re running QA in this repo/session (or you’re unsure), do a quick preflight BEFORE running tests:
+  - Ensure the app is built from the latest code and installed on the target simulator/emulator/device.
+  - Ensure the app can actually launch and reach any required dev servers/backends.
+  - Check that required servers are up (packager/dev server, backend, mocks). Prefer a health check / curl / open-port check over guesswork.
+- If you already verified preflight earlier in the same session and nothing changed, skip re-doing it—just note “preflight already verified”.
+
 Process (systematic):
 1) Grounding:
    - If DOC_PATH exists, read it and extract: North Star, UX in-scope/out-of-scope, any acceptance evidence expectations, and any known risky surfaces.
    - Determine the minimal “fundamental behaviors” to validate first (core flows, not edge cases).
-2) Choose QA harness:
+2) Preflight (only if needed):
+   - Verify app + server readiness using the “Environment preflight” rules above.
+   - Record what you checked in the QA worklog doc (briefly).
+3) Choose QA harness:
    - Detect existing automation tooling in the repo (e.g., existing e2e folders, scripts, CI targets).
    - Prefer the canonical entrypoint (Makefile target / package.json script / documented command).
-3) Smoke first:
+4) Smoke first:
    - Run the smallest, fastest smoke(s) that validate the fundamental behaviors.
    - Record command + result in the QA worklog doc.
-4) Expand coverage:
+5) Expand coverage:
    - Add or run the next most fundamental tests (still high-signal).
-5) If automation is broken / missing coverage:
+6) If automation is broken / missing coverage:
    - Create/extend a section in the QA worklog doc:
      - "Automation Gaps (blocking)" — what’s broken and why it blocks signal
      - "Unified Fix (idiomatic)" — the single clean way to solve it without drift
    - Implement the fix (tests/flows/helpers) using existing repo idioms.
    - Re-run the smallest relevant test and record the new result.
-6) If a failure is a real product bug (not test flake):
+7) If a failure is a real product bug (not test flake):
    - Create a "Product Bugs Found" section with crisp repro steps + evidence.
    - If the fix requires a product decision, STOP and ask (with context).
    - If it does NOT require a product decision, you may fix it if it is clearly in-scope of the plan (otherwise record and stop).
@@ -77,6 +87,16 @@ Plan doc: <DOC_PATH or "none">
   - <bullet>
 - Out of scope (explicit):
   - <bullet>
+
+## Preflight (environment readiness)
+- App build/install:
+  - <how you ensured latest build + installed>
+- App launch sanity:
+  - <does it start? any immediate crash?>
+- Required servers:
+  - <what you checked + how (health check / curl / port)>
+- Notes:
+  - <only if needed>
 
 ## Harness selection
 - Chosen harness: <name>
