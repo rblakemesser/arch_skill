@@ -30,6 +30,11 @@ Question policy (strict: no dumb questions):
 - Ask only if you hit a real product-level decision that blocks correctness (UX expectation, behavior spec conflict, etc.).
 - If you must ask, STOP and report with full context: repro, what failed, and the concrete decision needed.
 
+Autonomy policy (this is autopilot):
+- Do NOT stop to “check in”, narrate progress, or ask “what next”.
+- Use the QA worklog doc as your running transcript. Keep executing until you hit a real Stop condition or you’re genuinely done.
+- Only print a console summary when you are about to STOP (complete / blocked / timeboxed).
+
 Operating principles:
 - Start with fundamentals: the smallest, highest-signal smoke tests first.
 - Prefer existing QA harnesses. Do not invent new frameworks if one already exists.
@@ -63,6 +68,7 @@ Process (systematic):
 1) Grounding:
    - If DOC_PATH exists, read it and extract: North Star, UX in-scope/out-of-scope, any acceptance evidence expectations, and any known risky surfaces.
    - Determine the minimal “fundamental behaviors” to validate first (core flows, not edge cases).
+   - Write these as a short checklist in the QA worklog doc. This checklist is your autopilot queue.
 2) Preflight (only if needed):
    - Verify app + server readiness using the “Environment preflight” rules above.
    - Record what you checked in the QA worklog doc (briefly).
@@ -74,6 +80,7 @@ Process (systematic):
    - Record command + result in the QA worklog doc.
 5) Expand coverage:
    - Add or run the next most fundamental tests (still high-signal).
+   - Keep going until your “fundamental behaviors” checklist is satisfied (or explicitly marked unverified with a reason).
 6) If automation is broken / missing coverage:
    - Create/extend a section in the QA worklog doc:
      - "Automation Gaps (blocking)" — what’s broken and why it blocks signal
@@ -87,6 +94,10 @@ Process (systematic):
 8) If a failure is a build/compile/test-harness failure:
    - Follow “Unblock policy” above: note → fix → re-run smallest signal.
    - Prefer the smallest fix that restores the canonical QA entrypoint and avoids drift.
+9) Stop only when one of these is true:
+   - COMPLETE: the fundamental behaviors checklist is satisfied and confidence is high/certain.
+   - BLOCKED: a Stop condition was hit (product decision or true infra/environment blocker).
+   - TIMEBOXED: you’ve spent a reasonable amount of wall clock time (default ~30–45 min) and remaining work is lower-signal; record what’s unverified and why.
 
 QA WORKLOG FORMAT (write to the QA worklog doc; keep it readable; no ASCII tables):
 # QA Autopilot Worklog
@@ -95,8 +106,9 @@ Repo: <path>
 Plan doc: <DOC_PATH or "none">
 
 ## Scope
-- Fundamental behaviors under test:
-  - <bullet>
+- Fundamental behaviors under test (autopilot checklist):
+  - [ ] <behavior 1> — <how you’ll validate it>
+  - [ ] <behavior 2> — <how you’ll validate it>
 - Out of scope (explicit):
   - <bullet>
 
@@ -152,6 +164,8 @@ Plan doc: <DOC_PATH or "none">
   - <bullet>
 
 CONSOLE OUTPUT FORMAT (friendly + human readable; no giant dumps):
+Only print this when STOPPING (complete/blocked/timeboxed). Do not print per-run updates.
+
 Summary:
 - QA worklog: <path>
 - Harness: <chosen>
