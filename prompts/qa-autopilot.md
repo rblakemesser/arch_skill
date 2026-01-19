@@ -10,6 +10,10 @@ Goal:
 Use QA automation to prove the fundamentals first, then expand coverage. Stay fast and systematic.
 If QA automation is broken or missing coverage, fix it in an architecturally elegant / idiomatic / unified way that prevents drift, then rerun and record results.
 
+Important (what this prompt is / is not):
+- This prompt is for QA automation (end-to-end / integration / UI smoke tests that exercise a running app on sim/emulator/device).
+- This is NOT a “run unit tests” prompt. Do not default to `*_test` / `unit test` suites as your primary signal.
+
 Context:
 $ARGUMENTS is freeform steering. Treat it as intent + constraints + any relevant context from the session.
 
@@ -54,7 +58,7 @@ Stop conditions:
 - If QA is impossible due to infra/environment issues: STOP and report the single smallest unblock step.
 
 Unblock policy (default: fix it, don’t ask):
-- Do NOT get stuck on obvious compile/build/test failures. Treat them as part of the work.
+- Do NOT get stuck on obvious compile/build/QA-harness failures. Treat them as part of the work.
 - If a run fails due to compilation, typecheck, lint-as-error, missing imports, etc.:
   - Note it in the QA worklog doc (briefly).
   - Fix it immediately (small, local, high-confidence fix).
