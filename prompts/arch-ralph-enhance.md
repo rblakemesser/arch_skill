@@ -53,7 +53,7 @@ Manual QA / screenshots policy (non-blocking; no harness):
 - In `@fix_plan.md`: manual QA must NOT appear as checkboxes. Put manual QA in a non-blocking follow-ups section using plain bullets (no `[ ]`).
 
 What “good” looks like (second-pass criteria)
-You are upgrading the Ralph files so they meet these standards:
+You are upgrading the Ralph files so they meet these standards (be explicit; do NOT leave vague big phase checkboxes behind):
 
 1) Granularity (loop-sized)
 - Each checkbox task is small enough to complete in a single Ralph loop.
@@ -72,6 +72,54 @@ You are upgrading the Ralph files so they meet these standards:
 4) Execution clarity
 - Phase references must be human-readable: never “Phase 2” with no meaning.
   - Always: `Phase N (<short descriptor so a human remembers what it is>)`
+
+GOOD vs BAD (be concrete; include examples in the fix plan when you rewrite tasks)
+
+GOOD attributes:
+- One checkbox = one loop-sized, finishable change.
+- File-anchored tasks (paths + symbols) so the loop never needs to ask “what do you want to do?”
+- Prefer this decomposition when a checkbox is too big:
+  - **introduce SSOT → migrate one bounded slice → migrate remaining call sites → delete old path → run a check**
+- `@fix_plan.md` MUST be structured into sections:
+  - `## Phase 1 (<descriptor>)`
+    - `### <subsystem / slice>`
+      - `- [ ] <loop-sized task>`
+  - Do NOT dump everything into one giant phase list; split into subsections per subsystem/slice.
+  - If a subsection would exceed ~6–10 checkboxes, split it further.
+- Manual QA is bullets in a non-blocking section, not checkboxes.
+- Avoid “High/Medium/Low priority” buckets; convert to dependency-ordered phases.
+
+BAD smells (must be eliminated in this enhance pass):
+- One checkbox that bundles multiple unrelated changes.
+- “Update call sites” with no call-site list or sweep task.
+- “Align parity” tasks with no SSOT/migration/delete decomposition.
+- “Performance optimization” / “extended feature set” filler tasks.
+- Any screenshot/video/harness requirements that would block completion.
+
+Concrete example: rewrite “big phase checkboxes” into loop-sized tasks (this is the style you should write into `@fix_plan.md`)
+
+BAD structure (priority buckets + huge checkboxes; causes stalls + vague questions):
+## High Priority (Phase 1 — global primitives)
+- [ ] Replace StableHeader PNG icons with painter widgets + `'∞'` formatting in `apps/flutter/lib/ui/components/stable_header.dart`
+- [ ] Align Flutter motion tokens to RN `apps/mobile/src/motion/tokens.ts` in `apps/flutter/lib/design_system/app_motion.dart` and update call sites using non-RN tokens
+
+GOOD structure (phases + subsections + loop-sized tasks):
+## Phase 1 (Global primitives: StableHeader + motion tokens)
+
+### StableHeader icons + `∞` formatting
+- [ ] Audit StableHeader icon call sites + PNG references (list paths) (Flutter)
+- [ ] Add painter widget for ONE StableHeader icon in `apps/flutter/lib/ui/components/stable_header.dart` (no other changes)
+- [ ] Switch that ONE icon to painter rendering in `apps/flutter/lib/ui/components/stable_header.dart`
+- [ ] Add a `formatStableHeaderStreakCount()` helper and use it from `apps/flutter/lib/ui/components/stable_header.dart` (`∞` case + normal ints)
+- [ ] Convert remaining StableHeader PNG icons → painter, then delete the PNG rendering path
+
+### Motion token parity (mirror RN → migrate → delete old path)
+- [ ] Mirror RN motion tokens into `apps/flutter/lib/design_system/app_motion.dart` (SSOT mapping only; no call sites yet)
+- [ ] Migrate ONE bounded call-site cluster to the mirrored tokens (e.g., StableHeader animations only)
+- [ ] Migrate remaining parity-critical call sites to mirrored tokens, then delete/stop-export the old non-parity tokens
+
+### Checks (small + targeted)
+- [ ] Run the smallest relevant check (typecheck/lint/test) and record result
 
 DO THIS WORK (read → diagnose gaps → patch Ralph files)
 

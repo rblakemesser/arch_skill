@@ -61,6 +61,55 @@ BAD (do NOT put these as checkboxes; too big or not autonomous):
 - `Manual QA: entering Play tab shows Lobby; nothing starts until tap` ← belongs in non-blocking HITL follow-ups, not gating completion
 - `Take screenshots / build screenshot harness` ← explicitly out; do not create proof harness busywork
 
+Ralph task shape (be explicit; do NOT generate “big phase blocks”):
+
+GOOD attributes (what you must produce):
+- One checkbox = one loop-sized change (finishable in one Ralph cycle).
+- Every checkbox is code-anchored (file path + symbol/function/route where possible).
+- Prefer the canonical decomposition: **introduce SSOT → migrate one bounded slice → migrate remaining call sites → delete old path → run a check**.
+- Phases are allowed, but phase headings must be human-readable:
+  - Always: `Phase N (<descriptor>)` (never “Phase 2” with no meaning).
+- `@fix_plan.md` MUST be structured into sections:
+  - `## Phase 1 (<descriptor>)`
+    - `### <subsystem / slice>`
+      - `- [ ] <loop-sized task>`
+  - Do NOT dump everything into one giant phase list; split into subsections per subsystem/slice.
+  - If a subsection would exceed ~6–10 checkboxes, split it further.
+- Manual QA is a non-blocking follow-up section using bullets only (no checkboxes).
+- Avoid “High/Medium/Low priority” buckets; convert to phased, dependency-ordered work.
+
+BAD smells (fix these during retarget):
+- “Do X + Y + Z” in a single checkbox (multiple responsibilities).
+- “Update call sites” without enumerating call sites or providing a sweep task.
+- “Align parity” tasks with no decomposition into SSOT + migrations + deletes.
+- “Performance optimization” / “extended feature set” style filler tasks.
+- Any screenshot/video/harness requirements.
+
+Concrete example: rewrite “priority buckets / big phase blocks” into phase sections + loop-sized tasks (this is the structure you should write into `@fix_plan.md`)
+
+BAD structure (priority buckets + huge checkboxes; causes stalls + vague questions):
+## High Priority (Phase 1 — global primitives)
+- [ ] Replace StableHeader PNG icons with painter widgets + `'∞'` formatting in `apps/flutter/lib/ui/components/stable_header.dart`
+- [ ] Align Flutter motion tokens to RN `apps/mobile/src/motion/tokens.ts` in `apps/flutter/lib/design_system/app_motion.dart` and update call sites using non-RN tokens
+
+GOOD structure (phases + subsections + loop-sized tasks):
+## Phase 1 (Global primitives: StableHeader + motion tokens)
+
+### StableHeader icons + `∞` formatting
+- [ ] Audit StableHeader icon call sites + PNG references (list paths) (Flutter)
+- [ ] Add painter widget for ONE StableHeader icon in `apps/flutter/lib/ui/components/stable_header.dart` (no other changes)
+- [ ] Switch that ONE icon to painter rendering in `apps/flutter/lib/ui/components/stable_header.dart`
+- [ ] Add a `formatStableHeaderStreakCount()` helper and use it from `apps/flutter/lib/ui/components/stable_header.dart` (`∞` case + normal ints)
+- [ ] Convert remaining StableHeader PNG icons → painter, then delete the PNG rendering path
+
+### Motion token parity (mirror RN → migrate → delete old path)
+- [ ] Mirror RN motion tokens into `apps/flutter/lib/design_system/app_motion.dart` (SSOT mapping only; no call sites yet)
+- [ ] Migrate ONE bounded call-site cluster to the mirrored tokens (e.g., StableHeader animations only)
+- [ ] Migrate remaining parity-critical call sites to mirrored tokens, then delete/stop-export the old non-parity tokens
+
+### Checks (small + targeted)
+- [ ] Run the smallest relevant check (typecheck/lint/test) and record result
+
 Clear previous task (backup + reset previous Ralph state):
 1) Create an archive directory (neat + predictable):
    - If `docs/` exists: `docs/ralph_archive/<YYYY-MM-DD_HHMMSS>/`
