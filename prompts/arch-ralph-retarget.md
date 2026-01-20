@@ -14,20 +14,29 @@ Hard gate (Ralph templates must exist):
 - If any are missing: STOP immediately and print ONLY:
   - `ERROR: Ralph templates are missing (expected ~/.ralph/templates/PROMPT.md + fix_plan.md + AGENT.md). Restore/install Ralph templates, then rerun /prompts:arch-ralph-retarget.`
 
-Core rule (PROMPT.md is template-owned; do NOT customize it):
+Core rule (PROMPT.md is template-owned; customize via a small overlay patch):
 - This is the “initial setup / retarget” prompt: it seeds Ralph control files from `~/.ralph/templates/` so we don’t lose critical template guidance.
 - You MUST copy these templates into repo root (overwriting whatever is there; after backing up):
   - `~/.ralph/templates/PROMPT.md` → `PROMPT.md`
   - `~/.ralph/templates/fix_plan.md` → `@fix_plan.md`
   - `~/.ralph/templates/AGENT.md` → `@AGENT.md`
-- After copying:
-  - Do NOT edit `PROMPT.md` further (treat it as read-only).
-  - Put all repo/spec-specific context in `SPEC_PATH`, `@fix_plan.md`, and `@AGENT.md`.
+- After copying, you MUST make PROMPT.md project-aware WITHOUT rewriting it.
+  - Allowed PROMPT.md edits are LIMITED to:
+    1) Replace the placeholder `[YOUR PROJECT NAME]` project line under `## Context` (make it real).
+    2) Insert/replace a single, replaceable project block under `## Context`:
+       - `<!-- arch_skill:block:ralph_project_context:start -->`
+       - `<!-- arch_skill:block:ralph_project_context:end -->`
+    3) Remove mixed signals about batching:
+       - Change any `TASKS_COMPLETED_THIS_LOOP: 2` or `: 3` examples to `: 1`.
+    4) Make task selection unambiguous:
+       - Patch `## Current Task` (or equivalent) to say: “pick the first unchecked checkbox in @fix_plan.md; do not reorder; exactly one checkbox per loop”.
+  - Do NOT rewrite other sections of PROMPT.md.
+  - Do NOT paste PROMPT.md contents into console output.
 
 Goal:
 Given a planning/spec doc (DOC_PATH), retarget the repo’s existing Ralph setup to execute that plan.
 This prompt edits ONLY:
-- `PROMPT.md` (copied from template; do not customize)
+- `PROMPT.md` (seed from template, then apply the minimal overlay patch above)
 - `@fix_plan.md` (copied from template, then rewritten)
 - `@AGENT.md` (copied from template, then updated)
 - a copied spec file in `specs/` (see SPEC_PATH below)
@@ -79,7 +88,12 @@ Ground truth policy (inescapable; repeat it everywhere it matters):
   - Code anchors (entry points / primitives / central SSOT implementation) with file paths
   - If parity work: upstream reference file(s) (e.g., RN tokens, existing canonical implementations) with file paths
 - When you update Ralph files, you MUST embed these references so the loop can’t drift:
-  - Do NOT modify `PROMPT.md` for ground-truth links (it is template-owned).
+  - In `PROMPT.md`: inside `<!-- arch_skill:block:ralph_project_context -->`, include:
+    - `SPEC_PATH`
+    - any additional docs referenced by SPEC_PATH
+    - key code anchors
+    - condensed non-negotiables
+    - hard loop rules (one checkbox per loop)
   - In `@AGENT.md`: add/patch a short `Ground truth / References:` list (or equivalent existing section) that includes the exact paths above.
   - In `@fix_plan.md`: the `Spec (SSOT)` line must reference `SPEC_PATH`, and each `## Phase N (...)` should mention the relevant spec anchor once (e.g., `Spec anchor: SPEC_PATH — <section name>`). Each `###` subsection should include at least one code anchor path.
 - If the spec is ambiguous, link to the exact paragraph/section that is ambiguous and propose a default; do not ask a contextless question.
@@ -183,8 +197,12 @@ UPDATE RULES (use sandbox1/psmobile as the “good” reference shape)
 The “good” shape you’re aiming for looks like sandbox1/psmobile:
 
 PROMPT.md:
-- MUST be an exact copy of `~/.ralph/templates/PROMPT.md`.
-- Do NOT customize it in this flow. If you need repo-specific guardrails/links, put them in `SPEC_PATH`, `@AGENT.md`, and `@fix_plan.md`.
+- MUST start from `~/.ralph/templates/PROMPT.md`, then be patched minimally:
+  - Replace the placeholder `[YOUR PROJECT NAME]`.
+  - Add/replace the `<!-- arch_skill:block:ralph_project_context -->` block under `## Context`.
+  - Change example `TASKS_COMPLETED_THIS_LOOP` values to eliminate batching (no `2`/`3`).
+  - Patch `## Current Task` selection to “pick first unchecked checkbox”.
+- Do NOT rewrite the rest of the template.
 
 @fix_plan.md:
 - Begins with:
@@ -211,12 +229,31 @@ Now do the updates (in order; no skipping):
   - `~/.ralph/templates/PROMPT.md` → `PROMPT.md`
   - `~/.ralph/templates/fix_plan.md` → `@fix_plan.md`
   - `~/.ralph/templates/AGENT.md` → `@AGENT.md`
-- After copy: do NOT edit `PROMPT.md` further.
+- After copy: patch `PROMPT.md` minimally (do NOT rewrite it).
 
 2) Materialize `SPEC_PATH`
 - Ensure `SPEC_PATH = specs/<DOC_BASENAME>.md` exists (copy `DOC_PATH` if needed).
 
-3) Update `@AGENT.md` (in-place)
+3) Patch `PROMPT.md` (minimal overlay patch; template remains intact)
+- Replace the placeholder project name under `## Context` so it is not `[YOUR PROJECT NAME]`.
+- Insert/replace this block under `## Context`:
+  - `<!-- arch_skill:block:ralph_project_context:start -->`
+  - `<!-- arch_skill:block:ralph_project_context:end -->`
+  - Content must include:
+    - Project name (repo name is fine)
+    - `Spec (SSOT): SPEC_PATH`
+    - Ground truth / References list (docs + code anchors)
+    - Condensed non-negotiables from SPEC_PATH
+    - Hard loop rules:
+      - Exactly ONE checkbox per loop (max 1 new `[x]` per response)
+      - `TASKS_COMPLETED_THIS_LOOP` must be `1` when a checkbox is completed, else `0`
+      - Pick the first unchecked checkbox in `@fix_plan.md` (do not reorder)
+- Remove mixed-signal batching examples:
+  - Change any `TASKS_COMPLETED_THIS_LOOP: 2` or `: 3` in examples/scenarios to `: 1`.
+- Patch `## Current Task` (or equivalent) to match the hard selection rule:
+  - Pick the first unchecked checkbox in `@fix_plan.md`; do not reorder; do not batch.
+
+4) Update `@AGENT.md` (in-place)
 - Set “Current spec (SSOT)” (or equivalent) to `SPEC_PATH`.
 - Add/update `Ground truth / References:` list:
   - `SPEC_PATH`
@@ -224,14 +261,14 @@ Now do the updates (in order; no skipping):
   - key code anchors you found
 - Replace template “example” run/test commands with the repo’s real commands (prefer Make targets).
 
-4) Rewrite `@fix_plan.md` (in-place; replace task content)
+5) Rewrite `@fix_plan.md` (in-place; replace task content)
 - Replace template priority buckets with the phase+subsection structure above.
 - `Spec (SSOT)` MUST point at `SPEC_PATH` (not `DOC_PATH`).
 - Ensure tasks are loop-sized + code-anchored + dependency-ordered.
 - Ensure every `###` is numbered `Phase N.M (...)` and numbers only go up.
 - Manual QA belongs in a `Manual QA (HITL, non-blocking)` section using bullets only.
 
-5) Git commit (Ralph control files + spec only)
+6) Git commit (Ralph control files + spec only)
 - Commit ONLY: `PROMPT.md`, `@fix_plan.md`, `@AGENT.md`, and `SPEC_PATH` (if changed).
 - Ignore all other dirty/untracked files in the repo.
 
@@ -247,8 +284,9 @@ Summary:
 - SPEC_PATH: <path>
 - Archive: <path>
 - Seeded templates: <yes/no>
+- PROMPT.md patched: <yes/no>
 - Updated:
-  - `PROMPT.md` (template)
+  - `PROMPT.md` (template + overlay patch)
   - `@fix_plan.md`
   - `@AGENT.md`
   - `SPEC_PATH`
