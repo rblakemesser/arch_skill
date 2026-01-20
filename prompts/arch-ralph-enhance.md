@@ -119,8 +119,13 @@ GOOD attributes:
   - **introduce SSOT → migrate one bounded slice → migrate remaining call sites → delete old path → run a check**
 - `@fix_plan.md` MUST be structured into sections:
   - `## Phase 1 (<descriptor>)`
-    - `### <subsystem / slice>`
+    - `### Phase 1.1 (<subsystem / slice>)`
       - `- [ ] <loop-sized task>`
+  - Every subsection MUST have a strictly increasing phase number:
+    - `Phase 1.1`, `Phase 1.2`, `Phase 1.3`, … then `Phase 2.1`, `Phase 2.2`, …
+    - No `1A/1B` style subsection labels.
+    - No unnumbered `###` subsections.
+    - If the repo’s existing fix plan uses `####` for subsections, keep the heading depth but still use `Phase N.M (...)`.
   - Do NOT dump everything into one giant phase list; split into subsections per subsystem/slice.
   - If a subsection would exceed ~6–10 checkboxes, split it further.
 - Manual QA is bullets in a non-blocking section, not checkboxes.
@@ -143,19 +148,19 @@ BAD structure (priority buckets + huge checkboxes; causes stalls + vague questio
 GOOD structure (phases + subsections + loop-sized tasks):
 ## Phase 1 (Global primitives: StableHeader + motion tokens)
 
-### StableHeader icons + `∞` formatting
+### Phase 1.1 (StableHeader icons + `∞` formatting)
 - [ ] Audit StableHeader icon call sites + PNG references (list paths) (Flutter)
 - [ ] Add painter widget for ONE StableHeader icon in `apps/flutter/lib/ui/components/stable_header.dart` (no other changes)
 - [ ] Switch that ONE icon to painter rendering in `apps/flutter/lib/ui/components/stable_header.dart`
 - [ ] Add a `formatStableHeaderStreakCount()` helper and use it from `apps/flutter/lib/ui/components/stable_header.dart` (`∞` case + normal ints)
 - [ ] Convert remaining StableHeader PNG icons → painter, then delete the PNG rendering path
 
-### Motion token parity (mirror RN → migrate → delete old path)
+### Phase 1.2 (Motion token parity (mirror RN → migrate → delete old path))
 - [ ] Mirror RN motion tokens into `apps/flutter/lib/design_system/app_motion.dart` (SSOT mapping only; no call sites yet)
 - [ ] Migrate ONE bounded call-site cluster to the mirrored tokens (e.g., StableHeader animations only)
 - [ ] Migrate remaining parity-critical call sites to mirrored tokens, then delete/stop-export the old non-parity tokens
 
-### Checks (small + targeted)
+### Phase 1.3 (Checks (small + targeted))
 - [ ] Run the smallest relevant check (typecheck/lint/test) and record result
 
 DO THIS WORK (read → diagnose gaps → patch Ralph files)
