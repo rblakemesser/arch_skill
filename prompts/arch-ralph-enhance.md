@@ -41,6 +41,17 @@ DOC_PATH:
 - Else infer from conversation/repo.
 - If ambiguous, ask the user to pick from the top 2–3 candidates.
 
+Ground truth policy (inescapable; repeat it everywhere it matters):
+- Before rewriting tasks, identify the “ground truth set” for this effort:
+  - Spec SSOT: `DOC_PATH`
+  - Any additional docs referenced by DOC_PATH that constrain behavior (list the exact doc paths)
+  - Code anchors (entry points / primitives / central SSOT implementation) with file paths
+  - If parity work: upstream reference file(s) (e.g., RN tokens, canonical implementations) with file paths
+- Patch the Ralph files so the loop can’t drift:
+  - In `PROMPT.md`: add/patch a short `Ground truth / References:` list (or equivalent existing section) that includes the exact paths above.
+  - In `@fix_plan.md`: each `## Phase N (...)` should mention the relevant spec anchor once (e.g., `Spec anchor: DOC_PATH — <section name>`), and each `###` subsection should include at least one code anchor path.
+- Any question you ask must include the exact spec/code anchor that makes it ambiguous, plus your default recommendation.
+
 Question policy (strict: no cryptic questions):
 - Do NOT ask technical questions you can answer by reading the plan, code, tests, or existing Ralph files. Go look and decide.
 - Ask only when DOC_PATH is ambiguous or a true product/UX scope decision is required.
