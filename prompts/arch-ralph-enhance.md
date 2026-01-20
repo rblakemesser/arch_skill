@@ -31,8 +31,19 @@ This prompt edits ONLY:
 - `PROMPT.md`
 - `@fix_plan.md`
 - `@AGENT.md` (if it exists)
- - a copied spec file in `specs/` (see SPEC_PATH below)
+- a copied spec file in `specs/` (see SPEC_PATH below)
 DO NOT modify product code. You may read code/search to ground file anchors and call-site completeness.
+
+Git policy (required; commit only Ralph+spec files):
+- After you update the Ralph control files and create/update `SPEC_PATH`, you MUST create a git commit that includes ONLY:
+  - `PROMPT.md`
+  - `@fix_plan.md`
+  - `@AGENT.md` (only if it exists AND was modified)
+  - `SPEC_PATH` (the spec copy in `specs/`)
+- Ignore all other dirty/untracked files in the repo, even if present.
+- Do NOT stage or commit archive directories or Ralph loop state files (`.call_count`, `status.json`, etc).
+- Use explicit `git add <file>` per file; never `git add .` / `git add -A`.
+- If there are no changes to those files (nothing to commit), skip the commit.
 
 $ARGUMENTS is freeform steering. Treat it as intent + constraints + random thoughts.
 

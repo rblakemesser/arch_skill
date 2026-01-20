@@ -30,6 +30,17 @@ This prompt edits ONLY:
 - archival backups + clearing Ralph loop state files
 DO NOT modify product code.
 
+Git policy (required; commit only Ralph+spec files):
+- After you update the Ralph control files and create/update `SPEC_PATH`, you MUST create a git commit that includes ONLY:
+  - `PROMPT.md`
+  - `@fix_plan.md`
+  - `@AGENT.md` (only if it exists AND was modified)
+  - `SPEC_PATH` (the spec copy in `specs/`)
+- Ignore all other dirty/untracked files in the repo, even if present.
+- Do NOT stage or commit archive directories or Ralph loop state files (`.call_count`, `status.json`, etc).
+- Use explicit `git add <file>` per file; never `git add .` / `git add -A`.
+- If there are no changes to those files (nothing to commit), skip the commit.
+
 DOC_PATH:
 - If $ARGUMENTS contains a `docs/<...>.md` or `specs/<...>.md` path, use it.
 - Otherwise infer from conversation/repo.
