@@ -1,5 +1,5 @@
 ---
-description: "Ralph retarget (bootstrap-safe): seed PROMPT/@fix_plan/@AGENT from ~/.ralph/templates, copy the spec into specs/, then rewrite @fix_plan into granular phased tasks (manual QA non-blocking)."
+description: "Ralph retarget (bootstrap-safe): seed PROMPT/@fix_plan from ~/.ralph/templates, set @AGENT.md = repo AGENTS.md, copy the spec into specs/, then rewrite @fix_plan into granular phased tasks (manual QA non-blocking)."
 argument-hint: "<Slang ok. Include docs/<...>.md or specs/<...>.md that is the plan/spec (SSOT).>"
 ---
 # /prompts:arch-ralph-retarget — $ARGUMENTS
@@ -10,16 +10,21 @@ Hard gate (Ralph templates must exist):
 - You MUST have these template files present locally:
   - `~/.ralph/templates/PROMPT.md`
   - `~/.ralph/templates/fix_plan.md`
-  - `~/.ralph/templates/AGENT.md`
 - If any are missing: STOP immediately and print ONLY:
-  - `ERROR: Ralph templates are missing (expected ~/.ralph/templates/PROMPT.md + fix_plan.md + AGENT.md). Restore/install Ralph templates, then rerun /prompts:arch-ralph-retarget.`
+  - `ERROR: Ralph templates are missing (expected ~/.ralph/templates/PROMPT.md + fix_plan.md). Restore/install Ralph templates, then rerun /prompts:arch-ralph-retarget.`
+
+Hard gate (repo AGENTS.md must exist):
+- You MUST have `AGENTS.md` at repo root.
+- If it is missing: STOP immediately and print ONLY:
+  - `ERROR: Repo is missing AGENTS.md at repo root; cannot set @AGENT.md. Add/restore AGENTS.md, then rerun /prompts:arch-ralph-retarget.`
 
 Core rule (PROMPT.md is template-owned; customize via a small overlay patch):
 - This is the “initial setup / retarget” prompt: it seeds Ralph control files from `~/.ralph/templates/` so we don’t lose critical template guidance.
 - You MUST copy these templates into repo root (overwriting whatever is there; after backing up):
   - `~/.ralph/templates/PROMPT.md` → `PROMPT.md`
   - `~/.ralph/templates/fix_plan.md` → `@fix_plan.md`
-  - `~/.ralph/templates/AGENT.md` → `@AGENT.md`
+- You MUST set `@AGENT.md` to the repo’s authoritative agent instructions:
+  - Copy `AGENTS.md` → `@AGENT.md` (exact copy; overwrite after backup; do not append extra sections).
 - After copying, you MUST make PROMPT.md project-aware WITHOUT rewriting it.
   - Allowed PROMPT.md edits are LIMITED to:
     1) Replace the placeholder `[YOUR PROJECT NAME]` project line under `## Context` (make it real).
@@ -38,7 +43,7 @@ Given a planning/spec doc (DOC_PATH), retarget the repo’s existing Ralph setup
 This prompt edits ONLY:
 - `PROMPT.md` (seed from template, then apply the minimal overlay patch above)
 - `@fix_plan.md` (copied from template, then rewritten)
-- `@AGENT.md` (copied from template, then updated)
+- `@AGENT.md` (exact copy of `AGENTS.md`)
 - a copied spec file in `specs/` (see SPEC_PATH below)
 - archival backups + clearing Ralph loop state files
 DO NOT modify product code.
@@ -94,7 +99,7 @@ Ground truth policy (inescapable; repeat it everywhere it matters):
     - key code anchors
     - condensed non-negotiables
     - hard loop rules (one checkbox per loop)
-  - In `@AGENT.md`: add/patch a short `Ground truth / References:` list (or equivalent existing section) that includes the exact paths above.
+  - Do NOT add extra sections to `@AGENT.md` (it must remain an exact copy of `AGENTS.md`).
   - In `@fix_plan.md`: the `Spec (SSOT)` line must reference `SPEC_PATH`, and each `## Phase N (...)` should mention the relevant spec anchor once (e.g., `Spec anchor: SPEC_PATH — <section name>`). Each `###` subsection should include at least one code anchor path.
 - If the spec is ambiguous, link to the exact paragraph/section that is ambiguous and propose a default; do not ask a contextless question.
 
@@ -216,8 +221,7 @@ PROMPT.md:
   - “ONE checkbox per loop” and “Do NOT mark more than one checkbox [x] per loop.”
 
 @AGENT.md:
-- Must reference `SPEC_PATH` and list the ground truth set (docs + code anchors).
-- Must include repo-accurate run/check commands (prefer repo Make targets).
+- MUST be an exact copy of `AGENTS.md` (repo-authoritative). Do not synthesize or extend it.
 
 Now do the updates (in order; no skipping):
 
@@ -228,8 +232,8 @@ Now do the updates (in order; no skipping):
 - Copy these files into repo root:
   - `~/.ralph/templates/PROMPT.md` → `PROMPT.md`
   - `~/.ralph/templates/fix_plan.md` → `@fix_plan.md`
-  - `~/.ralph/templates/AGENT.md` → `@AGENT.md`
 - After copy: patch `PROMPT.md` minimally (do NOT rewrite it).
+- Copy `AGENTS.md` → `@AGENT.md` (exact copy).
 
 2) Materialize `SPEC_PATH`
 - Ensure `SPEC_PATH = specs/<DOC_BASENAME>.md` exists (copy `DOC_PATH` if needed).
@@ -253,13 +257,8 @@ Now do the updates (in order; no skipping):
 - Patch `## Current Task` (or equivalent) to match the hard selection rule:
   - Pick the first unchecked checkbox in `@fix_plan.md`; do not reorder; do not batch.
 
-4) Update `@AGENT.md` (in-place)
-- Set “Current spec (SSOT)” (or equivalent) to `SPEC_PATH`.
-- Add/update `Ground truth / References:` list:
-  - `SPEC_PATH`
-  - any additional docs referenced by the spec
-  - key code anchors you found
-- Replace template “example” run/test commands with the repo’s real commands (prefer Make targets).
+4) Confirm `@AGENT.md` correctness
+- Verify `@AGENT.md` is an exact copy of `AGENTS.md` (no extra sections injected).
 
 5) Rewrite `@fix_plan.md` (in-place; replace task content)
 - Replace template priority buckets with the phase+subsection structure above.
@@ -288,7 +287,7 @@ Summary:
 - Updated:
   - `PROMPT.md` (template + overlay patch)
   - `@fix_plan.md`
-  - `@AGENT.md`
+  - `@AGENT.md` (copied from `AGENTS.md`)
   - `SPEC_PATH`
 - Commit: <done|skipped>
 Open questions:

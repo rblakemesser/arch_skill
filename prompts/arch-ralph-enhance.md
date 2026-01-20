@@ -13,6 +13,11 @@ Hard gate (Ralph bootstrap must already exist; do NOT create these files):
 - If either is missing: STOP immediately and print ONLY:
   - `ERROR: Ralph is not set up in this repo (expected PROMPT.md + @fix_plan.md at repo root). Run Ralph setup/bootstrap first, then rerun /prompts:arch-ralph-enhance.`
 
+Hard gate (repo AGENTS.md must exist):
+- You MUST have `AGENTS.md` at repo root.
+- If it is missing: STOP immediately and print ONLY:
+  - `ERROR: Repo is missing AGENTS.md at repo root; cannot set @AGENT.md. Add/restore AGENTS.md, then rerun /prompts:arch-ralph-enhance.`
+
 Core rule (UPDATE ONLY; PROMPT.md is template-owned):
 - You MUST UPDATE the existing Ralph files in-place.
 - Do NOT replace them with templates (this is not initial setup).
@@ -30,7 +35,7 @@ Do a “second pass” on an existing Ralph setup:
 
 This prompt edits ONLY:
 - `@fix_plan.md`
-- `@AGENT.md` (if it exists)
+- `@AGENT.md` (set to exact copy of `AGENTS.md`)
 - a copied spec file in `specs/` (see SPEC_PATH below)
 DO NOT modify product code. You may read code/search to ground file anchors and call-site completeness.
 
@@ -74,7 +79,7 @@ Ground truth policy (inescapable; repeat it everywhere it matters):
   - If parity work: upstream reference file(s) (e.g., RN tokens, canonical implementations) with file paths
 - Patch the Ralph files so the loop can’t drift:
   - Do NOT modify `PROMPT.md` for ground-truth links (it is template-owned).
-  - In `@AGENT.md`: add/patch a short `Ground truth / References:` list (or equivalent existing section) that includes the exact paths above.
+  - Do NOT add extra sections to `@AGENT.md` (it must remain an exact copy of `AGENTS.md`).
   - In `@fix_plan.md`: the `Spec (SSOT)` line must reference `SPEC_PATH`, and each `## Phase N (...)` should mention the relevant spec anchor once (e.g., `Spec anchor: SPEC_PATH — <section name>`). Each `###` subsection should include at least one code anchor path.
 - Any question you ask must include the exact spec/code anchor that makes it ambiguous, plus your default recommendation.
 
@@ -166,8 +171,8 @@ GOOD structure (phases + subsections + loop-sized tasks):
 DO THIS WORK (read → diagnose gaps → patch Ralph files)
 
 A) Read + diagnose
-1) Read DOC_PATH fully (treat as authoritative SSOT).
-2) Read `PROMPT.md`, `@fix_plan.md`, and `@AGENT.md` (if present).
+1) Read `SPEC_PATH` fully (treat as authoritative SSOT).
+2) Read `PROMPT.md` (read-only), `@fix_plan.md`, and `AGENTS.md` (repo-authoritative).
 3) Identify problems to fix, with evidence anchors:
    - Tasks too big / vague
    - Missing call sites / missing cleanup/deletes
@@ -195,33 +200,22 @@ Manual QA placement:
 - Add/maintain a `Manual QA (HITL, non-blocking)` section using bullets only.
 - Manual QA bullets can reference “Amir run” or “human check later” without blocking.
 
-C) Update `PROMPT.md` (in-place; preserve the `---RALPH_STATUS---` block exactly)
-Patch only what improves execution:
-- Ensure it points to DOC_PATH as the SSOT.
-- Ensure it instructs the loop to:
-  - pick the first unchecked autonomous checkbox in `@fix_plan.md`
-  - do ONE checkbox per loop
-  - refresh memory of DOC_PATH’s North Star + scope before each loop
-- Ensure completion semantics won’t be blocked by HITL follow-ups:
-  - Manual QA must be bullets (not checkboxes) and explicitly “non-blocking”.
-
-D) Update `@AGENT.md` (ONLY if it already exists; do not create it)
-- Update SSOT reference to DOC_PATH.
-- Update “how to run checks” commands to repo norms.
-- Update “key code locations” using DOC_PATH anchors and any verified call-site sweep you did (read-only).
+C) Ensure `@AGENT.md` matches repo rules (copy-only)
+- Set `@AGENT.md` to an exact copy of `AGENTS.md` (overwrite; do not append extra sections).
+- Do not synthesize or extend.
 
 Stop conditions:
 - If DOC_PATH is ambiguous: ask user to choose.
-- If required anchors in PROMPT.md/@fix_plan.md are missing and you can’t patch safely: stop and report what’s missing.
+- If required anchors in @fix_plan.md are missing and you can’t patch safely: stop and report what’s missing.
 - Otherwise do not ask questions.
 
 CONSOLE OUTPUT FORMAT (summary only):
 Summary:
 - DOC_PATH: <path>
+- SPEC_PATH: <path>
 - Updated:
-  - `PROMPT.md`
   - `@fix_plan.md`
-  - `@AGENT.md` (<updated|skipped missing>)
+  - `@AGENT.md` (copied from `AGENTS.md`)
 - Upgrades made:
   - <1–5 bullets: granularity/coverage/idiomatic/checks>
 Open questions:
