@@ -21,6 +21,12 @@ Question policy (strict: no dumb questions):
 - Ask only when you need a product/UX scope decision, or DOC_PATH is ambiguous.
 - Never ask “what do you want to do?” about technical approaches. Pick the most idiomatic default and document it.
 
+Documentation-only (planning):
+- This prompt is for documentation and planning only. DO NOT modify code.
+- You may read code and run read-only searches to ground architectural decisions and call-site lists.
+- If you discover implementation gaps or required refactors, write them into DOC_PATH (do not implement them here).
+- Do not commit/push unless explicitly requested in $ARGUMENTS.
+
 Work you do (high-level, no ceremony):
 - Read DOC_PATH fully.
 - Read enough code to make real decisions (code is ground truth).

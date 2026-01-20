@@ -12,6 +12,12 @@ Question policy (strict):
 - Ask the user only for true product decisions / external constraints not present in the repo/doc, or to disambiguate between multiple equally plausible docs.
 - If multiple viable technical approaches exist, pick the most idiomatic default and note alternatives in the doc (do not ask “what do you want to do?”).
 
+Documentation-only (audit output):
+- This prompt audits code vs plan and updates DOC_PATH. DO NOT modify code.
+- The subagent may inspect code, but the only file edits are to DOC_PATH (inserting the audit block).
+- Do not implement fixes here; record them as gaps in the doc.
+- Do not commit/push unless explicitly requested in $ARGUMENTS.
+
 Stop-the-line gates (must pass before audit)
 - North Star Gate: falsifiable + verifiable, bounded + coherent.
 - UX Scope Gate: explicit UX in-scope/out-of-scope (what users see changes vs does not change).

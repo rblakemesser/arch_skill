@@ -15,6 +15,9 @@ Example: blurb="Redesign replay phase machine to be SSOT"
 → `docs/REDESIGN_REPLAY_PHASE_MACHINE_TO_BE_SSOT_2026-01-16.md`
 Apply the **single-document rule**: all planning and decisions live in this doc.
 Do not create additional planning docs.
+Documentation-only (planning):
+- This prompt creates/edits docs only. DO NOT modify code.
+- Do not commit/push unless explicitly requested in $ARGUMENTS.
 CRITICAL: The North Star MUST be correct.
 - Draft the TL;DR and Section 0 (Holistic North Star) from $ARGUMENTS (do not leave placeholders there).
 - Then STOP and ask the user to confirm/correct the North Star before proceeding to research/architecture execution.

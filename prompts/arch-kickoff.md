@@ -14,6 +14,12 @@ Question policy (strict):
 Do not ask the user questions during investigation. Resolve by reading more code and searching the repo. Ask only if required by a stop-the-line gate or if required information is not present in the repo/doc and cannot be inferred.
 We will work out of a single canonical doc at DOC_PATH.
 
+Documentation-only (planning):
+- This prompt is for documentation and planning only. DO NOT modify code.
+- You may read code and run read-only searches to inform research anchors.
+- If you discover code changes we likely need, write them into DOC_PATH as plan items (do not implement them here).
+- Do not commit/push unless explicitly requested in $ARGUMENTS.
+
 Stop-the-line: North Star Gate (must pass before ANY research/architecture work)
 - Falsifiable + verifiable: the North Star states a concrete claim AND how we will prove it (acceptance evidence: tests/harness/instrumentation/manual QA + stop-the-line invariants).
 - Bounded + coherent: the North Star clearly states in-scope + out-of-scope and does not contradict the TL;DR/plan.

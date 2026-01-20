@@ -20,6 +20,12 @@ You are designing an execution plan. Good implementation planning looks like:
   - If sim/video/screenshot proof is flaky or slow, use targeted instrumentation + a short manual QA checklist and keep moving; record any pending manual verification explicitly.
 - When introducing/upgrading a central primitive (SSOT, lifecycle/motion primitive, layout contract, policy resolver, etc.), include an explicit adoption/migration step for all call sites discovered (or explicitly defer with rationale). Do not create parallel solutions.
 
+Documentation-only (planning):
+- This prompt is for documentation and planning only. DO NOT modify code.
+- You may read code and run read-only searches to enumerate call sites and plan phases.
+- If you discover missing work, add it to the phase plan (do not implement here).
+- Do not commit/push unless explicitly requested in $ARGUMENTS.
+
 Stop-the-line: North Star Gate (must pass before writing the phase plan)
 - Falsifiable + verifiable: the North Star states a concrete claim AND how we will prove it (acceptance evidence: tests/harness/instrumentation/manual QA + stop-the-line invariants).
 - Bounded + coherent: the North Star clearly states in-scope + out-of-scope and does not contradict the TL;DR/plan.

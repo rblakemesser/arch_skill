@@ -12,6 +12,10 @@ Question policy (strict):
 - Ask the user only for true product decisions / external constraints not present in the repo/doc.
 - The only routine question allowed here is phase disambiguation if the doc/worklog is ambiguous.
 
+Documentation-only (planning):
+- This prompt only updates docs (WORKLOG_PATH, and Decision Log in DOC_PATH if needed). DO NOT modify code.
+- Do not commit/push unless explicitly requested in $ARGUMENTS.
+
 Stop-the-line gates (must pass before updating progress)
 - North Star Gate: falsifiable + verifiable, bounded + coherent.
 - UX Scope Gate: explicit UX in-scope/out-of-scope (what users see changes vs does not change).

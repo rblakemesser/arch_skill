@@ -12,6 +12,12 @@ Question policy (strict):
 - Ask the user only for true product decisions / external constraints not present in the repo/doc, or to disambiguate between multiple equally plausible docs.
 - If multiple viable technical approaches exist, pick the most idiomatic default and note alternatives in the doc (do not ask “what do you want to do?”).
 
+Documentation-only (planning):
+- This prompt is for documentation and planning only. DO NOT modify code.
+- You may inspect existing scripts/harnesses to propose idiomatic DX commands and artifact paths.
+- If DX suggests code changes, describe them in DOC_PATH (do not implement them here).
+- Do not commit/push unless explicitly requested in $ARGUMENTS.
+
 Stop-the-line gates (must pass before writing DevX targets)
 - North Star Gate: falsifiable + verifiable, bounded + coherent.
 - UX Scope Gate: explicit UX in-scope/out-of-scope (what users see changes vs does not change).

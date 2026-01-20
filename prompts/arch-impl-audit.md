@@ -32,6 +32,10 @@ Hard rules:
   - Do NOT reopen phases or mark NOT COMPLETE solely because manual QA/screenshot evidence wasn’t captured.
   - If manual QA is pending, record it as a non-blocking follow-up (it may be important, but it is not “missing code”).
 - Avoid proof ladders: evidence should be common-sense and fast (existing tests/harness, instrumentation/log signatures). Manual QA can be listed as follow-up, but it is not a gating criterion for “code complete”.
+- Audit-only (no implementation):
+  - DO NOT modify code in this prompt. Only update DOC_PATH with audit findings.
+  - Do not “fix it while you’re here”; capture code gaps with evidence anchors instead.
+  - Do not commit/push unless explicitly requested in $ARGUMENTS.
 
 What you are auditing for (highest bar):
 1) ABSOLUTE completeness:
