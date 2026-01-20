@@ -1,31 +1,35 @@
 ---
-description: "Ralph retarget: update existing PROMPT.md/@fix_plan.md/@AGENT.md from a plan doc (manual QA non-blocking). Hard-bails if Ralph bootstrap missing."
+description: "Ralph retarget (bootstrap-safe): seed PROMPT/@fix_plan/@AGENT from ~/.ralph/templates, copy the spec into specs/, then rewrite @fix_plan into granular phased tasks (manual QA non-blocking)."
 argument-hint: "<Slang ok. Include docs/<...>.md or specs/<...>.md that is the plan/spec (SSOT).>"
 ---
 # /prompts:arch-ralph-retarget — $ARGUMENTS
 Execution rule: ignore unrelated dirty git files; if committing, stage only what you touched.
 Do not preface with a plan. Begin work immediately.
 
-Hard gate (Ralph bootstrap must already exist; do NOT create these files):
-- Ralph is “set up” iff BOTH exist at repo root:
-  - `PROMPT.md`
-  - `@fix_plan.md`
-- If either is missing: STOP immediately and print ONLY:
-  - `ERROR: Ralph is not set up in this repo (expected PROMPT.md + @fix_plan.md at repo root). Run Ralph setup/bootstrap first, then rerun /prompts:arch-ralph-retarget.`
+Hard gate (Ralph templates must exist):
+- You MUST have these template files present locally:
+  - `~/.ralph/templates/PROMPT.md`
+  - `~/.ralph/templates/fix_plan.md`
+  - `~/.ralph/templates/AGENT.md`
+- If any are missing: STOP immediately and print ONLY:
+  - `ERROR: Ralph templates are missing (expected ~/.ralph/templates/PROMPT.md + fix_plan.md + AGENT.md). Restore/install Ralph templates, then rerun /prompts:arch-ralph-retarget.`
 
-Core rule (UPDATE ONLY; do not regenerate):
-- You MUST UPDATE the existing Ralph files in-place.
-- Do NOT replace them with templates.
-- Do NOT rewrite them “from scratch”.
-- Preserve their current structure/formatting; make minimal, surgical edits to the specific sections described below.
-- If an expected anchor section is missing and you can’t safely patch it, STOP and report what anchor is missing (do not invent a new file format).
+Core rule (PROMPT.md is template-owned; do NOT customize it):
+- This is the “initial setup / retarget” prompt: it seeds Ralph control files from `~/.ralph/templates/` so we don’t lose critical template guidance.
+- You MUST copy these templates into repo root (overwriting whatever is there; after backing up):
+  - `~/.ralph/templates/PROMPT.md` → `PROMPT.md`
+  - `~/.ralph/templates/fix_plan.md` → `@fix_plan.md`
+  - `~/.ralph/templates/AGENT.md` → `@AGENT.md`
+- After copying:
+  - Do NOT edit `PROMPT.md` further (treat it as read-only).
+  - Put all repo/spec-specific context in `SPEC_PATH`, `@fix_plan.md`, and `@AGENT.md`.
 
 Goal:
 Given a planning/spec doc (DOC_PATH), retarget the repo’s existing Ralph setup to execute that plan.
 This prompt edits ONLY:
-- `PROMPT.md`
-- `@fix_plan.md`
-- `@AGENT.md` (if it exists)
+- `PROMPT.md` (copied from template; do not customize)
+- `@fix_plan.md` (copied from template, then rewritten)
+- `@AGENT.md` (copied from template, then updated)
 - a copied spec file in `specs/` (see SPEC_PATH below)
 - archival backups + clearing Ralph loop state files
 DO NOT modify product code.
@@ -34,7 +38,7 @@ Git policy (required; commit only Ralph+spec files):
 - After you update the Ralph control files and create/update `SPEC_PATH`, you MUST create a git commit that includes ONLY:
   - `PROMPT.md`
   - `@fix_plan.md`
-  - `@AGENT.md` (only if it exists AND was modified)
+  - `@AGENT.md` (if modified)
   - `SPEC_PATH` (the spec copy in `specs/`)
 - Ignore all other dirty/untracked files in the repo, even if present.
 - Do NOT stage or commit archive directories or Ralph loop state files (`.call_count`, `status.json`, etc).
@@ -75,7 +79,8 @@ Ground truth policy (inescapable; repeat it everywhere it matters):
   - Code anchors (entry points / primitives / central SSOT implementation) with file paths
   - If parity work: upstream reference file(s) (e.g., RN tokens, existing canonical implementations) with file paths
 - When you update Ralph files, you MUST embed these references so the loop can’t drift:
-  - In `PROMPT.md`: add/patch a short `Ground truth / References:` list (or equivalent existing section) that includes the exact paths above.
+  - Do NOT modify `PROMPT.md` for ground-truth links (it is template-owned).
+  - In `@AGENT.md`: add/patch a short `Ground truth / References:` list (or equivalent existing section) that includes the exact paths above.
   - In `@fix_plan.md`: the `Spec (SSOT)` line must reference `SPEC_PATH`, and each `## Phase N (...)` should mention the relevant spec anchor once (e.g., `Spec anchor: SPEC_PATH — <section name>`). Each `###` subsection should include at least one code anchor path.
 - If the spec is ambiguous, link to the exact paragraph/section that is ambiguous and propose a default; do not ask a contextless question.
 
@@ -175,78 +180,78 @@ Clear previous task (backup + reset previous Ralph state):
    - Do NOT delete logs/ or any product files.
 
 UPDATE RULES (use sandbox1/psmobile as the “good” reference shape)
-The “good” shape you’re aiming for looks like this (examples are illustrative; preserve your repo’s exact formatting):
+The “good” shape you’re aiming for looks like sandbox1/psmobile:
 
-PROMPT.md (example style):
-- Has a line like:
-  - `Current project/spec (SSOT):`
-- Has “Non-negotiables” and “Git safety” sections.
-- Has the `---RALPH_STATUS---` block format EXACTLY.
+PROMPT.md:
+- MUST be an exact copy of `~/.ralph/templates/PROMPT.md`.
+- Do NOT customize it in this flow. If you need repo-specific guardrails/links, put them in `SPEC_PATH`, `@AGENT.md`, and `@fix_plan.md`.
 
-@fix_plan.md (example style):
+@fix_plan.md:
 - Begins with:
   - `# Ralph Fix Plan — <topic> (<date>)`
-  - `Spec (SSOT): - <DOC_PATH>`
-- Has “one task per loop” phrasing.
-- Has checkboxes for autonomous work.
-- Manual QA appears as non-blocking notes/follow-ups, NOT gating completion.
+  - `Spec (SSOT):` referencing `SPEC_PATH` (in `specs/`)
+- Uses:
+  - `## Phase N (<descriptor>)`
+  - `### Phase N.M (<subsystem/slice>)` (strictly increasing)
+  - loop-sized `- [ ]` tasks
+- Includes a top note that clarifies execution:
+  - “ONE checkbox per loop” and “Do NOT mark more than one checkbox [x] per loop.”
 
-@AGENT.md (example style):
-- Has setup/run/check commands and key code locations.
+@AGENT.md:
+- Must reference `SPEC_PATH` and list the ground truth set (docs + code anchors).
+- Must include repo-accurate run/check commands (prefer repo Make targets).
 
-Now do the updates:
+Now do the updates (in order; no skipping):
 
-A) UPDATE `@AGENT.md` (only if it already exists; do not create it)
-- Update “Current spec (SSOT)” to DOC_PATH.
-- Update “Checks / quality backpressure” to match repo norms (prefer Make targets).
-- Update “Run the app” commands as appropriate.
-- Update “Key code locations” from DOC_PATH anchors (call-site audit + architecture anchors).
-- Keep the file’s existing structure; patch lines, don’t rewrite.
+0) Backup + reset
+- Perform “Clear previous task (backup + reset previous Ralph state)” exactly as written above.
 
-If `@AGENT.md` is missing:
-- Do NOT create it.
-- Mention it in console summary as “skipped (missing)”.
+1) Seed templates (overwrite; after backup)
+- Copy these files into repo root:
+  - `~/.ralph/templates/PROMPT.md` → `PROMPT.md`
+  - `~/.ralph/templates/fix_plan.md` → `@fix_plan.md`
+  - `~/.ralph/templates/AGENT.md` → `@AGENT.md`
+- After copy: do NOT edit `PROMPT.md` further.
 
-B) UPDATE `@fix_plan.md` (in-place; preserve style; replace task content)
-1) Update the “Spec (SSOT)” line(s) to point to DOC_PATH.
-2) Replace the task list so it is bite-sized + autonomous:
-   - One loop-sized checkbox per task.
-   - Each task should be small and local (a few files), and correspond to the plan’s phases/call-site audit.
-   - Include call-site sweeps and delete-list cleanup as explicit tasks if required by the plan.
-   - Avoid “monster tasks”; split them like the GOOD examples above.
-   - Add an explicit quality check at sensible points (typecheck/lint/test/build), but keep it lightweight and incremental.
-3) Create or update a dedicated non-blocking section for HITL/manual verification:
-   - Title suggestion (keep your file style): `Manual QA (HITL, non-blocking)` or `HITL Follow-ups (non-blocking)`
-   - Use bullets ONLY (no checkboxes).
-   - Put manual QA checklists here.
-   - DO NOT include screenshot harness requirements.
+2) Materialize `SPEC_PATH`
+- Ensure `SPEC_PATH = specs/<DOC_BASENAME>.md` exists (copy `DOC_PATH` if needed).
 
-C) UPDATE `PROMPT.md` (in-place; preserve structure; do not rewrite from scratch)
-Update ONLY the sections needed to retarget:
-- Update the SSOT reference to DOC_PATH (the line under “Current project/spec (SSOT)” or equivalent).
-- Update the non-negotiables/guardrails list to match DOC_PATH (copy/condense without losing meaning).
-- Ensure the execution rule is clear:
-  - “ONE task per loop”
-  - “Pick the first unchecked autonomous checkbox in @fix_plan.md”
-- Ensure EXIT_SIGNAL semantics do not get blocked by manual QA:
-  - If PROMPT.md says “all items in @fix_plan.md must be checked”:
-    - Ensure manual QA is not represented as checkboxes (it must be bullets).
-    - Reinforce that HITL follow-ups do not block completion.
-- Preserve the `---RALPH_STATUS---` block format exactly. Do not change its keys.
+3) Update `@AGENT.md` (in-place)
+- Set “Current spec (SSOT)” (or equivalent) to `SPEC_PATH`.
+- Add/update `Ground truth / References:` list:
+  - `SPEC_PATH`
+  - any additional docs referenced by the spec
+  - key code anchors you found
+- Replace template “example” run/test commands with the repo’s real commands (prefer Make targets).
 
-STOP conditions (setup prompt only):
+4) Rewrite `@fix_plan.md` (in-place; replace task content)
+- Replace template priority buckets with the phase+subsection structure above.
+- `Spec (SSOT)` MUST point at `SPEC_PATH` (not `DOC_PATH`).
+- Ensure tasks are loop-sized + code-anchored + dependency-ordered.
+- Ensure every `###` is numbered `Phase N.M (...)` and numbers only go up.
+- Manual QA belongs in a `Manual QA (HITL, non-blocking)` section using bullets only.
+
+5) Git commit (Ralph control files + spec only)
+- Commit ONLY: `PROMPT.md`, `@fix_plan.md`, `@AGENT.md`, and `SPEC_PATH` (if changed).
+- Ignore all other dirty/untracked files in the repo.
+
+STOP conditions:
 - If DOC_PATH is ambiguous: ask user to choose.
-- If PROMPT.md or @fix_plan.md is missing: bail with the error above.
+- If template files are missing: bail with the template error above.
+- If `DOC_PATH` vs `SPEC_PATH` mismatch is detected (same name, different contents): stop and ask which is SSOT.
 - Otherwise, do not ask questions.
 
 CONSOLE OUTPUT FORMAT (summary only):
 Summary:
 - DOC_PATH: <path>
+- SPEC_PATH: <path>
 - Archive: <path>
+- Seeded templates: <yes/no>
 - Updated:
-  - `PROMPT.md`
+  - `PROMPT.md` (template)
   - `@fix_plan.md`
-  - `@AGENT.md` (<updated|skipped missing>)
-- Ralph state reset: <yes/no> (list which files were cleared, if any)
+  - `@AGENT.md`
+  - `SPEC_PATH`
+- Commit: <done|skipped>
 Open questions:
-- <ONLY doc-path ambiguity or missing required anchors>
+- <ONLY doc-path ambiguity / spec conflict / missing templates>

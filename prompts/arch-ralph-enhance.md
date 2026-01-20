@@ -1,5 +1,5 @@
 ---
-description: "Ralph enhance pass: re-review DOC_PATH + existing PROMPT.md/@fix_plan.md/@AGENT.md and make tasks more granular + complete (no code edits)."
+description: "Ralph enhance pass: re-review SPEC_PATH + existing @fix_plan.md/@AGENT.md and make tasks more granular + complete (PROMPT.md is template-owned)."
 argument-hint: "<Optional. Slang ok. Include docs/<...>.md or specs/<...>.md to pin DOC_PATH.>"
 ---
 # /prompts:arch-ralph-enhance — $ARGUMENTS
@@ -13,11 +13,12 @@ Hard gate (Ralph bootstrap must already exist; do NOT create these files):
 - If either is missing: STOP immediately and print ONLY:
   - `ERROR: Ralph is not set up in this repo (expected PROMPT.md + @fix_plan.md at repo root). Run Ralph setup/bootstrap first, then rerun /prompts:arch-ralph-enhance.`
 
-Core rule (UPDATE ONLY; do not regenerate):
+Core rule (UPDATE ONLY; PROMPT.md is template-owned):
 - You MUST UPDATE the existing Ralph files in-place.
-- Do NOT replace them with templates.
+- Do NOT replace them with templates (this is not initial setup).
 - Do NOT rewrite them “from scratch”.
-- Preserve their current structure/formatting; make minimal, surgical edits to the specific parts described below.
+- Do NOT edit `PROMPT.md` (treat it as template-owned / read-only).
+- Preserve existing structure/formatting; make minimal, surgical edits to the specific parts described below.
 - If an expected anchor section is missing and you can’t safely patch it, STOP and report what anchor is missing (do not invent a new file format).
 
 Goal:
@@ -28,7 +29,6 @@ Do a “second pass” on an existing Ralph setup:
 - Ensure the plan won’t get stuck on manual QA / screenshot proof burdens.
 
 This prompt edits ONLY:
-- `PROMPT.md`
 - `@fix_plan.md`
 - `@AGENT.md` (if it exists)
 - a copied spec file in `specs/` (see SPEC_PATH below)
@@ -36,7 +36,6 @@ DO NOT modify product code. You may read code/search to ground file anchors and 
 
 Git policy (required; commit only Ralph+spec files):
 - After you update the Ralph control files and create/update `SPEC_PATH`, you MUST create a git commit that includes ONLY:
-  - `PROMPT.md`
   - `@fix_plan.md`
   - `@AGENT.md` (only if it exists AND was modified)
   - `SPEC_PATH` (the spec copy in `specs/`)
@@ -74,7 +73,8 @@ Ground truth policy (inescapable; repeat it everywhere it matters):
   - Code anchors (entry points / primitives / central SSOT implementation) with file paths
   - If parity work: upstream reference file(s) (e.g., RN tokens, canonical implementations) with file paths
 - Patch the Ralph files so the loop can’t drift:
-  - In `PROMPT.md`: add/patch a short `Ground truth / References:` list (or equivalent existing section) that includes the exact paths above.
+  - Do NOT modify `PROMPT.md` for ground-truth links (it is template-owned).
+  - In `@AGENT.md`: add/patch a short `Ground truth / References:` list (or equivalent existing section) that includes the exact paths above.
   - In `@fix_plan.md`: the `Spec (SSOT)` line must reference `SPEC_PATH`, and each `## Phase N (...)` should mention the relevant spec anchor once (e.g., `Spec anchor: SPEC_PATH — <section name>`). Each `###` subsection should include at least one code anchor path.
 - Any question you ask must include the exact spec/code anchor that makes it ambiguous, plus your default recommendation.
 
@@ -104,7 +104,7 @@ You are upgrading the Ralph files so they meet these standards (be explicit; do 
 
 3) Idiomatic + enforceable
 - Tasks drive the most idiomatic architecture by repo standards (not just “make it work”).
-- Invariants are stated in PROMPT.md so the loop fails loudly when violated (tests/checks, typecheck, lint, build).
+- Invariants must be stated in `SPEC_PATH` and reinforced via `@AGENT.md` / `@fix_plan.md` so the loop fails loudly when violated (tests/checks, typecheck, lint, build).
 
 4) Execution clarity
 - Phase references must be human-readable: never “Phase 2” with no meaning.
