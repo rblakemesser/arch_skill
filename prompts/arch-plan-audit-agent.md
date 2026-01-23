@@ -1,8 +1,8 @@
 ---
-description: "Plan audit: score plan readiness across phases (FULLY specified architecture, FULLY idiomatic, CALL SITES audited)."
+description: "Plan audit (agent-assisted): score plan readiness across phases with parallel subagent checks."
 argument-hint: "<Paste anything. If you have a doc, include docs/<...>.md somewhere in the text.>"
 ---
-# /prompts:arch-plan-audit — $ARGUMENTS
+# /prompts:arch-plan-audit-agent — $ARGUMENTS
 Execution rule: ignore unrelated dirty git files; if committing, stage only what you touched.
 Do not preface with a plan. Begin work immediately.
 
@@ -28,6 +28,37 @@ Question policy (strict: no dumb questions):
   - Missing access/permissions
 - If you think you need to ask, first state where you looked; ask only after exhausting repo evidence.
 
+Subagents (agent-assisted; parallel read-only sweeps when beneficial)
+- Use subagents to keep grep-heavy scanning and long outputs out of the main agent context.
+- Spawn these subagents in parallel only when they are read-only and disjoint.
+- Subagent ground rules:
+  - Read-only: subagents MUST NOT modify files or create artifacts.
+  - Shared environment: avoid commands that generate/overwrite outputs; prefer pure read/search.
+  - No questions: subagents must answer from repo/doc evidence only.
+  - No recursion: subagents must NOT spawn other subagents.
+  - Output must match the exact format requested (no extra narrative).
+  - Do not spam/poll subagents; wait for completion, then integrate.
+  - Close subagents once their results are captured.
+
+Spawn subagents as needed (disjoint scopes; read-only):
+1) Subagent: Call-Site Audit Validator
+   - Task: validate “CALL SITES AUDITED” by searching repo for additional call sites not listed in the plan.
+   - Output format (sections only):
+     Verdict suggestion: <PASS|PARTIAL|FAIL>
+     Misses:
+     - <path> — <symbol> — <why it looks relevant>
+2) Subagent: Target Architecture Completeness
+   - Task: evaluate whether target architecture is fully specified (SSOT, contracts, deletes/migration).
+   - Output format (sections only):
+     Verdict suggestion: <PASS|PARTIAL|FAIL>
+     Missing specifics:
+     - <item>
+3) Subagent: Idiomatic Fit Checker
+   - Task: check whether plan aligns with existing repo patterns and avoids inventing new frameworks unnecessarily.
+   - Output format (sections only):
+     Verdict suggestion: <PASS|PARTIAL|FAIL>
+     Notes:
+     - <item>
 
 Hard rules:
 - Do not modify any files; output only.

@@ -1,8 +1,8 @@
 ---
-description: "06) Phase plan: depth-first implementation plan."
+description: "06a) Phase plan (agent-assisted): depth-first implementation plan with subagent discovery."
 argument-hint: "<Freeform guidance. Include a docs/<...>.md path anywhere to pin the plan doc (optional).>"
 ---
-# /prompts:arch-phase-plan — $ARGUMENTS
+# /prompts:arch-phase-plan-agent — $ARGUMENTS
 Execution rule: do not block on unrelated dirty files in git; ignore unrecognized changes. If committing, stage only files you touched (or as instructed).
 Do not preface with a plan or restate these instructions. Begin work immediately. If a tool-call preamble is required by system policy, keep it to a single terse line with no step list. Console output must ONLY use the specified format; no extra narrative.
 Inputs: $ARGUMENTS is freeform steering (user intent, constraints, random notes). Process it intelligently.
@@ -17,6 +17,32 @@ Question policy (strict):
   - Missing access/permissions
 - If you think you need to ask, first state where you looked; ask only after exhausting repo evidence.
 
+Subagents (agent-assisted; parallel read-only sweeps when beneficial)
+- Use subagents to keep grep-heavy scanning and long outputs out of the main agent context.
+- Spawn these subagents in parallel only when they are read-only and disjoint.
+- Subagent ground rules:
+  - Read-only: subagents MUST NOT modify files or create artifacts.
+  - Shared environment: avoid commands that generate/overwrite outputs; prefer pure read/search.
+  - No questions: subagents must answer from repo/doc evidence only.
+  - No recursion: subagents must NOT spawn other subagents.
+  - Output must match the exact format requested (no extra narrative).
+  - Do not spam/poll subagents; wait for completion, then integrate.
+  - Close subagents once their results are captured.
+
+Spawn subagents as needed (disjoint scopes; read-only):
+1) Subagent: Call-Site Inventory + Grouping
+   - Task: enumerate call sites that must change and group them into logical migration batches.
+   - Output format (bullets only):
+     - Group: <name>
+       - <path> — <symbol> — <why>
+2) Subagent: Deletes / Cleanup Inventory
+   - Task: identify what must be deleted/removed to avoid parallel paths (old APIs, dead files, unused codepaths).
+   - Output format (bullets only):
+     - <path> — <what should be deleted/removed> — <why>
+3) Subagent: Smallest Signal Checks
+   - Task: identify the smallest existing checks (tests/typecheck/lint/build/QA automation) relevant to each phase.
+   - Output format (bullets only):
+     - <phase candidate> — <command> — <pass/fail signal>
 
 Documentation-only (planning):
 - This prompt is for documentation and planning only. DO NOT modify code.

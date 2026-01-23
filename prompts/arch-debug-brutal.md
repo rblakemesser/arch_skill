@@ -14,9 +14,15 @@ This is a DEV diagnosis workflow. Code is NOT precious here:
 - Avoid adding dev gates/flags/config surfaces (e.g., `__DEV__`, feature flags, env vars) unless absolutely required. Prefer direct edits + quick reverts.
 
 Question policy (extreme):
-- Do NOT ask the user technical questions you can answer by reading code/logs or running a repro; go look and decide.
-- Ask the user only if a REQUIRED external fact is missing and cannot be inferred (e.g., “which exact screen/flow triggers it” if no repro exists in repo).
-- Never ask “what do you want to do?” about technical approaches. Pick the fastest/most informative one.
+
+- You MUST answer anything discoverable from code/tests/fixtures/logs or by running repo tooling; do not ask me.
+- Allowed questions only:
+  - Product/UX decisions not encoded in repo/docs
+  - External constraints not in repo/docs (policies, launch dates, KPIs, access)
+  - Doc-path ambiguity (top 2-3 candidates)
+  - Missing access/permissions
+- If you think you need to ask, first state where you looked; ask only after exhausting repo evidence.
+
 
 Doc policy (diagnosis log):
 1) If $ARGUMENTS includes a docs/<...>.md path, use it as DIAG_PATH (write findings there).

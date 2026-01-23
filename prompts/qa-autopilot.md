@@ -30,9 +30,15 @@ QA worklog doc (authoritative for this run):
   - DATE = today's date in YYYY-MM-DD.
 
 Question policy (strict: no dumb questions):
-- Do NOT ask technical questions you can answer by reading code, tests, existing QA flows, or running commands. Go look and decide.
-- Ask only if you hit a real product-level decision that blocks correctness (UX expectation, behavior spec conflict, etc.).
-- If you must ask, STOP and report with full context: repro, what failed, and the concrete decision needed.
+
+- You MUST answer anything discoverable from code/tests/fixtures/logs or by running repo tooling; do not ask me.
+- Allowed questions only:
+  - Product/UX decisions not encoded in repo/docs
+  - External constraints not in repo/docs (policies, launch dates, KPIs, access)
+  - Doc-path ambiguity (top 2-3 candidates)
+  - Missing access/permissions
+- If you think you need to ask, first state where you looked; ask only after exhausting repo evidence.
+
 
 Autonomy policy (this is autopilot):
 - Do NOT stop to “check in”, narrate progress, or ask “what next”.

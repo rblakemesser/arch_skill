@@ -8,9 +8,15 @@ Do not preface with a plan or restate these instructions. Begin work immediately
 Inputs: $ARGUMENTS is freeform steering (user intent, constraints, random notes). Process it intelligently.
 Resolve DOC_PATH from $ARGUMENTS + the current conversation. If the doc is not obvious, ask the user to choose from the top 2–3 candidates.
 Question policy (strict):
-- Do NOT ask the user technical questions you can answer by reading code or the plan doc; go look and decide.
-- Ask the user only for true product decisions / external constraints not present in the repo/doc.
-- The only routine question allowed here is phase disambiguation if the doc/worklog is ambiguous.
+
+- You MUST answer anything discoverable from code/tests/fixtures/logs or by running repo tooling; do not ask me.
+- Allowed questions only:
+  - Product/UX decisions not encoded in repo/docs
+  - External constraints not in repo/docs (policies, launch dates, KPIs, access)
+  - Doc-path ambiguity (top 2-3 candidates)
+  - Missing access/permissions
+- If you think you need to ask, first state where you looked; ask only after exhausting repo evidence.
+
 
 Documentation-only (planning):
 - This prompt only updates docs (WORKLOG_PATH, and Decision Log in DOC_PATH if needed). DO NOT modify code.

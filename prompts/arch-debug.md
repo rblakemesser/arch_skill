@@ -14,9 +14,15 @@ Inputs:
 Resolve DOC_PATH from $ARGUMENTS + the current conversation. If the doc is not obvious, ask the user to choose from the top 2–3 candidates.
 
 Question policy (strict):
-- Do NOT ask the user technical questions you can answer by reading code/tests/logs/worklog; go look and decide.
-- Ask the user only for the minimum essential repro info that is not inferable from the repo/worklog/logs, or true product decisions/external constraints, or to disambiguate DOC_PATH.
-- Never ask “what do you want to do?” about technical approaches. Pick the most idiomatic approach and note alternatives in the worklog/proposal.
+
+- You MUST answer anything discoverable from code/tests/fixtures/logs or by running repo tooling; do not ask me.
+- Allowed questions only:
+  - Product/UX decisions not encoded in repo/docs
+  - External constraints not in repo/docs (policies, launch dates, KPIs, access)
+  - Doc-path ambiguity (top 2-3 candidates)
+  - Missing access/permissions
+- If you think you need to ask, first state where you looked; ask only after exhausting repo evidence.
+
 
 Stop-the-line gates (must pass before debugging deeper)
 - North Star Gate: falsifiable + verifiable, bounded + coherent.

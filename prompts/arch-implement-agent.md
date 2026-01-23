@@ -1,8 +1,8 @@
 ---
-description: "11) Implement: ship the plan end-to-end (systematic, test-as-you-go, review gate, commit/push after review)."
+description: "11a) Implement (agent-assisted): ship the plan end-to-end using subagents for code + tests to keep main context lean."
 argument-hint: "<Optional: paste symptoms/constraints. Optional: include a docs/<...>.md path anywhere to pin the plan doc.>"
 ---
-# /prompts:arch-implement — $ARGUMENTS
+# /prompts:arch-implement-agent — $ARGUMENTS
 Execution rule: do not block on unrelated dirty files in git; ignore unrecognized changes. If committing, stage only files you touched (or as instructed).
 Do not preface with a plan or restate these instructions. Begin work immediately. If a tool-call preamble is required by system policy, keep it to a single terse line with no step list. Console output must ONLY use the specified format; no extra narrative.
 Inputs: $ARGUMENTS is freeform steering (user intent, constraints, random notes). Process it intelligently.
@@ -16,6 +16,60 @@ Question policy (strict):
   - Doc-path ambiguity (top 2-3 candidates)
   - Missing access/permissions
 - If you think you need to ask, first state where you looked; ask only after exhausting repo evidence.
+
+Subagents (agent-assisted implementation; keep main context lean)
+- Use subagents to keep implementation detail + test logs out of the main agent context.
+- Shared environment rule: only ONE code-writing subagent at a time.
+- Parallel subagents are allowed ONLY for read-only work (e.g., call-site scanning), and must not write files.
+- Subagent ground rules:
+  - No questions: subagents must answer from repo/doc evidence only.
+  - No recursion: subagents must NOT spawn other subagents.
+  - No commits: subagents must NOT commit/push; main agent handles final git operations.
+  - No log spam: subagents must NOT paste long logs/diffs to the console; write details into WORKLOG_PATH and return a short summary.
+  - Do not spam/poll subagents with “are you done?”; wait for completion, then integrate.
+  - Close subagents once their results are captured. If a subagent is mis-scoped, interrupt/redirect sparingly.
+
+Agent-assisted execution loop (main agent):
+- Read DOC_PATH and identify the next phase in order.
+- For each phase: spawn a Phase Implementer subagent with a tight scope, wait, review summary, merge/adjust docs, then close.
+- Continue phase-by-phase until the plan is complete (unless blocked by a real stop-the-line invariant or missing external decision).
+
+Spawn subagents as needed (disjoint scopes):
+1) Subagent: Phase Implementer (write-capable; ONE phase only)
+   - Task: implement exactly one phase from DOC_PATH (Phase <n> (<descriptor>)). Do not start the next phase.
+   - Constraints:
+     - Touch only the code required for that phase + any required compilation fallout.
+     - Keep SSOT real (no parallel paths). Perform required deletes/cleanup for the phase.
+     - Run the smallest relevant check for this phase (per DOC_PATH) and record results.
+     - Update DOC_PATH + WORKLOG_PATH to reflect what was done and what was proven.
+     - Do NOT ask the user technical questions; search the repo and decide.
+     - Do NOT paste logs/diffs; write details to WORKLOG_PATH and return summary only.
+   - Output format (summary only):
+     Summary:
+     - Phase: Phase <n> (<descriptor>)
+     - Touched files:
+       - <path>
+     - Key changes:
+       - <bullet>
+     - Checks run:
+       - <command> — <result>
+     - Docs/worklog updated: <yes/no>
+     - Status: <done|blocked>
+     - Blockers (if any):
+       - <evidence anchor>
+
+2) Subagent: Test Runner (optional; log-heavy; no code edits)
+   - Task: run the final test sweep specified in DOC_PATH (and only that), summarize results, and write them into WORKLOG_PATH.
+   - Constraints:
+     - Do NOT modify code.
+     - Do NOT paste full logs; only summary + failing command + 3-5 key lines if needed.
+   - Output format (summary only):
+     Summary:
+     - Commands run:
+       - <command> — <result>
+     - Failures (if any):
+       - <short> — <evidence anchor>
+     - WORKLOG_PATH updated: <yes/no>
 
 
 Stop-the-line gates (must pass before executing the plan)

@@ -1,8 +1,8 @@
 ---
-description: "03) Research grounding: external + internal anchors."
+description: "03a) Research grounding (agent-assisted): external + internal anchors with subagents."
 argument-hint: "<Freeform guidance. Include a docs/<...>.md path anywhere to pin the plan doc (optional).>"
 ---
-# /prompts:arch-research — $ARGUMENTS
+# /prompts:arch-research-agent — $ARGUMENTS
 Execution rule: do not block on unrelated dirty files in git; ignore unrecognized changes. If committing, stage only files you touched (or as instructed).
 Do not preface with a plan or restate these instructions. Begin work immediately. If a tool-call preamble is required by system policy, keep it to a single terse line with no step list. Console output must ONLY use the specified format; no extra narrative.
 Inputs: $ARGUMENTS is freeform steering (user intent, constraints, random notes). Process it intelligently.
@@ -16,6 +16,31 @@ Question policy (strict):
   - Doc-path ambiguity (top 2-3 candidates)
   - Missing access/permissions
 - If you think you need to ask, first state where you looked; ask only after exhausting repo evidence.
+
+Subagents (agent-assisted research; use when repo surface is large)
+- Use subagents when grounding requires lots of repo-wide searching (patterns, fixtures, call-site clusters).
+- Do NOT use subagents for small/simple docs; do the work directly.
+- Subagent ground rules:
+  - Read-only: subagents MUST NOT modify files or run destructive commands.
+  - Shared environment: avoid commands that generate/overwrite artifacts; prefer pure read/search.
+  - No questions: subagents must answer from repo/doc evidence only.
+  - No recursion: subagents must NOT spawn other subagents.
+  - Output must match the exact format requested (no extra narrative).
+  - Do not spam/poll subagents with “are you done?”; wait for completion, then integrate.
+- Main agent writes DOC_PATH and owns all synthesis/decisions.
+
+Spawn subagents as needed (disjoint scopes):
+1) Subagent: Internal Ground Truth + Patterns (read-only)
+   - Task: find authoritative behavior anchors + existing reusable patterns relevant to DOC_PATH.
+   - Output format (bullets only):
+     - Authoritative anchor: <path> — <what it defines> — <evidence: symbol/test/comment>
+     - Reusable pattern: <path> — <pattern name> — <how it maps to this change>
+2) Subagent: Fixtures / Examples / Tests Scan (read-only)
+   - Task: find fixtures/examples/tests that encode behavior relevant to the change.
+   - Output format (bullets only):
+     - <path> — <what scenario it encodes> — <why it is authoritative>
+
+Close subagents once their results are captured. If a subagent is mis-scoped, interrupt/redirect sparingly.
 
 
 Documentation-only (planning):

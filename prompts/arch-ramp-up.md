@@ -8,13 +8,15 @@ Do not preface with a plan or restate these instructions. Begin work immediately
 Inputs: $ARGUMENTS is freeform steering (user intent, constraints, random notes). Process it intelligently.
 Resolve DOC_PATH from $ARGUMENTS + the current conversation. If the doc is not obvious, ask the user to choose from the top 2–3 candidates.
 Question policy (strict):
-- Do NOT ask the user technical questions you can answer by reading code or the plan doc; go look and decide.
-- Ask the user only to disambiguate which doc to use (top 2–3 candidates) or for true external constraints not present anywhere in the repo/doc.
-Derive WORKLOG_PATH from DOC_PATH using the same directory and suffix: `<DOC_BASENAME>_WORKLOG.md`. If missing, report that it does not exist.
-Read DOC_PATH fully. Extract: current phase, completed phases, in-progress items, open questions, and Decision Log context.
-If WORKLOG_PATH exists, read it and include key execution notes + latest phase progress summary.
-Read all relevant code referenced by the doc (Internal Ground Truth anchors, Call-Site Audit table, target/current architecture sections). If anchors are missing, locate likely modules by searching the repo for the key symbols named in the doc.
-Do not modify code or the document. Prepare to take action with the full context of what is already done.
+
+- You MUST answer anything discoverable from code/tests/fixtures/logs or by running repo tooling; do not ask me.
+- Allowed questions only:
+  - Product/UX decisions not encoded in repo/docs
+  - External constraints not in repo/docs (policies, launch dates, KPIs, access)
+  - Doc-path ambiguity (top 2-3 candidates)
+  - Missing access/permissions
+- If you think you need to ask, first state where you looked; ask only after exhausting repo evidence.
+
 
 OUTPUT FORMAT (console only):
 Summary:

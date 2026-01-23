@@ -17,9 +17,15 @@ DOC_PATH:
 - If ambiguous, ask me to pick from the top 2–3 candidates.
 
 Question policy (strict: no dumb questions):
-- Do NOT ask technical questions you can answer by reading the plan/code/tests. Go look and decide.
-- Ask only when you need a product/UX scope decision, or DOC_PATH is ambiguous.
-- Never ask “what do you want to do?” about technical approaches. Pick the most idiomatic default and document it.
+
+- You MUST answer anything discoverable from code/tests/fixtures/logs or by running repo tooling; do not ask me.
+- Allowed questions only:
+  - Product/UX decisions not encoded in repo/docs
+  - External constraints not in repo/docs (policies, launch dates, KPIs, access)
+  - Doc-path ambiguity (top 2-3 candidates)
+  - Missing access/permissions
+- If you think you need to ask, first state where you looked; ask only after exhausting repo evidence.
+
 
 Documentation-only (planning):
 - This prompt is for documentation and planning only. DO NOT modify code.

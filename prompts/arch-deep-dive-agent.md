@@ -9,39 +9,6 @@ Inputs: $ARGUMENTS is freeform steering (user intent, constraints, random notes)
 Resolve DOC_PATH from $ARGUMENTS + the current conversation. If the doc is not obvious, ask the user to choose from the top 2–3 candidates.
 Question policy (strict):
 
-Subagent strategy (use when call-site inventory or current-architecture scan is large):
-- Spawn up to 3 read-only subagents with disjoint scopes.
-- Subagents MUST NOT modify files, run destructive commands, or ask questions.
-- Subagents return in the exact formats below (no extra narrative).
-- Main agent merges results into DOC_PATH and owns all decisions.
-
-Subagent 1 — Call-Site Sweeper (read-only)
-- Task: enumerate ALL call sites for symbols/APIs named in DOC_PATH.
-- Output format (bullets only):
-  - <path> — <symbol> — <why it is a call site> — <current behavior>
-
-Subagent 2 — Current Architecture Mapper (read-only)
-- Task: summarize as-is architecture from repo code (tree, control paths, ownership, failure behavior).
-- Output format (sections only):
-  On-disk structure:
-  <tree>
-  Control paths:
-  - <flow>
-  Object model + key abstractions:
-  - <item>
-  Observability + failure behavior:
-  - <item>
-
-Subagent 3 — Pattern Consolidation Sweep (read-only)
-- Task: find other areas that should adopt the new central pattern (SSOT/contract/etc.).
-- Output format (table only):
-  | Area | File / Symbol | Pattern to adopt | Why | Scope impact |
-
-Subagent workflow:
-- Spawn agents with explicit scopes and output formats.
-- Wait with a reasonable timeout (scale to repo size).
-- Close agents once results are merged.
-
 - You MUST answer anything discoverable from code/tests/fixtures/logs or by running repo tooling; do not ask me.
 - Allowed questions only:
   - Product/UX decisions not encoded in repo/docs
@@ -49,6 +16,41 @@ Subagent workflow:
   - Doc-path ambiguity (top 2-3 candidates)
   - Missing access/permissions
 - If you think you need to ask, first state where you looked; ask only after exhausting repo evidence.
+
+Subagents (agent-assisted deep dive; use when the repo surface is large)
+- Use subagents when call-site inventory, current-architecture mapping, or consolidation sweep is large enough that doing it inline will blow up context.
+- Do NOT use subagents for small/simple docs; do the work directly.
+- Subagent ground rules:
+  - Read-only: subagents MUST NOT modify files or run destructive commands.
+  - Shared environment: avoid commands that generate/overwrite artifacts; prefer pure read/search.
+  - No questions: subagents must answer from repo/doc evidence only.
+  - No recursion: subagents must NOT spawn other subagents.
+  - Output must match the exact format requested (no extra narrative).
+  - Do not spam/poll subagents with “are you done?”; wait for completion, then integrate.
+- Main agent owns all decisions + writes DOC_PATH. If subagents disagree, resolve by reading more code (do not ask the user).
+
+Spawn subagents as needed (disjoint scopes):
+1) Subagent: Call-Site Sweeper (read-only)
+   - Task: enumerate ALL call sites for symbols/APIs named in DOC_PATH (and obvious near-neighbors discovered in code).
+   - Output format (bullets only):
+     - <path> — <symbol> — <why it is a call site> — <current behavior>
+2) Subagent: Current Architecture Mapper (read-only)
+   - Task: summarize as-is architecture from repo code (tree, control paths, ownership, failure behavior).
+   - Output format (sections only):
+     On-disk structure:
+     <tree>
+     Control paths:
+     - <flow>
+     Object model + key abstractions:
+     - <item>
+     Observability + failure behavior:
+     - <item>
+3) Subagent: Pattern Consolidation Sweep (read-only)
+   - Task: find other areas that should adopt the new central pattern (SSOT/contract/etc.).
+   - Output format (table only):
+     | Area | File / Symbol | Pattern to adopt | Why | Scope impact |
+
+Close subagents once their results are captured. If a subagent is mis-scoped, interrupt/redirect sparingly.
 
 
 Documentation-only (planning):

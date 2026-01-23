@@ -1,8 +1,8 @@
 ---
-description: "07) DevX: CLI-output mocks + artifacts."
+description: "07a) DevX (agent-assisted): CLI-output mocks + artifacts with subagent discovery."
 argument-hint: "<Freeform guidance. Include a docs/<...>.md path anywhere to pin the plan doc (optional).>"
 ---
-# /prompts:arch-devx — $ARGUMENTS
+# /prompts:arch-devx-agent — $ARGUMENTS
 Execution rule: do not block on unrelated dirty files in git; ignore unrecognized changes. If committing, stage only files you touched (or as instructed).
 Do not preface with a plan or restate these instructions. Begin work immediately. If a tool-call preamble is required by system policy, keep it to a single terse line with no step list. Console output must ONLY use the specified format; no extra narrative.
 Inputs: $ARGUMENTS is freeform steering (user intent, constraints, random notes). Process it intelligently.
@@ -17,6 +17,32 @@ Question policy (strict):
   - Missing access/permissions
 - If you think you need to ask, first state where you looked; ask only after exhausting repo evidence.
 
+Subagents (agent-assisted; parallel read-only sweeps when beneficial)
+- Use subagents to keep grep-heavy scanning and long outputs out of the main agent context.
+- Spawn these subagents in parallel only when they are read-only and disjoint.
+- Subagent ground rules:
+  - Read-only: subagents MUST NOT modify files or create artifacts.
+  - Shared environment: avoid commands that generate/overwrite outputs; prefer pure read/search.
+  - No questions: subagents must answer from repo/doc evidence only.
+  - No recursion: subagents must NOT spawn other subagents.
+  - Output must match the exact format requested (no extra narrative).
+  - Do not spam/poll subagents; wait for completion, then integrate.
+  - Close subagents once their results are captured.
+
+Spawn subagents as needed (disjoint scopes; read-only):
+1) Subagent: Existing Commands + Entry Points
+   - Task: find existing repo commands/targets/scripts relevant to this plan (make/just/npm/flutter/etc.).
+   - Output format (bullets only):
+     - <command> — <what it does> — <where defined (path)>
+2) Subagent: Artifacts + Debugging Shortcuts
+   - Task: find existing artifact/log conventions and the fastest debug/inspection shortcuts already used in-repo.
+   - Output format (bullets only):
+     - Artifact: <path pattern> — <what it contains>
+     - Shortcut: <command> — <why useful>
+3) Subagent: DX Acceptance Checks
+   - Task: propose cheap, signal-only DX acceptance checks using existing commands (no new harness).
+   - Output format (bullets only):
+     - <command> — <what it proves> — <expected artifacts>
 
 Documentation-only (planning):
 - This prompt is for documentation and planning only. DO NOT modify code.

@@ -1,8 +1,8 @@
 ---
-description: "08) Audit: code vs plan gaps list."
+description: "08a) Audit (agent-assisted): code vs plan gaps list with subagents."
 argument-hint: "<Freeform guidance. Include a docs/<...>.md path anywhere to pin the plan doc (optional).>"
 ---
-# /prompts:arch-audit — $ARGUMENTS
+# /prompts:arch-audit-agent — $ARGUMENTS
 Execution rule: do not block on unrelated dirty files in git; ignore unrecognized changes. If committing, stage only files you touched (or as instructed).
 Do not preface with a plan or restate these instructions. Begin work immediately. If a tool-call preamble is required by system policy, keep it to a single terse line with no step list. Console output must ONLY use the specified format; no extra narrative.
 Inputs: $ARGUMENTS is freeform steering (user intent, constraints, random notes). Process it intelligently.
@@ -17,6 +17,31 @@ Question policy (strict):
   - Missing access/permissions
 - If you think you need to ask, first state where you looked; ask only after exhausting repo evidence.
 
+Subagents (agent-assisted; parallel read-only sweeps when beneficial)
+- Use subagents to keep grep-heavy scanning and long outputs out of the main agent context.
+- Spawn these subagents in parallel only when they are read-only and disjoint.
+- Subagent ground rules:
+  - Read-only: subagents MUST NOT modify files or create artifacts.
+  - Shared environment: avoid commands that generate/overwrite outputs; prefer pure read/search.
+  - No questions: subagents must answer from repo/doc evidence only.
+  - No recursion: subagents must NOT spawn other subagents.
+  - Output must match the exact format requested (no extra narrative).
+  - Do not spam/poll subagents; wait for completion, then integrate.
+  - Close subagents once their results are captured.
+
+Spawn subagents as needed (disjoint scopes; read-only):
+1) Subagent: Missed Call-Sites Sweep
+   - Task: find plausible call sites not represented in DOC_PATH (grep for target symbols/old APIs; scan near-neighbor modules).
+   - Output format (bullets only):
+     - <path> — <symbol/call site> — <why it should be in the plan> — <expected per plan> — <actual in code>
+2) Subagent: Drift / Parallel Paths Sweep
+   - Task: find parallel implementations / competing sources of truth / deprecated paths still referenced.
+   - Output format (bullets only):
+     - <path> — <what drift/parallel path exists> — <why it matters>
+3) Subagent: Convention + Guardrails Sweep
+   - Task: check for convention violations + missing cheap guardrails the plan assumes (tests/typecheck/lint/build targets).
+   - Output format (bullets only):
+     - <area> — <missing/violation> — <evidence anchor> — <suggested fix>
 
 Documentation-only (audit output):
 - This prompt audits code vs plan and updates DOC_PATH. DO NOT modify code.
