@@ -35,6 +35,7 @@ Restart Codex after updating prompts.
 | `arch_skill/prompts/arch-ascii.md` | `/prompts:arch-ascii` | Render a simple ASCII chart for the current topic/pipeline. |
 | `arch_skill/prompts/arch-research.md` | `/prompts:arch-research` | Populate Research Grounding (external + internal anchors). |
 | `arch_skill/prompts/arch-research-agent.md` | `/prompts:arch-research-agent` | Agent-assisted research: parallel read-only subagents gather internal ground truth/patterns and fixtures/tests evidence. |
+| `arch_skill/prompts/arch-external-research-agent.md` | `/prompts:arch-external-research-agent` | External web research: parallel subagents search best-in-class practices for plan-adjacent topics and write them into DOC_PATH with sources. |
 | `arch_skill/prompts/arch-progress.md` | `/prompts:arch-progress` | Update the worklog with phase progress (plan doc only for decisions). |
 | `arch_skill/prompts/arch-implement.md` | `/prompts:arch-implement` | Implement the plan end-to-end: systematic + test-as-you-go + keep doc current + review gate + commit/push after review. |
 | `arch_skill/prompts/arch-implement-agent.md` | `/prompts:arch-implement-agent` | Agent-assisted implement: main agent orchestrates phase-by-phase; subagents write code + run checks; main context stays lean. |
