@@ -152,22 +152,11 @@ B) Reopen phases in-place (only when needed):
   - Do NOT reopen.
   - Add (or update) a short `Manual QA (non-blocking):` note with the smallest checklist needed.
 
-CONSOLE OUTPUT (friendly + decisive; no cryptic questions):
-Summary:
-- Doc: <path>
-- Verdict (code): <COMPLETE|NOT COMPLETE> (<short reason>)
-- Manual QA: <pending|complete|n/a> (non-blocking)
-- Reopened phases:
-  - <Phase n (what)> — <why>
-- External second opinions:
-  - Opus: <received|pending> — <1 line>
-  - Gemini: <received|pending> — <1 line>
-Major issues (human readable):
-1) <issue>
-2) <issue>
-3) <issue>
-Next:
-- <highest leverage fix>
-- <next fix>
-Open questions (ONLY if unavoidable):
-- <question with full context + your default recommendation>
+OUTPUT FORMAT (console only; Amir-style):
+<1 line north star reminder>
+<1 line punchline>
+- Done: <what you did / what changed>
+- Issues/Risks: <none|what matters>
+- Next: <next action>
+- Need from Amir: <only if required>
+- Pointers: <DOC_PATH/WORKLOG_PATH/other artifacts>

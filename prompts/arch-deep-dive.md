@@ -189,12 +189,11 @@ DOCUMENT CONTENT SKELETON (adapt to existing headings; do not blindly paste dupl
 | <area> | <path> | <pattern> | <reason> | <include/defer/exclude> |
 <!-- arch_skill:block:call_site_audit:end -->
 
-CONSOLE OUTPUT FORMAT (summary + open questions only):
-Summary:
-- Doc updated: <path>
-- Planning passes: <deep_dive_pass_1|deep_dive_pass_2> marked done (or "no block; inferred only")
-- Sections updated/added: <Current/Target/Audit>
-- Pattern sweep candidates (top, with context):
-  - <path> — <pattern> — <why> (or "None")
-Open questions:
-- <other open questions, if any>
+OUTPUT FORMAT (console only; Amir-style):
+<1 line north star reminder>
+<1 line punchline>
+- Done: <what you did / what changed>
+- Issues/Risks: <none|what matters>
+- Next: <next action>
+- Need from Amir: <only if required>
+- Pointers: <DOC_PATH/WORKLOG_PATH/other artifacts>

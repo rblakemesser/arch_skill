@@ -336,20 +336,19 @@ note: This is a warn-first checklist only. It should not hard-block execution.
 
 ---
 
-CONSOLE OUTPUT FORMAT (summary + north star confirmation only):
-Summary:
-- Created doc: <path>
-- Draft TL;DR:
+CONSOLE OUTPUT (Amir-style; north star confirmation):
+<1 line north star reminder (what we’re trying to accomplish overall)>
+<1 line punchline (what you need from Amir right now)>
+- Doc created: <path>
+- Draft TL;DR (high level):
   - Outcome: <one sentence>
   - Problem: <one sentence>
   - Approach: <one sentence>
   - Plan: <1–2 lines>
 - Draft North Star (for confirmation):
-  - Claim: <one sentence, falsifiable>
+  - Claim: <one sentence>
   - In scope: <tight bullets>
   - Out of scope: <tight bullets>
   - Definition of done: <observable acceptance evidence>
   - Stop-the-line invariants: <3–7 bullets>
-Open questions:
-- Confirm North Star + UX scope as written? (yes/no)
-- If “no”: paste edits to the claim + UX scope + DoD + invariants (no need to be polite, be precise).
+- Need from Amir: confirm “yes/no”. If “no”, paste edits to the claim + scope + DoD + invariants.

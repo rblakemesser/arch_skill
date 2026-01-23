@@ -285,18 +285,11 @@ STOP conditions:
 - If `DOC_PATH` vs `SPEC_PATH` mismatch is detected (same name, different contents): stop and ask which is SSOT.
 - Otherwise, do not ask questions.
 
-CONSOLE OUTPUT FORMAT (summary only):
-Summary:
-- DOC_PATH: <path>
-- SPEC_PATH: <path>
-- Archive: <path>
-- Seeded templates: <yes/no>
-- PROMPT.md patched: <yes/no>
-- Updated:
-  - `PROMPT.md` (template + overlay patch)
-  - `@fix_plan.md`
-  - `@AGENT.md` (copied from `AGENTS.md`)
-  - `SPEC_PATH`
-- Commit: <done|skipped>
-Open questions:
-- <ONLY doc-path ambiguity / spec conflict / missing templates>
+OUTPUT FORMAT (console only; Amir-style):
+<1 line north star reminder>
+<1 line punchline>
+- Done: <what you did / what changed>
+- Issues/Risks: <none|what matters>
+- Next: <next action>
+- Need from Amir: <only if required>
+- Pointers: <DOC_PATH/WORKLOG_PATH/other artifacts>

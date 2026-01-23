@@ -16,9 +16,10 @@ Do not preface with a plan or restate these instructions. Begin work immediately
 
 Find the most recent Maestro run under logs/maestro/**. If it failed, re-run the same target with the same platform/device settings. If no failure is found, run the most recent target once.
 
-OUTPUT FORMAT (console only):
-Summary:
-- Target: <make target or flow>
-- Result: <pass/fail>
-Next:
-- <what to do next>
+OUTPUT FORMAT (console only; Amir-style):
+<1 line north star reminder>
+<1 line punchline (did it pass this time?)>
+- Ran: <flow/target>
+- Result: <pass|fail>
+- If failed: <short reason + where>
+- Next: <smallest unblock step>

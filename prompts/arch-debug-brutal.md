@@ -128,14 +128,11 @@ Date: <YYYY-MM-DD>
 - Cleanup to do after fix:
   - remove diagnostics / revert temporary cuts
 
-OUTPUT FORMAT (console only):
-Summary:
-- Diag doc: <path>
-- Root cause: <proven | not yet proven>
-- Confidence: <low|medium|high|certain>
-- Experiments run:
-  - <B*/T*> — <result>
-- Files modified:
-  - <path>
-Next:
-- <single most informative next experiment OR "ready to implement fix"> (yes/no)
+OUTPUT FORMAT (console only; Amir-style):
+<1 line north star reminder>
+<1 line punchline>
+- Done: <what you did / what changed>
+- Issues/Risks: <none|what matters>
+- Next: <next action>
+- Need from Amir: <only if required>
+- Pointers: <DOC_PATH/WORKLOG_PATH/other artifacts>

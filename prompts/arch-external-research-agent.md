@@ -173,11 +173,11 @@ DOCUMENT INSERT FORMAT:
 - <question> — evidence needed: <what would settle it>
 <!-- arch_skill:block:external_research:end -->
 
-CONSOLE OUTPUT FORMAT (summary + open questions only):
-Summary:
-- Doc updated: <path>
-- Planning passes: external_research_grounding marked done (or "no block; inferred only")
-- Topics researched: <count> (<names>)
-- Plan changes implied: <none|listed>
-Open questions:
-- <only unavoidable question>
+OUTPUT FORMAT (console only; Amir-style):
+<1 line north star reminder>
+<1 line punchline>
+- Done: <what you did / what changed>
+- Issues/Risks: <none|what matters>
+- Next: <next action>
+- Need from Amir: <only if required>
+- Pointers: <DOC_PATH/WORKLOG_PATH/other artifacts>

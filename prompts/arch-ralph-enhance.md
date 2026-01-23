@@ -222,14 +222,11 @@ Stop conditions:
 - If required anchors in @fix_plan.md are missing and you can’t patch safely: stop and report what’s missing.
 - Otherwise do not ask questions.
 
-CONSOLE OUTPUT FORMAT (summary only):
-Summary:
-- DOC_PATH: <path>
-- SPEC_PATH: <path>
-- Updated:
-  - `@fix_plan.md`
-  - `@AGENT.md` (copied from `AGENTS.md`)
-- Upgrades made:
-  - <1–5 bullets: granularity/coverage/idiomatic/checks>
-Open questions:
-- <ONLY doc-path ambiguity or missing required anchors>
+OUTPUT FORMAT (console only; Amir-style):
+<1 line north star reminder>
+<1 line punchline>
+- Done: <what you did / what changed>
+- Issues/Risks: <none|what matters>
+- Next: <next action>
+- Need from Amir: <only if required>
+- Pointers: <DOC_PATH/WORKLOG_PATH/other artifacts>

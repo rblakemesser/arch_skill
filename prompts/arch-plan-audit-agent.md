@@ -102,38 +102,11 @@ Minimum audit procedure:
    - Use `rg` to find call sites in the repo.
    - If you find plausible call sites not represented in the plan, mark Call‑Site Audit as FAIL and list the misses.
 
-OUTPUT FORMAT (console only; match this structure):
-Summary:
-- Doc: <path>
-- Verdict: <ready to implement|not ready> (<one short reason>)
-
-Phase audit:
-- North Star — <PASS|PARTIAL|FAIL>
-  - <1–2 short bullets>
-- Research Grounding — <PASS|PARTIAL|FAIL>
-  - <1–2 short bullets>
-- Current Architecture (as-is) — <PASS|PARTIAL|FAIL>
-  - <1–2 short bullets>
-- Target Architecture (to-be) — <PASS|PARTIAL|FAIL> (FULLY specified?)
-  - <1–3 short bullets>
-- Call‑Site Audit — <PASS|PARTIAL|FAIL> (CALL SITES AUDITED?)
-  - <1–3 short bullets>
-- Phase Plan — <PASS|PARTIAL|FAIL>
-  - <1–2 short bullets>
-- DevX Targets — <PASS|PARTIAL|FAIL|SKIP>
-  - <1 short bullet>
-- Review Gate — <PASS|PARTIAL|FAIL|SKIP>
-  - <1 short bullet>
-
-Critical gaps (blockers):
-- Fully specified target architecture:
-  - <bullets>
-- Fully audited call sites:
-  - <bullets>
-- Fully idiomatic / drift-proof:
-  - <bullets>
-
-Next:
-- <the single best next prompt to run + why> (e.g. `/prompts:arch-deep-dive`, `/prompts:arch-plan-enhance`, `/prompts:arch-phase-plan`)
-Open questions (ONLY scope/product, if any):
-- <question>
+OUTPUT FORMAT (console only; Amir-style):
+<1 line north star reminder>
+<1 line punchline>
+- Done: <what you did / what changed>
+- Issues/Risks: <none|what matters>
+- Next: <next action>
+- Need from Amir: <only if required>
+- Pointers: <DOC_PATH/WORKLOG_PATH/other artifacts>

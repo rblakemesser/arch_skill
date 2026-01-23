@@ -70,8 +70,11 @@ DOCUMENT INSERT FORMAT:
 - Decision: proceed to next phase? (yes/no)
 <!-- arch_skill:block:review_gate:end -->
 
-CONSOLE OUTPUT FORMAT (summary + open questions only):
-Summary:
-- <bullet>
-Open questions:
-- Proceed to next phase? (yes/no)
+OUTPUT FORMAT (console only; Amir-style):
+<1 line north star reminder>
+<1 line punchline>
+- Done: <what you did / what changed>
+- Issues/Risks: <none|what matters>
+- Next: <next action>
+- Need from Amir: <only if required>
+- Pointers: <DOC_PATH/WORKLOG_PATH/other artifacts>

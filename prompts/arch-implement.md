@@ -106,21 +106,11 @@ Finalization (after implementation is complete):
 3) Commit and push AFTER review (unless the user explicitly requested a different sequence).
    - Stage only files you touched; ignore other dirty files.
 
-OUTPUT FORMAT (console only):
-Summary:
-- Doc: <path>
-- Worklog: <found|created|skipped>
-- Preflight (recommended planning passes): <ok|warning> — <short>
-- North Star refresh: <done|skipped> — <1 short line: how current work supports North Star>
-- Phase order: <in order|out of order fixed> — working on <phase name/number>
-- Progress:
-  - <what changed>
-- Tests run:
-  - <command> — <result>
-- Status: <complete|in progress|blocked>
-- Review: <not started|requested|integrated>
-- Commit/push: <not done|done>
-Blockers (if any):
-- <blocker + evidence anchor>
-Next:
-- <next action>
+OUTPUT FORMAT (console only; Amir-style):
+<1 line north star reminder>
+<1 line punchline>
+- Done: <what you did / what changed>
+- Issues/Risks: <none|what matters>
+- Next: <next action>
+- Need from Amir: <only if required>
+- Pointers: <DOC_PATH/WORKLOG_PATH/other artifacts>

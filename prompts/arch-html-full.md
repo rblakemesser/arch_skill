@@ -42,10 +42,10 @@ Goal: Generate a clean, static HTML view of an architecture doc using the framew
    `docs/prototypes/<DOC_BASENAME>_full.html`
 4) Open in Chrome.
 
-OUTPUT FORMAT (console only):
-Summary:
+OUTPUT FORMAT (console only; Amir-style):
+<1 line north star reminder>
+<1 line punchline (HTML rendered or blocked)>
 - Doc: <path>
 - Output: <path>
-- Omissions: none (verbatim appendix included)
-Next:
-- <what to do next>
+- Notes: <any important caveat>
+- Next: <what to do next>

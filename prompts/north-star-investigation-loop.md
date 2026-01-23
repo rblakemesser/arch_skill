@@ -53,12 +53,13 @@ Loop protocol (do this in order, every time):
 1) Identify the target investigation doc from $ARGUMENTS and open it.
    - If ambiguous, ask ONCE with concrete candidates.
 
-2) Print "State of the Union" (for the human; chat only):
-   - North Star (1 line)
-   - Current best belief (1–3 bullets)
-   - Biggest uncertainty (1 bullet)
-   - Next bet (exactly ONE bet)
-   - Time budget for this bet
+2) Print "State of the Union" (for the human; chat only; Amir-style):
+   - Line 1: North Star reminder (1 line, plain English)
+   - Line 2: punchline (1 line, plain English)
+   - Then bullets (3-10 bullets max):
+     - current best belief (high level)
+     - biggest uncertainty (1 bullet)
+     - next bet (exactly ONE bet) + time budget
 
 3) Choose ONE hypothesis / bet (highest info gain).
    - Write the bet as 1–2 sentences.
@@ -91,8 +92,12 @@ Loop protocol (do this in order, every time):
    - Stop if the next step requires a product decision; ask ONE well-formed question with context + options + recommendation.
    - Stop if the time budget is hit; print State of the Union + next bet, and ensure Worklog is updated.
 
-Output to the user (in chat):
-- The "State of the Union" (human-friendly; no drowning in details).
-- What changed this loop (1–5 bullets).
-- The next bet (ONE).
-- The doc path you updated (so all details are in the Worklog).
+Output to the user (in chat; Amir-style):
+- Line 1: 1-line North Star reminder.
+- Line 2: punchline (what happened / are we unblocked).
+- Then bullets (3-10 bullets max):
+  - what changed this loop (high level)
+  - what we proved (smallest signal)
+  - issues/risks (if any)
+  - next bet (ONE) + time budget
+  - pointers: doc path you updated (details live in the Worklog)

@@ -97,9 +97,11 @@ DOCUMENT INSERT FORMAT:
 * Rollback:
 <!-- arch_skill:block:phase_plan:end -->
 
-CONSOLE OUTPUT FORMAT (summary + open questions only):
-Summary:
-- Preflight (recommended planning passes): <ok|warning> — <short>
-- <bullet>
-Open questions:
-- <open question>
+OUTPUT FORMAT (console only; Amir-style):
+<1 line north star reminder>
+<1 line punchline>
+- Done: <what you did / what changed>
+- Issues/Risks: <none|what matters>
+- Next: <next action>
+- Need from Amir: <only if required>
+- Pointers: <DOC_PATH/WORKLOG_PATH/other artifacts>

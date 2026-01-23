@@ -84,12 +84,13 @@ Required components:
     - initial hypotheses and why they're ranked that way,
     - what you will do first in the loop phase.
 
-3) Output to the user (in chat):
-- A "State of the Union" meant for a human:
-  - 3–7 bullets max.
-  - What we're optimizing for (North Star, one line),
-  - what we know,
-  - what we don't know,
-  - the next 1–3 bets (time-boxed).
-- IMPORTANT: "State of the Union" is for print only. Do NOT add it as a doc section or keep rewriting it in the doc.
-- Point to the doc path you updated.
+3) Output to the user (in chat; Amir-style):
+- Line 1: 1-line North Star reminder (plain English).
+- Line 2: punchline (plain English).
+- Then bullets (3-10 bullets max):
+  - what you changed in the doc,
+  - what we now know / don’t know (high level),
+  - the next 1-3 timeboxed bets,
+  - "Need from Amir:" only if you truly need a decision.
+- IMPORTANT: this "State of the Union" is for print only. Do NOT add it as a doc section or keep rewriting it in the doc.
+- Point to the doc path you updated (details live in the doc Worklog).

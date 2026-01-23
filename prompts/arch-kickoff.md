@@ -77,9 +77,11 @@ DOCUMENT INSERT FORMAT:
 Decision: proceed to Phase 2 (Architectural planning: current/target architecture + call-site audit)? (yes/no)
 <!-- arch_skill:block:phase1_kickoff:end -->
 
-CONSOLE OUTPUT FORMAT (summary + open questions only):
-Summary:
-- <bullet>
-Open questions:
-- Proceed to Phase 2 (Architectural planning: current/target architecture + call-site audit)? (yes/no)
-- <other open questions, if any>
+OUTPUT FORMAT (console only; Amir-style):
+<1 line north star reminder>
+<1 line punchline>
+- Done: <what you did / what changed>
+- Issues/Risks: <none|what matters>
+- Next: <next action>
+- Need from Amir: <only if required>
+- Pointers: <DOC_PATH/WORKLOG_PATH/other artifacts>

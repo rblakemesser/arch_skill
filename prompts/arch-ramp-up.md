@@ -26,19 +26,11 @@ Question policy (strict):
 - Never be pedantic. Assume shorthand is intentional (long day); optimize for the real goal.
 - Put deep details (commands, logs, exhaustive lists) in DOC_PATH / WORKLOG_PATH, not in console output.
 
-OUTPUT FORMAT (console only):
-Summary:
-- Doc: <path> -- status: <draft|active|complete> -- current phase: <phase>
-- Worklog: <path> -- status: <found|missing>
-- What's done:
-  - <item>
-- In progress:
-  - <item>
-- Relevant code reviewed:
-  - <path>
-Readiness:
-- Ready to proceed? (yes/no)
-- Blockers / missing context:
-  - <item>
-Open questions:
-- <question>
+OUTPUT FORMAT (console only; Amir-style):
+<1 line north star reminder>
+<1 line punchline>
+- Done: <what you did / what changed>
+- Issues/Risks: <none|what matters>
+- Next: <next action>
+- Need from Amir: <only if required>
+- Pointers: <DOC_PATH/WORKLOG_PATH/other artifacts>

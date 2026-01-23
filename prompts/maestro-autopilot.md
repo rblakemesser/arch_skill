@@ -66,13 +66,14 @@ Execution (end-to-end):
 3) Keep a short work log and note fixes in the relevant doc if one exists.
 4) Commit only files you changed; ignore other dirty files. Push if requested.
 
-OUTPUT FORMAT (console only):
-Summary:
-- Interpreted request: <platform(s)> / <baseline|focused> / <query or “baseline”>
-- Resolved target(s): <make target or flow path(s)>
-- iOS result: <pass/fail>
-- Android result: <pass/fail or skipped>
+OUTPUT FORMAT (console only; Amir-style):
+Only print this when STOPPING (complete/blocked) or when a real product decision is required.
+
+<1 line north star reminder>
+<1 line punchline (pass/fail + what’s blocking)>
+- Ran: <platform(s)> — <what suite/feature>
+- Result: <pass|fail> (per platform)
 - Fixes made: <high-level>
-- Product bug found: <yes/no>
-Next:
-- <only if blocked: decision needed or smallest unblock step; otherwise “none”>
+- Issues/Risks: <none|what’s still broken>
+- Next: <only if blocked: decision needed or smallest unblock step>
+- Pointers: <targets/flow paths or worklog if one exists>

@@ -187,19 +187,11 @@ Plan doc: <DOC_PATH or "none">
 - What is still unverified:
   - <bullet>
 
-CONSOLE OUTPUT FORMAT (friendly + human readable; no giant dumps):
-Only print this when STOPPING (complete/blocked/timeboxed). Do not print per-run updates.
-
-Summary:
-- QA worklog: <path>
-- Harness: <chosen>
-- Runs:
-  - <name> — <pass/fail>
-- Fixes landed:
-  - <bullet>
-- Product issues:
-  - <none|bullet list>
-Status:
-- <complete|blocked>
-Next (only if blocked/timeboxed):
-- <decision needed OR smallest unblock step OR remaining unverified checklist item>
+CONSOLE OUTPUT (Amir-style; only print when STOPPING: complete/blocked/timeboxed):
+<1 line north star reminder>
+<1 line punchline (what happened / are we unblocked?)>
+- Done: <what was tested end-to-end>
+- Proved: <smallest signal(s) that passed/failed>
+- Issues/Risks: <none|what’s still broken>
+- Next: <only if blocked/timeboxed: decision needed or smallest unblock step>
+- Pointers: QA worklog=<path> (details live there)

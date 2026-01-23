@@ -99,26 +99,11 @@ Process:
    - If debugging reveals plan drift or requires changing sequencing/assumptions, append a Decision Log entry.
    - Otherwise keep the plan doc unchanged.
 
-OUTPUT FORMAT (console only):
-Summary:
-- Doc: <path> -- status: <draft|active|complete> -- current phase: <phase>
-- Worklog: <path> -- status: <found|created|missing>
-- Symptoms:
-  - <expected vs actual, short>
-- Root cause:
-  - <one sentence, proven OR "not yet proven">
-- Confidence: <low|medium|high|certain>
-- Evidence anchors:
-  - <path:line> — <why it proves/disproves>
-- Repro / experiments:
-  - <command or action> — <result>
-- Instrumentation: <none|added (kept)>
-Proposal:
-- Recommended plan-aligned fix:
-  - <bullet>
-- Alternatives considered:
-  - <bullet>
-Next:
-- Ready to implement via the plan? (yes/no)
-Open questions:
-- <question, if any>
+OUTPUT FORMAT (console only; Amir-style):
+<1 line north star reminder>
+<1 line punchline>
+- Done: <what you did / what changed>
+- Issues/Risks: <none|what matters>
+- Next: <next action>
+- Need from Amir: <only if required>
+- Pointers: <DOC_PATH/WORKLOG_PATH/other artifacts>

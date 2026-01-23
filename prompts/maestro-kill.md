@@ -16,9 +16,9 @@ Do not preface with a plan or restate these instructions. Begin work immediately
 
 Find running Maestro processes and stop them cleanly. If multiple are running, stop all. Confirm no Maestro processes remain.
 
-OUTPUT FORMAT (console only):
-Summary:
-- Killed: <process list or count>
-- Remaining: <none or list>
-Next:
-- <what to do next>
+OUTPUT FORMAT (console only; Amir-style):
+<1 line north star reminder>
+<1 line punchline (did we unblock Maestro?)>
+- Done: killed <count> Maestro process(es)
+- Remaining: <none|list>
+- Next: <what to do next>

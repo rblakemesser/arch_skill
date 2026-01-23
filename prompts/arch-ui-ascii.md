@@ -56,8 +56,11 @@ Target UI ASCII:
 ```
 <!-- arch_skill:block:ui_ascii_target:end -->
 
-CONSOLE OUTPUT FORMAT (summary + open questions only):
-Summary:
-- <bullet>
-Open questions:
-- <open question>
+OUTPUT FORMAT (console only; Amir-style):
+<1 line north star reminder>
+<1 line punchline>
+- Done: <what you did / what changed>
+- Issues/Risks: <none|what matters>
+- Next: <next action>
+- Need from Amir: <only if required>
+- Pointers: <DOC_PATH/WORKLOG_PATH/other artifacts>
