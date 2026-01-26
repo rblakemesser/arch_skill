@@ -1,40 +1,71 @@
 ---
-description: "01) New doc: create canonical plan doc + draft North Star from blurb, then confirm with user."
-argument-hint: "<Paste the change request / symptoms / goal. This becomes the draft TL;DR + North Star. No structured args needed.>"
+description: "00a) Reformat: convert an existing doc into canonical arch_skill format (preserve content; infer TL;DR + North Star; ask for confirmation)."
+argument-hint: "<Include a path to the existing doc (docs/<...>.md or any .md). Optional: OUT=docs/<...>.md to write to a new file instead of editing in place.>"
 ---
-# /prompts:arch-new — $ARGUMENTS
+# /prompts:arch-reformat — $ARGUMENTS
+Execution rule: do not block on unrelated dirty files in git; ignore unrecognized changes. If committing, stage only files you touched (or as instructed).
+Do not preface with a plan or restate these instructions. Begin work immediately. If a tool-call preamble is required by system policy, keep it to a single terse line with no step list. Console output should be short and high-signal (no logs); see CONSOLE OUTPUT for required content.
+Inputs: $ARGUMENTS is freeform steering (user intent, constraints, random notes). Process it intelligently.
+
+Resolve DOC_PATH:
+- If $ARGUMENTS includes `OUT=...`, treat that as the output path and the first `.md` path as the input DOC_PATH.
+- Otherwise, if $ARGUMENTS includes any `.md` path, use that as DOC_PATH.
+- Otherwise ask the user to provide the doc path (offer 2–3 candidates if you can find them).
+
+Documentation-only (planning):
+- This prompt edits markdown documentation only. DO NOT modify code.
+- Do not commit/push unless explicitly requested in $ARGUMENTS.
+
 # COMMUNICATING WITH AMIR (IMPORTANT)
 
 - Start console output with a 1 line reminder of our North Star.
 - Then give the punch line in plain English.
 - Then give a short update in natural English (bullets optional; use them only if they improve clarity).
 - Never be pedantic. Assume shorthand is intentional (long day); optimize for the real goal.
-- Put deep details (commands, logs, exhaustive lists) in DOC_PATH / WORKLOG_PATH, not in console output.
+- Put deep details (commands, logs, exhaustive lists) in DOC_PATH, not in console output.
 
-Execution rule: do not block on unrelated dirty files in git; ignore unrecognized changes. If committing, stage only files you touched (or as instructed).
-Do not preface with a plan or restate these instructions. Begin work immediately. If a tool-call preamble is required by system policy, keep it to a single terse line with no step list. Console output should be short and high-signal (no logs); see CONSOLE OUTPUT for required content.
-Use the freeform blurb provided after the command ($ARGUMENTS) as the working intent.
-If you already have an existing doc that needs to be converted into the canonical format (instead of creating a new doc), use `/prompts:arch-reformat`.
-Create a new architecture document in `docs/` using the template below.
-Name the file yourself using this rule:
-- `docs/<TITLE_SCREAMING_SNAKE>_<DATE>.md`
-- TITLE_SCREAMING_SNAKE = derived from the blurb as a short 5–9 word title, uppercased, spaces → `_`, punctuation removed.
-- DATE = today's date in YYYY-MM-DD (no user input required).
-Example: blurb="Redesign replay phase machine to be SSOT"
-→ `docs/REDESIGN_REPLAY_PHASE_MACHINE_TO_BE_SSOT_2026-01-16.md`
-Apply the **single-document rule**: all planning and decisions live in this doc.
-Do not create additional planning docs.
-Documentation-only (planning):
-- This prompt creates/edits docs only. DO NOT modify code.
-- Do not commit/push unless explicitly requested in $ARGUMENTS.
-CRITICAL: The North Star MUST be correct.
-- Draft the TL;DR and Section 0 (Holistic North Star) from $ARGUMENTS (do not leave placeholders there).
-- Then pause and ask the user to confirm/correct the North Star before proceeding to research/architecture execution.
-- If the user provides edits, update the doc and re-ask for confirmation until the user says “yes”.
+---
 
-Write the filled template into the new doc file. Do not paste the full document to the console (you may print only the drafted TL;DR + North Star for confirmation).
+# North Star (authoritative)
+Take an existing architecture/plan doc that is **not** in the canonical `arch_skill` format and convert it into the canonical format **without losing content**.
 
-DOCUMENT CONTENT FORMAT (write to the new doc file):
+Definition of “convert”:
+- Preserve all information from the original doc (links, code blocks, decisions, TODOs, open questions, call-site notes, etc.).
+- Structure it into the standard template (below), placing content into the most appropriate sections.
+- Fill what you can by **extracting** and **summarizing** from the existing doc (do not invent new facts).
+- If you infer something, label it clearly as a *draft inference* and base it on explicit text from the source doc.
+- If something is truly missing, keep a placeholder/TODO rather than hallucinating.
+
+Hard rules:
+- Do not delete any meaning-bearing content. If you can’t confidently place a piece of text, put it in Appendix A (Imported Notes).
+- Do not “rewrite from scratch”. Re-organize + lightly edit for clarity only when it helps; keep original wording when it carries nuance.
+- Do not introduce new scope. You may clarify scope only if it’s already implied in the source doc.
+- Keep the **single-document rule**: everything stays in the output doc; do not create sidecar planning docs.
+
+---
+
+# Procedure (do this exactly; optimize for correctness over prettiness)
+1) Read DOC_PATH fully and treat it as the source of truth for content.
+2) Create the canonical document skeleton (see TEMPLATE below).
+3) Populate the skeleton by **mapping** content from the source doc:
+   - Move/merge existing sections into the best-fitting canonical sections.
+   - Prefer placing content once (avoid duplication), unless duplication is the only safe way to avoid losing information.
+   - Preserve code fences, tables, and links exactly.
+4) Add a short “Conversion Notes” appendix:
+   - What major chunks you moved (high level).
+   - Anything that couldn’t be confidently categorized (points to Appendix A).
+   - Any gaps/TODOs that remain after extraction.
+5) Ensure the template’s **TL;DR** and **0) Holistic North Star** are drafted from the existing content (no placeholders there unless the source doc truly lacks enough info).
+6) Write the updated doc back:
+   - If OUT is provided: write the canonical output to OUT and leave DOC_PATH unchanged.
+   - Otherwise: rewrite DOC_PATH in-place into canonical format.
+7) Pause and ask the user to confirm/correct the drafted North Star (yes/no).
+
+Do not paste the full document to the console. You may print only the drafted TL;DR + North Star for confirmation.
+
+---
+
+# TEMPLATE (write this structure into the output doc)
 
 ---
 title: "<PROJECT> — <CHANGE> — Architecture Plan"
@@ -171,29 +202,23 @@ note: This is a warn-first checklist only. It should not hard-block execution.
 ## 4.2 Control paths (runtime)
 
 * Flow A:
-
   * Step 1 → Step 2 → Step 3
 * Flow B:
-
   * ...
 
 ## 4.3 Object model + key abstractions
-
 * Key types:
 * Ownership boundaries:
 * Public APIs:
-
   * `Foo.doThing(args) -> Result`
 
 ## 4.4 Observability + failure behavior today
-
 * Logs:
 * Metrics:
 * Failure surfaces:
 * Common failure modes:
 
 ## 4.5 UI surfaces (ASCII mockups, if UI work)
-
 ```ascii
 <ASCII mockups for current UI states, if relevant>
 ```
@@ -203,34 +228,28 @@ note: This is a warn-first checklist only. It should not hard-block execution.
 # 5) Target Architecture (to-be)
 
 ## 5.1 On-disk structure (future)
-
 ```text
 <new/changed tree>
 ```
 
 ## 5.2 Control paths (future)
-
 * Flow A (new):
 * Flow B (new):
 
 ## 5.3 Object model + abstractions (future)
-
 * New types/modules:
 * Explicit contracts:
 * Public APIs (new/changed):
-
   * `Foo.doThingV2(args) -> Result`
   * Migration notes:
 
 ## 5.4 Invariants and boundaries
-
 * Fail-loud boundaries:
 * Single source of truth:
 * Determinism contracts (time/randomness):
 * Performance / allocation boundaries:
 
 ## 5.5 UI surfaces (ASCII mockups, if UI work)
-
 ```ascii
 <ASCII mockups for target UI states, if relevant>
 ```
@@ -240,13 +259,11 @@ note: This is a warn-first checklist only. It should not hard-block execution.
 # 6) Call-Site Audit (exhaustive change inventory)
 
 ## 6.1 Change map (table)
-
 | Area     | File   | Symbol / Call site | Current behavior | Required change | Why         | New API / contract | Tests impacted |
 | -------- | ------ | ------------------ | ---------------- | --------------- | ----------- | ------------------ | -------------- |
 | <module> | <path> | <fn/cls>           | <today>          | <diff>          | <rationale> | <new usage>        | <tests>        |
 
 ## 6.2 Migration notes
-
 * Deprecated APIs:
 * Compatibility shims (if any):
 * Delete list (what must be removed):
@@ -258,7 +275,6 @@ note: This is a warn-first checklist only. It should not hard-block execution.
 > Rule: systematic build, foundational first; every phase has exit criteria + explicit test plan.
 
 ## Phase 1 — <foundation>
-
 * Goal:
 * Work:
 * Test plan (smallest signal):
@@ -266,7 +282,6 @@ note: This is a warn-first checklist only. It should not hard-block execution.
 * Rollback:
 
 ## Phase N — <end state + cleanup>
-
 * Goal:
 * Work:
 * Test plan (smallest signal):
@@ -282,16 +297,13 @@ note: This is a warn-first checklist only. It should not hard-block execution.
 > Default: keep UI/manual verification as a finalization checklist (don’t gate implementation).
 
 ## 8.1 Unit tests (contracts)
-
 * What invariants are unit-locked:
 
 ## 8.2 Integration tests (flows)
-
 * Critical flows:
 * Failure injection:
 
 ## 8.3 E2E / device tests (realistic)
-
 * Scenarios:
 * Evidence / artifacts (optional; do not block):
 
@@ -300,18 +312,15 @@ note: This is a warn-first checklist only. It should not hard-block execution.
 # 9) Rollout / Ops / Telemetry
 
 ## 9.1 Rollout plan
-
 * Flags / gradual rollout:
 * Backward compatibility:
 
 ## 9.2 Telemetry changes
-
 * New events:
 * New properties:
 * Dashboards / alerting:
 
 ## 9.3 Operational runbook
-
 * Debug checklist:
 * Common failure modes + fixes:
 
@@ -320,13 +329,24 @@ note: This is a warn-first checklist only. It should not hard-block execution.
 # 10) Decision Log (append-only)
 
 ## <YYYY-MM-DD> — <decision title>
-
 * Context:
 * Options:
 * Decision:
 * Consequences:
 * Follow-ups:
 
+---
+
+# Appendix A) Imported Notes (unplaced; do not delete)
+If any source content could not be confidently categorized, put it here verbatim so nothing is lost.
+
+# Appendix B) Conversion Notes
+- Source doc: <DOC_PATH>
+- Output doc: <DOC_PATH or OUT>
+- Major moves:
+  - <high level>
+- Remaining gaps / TODOs (from extraction only; no new invention):
+  - <items>
 
 ---
 
@@ -335,7 +355,7 @@ This is the information it should contain but you should communicate it naturall
 Include:
 - North Star reminder (1 line; what we’re trying to accomplish overall)
 - Punchline (1 line; what you need from Amir right now)
-- Doc created path
+- Doc path (output)
 - Draft TL;DR (outcome/problem/approach/plan)
 - Draft North Star for confirmation (claim/scope/definition-of-done/key invariants)
 - Ask Amir to confirm “yes/no” (and paste edits if “no”)

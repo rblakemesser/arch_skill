@@ -20,6 +20,7 @@ Restart Codex after updating prompts.
 
 | Prompt file | Command | Purpose |
 | --- | --- | --- |
+| `arch_skill/prompts/arch-reformat.md` | `/prompts:arch-reformat` | Convert an existing doc into the canonical arch_skill template (preserve content, infer TL;DR + North Star, then ask for confirmation). |
 | `arch_skill/prompts/arch-new.md` | `/prompts:arch-new` | Create a new plan doc and draft the TL;DR + North Star from the blurb, then confirm with user. |
 | `arch_skill/prompts/arch-kickoff.md` | `/prompts:arch-kickoff` | Start Phase 1 (Research) and checkpoint before Phase 2 (Architectural planning: current/target architecture + call-site audit). |
 | `arch_skill/prompts/arch-phase-plan.md` | `/prompts:arch-phase-plan` | Insert the phased implementation plan block. |
@@ -59,6 +60,10 @@ Restart Codex after updating prompts.
 ---
 
 ## Suggested usage flows
+
+### If you already have an existing doc (wrong format)
+1) `/prompts:arch-reformat …` (normalize into the canonical template + confirm North Star)
+2) Continue with the standard flow below (usually `/prompts:arch-kickoff …`)
 
 ### Minimal flow (small change)
 1) `/prompts:arch-new …`
