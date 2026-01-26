@@ -1,10 +1,10 @@
 ---
-description: "15a) Brutal debug: prove root cause fast (temporary hacks allowed)."
+description: "15a) Brutal debug: confirm root cause fast (temporary hacks allowed)."
 argument-hint: "<Paste symptoms/logs/repro. Optional: include a docs/<...>.md path to write the diagnosis doc.>"
 ---
 # /prompts:arch-debug-brutal — $ARGUMENTS
 Execution rule: do not block on unrelated dirty files in git; ignore unrecognized changes. If committing, stage only files you touched (or as instructed).
-Do not preface with a plan or restate these instructions. Begin work immediately. If a tool-call preamble is required by system policy, keep it to a single terse line with no step list. Console output must ONLY use the specified format; no extra narrative.
+Do not preface with a plan or restate these instructions. Begin work immediately. If a tool-call preamble is required by system policy, keep it to a single terse line with no step list. Console output should be short and high-signal (no logs); see OUTPUT FORMAT for required content.
 
 Goal: minimize WALL-CLOCK TIME to prove the root cause with high certainty.
 This is a DEV diagnosis workflow. Code is NOT precious here:
@@ -28,7 +28,7 @@ Question policy (extreme):
 
 - Start console output with a 1 line reminder of our North Star.
 - Then give the punch line in plain English.
-- Then give me bulleted data (3-10 bullets). If I want more data, I'll ask.
+- Then give a short update in natural English (bullets optional; use them only if they improve clarity).
 - Never be pedantic. Assume shorthand is intentional (long day); optimize for the real goal.
 - Put deep details (commands, logs, exhaustive lists) in DOC_PATH / WORKLOG_PATH, not in console output.
 
@@ -44,7 +44,7 @@ Stop conditions:
 - Stop as soon as the root cause is proven with evidence anchors.
 - If you cannot reach certainty quickly, stop with the single smallest next experiment that will settle it.
 
-Stop-the-line (MANDATORY; prevents “wandering”):
+Non-negotiable preflight (prevents “wandering”):
 - You MUST write the structured theory doc + brutal test plan into DIAG_PATH BEFORE touching code or running experiments.
   - Minimum bar: at least 3 top theories + at least 3 brutal tests (B1–B3) written down.
 - Brutal tests are TRAPS / NEGATIVE PROOF — not logs.
@@ -129,10 +129,12 @@ Date: <YYYY-MM-DD>
   - remove diagnostics / revert temporary cuts
 
 OUTPUT FORMAT (console only; Amir-style):
-<1 line north star reminder>
-<1 line punchline>
-- Done: <what you did / what changed>
-- Issues/Risks: <none|what matters>
-- Next: <next action>
-- Need from Amir: <only if required>
-- Pointers: <DOC_PATH/WORKLOG_PATH/other artifacts>
+This is the information it should contain but you should communicate it naturally in english not as a bulleted list that is hard to parse for the user.
+Include:
+- North Star reminder (1 line)
+- Punchline (1 line)
+- What you did / what changed
+- Issues/Risks (if any)
+- Next action
+- Need from Amir (only if required)
+- Pointers (DIAG_PATH / other artifacts)

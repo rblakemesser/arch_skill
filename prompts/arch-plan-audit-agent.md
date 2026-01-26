@@ -32,7 +32,7 @@ Question policy (strict: no dumb questions):
 
 - Start console output with a 1 line reminder of our North Star.
 - Then give the punch line in plain English.
-- Then give me bulleted data (3-10 bullets). If I want more data, I'll ask.
+- Then give a short update in natural English (bullets optional; use them only if they improve clarity).
 - Never be pedantic. Assume shorthand is intentional (long day); optimize for the real goal.
 - Put deep details (commands, logs, exhaustive lists) in DOC_PATH / WORKLOG_PATH, not in console output.
 
@@ -103,10 +103,12 @@ Minimum audit procedure:
    - If you find plausible call sites not represented in the plan, mark Call‑Site Audit as FAIL and list the misses.
 
 OUTPUT FORMAT (console only; Amir-style):
-<1 line north star reminder>
-<1 line punchline>
-- Done: <what you did / what changed>
-- Issues/Risks: <none|what matters>
-- Next: <next action>
-- Need from Amir: <only if required>
-- Pointers: <DOC_PATH/WORKLOG_PATH/other artifacts>
+This is the information it should contain but you should communicate it naturally in english not as a bulleted list that is hard to parse for the user.
+Include:
+- North Star reminder (1 line)
+- Punchline (1 line)
+- What you did / what changed
+- Issues/Risks (if any)
+- Next action
+- Need from Amir (only if required)
+- Pointers (DOC_PATH / WORKLOG_PATH / other artifacts)

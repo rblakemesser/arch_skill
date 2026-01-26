@@ -31,7 +31,7 @@ Question policy (strict: no dumb questions):
 
 - Start console output with a 1 line reminder of our North Star.
 - Then give the punch line in plain English.
-- Then give me bulleted data (3-10 bullets). If I want more data, I'll ask.
+- Then give a short update in natural English (bullets optional; use them only if they improve clarity).
 - Never be pedantic. Assume shorthand is intentional (long day); optimize for the real goal.
 - Put deep details (commands, logs, exhaustive lists) in DOC_PATH / WORKLOG_PATH, not in console output.
 
@@ -53,10 +53,10 @@ Work you do (high-level, no ceremony):
     - If it expands UX scope or meaningfully expands work, default to follow-up/ignore and proceed.
   - Evidence plan must be common-sense and non-blocking: prefer existing tests/checks; otherwise instrumentation/log signature or a short manual checklist. Avoid verification bureaucracy.
 
-Stop-the-line gates (must pass before heavy edits)
-- North Star Gate: doc has a falsifiable + verifiable claim, and explicit stop-the-line invariants.
-- UX Scope Gate: explicit UX in-scope and UX out-of-scope (what users see changes vs does not change).
-If either gate fails, STOP and ask me to fix/confirm those sections (no other questions).
+Alignment checks (keep it light before heavy edits)
+- North Star: concrete + scoped claim, and explicit key invariants.
+- UX scope: explicit UX in-scope and UX out-of-scope (what users see changes vs does not change).
+If either is missing or contradictory, pause and ask me to fix/confirm those sections (no other questions).
 
 Update DOC_PATH by inserting/replacing this block (do NOT assume section numbers):
 1) If `<!-- arch_skill:block:plan_enhancer:start -->` exists, replace inside markers.
@@ -87,8 +87,8 @@ Update DOC_PATH by inserting/replacing this block (do NOT assume section numbers
   - <area> — Proposed: <include|follow-up|ignore> — <why>
 
 ## Evidence (non-blocking)
-- Proof we’ll rely on:
-  - <existing test/check OR instrumentation/log signature OR manual checklist> — <pass/fail>
+- Evidence we’ll rely on:
+  - <existing test/check OR instrumentation/log signature OR manual checklist> — <what you’ll look for>
 - What we will not block on:
   - <e.g. “screen recordings”, “sim screenshot baselines”>
 
@@ -97,10 +97,12 @@ Update DOC_PATH by inserting/replacing this block (do NOT assume section numbers
 <!-- arch_skill:block:plan_enhancer:end -->
 
 OUTPUT FORMAT (console only; Amir-style):
-<1 line north star reminder>
-<1 line punchline>
-- Done: <what you did / what changed>
-- Issues/Risks: <none|what matters>
-- Next: <next action>
-- Need from Amir: <only if required>
-- Pointers: <DOC_PATH/WORKLOG_PATH/other artifacts>
+This is the information it should contain but you should communicate it naturally in english not as a bulleted list that is hard to parse for the user.
+Include:
+- North Star reminder (1 line)
+- Punchline (1 line)
+- What you did / what changed
+- Issues/Risks (if any)
+- Next action
+- Need from Amir (only if required)
+- Pointers (DOC_PATH / WORKLOG_PATH / other artifacts)

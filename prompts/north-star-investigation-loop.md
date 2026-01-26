@@ -3,7 +3,7 @@
 
 - Start console output with a 1 line reminder of our North Star.
 - Then give the punch line in plain English.
-- Then give me bulleted data (3-10 bullets). If I want more data, I'll ask.
+- Then give a short update in natural English (bullets optional; use them only if they improve clarity).
 - Never be pedantic. Assume shorthand is intentional (long day); optimize for the real goal.
 - Put deep details (commands, logs, exhaustive lists) in DOC_PATH / WORKLOG_PATH, not in console output.
 

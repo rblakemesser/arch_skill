@@ -4,7 +4,7 @@ argument-hint: "<Freeform guidance. Include a docs/<...>.md path anywhere to pin
 ---
 # /prompts:arch-ui-ascii — $ARGUMENTS
 Execution rule: do not block on unrelated dirty files in git; ignore unrecognized changes. If committing, stage only files you touched (or as instructed).
-Do not preface with a plan or restate these instructions. Begin work immediately. If a tool-call preamble is required by system policy, keep it to a single terse line with no step list. Console output must ONLY use the specified format; no extra narrative.
+Do not preface with a plan or restate these instructions. Begin work immediately. If a tool-call preamble is required by system policy, keep it to a single terse line with no step list. Console output should be short and high-signal (no logs); see OUTPUT FORMAT for required content.
 Inputs: $ARGUMENTS is freeform steering (user intent, constraints, random notes). Process it intelligently.
 Resolve DOC_PATH from $ARGUMENTS + the current conversation. If the doc is not obvious, ask the user to choose from the top 2–3 candidates.
 Question policy (strict):
@@ -22,14 +22,14 @@ Question policy (strict):
 
 - Start console output with a 1 line reminder of our North Star.
 - Then give the punch line in plain English.
-- Then give me bulleted data (3-10 bullets). If I want more data, I'll ask.
+- Then give a short update in natural English (bullets optional; use them only if they improve clarity).
 - Never be pedantic. Assume shorthand is intentional (long day); optimize for the real goal.
 - Put deep details (commands, logs, exhaustive lists) in DOC_PATH / WORKLOG_PATH, not in console output.
 
-Stop-the-line gates (must pass before adding UI ASCII)
-- North Star Gate: falsifiable + verifiable, bounded + coherent.
-- UX Scope Gate: explicit UX in-scope/out-of-scope (what users see changes vs does not change).
-If either gate does not pass, STOP and ask the user to fix/confirm in the doc before proceeding.
+Alignment checks (keep it light before adding UI ASCII)
+- North Star: concrete + scoped, with a smallest-credible acceptance signal.
+- UX scope: explicit in-scope / out-of-scope (what users see changes vs does not change).
+If either is missing or contradictory, pause and ask for a quick doc edit before proceeding.
 If the change touches UI/UX, add ASCII mockups for current and target states in DOC_PATH.
 Keep them contract-level, not illustrative.
 Write/update the ASCII blocks into DOC_PATH (anti-fragile: do NOT assume section numbers match the template).
@@ -57,10 +57,12 @@ Target UI ASCII:
 <!-- arch_skill:block:ui_ascii_target:end -->
 
 OUTPUT FORMAT (console only; Amir-style):
-<1 line north star reminder>
-<1 line punchline>
-- Done: <what you did / what changed>
-- Issues/Risks: <none|what matters>
-- Next: <next action>
-- Need from Amir: <only if required>
-- Pointers: <DOC_PATH/WORKLOG_PATH/other artifacts>
+This is the information it should contain but you should communicate it naturally in english not as a bulleted list that is hard to parse for the user.
+Include:
+- North Star reminder (1 line)
+- Punchline (1 line)
+- What you did / what changed
+- Issues/Risks (if any)
+- Next action
+- Need from Amir (only if required)
+- Pointers (DOC_PATH / WORKLOG_PATH / other artifacts)

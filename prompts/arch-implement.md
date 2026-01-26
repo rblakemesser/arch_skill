@@ -4,7 +4,7 @@ argument-hint: "<Optional: paste symptoms/constraints. Optional: include a docs/
 ---
 # /prompts:arch-implement — $ARGUMENTS
 Execution rule: do not block on unrelated dirty files in git; ignore unrecognized changes. If committing, stage only files you touched (or as instructed).
-Do not preface with a plan or restate these instructions. Begin work immediately. If a tool-call preamble is required by system policy, keep it to a single terse line with no step list. Console output must ONLY use the specified format; no extra narrative.
+Do not preface with a plan or restate these instructions. Begin work immediately. If a tool-call preamble is required by system policy, keep it to a single terse line with no step list. Console output should be short and high-signal (no logs); see OUTPUT FORMAT for required content.
 Inputs: $ARGUMENTS is freeform steering (user intent, constraints, random notes). Process it intelligently.
 Resolve DOC_PATH from $ARGUMENTS + the current conversation. If the doc is not obvious, ask the user to choose from the top 2–3 candidates.
 Question policy (strict):
@@ -22,14 +22,14 @@ Question policy (strict):
 
 - Start console output with a 1 line reminder of our North Star.
 - Then give the punch line in plain English.
-- Then give me bulleted data (3-10 bullets). If I want more data, I'll ask.
+- Then give a short update in natural English (bullets optional; use them only if they improve clarity).
 - Never be pedantic. Assume shorthand is intentional (long day); optimize for the real goal.
 - Put deep details (commands, logs, exhaustive lists) in DOC_PATH / WORKLOG_PATH, not in console output.
 
-Stop-the-line gates (must pass before executing the plan)
-- North Star Gate: falsifiable + verifiable, bounded + coherent.
-- UX Scope Gate: explicit UX in-scope/out-of-scope (what users see changes vs does not change).
-If either gate does not pass, STOP and ask the user to fix/confirm in the plan doc before proceeding.
+Quick alignment checks (keep it lightweight)
+- North Star: concrete + scoped, with a smallest-credible acceptance signal (prefer existing checks).
+- UX scope: explicit in-scope / out-of-scope (what users see changes vs does not change).
+If either is missing or contradictory, pause and ask for a quick doc edit before making code changes.
 
 Read DOC_PATH fully. Treat the doc as the authoritative spec and checklist.
 
@@ -47,15 +47,14 @@ Warn-first preflight (recommended planning pass sequence; do NOT hard-block)
   - Continue to respect North Star + UX scope; do not “wing it.”
 
 Implementation discipline (optimize for steady execution, not ceremony):
-- Refresh discipline (prevent drift):
-  - At the start of each phase (and at least every ~30–60 minutes of work), re-read the North Star, UX scope, and stop-the-line invariants in the plan doc.
-  - Before starting any new phase, explicitly confirm you are executing the phases in order (no skipping), and that the next work item supports the North Star.
-  - If you discover you are out of order or the plan is missing a prerequisite step, STOP and update the plan doc sequencing (Decision Log entry) before continuing.
+- Stay aligned (simple):
+  - At phase boundaries, re-check the North Star + UX scope + invariants in DOC_PATH.
+  - If the plan needs sequencing tweaks, update DOC_PATH (Decision Log entry) and keep going unless it changes user-facing scope or requires a product decision.
 - Implement SYSTEMATICALLY: follow the phased plan (or the plan’s checklist) in order.
-- Test as you go: after each meaningful chunk (at least once per phase), gather the smallest relevant evidence (existing checks like tests/typecheck/lint/build/QA automation, targeted instrumentation/log signature, or a quick manual check) and record what it proved.
-- Common-sense verification (avoid verification bureaucracy):
-  - Prefer existing checks over building bespoke harnesses or drift scripts; add only minimal tests/instrumentation that pay off.
-  - Do not block the entire plan on flaky sim/video/screenshot steps; if human visual verification is required, add a short manual checklist + clear log/trace signatures and keep moving (record pending QA explicitly in the doc/worklog).
+- Check as you go: after each meaningful chunk (at least once per phase), run the smallest relevant *programmatic* signal (tests/typecheck/lint/build, or targeted instrumentation/log signature) and record the result.
+- Verification policy (autonomy-first):
+  - Prefer existing checks over building bespoke harnesses/DSLs; add only minimal tests/instrumentation that directly prevent a likely regression.
+  - Defer manual verification and UI automation (sim/maestro flows) to **Finalization** by default. Keep a short checklist of what needs UI confirmation and keep moving.
 - Keep the doc current: update DOC_PATH as you go to reflect real progress, phase completion, and any plan drift you discover.
   - If the plan drifts, update the plan doc and add a Decision Log entry (append-only).
   - If a phase is complete, mark it complete in the doc (do not leave the doc ambiguous).
@@ -65,13 +64,13 @@ Implementation discipline (optimize for steady execution, not ceremony):
     - Record it as a follow-up candidate (with file paths/symbols + why) and continue.
     - Only stop+ask if the plan’s scope/North Star is internally contradictory (i.e., required work is declared out-of-scope).
 
-Worklog (lightweight, required):
+Worklog (lightweight; keep it short):
 - Derive WORKLOG_PATH from DOC_PATH using the same directory and suffix: `<DOC_BASENAME>_WORKLOG.md`.
 - If WORKLOG_PATH is missing, create it and add cross-links:
   - Plan doc should reference WORKLOG_PATH near the top (add if missing).
   - Worklog should link back to DOC_PATH at the top.
 - When creating WORKLOG_PATH, initialize it with a minimal header + first entry (keep it short; avoid writing a second plan doc).
-- Append short progress updates there as you go (at least once per phase).
+- Append short progress updates there at phase boundaries (or when something changes).
 
 Preferred worklog insert format:
 ## Phase <n> (<phase name>) Progress Update
@@ -85,7 +84,7 @@ Preferred worklog insert format:
   - <step>
 
 Stop conditions (do not plow ahead):
-- If a stop-the-line invariant fails: stop, fix immediately, and prove it with a test or evidence.
+- If a key invariant fails: stop, fix immediately, and re-run the smallest check that catches the issue.
 - If a real blocker prevents progress: stop and report with evidence anchors (file paths, logs, failing test).
 
 Finish criteria:
@@ -94,7 +93,10 @@ Finish criteria:
 
 Finalization (after implementation is complete):
 1) Run a final test sweep appropriate to the plan (tests listed in the doc + any standard repo checks).
-2) Get a code review from opus/gemini (via read-only reviewer subagents; keep main context lean):
+2) Run UI verification at the end (do not gate mid-implementation):
+   - If UI automation exists (e.g., Maestro), run it now and record results.
+   - Otherwise, provide a short manual checklist (screens/states to confirm) and mark it as pending if you can’t run it yourself.
+3) Get a code review from opus/gemini (via read-only reviewer subagents; keep main context lean):
    - Explicit question: “Is this complete and idiomatic relative to the plan?”
    - Reviewer subagent rules:
      - Read-only: MUST NOT modify files.
@@ -103,14 +105,16 @@ Finalization (after implementation is complete):
      - Output must be short, actionable bullets with evidence anchors (file paths/symbols).
    - Provide ALL context they need (plan doc + key code paths + diffs).
    - Integrate feedback you agree with; do not scope creep.
-3) Commit and push AFTER review (unless the user explicitly requested a different sequence).
+4) Commit and push AFTER review (unless the user explicitly requested a different sequence).
    - Stage only files you touched; ignore other dirty files.
 
 OUTPUT FORMAT (console only; Amir-style):
-<1 line north star reminder>
-<1 line punchline>
-- Done: <what you did / what changed>
-- Issues/Risks: <none|what matters>
-- Next: <next action>
-- Need from Amir: <only if required>
-- Pointers: <DOC_PATH/WORKLOG_PATH/other artifacts>
+This is the information it should contain but you should communicate it naturally in english not as a bulleted list that is hard to parse for the user.
+Include:
+- North Star reminder (1 line)
+- Punchline (1 line)
+- What you did / what changed
+- Issues/Risks (if any)
+- Next action
+- Need from Amir (only if required)
+- Pointers (DOC_PATH / WORKLOG_PATH / other artifacts)

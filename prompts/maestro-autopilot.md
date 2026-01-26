@@ -7,12 +7,12 @@ argument-hint: "<Slang is fine: 'run onboarding on android', 'start from the top
 
 - Start console output with a 1 line reminder of our North Star.
 - Then give the punch line in plain English.
-- Then give me bulleted data (3-10 bullets). If I want more data, I'll ask.
+- Then give a short update in natural English (bullets optional; use them only if they improve clarity).
 - Never be pedantic. Assume shorthand is intentional (long day); optimize for the real goal.
 - Put deep details (commands, logs, exhaustive lists) in DOC_PATH / WORKLOG_PATH, not in console output.
 
 Execution rule: do not block on unrelated dirty files in git; ignore unrecognized changes. If committing, stage only files you touched (or as instructed).
-Do not preface with a plan or restate these instructions. Begin work immediately. If a tool-call preamble is required by system policy, keep it to a single terse line with no step list. Console output must ONLY use the specified format; no extra narrative.
+Do not preface with a plan or restate these instructions. Begin work immediately. If a tool-call preamble is required by system policy, keep it to a single terse line with no step list. Console output should be short and high-signal (no logs); see OUTPUT FORMAT for required content.
 
 Goal: autonomously run Maestro QA automation (end-to-end UI flows) and make it stable. Prefer centralized, reusable subflows and avoid one-off fixes.
 
@@ -69,11 +69,13 @@ Execution (end-to-end):
 OUTPUT FORMAT (console only; Amir-style):
 Only print this when STOPPING (complete/blocked) or when a real product decision is required.
 
-<1 line north star reminder>
-<1 line punchline (pass/fail + what’s blocking)>
-- Ran: <platform(s)> — <what suite/feature>
-- Result: <pass|fail> (per platform)
-- Fixes made: <high-level>
-- Issues/Risks: <none|what’s still broken>
-- Next: <only if blocked: decision needed or smallest unblock step>
-- Pointers: <targets/flow paths or worklog if one exists>
+This is the information it should contain but you should communicate it naturally in english not as a bulleted list that is hard to parse for the user.
+Include:
+- North Star reminder (1 line)
+- Punchline (1 line; pass/fail + what’s blocking)
+- What you ran (platform(s) + suite/feature)
+- Result (per platform)
+- Fixes made (high level)
+- Issues/Risks (if any)
+- Next (only if blocked: decision needed or smallest unblock step)
+- Pointers (targets/flow paths or worklog if one exists)

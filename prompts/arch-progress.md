@@ -4,7 +4,7 @@ argument-hint: "<Freeform guidance. Include a docs/<...>.md path anywhere to pin
 ---
 # /prompts:arch-progress — $ARGUMENTS
 Execution rule: do not block on unrelated dirty files in git; ignore unrecognized changes. If committing, stage only files you touched (or as instructed).
-Do not preface with a plan or restate these instructions. Begin work immediately. If a tool-call preamble is required by system policy, keep it to a single terse line with no step list. Console output must ONLY use the specified format; no extra narrative.
+Do not preface with a plan or restate these instructions. Begin work immediately. If a tool-call preamble is required by system policy, keep it to a single terse line with no step list. Console output should be short and high-signal (no logs); see OUTPUT FORMAT for required content.
 Inputs: $ARGUMENTS is freeform steering (user intent, constraints, random notes). Process it intelligently.
 Resolve DOC_PATH from $ARGUMENTS + the current conversation. If the doc is not obvious, ask the user to choose from the top 2–3 candidates.
 Question policy (strict):
@@ -22,7 +22,7 @@ Question policy (strict):
 
 - Start console output with a 1 line reminder of our North Star.
 - Then give the punch line in plain English.
-- Then give me bulleted data (3-10 bullets). If I want more data, I'll ask.
+- Then give a short update in natural English (bullets optional; use them only if they improve clarity).
 - Never be pedantic. Assume shorthand is intentional (long day); optimize for the real goal.
 - Put deep details (commands, logs, exhaustive lists) in DOC_PATH / WORKLOG_PATH, not in console output.
 
@@ -30,10 +30,10 @@ Documentation-only (planning):
 - This prompt only updates docs (WORKLOG_PATH, and Decision Log in DOC_PATH if needed). DO NOT modify code.
 - Do not commit/push unless explicitly requested in $ARGUMENTS.
 
-Stop-the-line gates (must pass before updating progress)
-- North Star Gate: falsifiable + verifiable, bounded + coherent.
-- UX Scope Gate: explicit UX in-scope/out-of-scope (what users see changes vs does not change).
-If either gate does not pass, STOP and ask the user to fix/confirm in the plan doc before proceeding.
+Alignment checks (keep it light before updating progress)
+- North Star: concrete + scoped, with a smallest-credible acceptance signal.
+- UX scope: explicit in-scope / out-of-scope (what users see changes vs does not change).
+If either is missing or contradictory, pause and ask for a quick doc edit before proceeding.
 Derive WORKLOG_PATH from DOC_PATH using the same directory and suffix: `<DOC_BASENAME>_WORKLOG.md`. If missing, create it. Add cross-links: plan doc should reference the worklog near the top; worklog should link back to the plan doc.
 Update the worklog with progress for the current phase. If a phase is explicitly provided by the user, use it. Otherwise infer it from the doc (latest “Phase <n> (<phase name>) Progress Update” or the most recent phase with incomplete exit criteria). If ambiguous, ask which phase to update.
 Add decisions to the plan doc Decision Log only if a real decision was made.
@@ -61,10 +61,12 @@ PLAN DOC DECISION LOG (only if needed):
 - Follow-ups:
 
 OUTPUT FORMAT (console only; Amir-style):
-<1 line north star reminder>
-<1 line punchline>
-- Done: <what you did / what changed>
-- Issues/Risks: <none|what matters>
-- Next: <next action>
-- Need from Amir: <only if required>
-- Pointers: <DOC_PATH/WORKLOG_PATH/other artifacts>
+This is the information it should contain but you should communicate it naturally in english not as a bulleted list that is hard to parse for the user.
+Include:
+- North Star reminder (1 line)
+- Punchline (1 line)
+- What you did / what changed
+- Issues/Risks (if any)
+- Next action
+- Need from Amir (only if required)
+- Pointers (DOC_PATH / WORKLOG_PATH / other artifacts)

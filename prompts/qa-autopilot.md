@@ -7,7 +7,7 @@ Execution rule: ignore unrelated dirty git files; if committing, stage only what
 Do not preface with a plan. Begin work immediately.
 
 Goal:
-Use QA automation to prove the fundamentals first, then expand coverage. Stay fast and systematic.
+Use QA automation to confirm the fundamentals first, then expand coverage. Stay fast and systematic.
 If QA automation is broken or missing coverage, fix it in an architecturally elegant / idiomatic / unified way that prevents drift, then rerun and record results.
 
 Important (what this prompt is / is not):
@@ -44,7 +44,7 @@ Question policy (strict: no dumb questions):
 
 - Start console output with a 1 line reminder of our North Star.
 - Then give the punch line in plain English.
-- Then give me bulleted data (3-10 bullets). If I want more data, I'll ask.
+- Then give a short update in natural English (bullets optional; use them only if they improve clarity).
 - Never be pedantic. Assume shorthand is intentional (long day); optimize for the real goal.
 - Put deep details (commands, logs, exhaustive lists) in DOC_PATH / WORKLOG_PATH, not in console output.
 
@@ -188,10 +188,12 @@ Plan doc: <DOC_PATH or "none">
   - <bullet>
 
 CONSOLE OUTPUT (Amir-style; only print when STOPPING: complete/blocked/timeboxed):
-<1 line north star reminder>
-<1 line punchline (what happened / are we unblocked?)>
-- Done: <what was tested end-to-end>
-- Proved: <smallest signal(s) that passed/failed>
-- Issues/Risks: <none|what’s still broken>
-- Next: <only if blocked/timeboxed: decision needed or smallest unblock step>
+This is the information it should contain but you should communicate it naturally in english not as a bulleted list that is hard to parse for the user.
+Include:
+- North Star reminder (1 line)
+- Punchline (1 line; what happened / are we unblocked?)
+- What was tested end-to-end
+- Smallest signals that passed/failed
+- Issues/Risks (if any)
+- Next (only if blocked/timeboxed: decision needed or smallest unblock step)
 - Pointers: QA worklog=<path> (details live there)

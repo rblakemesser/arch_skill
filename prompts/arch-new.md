@@ -7,12 +7,12 @@ argument-hint: "<Paste the change request / symptoms / goal. This becomes the dr
 
 - Start console output with a 1 line reminder of our North Star.
 - Then give the punch line in plain English.
-- Then give me bulleted data (3-10 bullets). If I want more data, I'll ask.
+- Then give a short update in natural English (bullets optional; use them only if they improve clarity).
 - Never be pedantic. Assume shorthand is intentional (long day); optimize for the real goal.
 - Put deep details (commands, logs, exhaustive lists) in DOC_PATH / WORKLOG_PATH, not in console output.
 
 Execution rule: do not block on unrelated dirty files in git; ignore unrecognized changes. If committing, stage only files you touched (or as instructed).
-Do not preface with a plan or restate these instructions. Begin work immediately. If a tool-call preamble is required by system policy, keep it to a single terse line with no step list. Console output must ONLY use the specified format; no extra narrative.
+Do not preface with a plan or restate these instructions. Begin work immediately. If a tool-call preamble is required by system policy, keep it to a single terse line with no step list. Console output should be short and high-signal (no logs); see CONSOLE OUTPUT for required content.
 Use the freeform blurb provided after the command ($ARGUMENTS) as the working intent.
 Create a new architecture document in `docs/` using the template below.
 Name the file yourself using this rule:
@@ -28,7 +28,7 @@ Documentation-only (planning):
 - Do not commit/push unless explicitly requested in $ARGUMENTS.
 CRITICAL: The North Star MUST be correct.
 - Draft the TL;DR and Section 0 (Holistic North Star) from $ARGUMENTS (do not leave placeholders there).
-- Then STOP and ask the user to confirm/correct the North Star before proceeding to research/architecture execution.
+- Then pause and ask the user to confirm/correct the North Star before proceeding to research/architecture execution.
 - If the user provides edits, update the doc and re-ask for confirmation until the user says “yes”.
 
 Write the filled template into the new doc file. Do not paste the full document to the console (you may print only the drafted TL;DR + North Star for confirmation).
@@ -89,14 +89,14 @@ note: This is a warn-first checklist only. It should not hard-block execution.
 ## 0.4 Definition of done (acceptance evidence)
 - <observable acceptance criteria, not vibes>
 - Evidence plan (common-sense; non-blocking):
-  - Primary signal (keep it minimal; prefer existing tests/checks): <existing test/check OR instrumentation/log signature OR manual QA checklist> — <pass/fail signal>
-  - Optional second signal (only if needed): <...> — <pass/fail signal>
+  - Primary signal (keep it minimal; prefer existing tests/checks): <existing test/check OR instrumentation/log signature OR manual QA checklist> — <what you’ll look for>
+  - Optional second signal (only if needed): <...> — <what you’ll look for>
   - Default: do NOT add bespoke screenshot harnesses / drift scripts unless they already exist in-repo or are explicitly requested.
 - Metrics / thresholds (if relevant):
   - <metric>: <threshold> — measured via <dash/test/log>
 
-## 0.5 Stop-the-line invariants
-- <if these fail, we stop and fix before continuing>
+## 0.5 Key invariants (fix immediately if violated)
+- <if these fail, fix before continuing>
 - Example: “No silent fallbacks.” “No dual sources of truth.” “No undefined behavior.”
 
 ---
@@ -256,14 +256,6 @@ note: This is a warn-first checklist only. It should not hard-block execution.
 
 > Rule: systematic build, foundational first; every phase has exit criteria + explicit test plan.
 
-## Phase 0 — Baseline gates
-
-* Goal:
-* Work:
-* Test plan (smallest signal):
-* Exit criteria:
-* Rollback:
-
 ## Phase 1 — <foundation>
 
 * Goal:
@@ -286,6 +278,7 @@ note: This is a warn-first checklist only. It should not hard-block execution.
 
 > Principle: avoid verification bureaucracy. Prefer the smallest existing signal. If sim/video/screenshot capture is flaky or slow, rely on targeted instrumentation + a short manual QA checklist and keep moving.
 > Default: 1–3 checks total. Do not invent new harnesses/frameworks/scripts unless they already exist in-repo and are the cheapest guardrail.
+> Default: keep UI/manual verification as a finalization checklist (don’t gate implementation).
 
 ## 8.1 Unit tests (contracts)
 
@@ -337,18 +330,11 @@ note: This is a warn-first checklist only. It should not hard-block execution.
 ---
 
 CONSOLE OUTPUT (Amir-style; north star confirmation):
-<1 line north star reminder (what we’re trying to accomplish overall)>
-<1 line punchline (what you need from Amir right now)>
-- Doc created: <path>
-- Draft TL;DR (high level):
-  - Outcome: <one sentence>
-  - Problem: <one sentence>
-  - Approach: <one sentence>
-  - Plan: <1–2 lines>
-- Draft North Star (for confirmation):
-  - Claim: <one sentence>
-  - In scope: <tight bullets>
-  - Out of scope: <tight bullets>
-  - Definition of done: <observable acceptance evidence>
-  - Stop-the-line invariants: <3–7 bullets>
-- Need from Amir: confirm “yes/no”. If “no”, paste edits to the claim + scope + DoD + invariants.
+This is the information it should contain but you should communicate it naturally in english not as a bulleted list that is hard to parse for the user.
+Include:
+- North Star reminder (1 line; what we’re trying to accomplish overall)
+- Punchline (1 line; what you need from Amir right now)
+- Doc created path
+- Draft TL;DR (outcome/problem/approach/plan)
+- Draft North Star for confirmation (claim/scope/definition-of-done/key invariants)
+- Ask Amir to confirm “yes/no” (and paste edits if “no”)
