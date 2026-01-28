@@ -7,6 +7,9 @@ This guide explains the **intended usage** of the prompts in `prompts/` as two o
 
 It also captures the conventions that make the flows work (doc blocks, worklog naming, subagent rules).
 
+Important: this repo is meant to be used via **installed Codex CLI prompts** (slash commands).
+You don’t “import” this repo as a skill inside another repo; you install the prompts into `~/.codex/prompts/`.
+
 ---
 
 ## 0) Setup (so `/prompts:*` commands exist)
@@ -14,13 +17,9 @@ It also captures the conventions that make the flows work (doc blocks, worklog n
 These prompt files are meant to be installed as Codex “custom prompts”:
 
 ```bash
-mkdir -p ~/.codex/prompts
-#
-# If you're inside the `arch_skill` repo:
-cp prompts/*.md ~/.codex/prompts/
-#
-# If this repo is vendored as a subfolder named `arch_skill/` inside another repo:
-# cp arch_skill/prompts/*.md ~/.codex/prompts/
+git clone git@github.com:aelaguiz/arch_skill.git
+cd arch_skill
+make install
 ```
 
 Restart Codex after updating prompts.

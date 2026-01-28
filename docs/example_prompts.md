@@ -71,7 +71,7 @@ These are **actual prompt examples** observed in recent sessions, curated for cl
 - “You're to fully build our docs/PUZZLE_COLLECTION_BUILDER_AGENT_PLAN.md … use evals as fulcrum … prompts per preferred pattern … avoid poisoning … work log … test agent … best PR”
 - “something is insanely broken … (expanded FPS lag version with more detail about 1 js FPS, 50 UI FPS, never seen before, high-end m3 max)”
 - “Your job is to autonomously figure out how to train a 3p NLHE policy that plays reasonably well … work log … iterative tests … AA/KK must not collapse … commit freely”
-- “review your plan and fully implement it! … log progress … test skill on open sims … update SKILL.md … open PR”
+- “review your plan and fully implement it! … log progress … test on open sims … update the plan doc/worklog … open PR”
 - “I want you to do is use maestro flows / mobile sim to make sure the startup seems strong with these changes in … gather confidence, fix obvious issues (chore branch), full writeup, optional gemini review”
 - “we're on a branch for this. fully implement the plan … ignore files you don’t recognize … ensure CI checks pass … work log … world’s best PR”
 - “autonomously iterate, running agents, finding significant bottlenecks in yield … double end-to-end yield … eval-first … prompt tuning … (shorter version)”
