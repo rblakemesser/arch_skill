@@ -27,6 +27,7 @@ Restart Codex after updating prompts.
 | `arch_skill/prompts/arch-phase-plan-agent.md` | `/prompts:arch-phase-plan-agent` | Agent-assisted phase plan: use parallel read-only subagents for call-site + delete list discovery, then write the phased plan. |
 | `arch_skill/prompts/arch-deep-dive.md` | `/prompts:arch-deep-dive` | Fill Current/Target architecture + Call‑Site Audit sections. |
 | `arch_skill/prompts/arch-deep-dive-agent.md` | `/prompts:arch-deep-dive-agent` | Agent-assisted deep dive: use parallel read-only subagents for current-arch mapping + call-site sweep + consolidation scan. |
+| `arch_skill/prompts/arch-mini-plan-agent.md` | `/prompts:arch-mini-plan-agent` | Mini planning pass: fill Research Grounding + Current/Target Architecture + Call-Site Audit + Phase Plan in one agent-assisted prompt (small tasks). |
 | `arch_skill/prompts/arch-plan-audit.md` | `/prompts:arch-plan-audit` | Audit plan readiness across phases (emphasis: fully specified target architecture, fully idiomatic, call sites audited). |
 | `arch_skill/prompts/arch-plan-audit-agent.md` | `/prompts:arch-plan-audit-agent` | Agent-assisted plan audit: use parallel read-only subagents to validate call-site completeness, architecture specificity, and idiomatic fit. |
 | `arch_skill/prompts/arch-plan-enhance.md` | `/prompts:arch-plan-enhance` | Enhance an existing plan to be best-possible: idiomatic + SSOT + call‑site complete + drift-proof. |
@@ -63,7 +64,14 @@ Restart Codex after updating prompts.
 
 ### If you already have an existing doc (wrong format)
 1) `/prompts:arch-reformat …` (normalize into the canonical template + confirm North Star)
-2) Continue with the standard flow below (usually `/prompts:arch-kickoff …`)
+2) Continue with the standard flow below (usually `/prompts:arch-kickoff …`), or use the mini flow (`/prompts:arch-mini-plan-agent …`) if it's a small task.
+
+### Mini flow (small task; fewer prompts; agent-assisted)
+1) `/prompts:arch-reformat …` (only if you already have a doc and it needs canonical formatting)
+2) `/prompts:arch-mini-plan-agent …` (combined planning pass: research + deep dive + phase plan)
+3) `/prompts:arch-implement-agent …` (implement in 1-2 phases; minimal checks; keep doc/worklog current)
+4) `/prompts:arch-audit-agent …` (recommended: fast audit for drift/missed call sites)
+5) `/prompts:arch-audit-implementation-agent …` (optional upgrade: strict completeness audit + second opinions)
 
 ### Minimal flow (small change)
 1) `/prompts:arch-new …`
