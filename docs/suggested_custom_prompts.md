@@ -62,6 +62,9 @@ Restart Codex after updating prompts.
 
 ## Suggested usage flows
 
+For a deeper explanation of when to use the **regular flow** vs the **mini flow** (and the conventions that make the prompts compose cleanly), see:
+- `docs/arch_skill_usage_guide.md`
+
 ### If you already have an existing doc (wrong format)
 1) `/prompts:arch-reformat …` (normalize into the canonical template + confirm North Star)
 2) Continue with the standard flow below (usually `/prompts:arch-kickoff …`), or use the mini flow (`/prompts:arch-mini-plan-agent …`) if it's a small task.
