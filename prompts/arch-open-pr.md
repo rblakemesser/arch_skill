@@ -1,5 +1,5 @@
 ---
-description: "12) Open PR: merge default branch, run CI-equivalent checks locally, then commit/push and open a detailed PR."
+description: "12) Open PR: merge default branch, run fast local preflight checks, then commit/push and open a detailed PR (CI-parity optional)."
 argument-hint: "<Optional: PR title + intent + any constraints. Slang ok.>"
 ---
 # /prompts:arch-open-pr — $ARGUMENTS
@@ -27,9 +27,13 @@ Question policy (strict):
 Goal:
 Get the current branch into a state where:
 1) it cleanly incorporates the latest default branch (usually `origin/main`),
-2) it passes the same checks CI will run (locally, before we burn CI cycles),
+2) it passes a **fast, local preflight** (lint/typecheck/unit tests/build-as-needed),
 3) it is pushed, and
 4) the PR is opened with a detailed, template-based description.
+
+Modes (keep it simple):
+- Default = FAST: do the minimal high-signal checks that catch 80% of mistakes quickly.
+- If $ARGUMENTS includes `full` / `ci parity` / `parity`: run the CI-equivalent checks locally (can take a while).
 
 ## 1) Sync with default branch (thoughtful merge)
 - Identify the repo’s default branch from git (prefer `origin/main`, otherwise `origin/HEAD`).
@@ -41,18 +45,21 @@ Get the current branch into a state where:
 - If conflicts occur: resolve them thoughtfully using repo conventions and our intended behavior.
   - If a conflict forces a real product/UX decision not in the repo, stop and ask with the smallest possible question.
 
-## 2) Run “what CI will run” locally (don’t guess—derive)
-Discover what checks CI runs for PRs in THIS repo, then run the closest local equivalent:
-- Read `.github/workflows/*` and any referenced scripts/Make targets to learn the actual commands.
-- Prefer running the repo’s canonical “one command does CI” entrypoint if it exists (`make ci`, `./script/ci`, `npm run ci`, etc.).
-- Otherwise run the equivalent set of checks CI runs (typically: format/lint, typecheck, tests, build, static analysis).
-- Use best judgment on install/setup:
-  - If CI installs deps, do the same locally (use the repo’s preferred package manager / setup step).
-  - If there’s a `make install` that clearly matches CI setup, use it.
+## 2) Run local checks (fast by default)
+Default (FAST):
+- Do NOT try to replicate a full CI matrix locally. Run the smallest reasonable set of high-signal checks:
+  - lint/format (or the repo’s “check” target),
+  - typecheck (if applicable),
+  - unit tests (prefer a small/targeted suite),
+  - build only if this repo commonly breaks at build time or CI requires it.
+- Prefer the repo’s canonical “one command does the basics” entrypoint if it exists (`make check`, `make test`, `./script/check`, `npm test`, etc.).
+- Use best judgment on install/setup (use the repo’s preferred package manager / setup step). If there’s a `make install`, use it when it clearly matches how the repo expects deps to be installed.
+- Timebox: if we’re heading into “this will take forever” territory, pause and ask before running an obviously long suite (unless $ARGUMENTS requested parity).
 
-Iterate until green:
-- When a check fails, fix the root cause, then re-run the smallest check that proves it’s fixed.
-- Avoid scope creep: fix what blocks CI; record “nice-to-haves” as follow-ups instead of expanding the PR.
+If $ARGUMENTS includes `full` / `ci parity` / `parity`:
+- Derive what CI actually runs from `.github/workflows/*` (and referenced scripts) and run the closest local equivalent.
+- Iterate until green: fix what blocks the PR, then re-run the smallest check that proves the fix.
+- Still avoid scope creep: fix blockers; record follow-ups instead of expanding the PR.
 
 ## 3) Finalize commits + push
 - Ensure the branch has clean commits for review (not “temp debug”).
