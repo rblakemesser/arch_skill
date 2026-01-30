@@ -17,6 +17,11 @@ Question policy (strict):
   - Missing access/permissions
 - If you think you need to ask, first state where you looked; ask only after exhausting repo evidence.
 
+Git discipline (important; avoid collateral damage):
+- NEVER do implementation work directly on `main` (or the repo’s default branch).
+- If you are currently on `main` / `master` (or otherwise not on a feature branch), immediately cut a new branch from `origin/main` and continue work there.
+  - If local state prevents a clean branch-off, create the branch first, then reconcile with `origin/main` once safe (merge/rebase as appropriate).
+
 # COMMUNICATING WITH AMIR (IMPORTANT)
 
 - Start console output with a 1 line reminder of our North Star.
