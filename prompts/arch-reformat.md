@@ -124,6 +124,7 @@ note: This is a warn-first checklist only. It should not hard-block execution.
   - Primary signal (keep it minimal; prefer existing tests/checks): <existing test/check OR instrumentation/log signature OR manual QA checklist> — <what you’ll look for>
   - Optional second signal (only if needed): <...> — <what you’ll look for>
   - Default: do NOT add bespoke screenshot harnesses / drift scripts unless they already exist in-repo or are explicitly requested.
+  - Avoid negative-value tests/gates: do NOT add “deleted code not referenced” tests, visual-constant tests (colors/margins/pixels), doc-driven inventory gates, or mock-only interaction tests.
 - Metrics / thresholds (if relevant):
   - <metric>: <threshold> — measured via <dash/test/log>
 
@@ -272,29 +273,30 @@ note: This is a warn-first checklist only. It should not hard-block execution.
 
 # 7) Depth-First Phased Implementation Plan (authoritative)
 
-> Rule: systematic build, foundational first; every phase has exit criteria + explicit test plan.
+> Rule: systematic build, foundational first; every phase has exit criteria + explicit verification plan (tests optional).
 
 ## Phase 1 — <foundation>
 * Goal:
 * Work:
-* Test plan (smallest signal):
+* Verification (smallest signal):
 * Exit criteria:
 * Rollback:
 
 ## Phase N — <end state + cleanup>
 * Goal:
 * Work:
-* Test plan (smallest signal):
+* Verification (smallest signal):
 * Exit criteria:
 * Rollback:
 
 ---
 
-# 8) Test Strategy (common-sense; non-blocking)
+# 8) Verification Strategy (common-sense; non-blocking)
 
 > Principle: avoid verification bureaucracy. Prefer the smallest existing signal. If sim/video/screenshot capture is flaky or slow, rely on targeted instrumentation + a short manual QA checklist and keep moving.
 > Default: 1–3 checks total. Do not invent new harnesses/frameworks/scripts unless they already exist in-repo and are the cheapest guardrail.
 > Default: keep UI/manual verification as a finalization checklist (don’t gate implementation).
+> Default: do NOT create “proof” tests that assert deletions, visual constants, or doc inventories. Prefer compile/typecheck + behavior-level assertions only when they buy confidence.
 
 ## 8.1 Unit tests (contracts)
 * What invariants are unit-locked:

@@ -55,6 +55,7 @@ Default (FAST):
 - Prefer the repo’s canonical “one command does the basics” entrypoint if it exists (`make check`, `make test`, `./script/check`, `npm test`, etc.).
 - Use best judgment on install/setup (use the repo’s preferred package manager / setup step). If there’s a `make install`, use it when it clearly matches how the repo expects deps to be installed.
 - Skip redundant work: if checks already ran successfully for the current code (same commit / no relevant changes since), do not re-run them — just record the prior commands + results in the PR.
+- If a check fails due to a clearly negative-value test/gate (deleted-code proofs, visual-constant/golden noise, doc-driven inventory gates), prefer deleting or rewriting that test/gate instead of “fixing” code to satisfy it. Record the rationale in the PR.
 - Timebox: if we’re heading into “this will take forever” territory, pause and ask before running an obviously long suite (unless $ARGUMENTS requested parity).
 
 Monorepo/mobile nuance (compile means “the active app”, not the world):

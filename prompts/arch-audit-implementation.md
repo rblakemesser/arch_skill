@@ -79,6 +79,7 @@ Audit procedure (do this in order):
    - Search for old APIs/old patterns/old paths to find misses (do not trust the table blindly).
    - Verify SSOT enforcement: look for lingering writers/readers of the old source of truth.
    - Verify deletions/cleanup: if the plan says “remove X”, confirm X is removed OR no longer referenced.
+     - Deletion verification is via repo search/static analysis + build/typecheck, NOT via new “proof” tests.
    - Verify code-evidence: if the plan claims a test/automation/invariant/assertion proves the North Star, confirm it exists and is wired to the real failure site.
    - Do NOT treat missing manual QA evidence as “missing implementation”.
 4) Determine phase truth:

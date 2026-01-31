@@ -51,7 +51,7 @@ Work you do (high-level, no ceremony):
   - Drift sweep: identify other places that should adopt the central pattern; propose include vs follow-up vs ignore.
     - Treat the plan’s scope as authoritative; do NOT ask the user to re-decide scope here.
     - If it expands UX scope or meaningfully expands work, default to follow-up/ignore and proceed.
-  - Evidence plan must be common-sense and non-blocking: prefer existing tests/checks; otherwise instrumentation/log signature or a short manual checklist. Avoid verification bureaucracy.
+  - Evidence plan must be common-sense and non-blocking: prefer existing tests/checks; otherwise instrumentation/log signature or a short manual checklist. Avoid verification bureaucracy and avoid negative-value tests/gates (deletion checks, visual constants/goldens on unstable UI, doc-driven inventory gates).
 
 Alignment checks (keep it light before heavy edits)
 - North Star: concrete + scoped claim, and explicit key invariants.

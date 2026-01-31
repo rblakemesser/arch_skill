@@ -60,6 +60,16 @@ Implementation discipline (optimize for steady execution, not ceremony):
 - Verification policy (autonomy-first):
   - Prefer existing checks over building bespoke harnesses/DSLs; add only minimal tests/instrumentation that directly prevent a likely regression.
   - Defer manual verification and UI automation (sim/maestro flows) to **Finalization** by default. Keep a short checklist of what needs UI confirmation and keep moving.
+  - Testing discipline (value-driven; avoid negative-value tests):
+    - Default: do NOT add new tests if compile/typecheck/lint + existing targeted checks already give enough confidence.
+    - Write tests only when they buy real confidence (e.g., bug regression, new logic/state transitions, or user-facing interaction behavior).
+    - Do NOT write “proof” tests that:
+      - assert deleted code isn’t referenced (use compiler/typecheck + repo search instead),
+      - assert visual constants (colors/margins/pixels) or add golden sets unless the repo already has a stable golden discipline,
+      - enforce doc inventories via tests (doc-driven gates),
+      - only verify mocks/interactions with no behavior assertions,
+      - require `Future.delayed()` or timing hacks.
+    - If an existing negative-value test is blocking the PR, prefer deleting it or rewriting it to a behavior-level assertion (record the rationale + what replaced it).
 - Keep the doc current: update DOC_PATH as you go to reflect real progress, phase completion, and any plan drift you discover.
   - If the plan drifts, update the plan doc and add a Decision Log entry (append-only).
   - If a phase is complete, mark it complete in the doc (do not leave the doc ambiguous).

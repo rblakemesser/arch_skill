@@ -15,6 +15,10 @@ Execution rule: do not block on unrelated dirty files in git; ignore unrecognize
 Do not preface with a plan or restate these instructions. Begin work immediately. If a tool-call preamble is required by system policy, keep it to a single terse line with no step list. Console output should be short and high-signal (no logs); see OUTPUT FORMAT for required content.
 
 Goal: autonomously run Maestro QA automation (end-to-end UI flows) and make it stable. Prefer centralized, reusable subflows and avoid one-off fixes.
+Testing discipline (high-signal only):
+- Do NOT turn Maestro into a visual-constant checker (no “is this image yellow”, no pixel-perfect assertions).
+- Avoid brittle selectors: do not select by pixel coordinates; prefer stable ids/labels/semantics used by the repo.
+- Avoid flake: prefer waiting on real conditions over arbitrary sleeps/delays.
 
 $ARGUMENTS is intentionally slang. Treat it like a human request and infer what to run.
 

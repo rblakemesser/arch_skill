@@ -66,6 +66,10 @@ Operating principles:
   - Prefer reusable subflows/helpers over copy/paste tests.
   - Centralize selectors/ids/helpers where the project’s idioms suggest.
   - Avoid parallel ways to test the same thing.
+- High-signal checks only:
+  - Do NOT add “proof” tests that assert visual constants (colors/margins/pixels) or try to build a golden/pixel baseline pipeline.
+  - Avoid brittle selectors: do not select by pixel coordinates; prefer stable ids/labels/semantics already used by the repo.
+  - Avoid flake: prefer waiting on real conditions over arbitrary sleeps/delays.
 
 Stop conditions:
 - If you discover a product-level issue that requires a decision: STOP and report (no guessing).

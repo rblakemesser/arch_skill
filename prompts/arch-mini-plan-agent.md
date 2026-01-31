@@ -249,13 +249,13 @@ Phase plan (mini: keep phases small; include per-phase smallest signal):
 <!-- arch_skill:block:phase_plan:start -->
 # Depth-First Phased Implementation Plan (authoritative)
 
-> Rule: systematic build, foundational first; every phase has exit criteria + explicit test plan. Prefer programmatic checks per phase; defer manual/UI verification to finalization.
+> Rule: systematic build, foundational first; every phase has exit criteria + explicit verification plan (tests optional). Prefer programmatic checks per phase; defer manual/UI verification to finalization. Avoid negative-value tests (deletion checks, visual constants, doc-driven gates).
 
 ## Phase 1 — <main change>
 
 * Goal:
 * Work:
-* Test plan (smallest signal):
+* Verification (smallest signal):
 * Exit criteria:
 * Rollback:
 
@@ -263,7 +263,7 @@ Phase plan (mini: keep phases small; include per-phase smallest signal):
 
 * Goal:
 * Work:
-* Test plan (smallest signal):
+* Verification (smallest signal):
 * Exit criteria:
 * Rollback:
 <!-- arch_skill:block:phase_plan:end -->
