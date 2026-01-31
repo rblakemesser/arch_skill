@@ -17,6 +17,34 @@ This doc audits where our prompts currently under-specify test judgment, and pro
 
 ---
 
+## Evidence from real FLUTTER plans (psmobileX)
+
+I skimmed real plan docs under:
+
+- `~/workspace/psmobile/docs/FLUTTER/**`
+- `~/workspace/psmobile2/docs/FLUTTER/**`
+- `~/workspace/psmobile3/docs/FLUTTER/**`
+- `~/workspace/psmobile4/docs/FLUTTER/**`
+- `~/workspace/psmobile5/docs/FLUTTER/**`
+- `~/workspace/psmobile6/docs/FLUTTER/**`
+
+Key observation: a lot of those docs match our `arch-new` template structure almost verbatim (`0.4 Definition of done`, phased plan with `Test plan (smallest signal)`, and `# 8) Test Strategy`). That means **our prompts absolutely shape “test decisions” upstream**, even before implementation.
+
+Concrete examples (repo-relative to each `psmobileX`):
+
+- `docs/FLUTTER/DONE/TESTING_OVERREACH_AUDIT_2026-01-20.md` inventories exactly the kinds of negative-value tests we keep seeing:
+  - golden snapshot suites
+  - screenshot pack “parity” tests
+  - **doc-driven preflight gates** (tests that read docs / enforce doc inventories)
+- `docs/FLUTTER/DONE/TESTING_OVERREACH_REMOVAL_2026-01-20.md` explicitly calls out removing “doc-driven gates” and not replacing them with new harnesses.
+- `docs/FLUTTER/PLANS/DEV_PLAYGROUND_FOR_EXHAUSTIVE_FLUTTER_COMPONENT_REVIEW_2026-01-29.md` shows a common drift pattern:
+  - plans that start as “small guardrail” can naturally slide into adding more `test/preflight/*` gate tests as “executable specs”.
+
+So the fix isn’t just “teach implement to not write dumb tests”. We also need to adjust:
+
+1) the language in planning templates (so we don’t encode “tests as proof” everywhere), and  
+2) reviewer prompts (so reviewers don’t demand more brittle gates).
+
 ## Core principles to bake into prompts (from `docs/testing_guide.md`)
 
 ### 1) Optimize for confidence per maintenance hour
@@ -42,6 +70,12 @@ The guide’s “seven deadly sins” should be encoded as explicit **hard nos**
 - goldens on unstable UI (unless UI is locked down + goldens are already a stable practice)
 - tests that require `Future.delayed` / timing hacks
 - order-dependent tests
+
+Also (psmobile-specific but broadly applicable): **doc-driven gates** are often negative value.
+If a “test” is really “parse a markdown inventory and assert the repo matches it”, treat that as a smell. Prefer:
+- compiler/typecheck,
+- repo search checks during review,
+- or a purpose-built lint/static check only when it’s truly stable and high-value.
 
 ### 4) Test behavior, not implementation details
 If a refactor breaks the test without changing user-facing behavior, the test is wrong.
@@ -135,7 +169,8 @@ These prompts influence how agents *think* about verification. If phase plans de
 Current: “Definition of done” is good but could better encode “restraint”.
 
 Proposed change:
-- In the plan template’s “Evidence plan”, add one line: “Avoid negative-value tests (see: deleted code / visual constants / trivial getters / brittle snapshots). Prefer compile/typecheck/lint + a small behavior test only when needed.”
+- In the plan template’s “Evidence plan”, add one line: “Avoid negative-value tests (see: deleted code / visual constants / trivial getters / brittle snapshots / doc-driven gates). Prefer compile/typecheck/lint + a small behavior test only when needed.”
+- Consider changing the template wording from “explicit test plan” → “explicit verification plan (tests optional)”.
 
 #### `prompts/arch-phase-plan.md` (+ `prompts/arch-phase-plan-agent.md`)
 Current: phase plan includes “explicit test plan”, but doesn’t define what a good test plan is.
@@ -207,4 +242,3 @@ This is the minimal block to add to `arch-implement*` (and optionally `arch-open
    - Are PRs still getting sufficient confidence signals?
 
 If you want, I can apply the prompt edits in a follow-up change once you sign off on this integration plan.
-
