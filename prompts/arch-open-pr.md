@@ -90,6 +90,7 @@ Produce a PR title + body that is detailed and matches THIS repo’s template:
 - Fill it in with specifics from the actual diff:
   - What changed and why (user impact + technical summary)
   - How it was tested (commands + results)
+  - Gotchas / sharp edges worth propagating (and where they’re documented in code comments)
   - Risks/rollout/monitoring notes (if applicable)
   - Screenshots/logs/QA notes if relevant
 

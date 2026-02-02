@@ -48,6 +48,7 @@ Reviewer subagents (explicit; keep main context lean)
 - Ask each reviewer (same question):
   - “Is this idiomatic and complete relative to DOC_PATH? What’s missing? Where does code drift from the plan? Any SSOT/contract violations?”
   - If you suggest tests: suggest only high-signal, refactor-resistant checks. Do NOT suggest negative-value tests (deleted-code proofs, visual-constant/golden noise, doc-driven inventory gates, mock-only interaction tests). If an existing test suite is clearly negative value, call it out and recommend deletion or rewrite.
+  - Pattern propagation: are any new SSOTs/contracts or tricky gotchas documented via short, high-leverage code comments at the canonical boundary (without comment spam)?
 
 Request reviews from opus/gemini (via subagents), then integrate feedback you agree with.
 Update DOC_PATH before moving to the next phase.

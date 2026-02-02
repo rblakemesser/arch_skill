@@ -119,6 +119,9 @@ note: This is a warn-first checklist only. It should not hard-block execution.
 
 ## 1.3 Architectural principles (rules we will enforce)
 - <e.g., fail-loud boundaries, DI rules, no business logic in UI, etc.>
+- Pattern propagation via comments (high leverage; no spam):
+  - When we introduce a new SSOT/contract or a non-obvious “gotcha”, add a short doc comment in the canonical boundary module explaining the invariant + how to extend it safely.
+  - Do NOT comment everything; comment the tricky bits we want to propagate forward.
 
 ## 1.4 Known tradeoffs (explicit)
 - <tradeoff> → chosen direction + why
@@ -263,6 +266,7 @@ note: This is a warn-first checklist only. It should not hard-block execution.
 * Goal:
 * Work:
 * Verification (smallest signal):
+* Docs/comments (propagation; only if needed):
 * Exit criteria:
 * Rollback:
 
@@ -271,6 +275,7 @@ note: This is a warn-first checklist only. It should not hard-block execution.
 * Goal:
 * Work:
 * Verification (smallest signal):
+* Docs/comments (propagation; only if needed):
 * Exit criteria:
 * Rollback:
 
@@ -282,6 +287,7 @@ note: This is a warn-first checklist only. It should not hard-block execution.
 > Default: 1–3 checks total. Do not invent new harnesses/frameworks/scripts unless they already exist in-repo and are the cheapest guardrail.
 > Default: keep UI/manual verification as a finalization checklist (don’t gate implementation).
 > Default: do NOT create “proof” tests that assert deletions, visual constants, or doc inventories. Prefer compile/typecheck + behavior-level assertions only when they buy confidence.
+> Also: document any new tricky invariants/gotchas in code comments at the SSOT/contract boundary so future refactors don’t break the pattern.
 
 ## 8.1 Unit tests (contracts)
 

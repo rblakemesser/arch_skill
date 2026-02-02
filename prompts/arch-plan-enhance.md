@@ -52,6 +52,7 @@ Work you do (high-level, no ceremony):
     - Treat the plan’s scope as authoritative; do NOT ask the user to re-decide scope here.
     - If it expands UX scope or meaningfully expands work, default to follow-up/ignore and proceed.
   - Evidence plan must be common-sense and non-blocking: prefer existing tests/checks; otherwise instrumentation/log signature or a short manual checklist. Avoid verification bureaucracy and avoid negative-value tests/gates (deletion checks, visual constants/goldens on unstable UI, doc-driven inventory gates).
+  - Pattern propagation: if the plan introduces a new SSOT/contract or calls out a sharp edge/gotcha, explicitly note where a short code comment/doc comment should live so future agents don’t rediscover it the hard way.
 
 Alignment checks (keep it light before heavy edits)
 - North Star: concrete + scoped claim, and explicit key invariants.

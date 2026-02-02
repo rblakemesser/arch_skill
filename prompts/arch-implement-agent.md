@@ -124,6 +124,13 @@ Implementation discipline (optimize for steady execution, not ceremony):
       - only verify mocks/interactions with no behavior assertions,
       - require `Future.delayed()` or timing hacks.
     - If an existing negative-value test is blocking the PR, prefer deleting it or rewriting it to a behavior-level assertion (record the rationale + what replaced it).
+  - Pattern documentation via comments (propagation; high leverage):
+    - When you introduce a new SSOT/contract, or you discover a non-obvious gotcha, add a short doc comment at the canonical boundary module explaining:
+      - what it owns (SSOT),
+      - the invariant(s) that must not be broken,
+      - the sharp edge / “looks equivalent but isn’t” trap,
+      - how to extend safely.
+    - Do NOT comment everything; prefer a few crisp comments in the places future engineers will grep first.
 - Keep the doc current: update DOC_PATH as you go to reflect real progress, phase completion, and any plan drift you discover.
   - If the plan drifts, update the plan doc and add a Decision Log entry (append-only).
   - If a phase is complete, mark it complete in the doc (do not leave the doc ambiguous).
