@@ -7,8 +7,8 @@ This guide explains the **intended usage** of the prompts in `prompts/` as two o
 
 It also captures the conventions that make the flows work (doc blocks, worklog naming, subagent rules).
 
-Important: this repo is meant to be used via **installed Codex CLI prompts** (slash commands).
-You don’t “import” this repo as a skill inside another repo; you install the prompts into `~/.codex/prompts/`.
+Important: this repo is meant to be used via **installed Codex prompts** (slash commands).
+It also ships an optional **router skill** (`arch-skill`) as a parallel mechanism — prompts remain the SSOT procedures.
 
 ---
 
@@ -22,7 +22,12 @@ cd arch_skill
 make install
 ```
 
-Restart Codex after updating prompts.
+Restart Codex after updating prompts/skill.
+
+What `make install` installs:
+- Prompts → `~/.codex/prompts/`
+- Templates → `~/.codex/templates/arch_skill/`
+- Skill (`arch-skill`) → `~/.codex/skills/arch-skill/`
 
 ---
 
