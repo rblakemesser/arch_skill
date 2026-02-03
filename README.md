@@ -19,7 +19,7 @@ This installs:
 - Templates → `~/.codex/templates/arch_skill/`
 - Skill (`arch-skill`) → `~/.codex/skills/arch-skill/`
 
-Note: `make install` personalizes prompts by replacing `Amir`/`AMIR` with your local `whoami` username at install time. Override with `make install PROMPT_USER=Amir` (or any name) to keep different wording.
+Note: prompts use a `USERNAME` placeholder. `make install` creates a `.env` file (if missing), ensures it contains `USERNAME=<whoami>`, then substitutes that value into the installed prompts. Edit `.env` to override.
 
 Restart your Codex instance so it reloads the installed prompts/skill.
 

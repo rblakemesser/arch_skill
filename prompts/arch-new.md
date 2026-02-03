@@ -3,7 +3,7 @@ description: "01) New doc: create canonical plan doc + draft North Star from blu
 argument-hint: "<Paste the change request / symptoms / goal. This becomes the draft TL;DR + North Star. No structured args needed.>"
 ---
 # /prompts:arch-new — $ARGUMENTS
-# COMMUNICATING WITH AMIR (IMPORTANT)
+# COMMUNICATING WITH USERNAME (IMPORTANT)
 
 - Start console output with a 1 line reminder of our North Star.
 - Then give the punch line in plain English.
@@ -338,12 +338,12 @@ note: This is a warn-first checklist only. It should not hard-block execution.
 
 ---
 
-CONSOLE OUTPUT (Amir-style; north star confirmation):
+CONSOLE OUTPUT (USERNAME-style; north star confirmation):
 This is the information it should contain but you should communicate it naturally in english not as a bulleted list that is hard to parse for the user.
 Include:
 - North Star reminder (1 line; what we’re trying to accomplish overall)
-- Punchline (1 line; what you need from Amir right now)
+- Punchline (1 line; what you need from USERNAME right now)
 - Doc created path
 - Draft TL;DR (outcome/problem/approach/plan)
 - Draft North Star for confirmation (claim/scope/definition-of-done/key invariants)
-- Ask Amir to confirm “yes/no” (and paste edits if “no”)
+- Ask USERNAME to confirm “yes/no” (and paste edits if “no”)
