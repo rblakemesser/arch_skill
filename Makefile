@@ -2,7 +2,7 @@
 
 ENV_FILE ?= .env
 DEFAULT_USERNAME := $(shell whoami)
-SKILLS := arch-skill arch-flow
+SKILLS := arch-skill arch-flow codemagic-builds
 
 install: env install_prompts install_templates install_skill
 
@@ -41,6 +41,7 @@ verify_install:
 	@test -f ~/.codex/templates/arch_skill/arch_doc_template.html
 	@test -f ~/.codex/skills/arch-skill/SKILL.md
 	@test -f ~/.codex/skills/arch-flow/SKILL.md
+	@test -f ~/.codex/skills/codemagic-builds/SKILL.md
 	@echo "OK: prompts + templates + skill installed"
 
 remote_install:
@@ -59,5 +60,5 @@ remote_install:
 	scp $$tmpdir/*.md $(HOST):~/.codex/prompts/; \
 	rm -rf "$$tmpdir"
 	@scp templates/*.html $(HOST):~/.codex/templates/arch_skill/
-	@ssh $(HOST) "rm -rf ~/.codex/skills/arch-skill ~/.codex/skills/arch-flow"
-	@scp -r skills/arch-skill skills/arch-flow $(HOST):~/.codex/skills/
+	@ssh $(HOST) "rm -rf ~/.codex/skills/arch-skill ~/.codex/skills/arch-flow ~/.codex/skills/codemagic-builds"
+	@scp -r skills/arch-skill skills/arch-flow skills/codemagic-builds $(HOST):~/.codex/skills/
