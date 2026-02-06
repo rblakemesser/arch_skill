@@ -1,6 +1,6 @@
 ---
 description: "00b) Context load: derive a high-signal brief from DOC_PATH (+ worklog + code anchors) so a new agent can take over."
-argument-hint: "<Freeform guidance. Include a docs/justin/<...>.md path anywhere to pin the plan doc (recommended).>"
+argument-hint: "<Freeform guidance. Include a docs/<...>.md path anywhere to pin the plan doc (recommended).>"
 ---
 # /prompts:arch-context-load — $ARGUMENTS
 Execution rule: do not block on unrelated dirty files in git; ignore unrecognized changes. If committing, stage only files you touched (or as instructed).

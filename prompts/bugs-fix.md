@@ -67,6 +67,13 @@ Implementation notes requirements:
 - Tests run + results
 - Manual QA checklist or “n/a”
 - Outcome/status (verifying/resolved/blocked)
+- Perceived risk level: `very low` | `low` | `medium` | `high` | `very high`
+  - `very low`: Changes are small and highly localized in a single, well-understood area; behavior is straightforward and side effects are unlikely.
+  - `low`: Changes are still fairly contained, but touch a slightly broader surface area or introduce modest state/timing sensitivity; limited side effects are possible.
+  - `medium`: Changes span multiple files/flows or introduce non-trivial state/timing/ordering behavior; regressions are plausible; targeted verification is recommended.
+  - `high`: Changes touch core/shared components, widely-used flows, or cross-cutting behavior relied on by other systems; interaction risk is significant; broader verification and evidence are recommended.
+  - `very high`: Changes touch critical components across multiple systems and/or involve complex concurrency/migration/state behavior with unknowns; unexpected side effects are likely; intensive testing and evidence gathering are strongly recommended.
+  - Include 2–5 bullets explaining why this risk level applies and what mitigations/verifications were (or should be) used.
 
 OUTPUT FORMAT (console only; Dev-style):
 This is the information it should contain but you should communicate it naturally in english not as a bulleted list that is hard to parse for the user.
@@ -75,6 +82,7 @@ Include:
 - Punchline (1 line)
 - What you did / what changed
 - Tests run + results
+- Perceived risk level (and why, briefly)
 - Issues/Risks (if any)
 - Next action
 - Need from Dev (only if required)
