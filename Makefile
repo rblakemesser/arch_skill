@@ -38,6 +38,9 @@ install_skill:
 verify_install:
 	@test -f ~/.codex/prompts/arch-new.md
 	@test -f ~/.codex/prompts/arch-flow.md
+	@test -f ~/.codex/prompts/bugs-analyze.md
+	@test -f ~/.codex/prompts/bugs-fix.md
+	@test -f ~/.codex/prompts/bugs-review.md
 	@test -f ~/.codex/templates/arch_skill/arch_doc_template.html
 	@test -f ~/.codex/skills/arch-skill/SKILL.md
 	@test -f ~/.codex/skills/arch-flow/SKILL.md
