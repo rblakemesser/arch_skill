@@ -1,35 +1,103 @@
-# arch_skill (Codex CLI prompts)
+# arch_skill (Codex CLI + Claude Code prompts)
 
-This repo is a set of **Codex custom prompts** (slash commands) plus a small HTML template used by some prompts.
+This repo is a set of **custom prompts** (slash commands) for **Codex CLI** and **Claude Code**, plus a small HTML template used by some prompts.
 
-In addition, it includes an optional **Codex skill** (`arch-skill`) that acts as a router + invariants layer (single SSOT doc, question policy, flow selection). The skill is a **parallel mechanism**: prompts are still installed and used as-is.
+In addition, it includes an optional **skill** (`arch-skill`) that acts as a router + invariants layer (single SSOT doc, question policy, flow selection). The skill is a **parallel mechanism**: prompts are still installed and used as-is.
+
+## Compatibility
+
+| Tool | Prompts | Skills | Templates |
+| --- | --- | --- | --- |
+| **Codex CLI** | `~/.codex/prompts/` | `~/.codex/skills/` | `~/.codex/templates/` |
+| **Claude Code** | `~/.claude/commands/prompts/` | `~/.claude/skills/` | (not applicable) |
+
+Both tools discover prompts as `/prompts:<name>` slash commands after install.
 
 ## Install
 
 ```bash
-@channel
-
 git clone git@github.com:aelaguiz/arch_skill.git
 cd arch_skill
 make install
 ```
 
-This installs:
+This installs to **both** Codex CLI and Claude Code directories:
+
+**Codex CLI:**
 - Prompts → `~/.codex/prompts/`
 - Templates → `~/.codex/templates/arch_skill/`
-- Skills:
-  - `arch-skill` → `~/.codex/skills/arch-skill/`
-  - `arch-flow` → `~/.codex/skills/arch-flow/`
+- Skills → `~/.codex/skills/arch-skill/`, `~/.codex/skills/arch-flow/`, `~/.codex/skills/codemagic-builds/`
+
+**Claude Code:**
+- Prompts → `~/.claude/commands/prompts/`
+- Skills → `~/.claude/skills/arch-skill/`, `~/.claude/skills/arch-flow/`
 
 Note: prompts use a `USERNAME` placeholder. `make install` creates a `.env` file (if missing), ensures it contains `USERNAME=<whoami>`, then substitutes that value into the installed prompts. Edit `.env` to override.
 
-Restart your Codex instance so it reloads the installed prompts/skill.
+### Remote install
+
+```bash
+make remote_install HOST=user@host
+```
+
+Installs prompts + skills to both Codex and Claude Code directories on the remote host via SSH/SCP.
+
+### Verify
+
+```bash
+make verify_install
+```
+
+Checks that key files are in place for both Codex CLI and Claude Code.
+
+Restart your Codex/Claude Code instance so it reloads the installed prompts/skills.
+
+## Prompt families (53 prompts)
+
+The full catalog is in `skills/arch-skill/SKILL.md` and `skills/arch-skill/resources/PROMPT_INDEX.md`.
+
+### Architecture planning flow (`arch-*`)
+The core prompt family for structured architecture planning + execution. Supports a regular flow (multi-prompt, phase-gated) and a mini flow (one-pass planning for small tasks). Key prompts:
+
+- `/prompts:arch-new` — create a new canonical plan doc
+- `/prompts:arch-mini-plan-agent` — one-pass research + deep dive + phase plan
+- `/prompts:arch-implement` / `arch-implement-agent` — ship the plan end-to-end
+- `/prompts:arch-fold-in` — fold reference docs/links into phases (high leverage when you have specs)
+- `/prompts:arch-audit-implementation` — strict "is code actually complete vs plan?" audit
+- `/prompts:arch-codereview` / `arch-open-pr` — external review + PR finalization
+
+### Goal-seeking loops (`goal-loop-*`)
+Autonomous iteration loops for open-ended goals (optimization, investigation, metric improvement). Instead of a fixed plan, you define a North Star and iterate with bets:
+
+- `/prompts:goal-loop-new` — create/repair the Goal Loop SSOT doc + append-only running log
+- `/prompts:goal-loop-iterate` — execute ONE bet, append to the running log, compound learning
+- `/prompts:goal-loop-flow` — check readiness, recommend the single best next step
+- `/prompts:goal-loop-context-load` — write Context Digest so restarts don't redo work
+
+**When to use goal loops vs arch flow:** Use arch flow when you know _what_ to build and need structured planning. Use goal loops when you're exploring, optimizing, or investigating — the goal is clear but the path isn't.
+
+### Bug workflow (`bugs-*`)
+Structured bug analysis + fix cycle: `/prompts:bugs-analyze` → `/prompts:bugs-fix` → `/prompts:bugs-review`.
+
+### North Star investigation (`north-star-investigation-*`)
+Deep investigation for optimization or root-cause analysis. Commander's Intent style: bootstrap an investigation doc, then iterate with hypothesis-driven brutal tests.
+
+- `/prompts:north-star-investigation-bootstrap` — create the investigation doc
+- `/prompts:north-star-investigation-loop` — iterate: hypothesize, test, learn, refine
+
+### Other families
+- **Debug:** `arch-debug`, `arch-debug-brutal`
+- **Rendering:** `arch-html-full`, `arch-ascii`, `arch-ui-ascii`
+- **Maestro/QA:** `maestro-autopilot`, `maestro-rerun-last`, `maestro-kill`, `qa-autopilot`
+- **Ralph:** `arch-ralph-retarget`, `arch-ralph-enhance`
+- **DevX:** `arch-devx`, `arch-devx-agent`
+- **Misc:** `new-arch-from-docs`
 
 ## Usage
 
-- Start typing `/prompts:` in Codex CLI and pick the command you want (`arch-new`, `arch-mini-plan-agent`, `arch-implement`, etc.).
-- Optional: in conversation, you can ask Codex to “use arch-skill” to activate the router + invariants layer (prompts remain the SSOT procedures).
-- Optional (high leverage when you have specs/design docs you don’t want missed): `/prompts:arch-fold-in`
+- Start typing `/prompts:` in Codex CLI or Claude Code and pick the command you want.
+- Optional: in conversation, you can ask the agent to "use arch-skill" to activate the router + invariants layer (prompts remain the SSOT procedures).
+- Optional (high leverage when you have specs/design docs you don't want missed): `/prompts:arch-fold-in`
   - Example: `/prompts:arch-fold-in docs/MY_PLAN.md docs/spec.md docs/ux_notes.md https://… "Fold these in; Phase 2 must obey the UX contract."`
-- Shortcut for “run automation on an existing sim/emulator and reopen plan issues if it fails”: `/prompts:arch-qa-autotest`
+- Shortcut for "run automation on an existing sim/emulator and reopen plan issues if it fails": `/prompts:arch-qa-autotest`
 - Regular flow vs mini flow guide: `docs/arch_skill_usage_guide.md`

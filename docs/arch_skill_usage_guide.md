@@ -1,20 +1,22 @@
-# arch_skill — Usage Guide (Regular Flow vs Mini Flow)
+# arch_skill — Usage Guide
 
-This guide explains the **intended usage** of the prompts in `prompts/` as two operational workflows:
+This guide explains the **intended usage** of the prompts in `prompts/` across four operational workflows:
 
 - **Regular arch flow**: more prompts, more checkpoints; best for medium/large changes and anything risky.
-- **Mini flow**: fewer prompts, “one-pass planning”; best for small, contained changes.
+- **Mini flow**: fewer prompts, "one-pass planning"; best for small, contained changes.
+- **Goal-seeking loops**: autonomous iteration for open-ended goals (optimization, investigation, metric improvement).
+- **North Star investigation**: deep hypothesis-driven investigation for root-cause analysis or optimization.
 
 It also captures the conventions that make the flows work (doc blocks, worklog naming, subagent rules).
 
-Important: this repo is meant to be used via **installed Codex prompts** (slash commands).
+Important: this repo is meant to be used via **installed prompts** (slash commands) in **Codex CLI** or **Claude Code**.
 It also ships an optional **router skill** (`arch-skill`) as a parallel mechanism — prompts remain the SSOT procedures.
 
 ---
 
 ## 0) Setup (so `/prompts:*` commands exist)
 
-These prompt files are meant to be installed as Codex “custom prompts”:
+These prompt files are meant to be installed as custom prompts (slash commands) for Codex CLI and/or Claude Code:
 
 ```bash
 git clone git@github.com:aelaguiz/arch_skill.git
@@ -22,12 +24,18 @@ cd arch_skill
 make install
 ```
 
-Restart Codex after updating prompts/skill.
+Restart Codex/Claude Code after updating prompts/skills.
 
 What `make install` installs:
+
+**Codex CLI:**
 - Prompts → `~/.codex/prompts/`
 - Templates → `~/.codex/templates/arch_skill/`
-- Skill (`arch-skill`) → `~/.codex/skills/arch-skill/`
+- Skills → `~/.codex/skills/arch-skill/`, `~/.codex/skills/arch-flow/`, `~/.codex/skills/codemagic-builds/`
+
+**Claude Code:**
+- Prompts → `~/.claude/commands/prompts/`
+- Skills → `~/.claude/skills/arch-skill/`, `~/.claude/skills/arch-flow/`
 
 ---
 
@@ -279,5 +287,87 @@ Fix: run `/prompts:arch-audit-implementation` (or `*-agent`) and reopen false-co
 ### “We missed a call site / left a parallel path”
 Fix: deep dive audit + consolidation sweep + explicit delete list; then rerun audit.
 
-### “UI verification is slowing us down mid-flight”
+### "UI verification is slowing us down mid-flight"
 Fix: defer UI verification to finalization and track it as a non-blocking checklist in `WORKLOG_PATH`.
+
+---
+
+## 8) Goal-seeking loops (open-ended goals)
+
+Use goal loops when the goal is clear but the path isn't — optimization, metric improvement, investigation, or any situation where you need to iterate toward a target rather than execute a fixed plan.
+
+### When to use goal loops vs arch flow
+- **Arch flow:** You know _what_ to build. You need structured planning, phased execution, and completion audits.
+- **Goal loops:** You know _where_ you want to get, but not exactly _how_. You need to explore, experiment, and compound learning.
+
+### How it works
+Goal loops maintain two artifacts:
+1. **SSOT doc** — the authoritative goal definition (North Star, scope, non-negotiables, scoreboard, hypotheses)
+2. **Running log** — append-only journal of bets, results, and learnings (never edited, only appended)
+
+### Goal loop flow
+
+1) `/prompts:goal-loop-new <freeform goal>`
+   - Creates/repairs the Goal Loop SSOT doc + running log
+   - Confirms the North Star with the user
+   - Idempotent — safe to re-run on an existing doc
+
+2) `/prompts:goal-loop-flow <DOC_PATH>`
+   - Read-only readiness check: is the doc bootstrapped? Is the running log present?
+   - Recommends the single best next step (bootstrap vs iterate)
+
+3) `/prompts:goal-loop-iterate <DOC_PATH>`
+   - Executes exactly ONE bet (highest info-gain)
+   - Reads the running log first to avoid reruns
+   - Appends a worklog entry with evidence + learnings
+   - Anti-sidetrack: stays focused on the North Star
+
+4) `/prompts:goal-loop-context-load <DOC_PATH>`
+   - Writes a short Context Digest from the doc + running log
+   - Use this before handing off to a new agent or restarting a session
+   - Details remain in the running log; the digest is just a high-signal brief
+
+### Typical loop session
+```
+/prompts:goal-loop-new "Double conversion rate on signup flow"
+# → creates docs/GOAL_LOOP_SIGNUP_CONVERSION_2026-02-07.md + _RUNNING_LOG.md
+# → confirms North Star
+
+/prompts:goal-loop-iterate docs/GOAL_LOOP_SIGNUP_CONVERSION_2026-02-07.md
+# → runs one bet, appends to log
+# → repeat as many times as needed
+
+/prompts:goal-loop-context-load docs/GOAL_LOOP_SIGNUP_CONVERSION_2026-02-07.md
+# → write digest for handoff/restart
+```
+
+---
+
+## 9) North Star investigation (deep root-cause analysis)
+
+Use North Star investigation when you need to deeply investigate an optimization problem or root-cause issue. It's more structured than goal loops — hypothesis-driven with pre-committed decision rules and brutal tests.
+
+### When to use
+- Root-cause debugging of complex, multi-factor issues
+- Performance optimization where you need to identify the biggest lever
+- Any investigation where "the truth" requires measurement and math, not speculation
+
+### Investigation flow
+
+1) `/prompts:north-star-investigation-bootstrap <freeform description>`
+   - Creates the investigation doc with: North Star, scope, non-negotiables, scoreboard, ground truth anchors, quant model, ranked hypotheses, first iteration plan, and initial worklog
+   - Phase 1 is **doc-only** — no production code edits
+
+2) `/prompts:north-star-investigation-loop <DOC_PATH>`
+   - Executes one iteration of the investigation loop:
+     - Re-reads North Star + scope + non-negotiables (treats as law)
+     - Chooses ONE hypothesis (highest info gain)
+     - Designs the fastest brutal test (traps, negative proofs, toggles, oracles)
+     - Executes minimum work, updates the doc with results
+   - Phase 2 **may edit code** (temporary instrumentation allowed)
+   - No reruns: if a test already exists in the worklog with the same config, must change a lever or move on
+
+### Key differences from goal loops
+- **North Star investigation** is math-first and hypothesis-driven — each bet has a pre-committed pass/fail rule
+- **Goal loops** are more flexible — each bet has expected learning outcomes but doesn't require quantitative decision rules
+- Use investigation when the problem is quantitative; use goal loops when the problem is exploratory

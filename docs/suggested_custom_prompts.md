@@ -2,7 +2,7 @@
 
 This file is now an **index only**.
 
-This repo is meant to be used via **installed Codex CLI prompts** (slash commands), not by “importing” it into another repo.
+This repo is meant to be used via **installed prompts** (slash commands) in **Codex CLI** or **Claude Code**, not by "importing" it into another repo.
 The actual prompt bodies live in `prompts/`.
 
 ---
@@ -10,14 +10,16 @@ The actual prompt bodies live in `prompts/`.
 ## How to install
 
 ```bash
-@channel
-
 git clone git@github.com:aelaguiz/arch_skill.git
 cd arch_skill
 make install
 ```
 
-Restart your Codex instance after updating prompts so it reloads `/prompts:*`.
+This installs prompts + skills to **both** Codex CLI and Claude Code:
+- **Codex CLI:** `~/.codex/prompts/`, `~/.codex/skills/`, `~/.codex/templates/`
+- **Claude Code:** `~/.claude/commands/prompts/`, `~/.claude/skills/`
+
+Restart your Codex/Claude Code instance after updating prompts so it reloads `/prompts:*`.
 
 ---
 
@@ -67,7 +69,11 @@ Restart your Codex instance after updating prompts so it reloads `/prompts:*`.
 | `prompts/goal-loop-new.md` | `/prompts:goal-loop-new` | Create/repair a Goal Loop SSOT doc **and** an append-only running log (restart-safe; North Star confirmation; autonomy-first; anti-sidetrack). |
 | `prompts/goal-loop-iterate.md` | `/prompts:goal-loop-iterate` | Run exactly one iteration (one bet), avoid reruns by reading the running log first, then append a new worklog entry with evidence + learnings. |
 | `prompts/goal-loop-flow.md` | `/prompts:goal-loop-flow` | Read-only readiness checklist + recommend the single best next step (bootstrap vs iterate). |
-| `prompts/goal-loop-context-load.md` | `/prompts:goal-loop-context-load` | Write a short Context Digest from DOC_PATH + running log so restarts don’t redo work (details remain in worklog). |
+| `prompts/goal-loop-context-load.md` | `/prompts:goal-loop-context-load` | Write a short Context Digest from DOC_PATH + running log so restarts don't redo work (details remain in worklog). |
+| `prompts/north-star-investigation-bootstrap.md` | `/prompts:north-star-investigation-bootstrap` | Bootstrap a North Star investigation doc (Commander's Intent) for an optimization or root-cause investigation. |
+| `prompts/north-star-investigation-loop.md` | `/prompts:north-star-investigation-loop` | Execute the investigation loop: iterate on hypotheses, run brutal tests, update the investigation doc. |
+| `prompts/arch-context-load.md` | `/prompts:arch-context-load` | Derive a high-signal brief from DOC_PATH for agent handoff. |
+| `prompts/new-arch-from-docs.md` | `/prompts:new-arch-from-docs` | Transform a folder of requirements/implementation/feedback docs into a single canonical plan doc. |
 
 ---
 
@@ -118,3 +124,14 @@ Optional (if you have external specs/designs you don’t want missed during impl
 12) `/prompts:arch-qa-autotest …` (optional: run automation on an existing sim/emulator; reopen plan issues with evidence)
 13) `/prompts:arch-progress …` (optional if not covered by implement)
 14) `/prompts:arch-audit-implementation …` (recommended: completeness + idiomatic audit vs plan; reopen false-complete)
+
+### Goal-seeking loop (open-ended optimization / investigation)
+1) `/prompts:goal-loop-new <freeform goal>` (create SSOT doc + running log; confirm North Star)
+2) `/prompts:goal-loop-iterate <DOC_PATH>` (run one bet, append to log — repeat as needed)
+3) `/prompts:goal-loop-context-load <DOC_PATH>` (optional: write digest for handoff/restart)
+
+Use `/prompts:goal-loop-flow <DOC_PATH>` at any point to check readiness and get the recommended next step.
+
+### North Star investigation (deep root-cause / optimization)
+1) `/prompts:north-star-investigation-bootstrap <freeform description>` (create investigation doc with hypotheses + brutal tests)
+2) `/prompts:north-star-investigation-loop <DOC_PATH>` (iterate: hypothesize → test → learn → refine — repeat)
