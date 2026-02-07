@@ -99,6 +99,18 @@ Many prompts update the plan by replacing the content inside these markers (inst
 
 Practical rule: **don’t delete or rename these markers** once they’re in your doc.
 
+### Reference folding (optional, but high leverage)
+If your plan depends on “out of band” materials (UX diagrams, specs, best-practice docs, etc.), implementation can miss them if they’re only linked.
+
+Use:
+- `/prompts:arch-fold-in docs/<...>.md <any number of ref doc paths/URLs> <short blurb>`
+
+What it does:
+- Folds reference material *into* `DOC_PATH` under the `reference_pack` block.
+- Wires binding “must satisfy” obligations into the relevant phases (so implementation can’t skip them).
+
+Practical placement: run it after the phase plan is written and before implementation (Phase 3 → Phase 4).
+
 ---
 
 ## 3) Choosing a flow

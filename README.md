@@ -29,5 +29,7 @@ Restart your Codex instance so it reloads the installed prompts/skill.
 
 - Start typing `/prompts:` in Codex CLI and pick the command you want (`arch-new`, `arch-mini-plan-agent`, `arch-implement`, etc.).
 - Optional: in conversation, you can ask Codex to “use arch-skill” to activate the router + invariants layer (prompts remain the SSOT procedures).
+- Optional (high leverage when you have specs/design docs you don’t want missed): `/prompts:arch-fold-in`
+  - Example: `/prompts:arch-fold-in docs/MY_PLAN.md docs/spec.md docs/ux_notes.md https://… "Fold these in; Phase 2 must obey the UX contract."`
 - Shortcut for “run automation on an existing sim/emulator and reopen plan issues if it fails”: `/prompts:arch-qa-autotest`
 - Regular flow vs mini flow guide: `docs/arch_skill_usage_guide.md`
