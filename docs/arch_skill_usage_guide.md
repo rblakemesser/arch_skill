@@ -88,6 +88,7 @@ Many prompts update the plan by replacing the content inside these markers (inst
 
 - `<!-- arch_skill:block:planning_passes:start --> … end -->`
 - `<!-- arch_skill:block:research_grounding:start --> … end -->`
+- `<!-- arch_skill:block:reference_pack:start --> … end -->`
 - `<!-- arch_skill:block:current_architecture:start --> … end -->`
 - `<!-- arch_skill:block:target_architecture:start --> … end -->`
 - `<!-- arch_skill:block:call_site_audit:start --> … end -->`
@@ -169,6 +170,10 @@ If the change touches UI/UX:
 9) `/prompts:arch-phase-plan docs/<...>.md`
    - Inserts the authoritative depth-first phased implementation plan (with exit criteria + rollback)
    - Warns (doesn’t block) if planning passes were skipped/unknown
+
+Optional (recommended when you have specs/design docs you don’t want missed during implementation):
+- `/prompts:arch-fold-in docs/<...>.md <any number of ref doc paths/URLs> <short blurb>`
+  - Folds references *into* the plan doc and wires binding obligations into the relevant phases.
 
 10) `/prompts:arch-review-gate docs/<...>.md` (recommended for high-risk changes)
    - Runs an “idiomatic + completeness” review pass and writes the review gate block into the doc
