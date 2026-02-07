@@ -64,6 +64,10 @@ Restart your Codex instance after updating prompts so it reloads `/prompts:*`.
 | `prompts/maestro-rerun-last.md` | `/prompts:maestro-rerun-last` | Re-run the most recent failed Maestro flow. |
 | `prompts/maestro-kill.md` | `/prompts:maestro-kill` | Kill stuck Maestro runs. |
 | `prompts/qa-autopilot.md` | `/prompts:qa-autopilot` | Run QA automation (framework-agnostic), fix broken flows idiomatically, and write a QA worklog (plan-aware). |
+| `prompts/goal-loop-new.md` | `/prompts:goal-loop-new` | Create/repair a Goal Loop SSOT doc **and** an append-only running log (restart-safe; North Star confirmation; autonomy-first; anti-sidetrack). |
+| `prompts/goal-loop-iterate.md` | `/prompts:goal-loop-iterate` | Run exactly one iteration (one bet), avoid reruns by reading the running log first, then append a new worklog entry with evidence + learnings. |
+| `prompts/goal-loop-flow.md` | `/prompts:goal-loop-flow` | Read-only readiness checklist + recommend the single best next step (bootstrap vs iterate). |
+| `prompts/goal-loop-context-load.md` | `/prompts:goal-loop-context-load` | Write a short Context Digest from DOC_PATH + running log so restarts don’t redo work (details remain in worklog). |
 
 ---
 

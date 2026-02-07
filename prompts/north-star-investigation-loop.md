@@ -1,3 +1,7 @@
+---
+description: "Execute the North Star investigation loop: iterate on hypotheses, run brutal tests, update the investigation doc."
+---
+
 # /prompts:north-star-investigation-loop
 # COMMUNICATING WITH USERNAME (IMPORTANT)
 

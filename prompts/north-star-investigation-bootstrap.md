@@ -1,3 +1,7 @@
+---
+description: "Bootstrap a North Star investigation doc (Commander's Intent) for an optimization effort or root-cause investigation."
+---
+
 # /prompts:north-star-investigation-bootstrap
 # COMMUNICATING WITH USERNAME (IMPORTANT)
 
