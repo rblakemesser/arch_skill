@@ -41,15 +41,15 @@ Restart your Codex/Claude Code instance after updating prompts so it reloads `/p
 | `prompts/arch-plan-audit-agent.md` | `/prompts:arch-plan-audit-agent` | Agent-assisted plan audit: use parallel read-only subagents to validate call-site completeness, architecture specificity, and idiomatic fit. |
 | `prompts/arch-plan-enhance.md` | `/prompts:arch-plan-enhance` | Enhance an existing plan to be best-possible: idiomatic + SSOT + call‑site complete + drift-proof. |
 | `prompts/arch-fold-in.md` | `/prompts:arch-fold-in` | Optional: fold reference docs/links into DOC_PATH and wire them into phases so implementation can’t miss them. |
-| `prompts/arch-audit-implementation.md` | `/prompts:arch-audit-implementation` | Audit implementation completeness vs the plan, reopen false-complete phases, and get opus+gemini second opinions. |
-| `prompts/arch-audit-implementation-agent.md` | `/prompts:arch-audit-implementation-agent` | Agent-assisted implementation audit: parallel read-only subagents prove call-site completeness + cleanup + guardrails, then opus+gemini. |
+| `prompts/arch-audit-implementation.md` | `/prompts:arch-audit-implementation` | Audit implementation completeness vs the plan and reopen false-complete phases. |
+| `prompts/arch-audit-implementation-agent.md` | `/prompts:arch-audit-implementation-agent` | Agent-assisted implementation audit: parallel read-only subagents prove call-site completeness + cleanup + guardrails. |
 | `prompts/arch-ui-ascii.md` | `/prompts:arch-ui-ascii` | Add ASCII mockups for current/target UI states. |
 | `prompts/arch-ascii.md` | `/prompts:arch-ascii` | Render a simple ASCII chart for the current topic/pipeline. |
 | `prompts/arch-research.md` | `/prompts:arch-research` | Populate Research Grounding (external + internal anchors). |
 | `prompts/arch-research-agent.md` | `/prompts:arch-research-agent` | Agent-assisted research: parallel read-only subagents gather internal ground truth/patterns and fixtures/tests evidence. |
 | `prompts/arch-external-research-agent.md` | `/prompts:arch-external-research-agent` | External web research: parallel subagents search best-in-class practices for plan-adjacent topics and write them into DOC_PATH with sources. |
 | `prompts/arch-progress.md` | `/prompts:arch-progress` | Update the worklog with phase progress (plan doc only for decisions). |
-| `prompts/arch-implement.md` | `/prompts:arch-implement` | Implement the plan end-to-end: systematic + test-as-you-go + keep doc current + review gate + commit/push after review. |
+| `prompts/arch-implement.md` | `/prompts:arch-implement` | Implement the plan end-to-end: systematic + test-as-you-go + keep doc current. |
 | `prompts/arch-implement-agent.md` | `/prompts:arch-implement-agent` | Agent-assisted implement: main agent orchestrates phase-by-phase; subagents write code + run checks; main context stays lean. |
 | `prompts/arch-qa-autotest.md` | `/prompts:arch-qa-autotest` | Automation QA on existing sims/emulators, then reopen plan issues with evidence. |
 | `prompts/arch-ramp-up.md` | `/prompts:arch-ramp-up` | Ramp up on an existing plan doc + code before taking action. |
@@ -98,7 +98,7 @@ Optional (when you want extremely granular, small-agent-executable tasks):
 4) `/prompts:arch-implement-agent …` (implement in 1-2 phases; minimal checks; keep doc/worklog current)
 5) `/prompts:arch-qa-autotest …` (optional: run automation on an existing sim/emulator; reopen plan issues with evidence)
 6) `/prompts:arch-audit-agent …` (recommended: fast audit for drift/missed call sites)
-7) `/prompts:arch-audit-implementation-agent …` (optional upgrade: strict completeness audit + second opinions)
+7) `/prompts:arch-audit-implementation-agent …` (optional upgrade: strict completeness audit)
 
 ### Minimal flow (small change)
 1) `/prompts:arch-new …`

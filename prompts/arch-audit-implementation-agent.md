@@ -1,5 +1,5 @@
 ---
-description: "Implementation audit (agent-assisted): confirm plan compliance + completeness with subagent scans, then opus+gemini second opinions."
+description: "Implementation audit (agent-assisted): confirm plan compliance + completeness with subagent scans."
 argument-hint: "<Paste anything. Include docs/<...>.md to pin the plan doc (optional).>"
 ---
 # /prompts:arch-audit-implementation-agent — $ARGUMENTS
@@ -11,7 +11,7 @@ Running this audit should stop us from “missing parts” of the implementation
 - the plan doc reflects reality (no false “complete”),
 - any missing implementation is explicitly listed with evidence anchors (file paths/symbols/tests),
 - phases that were marked complete but aren’t truly done are reopened with concrete missing work,
-- and we have two independent second opinions (opus + gemini) on completeness + idiomatic fit.
+- and the remaining uncertainty is explicit enough to decide whether a separate code review is still worth doing.
 
 $ARGUMENTS is freeform steering. Treat it as intent + constraints + any relevant context.
 
@@ -126,19 +126,6 @@ Audit procedure (do this in order):
    - If a phase is marked complete but CODE work is missing → REOPEN it.
    - If a phase is code-complete but only manual QA evidence is missing → do NOT reopen; instead record “Manual QA pending (non-blocking)” as follow-up.
    - Always refer to phases as `Phase <n> (<what it does>)` (use the phase heading text; if missing, infer from that phase’s Goal/Work bullets).
-5) Second opinions (required):
-   - Get two independent reviews (via read-only reviewer subagents; do not bloat main context):
-     - Opus (anthropic/claude-opus-4.5)
-     - Gemini (gemini-3-pro-preview)
-   - Reviewer subagent rules:
-     - Read-only: MUST NOT modify files.
-     - No questions: MUST answer from DOC_PATH + repo evidence only.
-     - No recursion: MUST NOT spawn other subagents.
-     - Output must be short, actionable bullets with evidence anchors (file paths/symbols).
-   - Ask them: “Is the implementation complete and idiomatic relative to DOC_PATH? What’s missing? Where does code drift from plan? Any SSOT/contract violations?”
-   - Provide them enough context to answer (DOC_PATH + top gaps + key file anchors). Do not be vague.
-   - Record their feedback in the doc, even if you disagree (label: accepted/rejected).
-
 DOC UPDATES (anti-fragile; do NOT assume section numbers):
 A) Insert/replace an audit block near the top:
 Placement rule (in order):
@@ -171,16 +158,6 @@ Manual QA: <pending|complete|n/a> (non-blocking)
 
 ## Non-blocking follow-ups (manual QA / screenshots / human verification)
 - <follow-up item>
-
-## External second opinions
-- Opus: <received|pending>
-  - Key points:
-    - <bullet>
-  - Disposition: <accepted|rejected> — <why>
-- Gemini: <received|pending>
-  - Key points:
-    - <bullet>
-  - Disposition: <accepted|rejected> — <why>
 <!-- arch_skill:block:implementation_audit:end -->
 
 B) Reopen phases in-place (only when needed):

@@ -80,14 +80,14 @@ The core prompt family for structured architecture planning + execution. Support
 - `/prompts:arch-implement` / `arch-implement-agent` — ship the plan end-to-end
 - `/prompts:arch-fold-in` — fold reference docs/links into phases (high leverage when you have specs)
 - `/prompts:arch-audit-implementation` — strict "is code actually complete vs plan?" audit
-- `/prompts:arch-codereview` / `arch-open-pr` — external review + PR finalization
+- `/prompts:arch-codereview` / `arch-open-pr` — on-demand review + PR finalization
 
 ### Mini-arch flow (`lilarch-*`)
-A **tiny** version of the arch flow intended for **small features or improvements** that can ship in **1–3 phases**. It compresses “new + research”, “plan + audits”, and “implement + review” into three prompts:
+A **tiny** version of the arch flow intended for **small features or improvements** that can ship in **1–3 phases**. It compresses “new + research”, “plan + audit”, and “implement + self-audit” into three prompts:
 
 - `/prompts:lilarch-start` — create/repair a compact plan doc: North Star + requirements + minimal grounding (optional external best practices)
-- `/prompts:lilarch-plan` — deep dive + 1–3 phase plan + internal plan audit + external plan audit (write back to DOC_PATH)
-- `/prompts:lilarch-finish` — implement + self-audit + external code review (write back to DOC_PATH + worklog)
+- `/prompts:lilarch-plan` — deep dive + 1–3 phase plan + internal plan audit + optional self-review (write back to DOC_PATH)
+- `/prompts:lilarch-finish` — implement + self-audit (write back to DOC_PATH + worklog)
 
 If the work expands beyond 3 phases, the prompts warn and recommend switching to the full `arch-*` flow (or `bugs-*` if investigation dominates).
 

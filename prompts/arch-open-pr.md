@@ -1,5 +1,5 @@
 ---
-description: "12) Open PR: merge default branch, do a post-merge smoke check (no redundant suites), push, open a detailed draft PR, then watch CI until mergeable."
+description: "12) Open PR: merge default branch, avoid redundant re-validation, push, open a detailed draft PR, then watch CI until mergeable."
 argument-hint: "<Optional: PR title/intent/constraints. Add `parity` to run CI-equivalent locally. Add `no-watch` to skip CI watching.>"
 ---
 # /prompts:arch-open-pr — $ARGUMENTS
@@ -23,7 +23,7 @@ Question policy (strict):
 Goal:
 Get the current branch into a state where:
 1) it cleanly incorporates the latest default branch (usually `origin/main`),
-2) it passes a **post-merge smoke check** (no redundant long suites),
+2) it preserves a credible recent green signal, or runs a targeted post-merge smoke check when risk changed,
 3) it is pushed, and
 4) the PR is opened as a **draft** with a detailed, template-based description.
 5) if CI runs on PRs, we watch it to completion and report whether the PR is mergeable.
@@ -47,16 +47,19 @@ Modes (keep it simple):
 
 ## 2) Local checks (post-merge smoke; FAST = minimal)
 Default (FAST):
-- Do NOT re-run long suites we already ran earlier in this work unless the merge introduced conflicts or we changed behavior after the last known green run.
-- Prefer to rely on PR CI to re-validate the full suite.
-- Run only a post-merge smoke check that proves we didn’t break basics:
-  - compile/build the affected target(s) (and both iOS + Android if you’re changing a mobile app),
-  - run a small, relevant unit test set only if conflicts occurred or the merge diff touches core code.
+- Prefer to rely on the latest credible local signal already captured in DOC_PATH/worklog plus PR CI.
+- Do NOT re-run long suites we already ran earlier in this work unless the merge introduced conflicts, there is no recent relevant green signal, or we changed behavior after that last known green run.
+- Run a post-merge smoke check only when the merge actually changed risk:
+  - merge conflicts occurred,
+  - the merge diff touches executable/runtime code, build/test infra, or release wiring,
+  - or you lack a recent relevant green signal to lean on.
+- When a smoke check is needed, choose the smallest targeted build/test that proves the merge did not break basics.
 - Decide whether to run additional local checks using judgment plus one quick signal:
   - If `git merge` reported `Already up to date.`, treat the merge as a no-op and skip local checks.
   - Otherwise, quickly inspect what the merge introduced via `git diff --name-only ORIG_HEAD..HEAD` (fallback: `git diff --name-only HEAD@{1}..HEAD` if `ORIG_HEAD` is unusable).
-  - If the diff touches runtime/app code, build/test infra, or you’re uncertain, run the smoke check; if it’s clearly irrelevant (docs-only / comments), skip and proceed to opening the PR.
-- Avoid heavy setup/install steps unless a check fails and indicates missing deps.
+  - If the diff is clearly irrelevant (docs-only / comments), skip local checks and proceed to opening the PR.
+  - If the diff touches risky areas but your last credible green signal already covers them and the merge was clean, you may still skip reruns; document why in the PR notes/worklog.
+  - Avoid heavy setup/install steps unless a check fails and indicates missing deps.
 
 If $ARGUMENTS includes `parity` / `full`:
 - Derive what CI actually runs from workflows/scripts and run the closest local equivalent until green.

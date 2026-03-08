@@ -15,7 +15,6 @@ Do not preface with a plan or restate these instructions. Begin work immediately
 $ARGUMENTS is freeform steering. Infer what you can.
 
 Hard constraints:
-- DO NOT USE PAL MCP (this is a command-line action).
 - Detect which agent you're running in and use the OTHER tool for the review:
   - If `CLAUDECODE=1` is set (you are Claude Code): use Codex CLI
     `echo "<prompt>" | codex exec --dangerously-bypass-approvals-and-sandbox`
@@ -55,11 +54,11 @@ Get an external, high-signal code review of the bug fix relative to the bug doc,
   REVIEW_EOF
   ```
 
-Where `<PROMPT>` is a single, well-formed instruction that includes DOC_PATH and asks Claude to do an evidence-anchored audit relative to the bug doc.
+Where `<PROMPT>` is a single, well-formed instruction that includes DOC_PATH and asks for an evidence-anchored audit relative to the bug doc.
 Use this prompt template (fill in DOC_PATH and any scope hints from $ARGUMENTS):
 
 Claude prompt:
-`Use parallel agents to exhaustively review my implementation relative to DOC_PATH=<DOC_PATH>, looking for anything missing or incorrect vs the bug doc. Read the relevant files and the diff vs main. Focus on correctness, edge cases, regressions, and whether the fix truly addresses the stated root cause. Explicitly verify the fix aligns with the Evidence section and that the evidence supports the chosen root cause/fix. Call out any missing call sites, partial migrations, or SSOT violations. Explicitly call out any runtime fallbacks/compatibility shims/placeholder behavior/silent error swallowing or defaulting that could mask incorrect behavior. Do not recommend negative-value tests (deleted-code proofs, visual-constant/golden noise, doc-driven inventory gates, mock-only interaction tests). Provide evidence anchors (file paths / symbols). Output: (1) Top risks (ranked), (2) Specific fixes with file anchors, (3) Tests to add or run (targeted only), (4) Anything over-scoped or unrelated.`
+`Review my implementation relative to DOC_PATH=<DOC_PATH>, looking for anything missing or incorrect vs the bug doc. Read the relevant files and the diff vs main. Focus on correctness, edge cases, regressions, and whether the fix truly addresses the stated root cause. Explicitly verify the fix aligns with the Evidence section and that the evidence supports the chosen root cause/fix. Call out any missing call sites, partial migrations, or SSOT violations. Explicitly call out any runtime fallbacks/compatibility shims/placeholder behavior/silent error swallowing or defaulting that could mask incorrect behavior. Do not recommend negative-value tests (deleted-code proofs, visual-constant/golden noise, doc-driven inventory gates, mock-only interaction tests). Provide evidence anchors (file paths / symbols). Output: (1) Top risks (ranked), (2) Specific fixes with file anchors, (3) Tests to add or run (targeted only), (4) Anything over-scoped or unrelated.`
 
 ## 2) Process feedback (apply what we agree with)
 - Summarize Claude’s feedback into three buckets:
@@ -67,7 +66,9 @@ Claude prompt:
   - “Disagree / won’t do” (with a short rationale)
   - “Follow-ups” (good ideas but out-of-scope)
 - For “Will do now” items: implement fixes and keep changes minimal/targeted.
-- Run the smallest relevant checks to validate the changes (don’t run the full suite unless requested or clearly required).
+- Re-validate only if you changed executable/build-affecting code in response to the review.
+  - Prefer one targeted check tied to the accepted feedback.
+  - If you made no code changes or only changed docs/comments, skip reruns.
 - If the bug doc needs a quick update (Decision Log / risks), update DOC_PATH accordingly (keep it short).
 
 Commit policy:

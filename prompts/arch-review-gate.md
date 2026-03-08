@@ -1,5 +1,5 @@
 ---
-description: "09) Review gate: external idiomatic+completeness check."
+description: "09) Review gate: local idiomatic+completeness check."
 argument-hint: "<Freeform guidance. Include a docs/<...>.md path anywhere to pin the plan doc (optional).>"
 ---
 # /prompts:arch-review-gate — $ARGUMENTS
@@ -37,20 +37,15 @@ Alignment checks (keep it light before requesting external review)
 - UX scope: explicit in-scope / out-of-scope (what users see changes vs does not change).
 If either is missing or contradictory, pause and ask for a quick doc edit before proceeding.
 
-Reviewer subagents (explicit; keep main context lean)
-- Run opus/gemini review via TWO read-only reviewer subagents (one per model) so the main agent stays focused on the plan and dispositions.
-- Reviewer subagent rules:
-  - Read-only: MUST NOT modify files.
-  - No questions: MUST answer from DOC_PATH + repo evidence only.
-  - No recursion: MUST NOT spawn other subagents.
-  - Output must be short, actionable bullets with evidence anchors (file paths/symbols).
-- Provide reviewers enough context to answer (DOC_PATH + the key file anchors/diffs relevant to the plan).
-- Ask each reviewer (same question):
+Local review pass (keep it in this prompt)
+- Do NOT use external reviewer CLIs or other-model consultations from `arch-review-gate`.
+- Review DOC_PATH plus the key file anchors/diffs relevant to the plan.
+- Ask the same core question yourself:
   - “Is this idiomatic and complete relative to DOC_PATH? What’s missing? Where does code drift from the plan? Any SSOT/contract violations?”
   - If you suggest tests: suggest only high-signal, refactor-resistant checks. Do NOT suggest negative-value tests (deleted-code proofs, visual-constant/golden noise, doc-driven inventory gates, mock-only interaction tests). If an existing test suite is clearly negative value, call it out and recommend deletion or rewrite.
   - Pattern propagation: are any new SSOTs/contracts or tricky gotchas documented via short, high-leverage code comments at the canonical boundary (without comment spam)?
 
-Request reviews from opus/gemini (via subagents), then integrate feedback you agree with.
+Run the review locally, then integrate feedback you agree with.
 Update DOC_PATH before moving to the next phase.
 Write/update the Review Gate block into DOC_PATH (anti-fragile placement).
 Placement rule (in order):
@@ -63,7 +58,7 @@ Do not paste the full block to the console.
 DOCUMENT INSERT FORMAT:
 <!-- arch_skill:block:review_gate:start -->
 ## Review Gate
-- Reviewers: <opus|gemini>
+- Reviewers: self
 - Question asked: “Is this idiomatic and complete relative to the plan?”
 - Feedback summary:
   - <item>

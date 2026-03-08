@@ -15,7 +15,6 @@ Do not preface with a plan or restate these instructions. Begin work immediately
 $ARGUMENTS is freeform steering. Infer what you can.
 
 Hard constraints:
-- DO NOT USE PAL MCP (this is a command-line action).
 - Detect which agent you're running in and use the OTHER tool for the review:
   - If `CLAUDECODE=1` is set (you are Claude Code): use Codex CLI
     `echo "<prompt>" | codex exec --dangerously-bypass-approvals-and-sandbox`
@@ -55,11 +54,11 @@ Get an external, high-signal code review of the implementation relative to the p
   REVIEW_EOF
   ```
 
-Where `<PROMPT>` is a single, well-formed instruction that includes DOC_PATH and asks Claude to use "parallel agents" (multiple reviewer perspectives) and produce actionable, evidence-anchored feedback.
+Where `<PROMPT>` is a single, well-formed instruction that includes DOC_PATH and asks for actionable, evidence-anchored feedback.
 Use this prompt template (fill in DOC_PATH and any scope hints from $ARGUMENTS):
 
 Claude prompt:
-`Use parallel agents to exhaustively, line by line, code review my implementation relative to DOC_PATH=<DOC_PATH>, looking for every single element of our plan doc vs any ground truths referenced. Literally read every single file that was part of the plan or adjacent to the plan, read the actual diff vs main, and find anything we did we weren't supposed to as well as anything we did not do that we were supposed to. DO NOT AUDIT FOR SECURITY OR PII CONCERNS THAT IS OUT OF SCOPE. Also: do not recommend negative-value tests (deleted-code proofs, visual-constant/golden noise, doc-driven inventory gates, mock-only interaction tests). Also: explicitly call out any runtime fallbacks/compatibility shims/placeholder behavior/silent error swallowing or defaulting that could mask incorrect behavior. Also: call out any missing high-leverage code comments/doc comments for new SSOTs/contracts or tricky gotchas; avoid comment spam. Review for correctness vs the plan, edge cases, performance, maintainability, and test coverage. Point to concrete evidence (file paths / symbols). Output: (1) Top risks (ranked), (2) Specific suggested fixes with file anchors, (3) Tests to add or run (relevant only, not full-suite), (4) Anything that looks over-scoped. Be direct.`
+`Code review my implementation relative to DOC_PATH=<DOC_PATH>. Read the relevant files and the diff vs main, and find anything we did we weren't supposed to as well as anything we did not do that we were supposed to. DO NOT AUDIT FOR SECURITY OR PII CONCERNS THAT IS OUT OF SCOPE. Also: do not recommend negative-value tests (deleted-code proofs, visual-constant/golden noise, doc-driven inventory gates, mock-only interaction tests). Also: explicitly call out any runtime fallbacks/compatibility shims/placeholder behavior/silent error swallowing or defaulting that could mask incorrect behavior. Also: call out any missing high-leverage code comments/doc comments for new SSOTs/contracts or tricky gotchas; avoid comment spam. Review for correctness vs the plan, edge cases, performance, maintainability, and test coverage. Point to concrete evidence (file paths / symbols). Output: (1) Top risks (ranked), (2) Specific suggested fixes with file anchors, (3) Tests to add or run (relevant only, not full-suite), (4) Anything that looks over-scoped. Be direct.`
 
 ## 2) Process feedback (apply what we agree with)
 - Summarize Claude’s feedback into three buckets:
@@ -67,7 +66,9 @@ Claude prompt:
   - “Disagree / won’t do” (with a short rationale)
   - “Follow-ups” (good ideas but out-of-scope for this PR)
 - For “Will do now” items: implement fixes and keep changes minimal/targeted.
-- Run the smallest relevant checks to validate the changes (don’t run the full suite unless requested or clearly required).
+- Re-validate only if you changed executable/build-affecting code in response to the review.
+  - Prefer one targeted check tied to the accepted feedback.
+  - If you made no code changes or only changed docs/comments, skip reruns.
 - If the plan doc needs a quick update (Decision Log / risks), update DOC_PATH accordingly (keep it short).
 
 Commit policy:

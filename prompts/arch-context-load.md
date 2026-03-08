@@ -140,7 +140,8 @@ Main-agent procedure (do this order; keep it tight)
    - If phase plan is missing → needs `/prompts:arch-phase-plan(-agent)`
    - If code work is pending → needs `/prompts:arch-implement`
    - If code is done but completeness is uncertain → needs `/prompts:arch-audit-implementation(-agent)`
-   - If code is done and we want idiomatic/completeness second opinions → needs `/prompts:arch-review-gate`
+   - If the plan is still changing and we want one more doc-only completeness pass → needs `/prompts:arch-review-gate`
+   - If code is done and the user explicitly wants external code review → needs `/prompts:arch-codereview`
    - If ready to ship → needs `/prompts:arch-open-pr`
 6) Write/update the Context Digest block in DOC_PATH using the format below. Do not paste the full block to console.
 

@@ -93,7 +93,7 @@ Regular Flow (recommended):
 11) Review gate (optional; `/prompts:arch-review-gate`)
 12) Implement (`/prompts:arch-implement` or `arch-implement-agent`) + WORKLOG_PATH exists
 13) Post-checks (optional): `/prompts:arch-audit`, `/prompts:arch-audit-implementation`, `/prompts:arch-qa-autotest`
-14) Code review: `/prompts:arch-codereview`
+14) Code review (optional; only if explicitly requested): `/prompts:arch-codereview`
 15) PR finalization (optional): `/prompts:arch-open-pr`
 
 Mini Flow (small tasks):
@@ -103,13 +103,14 @@ Mini Flow (small tasks):
 4) Overbuild protector (optional): `/prompts:arch-overbuild-protector`
 5) Implement (`/prompts:arch-implement-agent`) + WORKLOG_PATH exists
 6) Post-checks (optional): `/prompts:arch-audit-agent`, `/prompts:arch-audit-implementation-agent`, `/prompts:arch-qa-autotest`
-7) Code review: `/prompts:arch-codereview`
+7) Code review (optional; only if explicitly requested): `/prompts:arch-codereview`
 8) PR finalization (optional): `/prompts:arch-open-pr`
 
 Next step selection rule:
 - Choose the earliest PENDING **non-optional** step in the selected flow.
 - If all non-optional steps are DONE:
-  - Recommend the most sensible next optional step (prefer `/prompts:arch-codereview`, then `/prompts:arch-open-pr`).
+  - Recommend `/prompts:arch-open-pr` by default.
+  - Only prefer `/prompts:arch-codereview` if the user explicitly asked for a code review.
 - Always print the exact next command with DOC_PATH filled in.
 - Offer to proceed: “Reply ‘run next’ to execute it” (or instruct to rerun with `RUN=1`).
 

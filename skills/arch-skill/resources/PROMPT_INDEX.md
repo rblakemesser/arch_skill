@@ -17,8 +17,8 @@ Principle: prompts are the **procedures**; this index is just routing.
 For small features/improvements that can ship in **1–3 phases** (not new architectures, not big migrations):
 
 - Start (new + research + requirements): `/prompts:lilarch-start <freeform request> [docs/<...>.md]`
-- Plan (deep dive + plan + audits): `/prompts:lilarch-plan <DOC_PATH>`
-- Finish (implement + review): `/prompts:lilarch-finish <DOC_PATH>`
+- Plan (deep dive + plan + internal audit): `/prompts:lilarch-plan <DOC_PATH>`
+- Finish (implement + self-audit): `/prompts:lilarch-finish <DOC_PATH>`
 
 If the work expands beyond 3 phases or is investigation-heavy:
 - Switch to `/prompts:arch-flow <DOC_PATH> FLOW=regular` (or)
@@ -47,7 +47,7 @@ If the work expands beyond 3 phases or is investigation-heavy:
 - Phase plan granularize (optional; single SSOT microtasks): `/prompts:arch-phase-plan-granularize <DOC_PATH>`
 - Phase plan granularize (agent-assisted): `/prompts:arch-phase-plan-granularize-agent <DOC_PATH>`
 - Overbuild protector (optional; prevent scope creep/overbuild): `/prompts:arch-overbuild-protector <DOC_PATH>`
-- Review gate (recommended for risky changes): `/prompts:arch-review-gate <DOC_PATH>`
+- Review gate (optional local completeness pass): `/prompts:arch-review-gate <DOC_PATH>`
 - Fold in references (inline docs/links into phases): `/prompts:arch-fold-in <DOC_PATH>`
 - Plan audit (score readiness across phases): `/prompts:arch-plan-audit <DOC_PATH>`
 - Plan audit (agent-assisted): `/prompts:arch-plan-audit-agent <DOC_PATH>`
@@ -91,8 +91,8 @@ If the work expands beyond 3 phases or is investigation-heavy:
 - DevX (agent-assisted): `/prompts:arch-devx-agent <DOC_PATH>`
 
 ## 12) Code review & finalization
-- Code review (cross-tool external review, Claude↔Codex): `/prompts:arch-codereview <DOC_PATH + scope>`
-- Open PR (merge, preflight, push, open draft PR): `/prompts:arch-open-pr [title/constraints]`
+- Code review (on-demand cross-tool review, Claude↔Codex): `/prompts:arch-codereview <DOC_PATH + scope>`
+- Open PR (merge, minimal preflight, push, open draft PR): `/prompts:arch-open-pr [title/constraints]`
 
 ## 13) Rendering
 - HTML full-fidelity render: `/prompts:arch-html-full <DOC_PATH>`

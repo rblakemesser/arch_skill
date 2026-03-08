@@ -60,8 +60,8 @@ If the work expands beyond that (or is investigation-heavy), switch back to the 
 | Prompt | What it does | Args |
 | --- | --- | --- |
 | `/prompts:lilarch-start` | Create/repair a compact plan doc: North Star + requirements + minimal grounding (optional external best practices). | Freeform request; optional `docs/<...>.md` |
-| `/prompts:lilarch-plan` | Deep dive + 1–3 phase plan + internal plan audit + external plan audit (write back to doc). | `DOC_PATH` |
-| `/prompts:lilarch-finish` | Implement + self-audit + external code review; update worklog and mark doc complete. | `DOC_PATH`; optional `PAUSE=1` |
+| `/prompts:lilarch-plan` | Deep dive + 1–3 phase plan + internal plan audit + optional self-review (write back to doc). | `DOC_PATH` |
+| `/prompts:lilarch-finish` | Implement + self-audit; update worklog and mark doc complete. | `DOC_PATH`; optional `PAUSE=1` |
 
 ### Research grounding
 
@@ -87,7 +87,7 @@ If the work expands beyond that (or is investigation-heavy), switch back to the 
 | `/prompts:arch-phase-plan-agent` | Agent-assisted phase plan with subagent discovery. | `DOC_PATH` |
 | `/prompts:arch-phase-plan-granularize` | Optional: rewrite the Phase Plan into micro-phases + microtasks (single SSOT; no second checklist). | `DOC_PATH` |
 | `/prompts:arch-phase-plan-granularize-agent` | Agent-assisted phase plan granularize (parallel read-only: call-site batching, deletes, smallest checks). | `DOC_PATH` |
-| `/prompts:arch-review-gate` | External idiomatic + completeness check (recommended for risky changes). | `DOC_PATH` |
+| `/prompts:arch-review-gate` | Local idiomatic + completeness check (optional before implementation). | `DOC_PATH` |
 | `/prompts:arch-fold-in` | Inline reference docs/links into phases so implementation can't miss them. | `DOC_PATH` |
 | `/prompts:arch-overbuild-protector` | Optional: scope triage to prevent overbuild; classify Phase Plan items and move out-of-scope work to intentional follow-ups. | `DOC_PATH` (`MODE=report|apply`, `STRICT=0|1`) |
 | `/prompts:arch-plan-audit` | Score plan readiness across phases. | `DOC_PATH` |
@@ -147,8 +147,8 @@ If the work expands beyond that (or is investigation-heavy), switch back to the 
 
 | Prompt | What it does | Args |
 | --- | --- | --- |
-| `/prompts:arch-codereview` | Run cross-tool external review (Claude↔Codex), then apply feedback you agree with. | `DOC_PATH` + scope |
-| `/prompts:arch-open-pr` | Merge default branch, run preflight, commit/push, open detailed **draft** PR. | Optional title/constraints |
+| `/prompts:arch-codereview` | On-demand cross-tool code review (Claude↔Codex), then apply feedback you agree with. | `DOC_PATH` + scope |
+| `/prompts:arch-open-pr` | Merge default branch, avoid redundant re-validation, commit/push, open detailed **draft** PR. | Optional title/constraints |
 
 ### Rendering
 

@@ -1,6 +1,6 @@
 ---
-description: "lilarch 03) Finish: implement 1–3 phases, then audit completeness + run external code review (write back to DOC_PATH)."
-argument-hint: "<Required: docs/<...>.md. Optional: PAUSE=1 to pause between phases. Optional: SKIP_REVIEW=1 to skip external review (not recommended).>"
+description: "lilarch 03) Finish: implement 1–3 phases, then self-audit completeness (write back to DOC_PATH)."
+argument-hint: "<Required: docs/<...>.md. Optional: PAUSE=1 to pause between phases.>"
 ---
 # /prompts:lilarch-finish — $ARGUMENTS
 Execution rule: do not block on unrelated dirty files in git; ignore unrecognized changes. If committing, stage only files you touched (or as instructed).
@@ -92,45 +92,11 @@ Manual QA: <pending|complete|n/a> (non-blocking)
 - <follow-up item>
 <!-- arch_skill:block:implementation_audit:end -->
 
-4) External code review (recommended; skip only if `$ARGUMENTS` includes `SKIP_REVIEW=1`):
-   - Hard constraint: DO NOT USE PAL MCP (this is a command-line action).
-   - Use a cross-tool reviewer (Claude↔Codex) so this agent gets a second set of eyes.
-   - CRITICAL: pipe the prompt (positional args can hang in nested sessions).
-   - Detect reviewer CLI:
-     - If `CLAUDECODE=1` is set (you are Claude Code): use Codex CLI
-       - `codex exec --dangerously-bypass-approvals-and-sandbox`
-     - Otherwise: use Claude Code CLI
-     - `claude -p --dangerously-skip-permissions`
-   - Suggested command pattern:
-     ```bash
-     if [ "$$CLAUDECODE" = "1" ]; then
-       REVIEWER="codex exec --dangerously-bypass-approvals-and-sandbox"
-     else
-       REVIEWER="claude -p --dangerously-skip-permissions"
-     fi
- 
-     cat <<'REVIEW_EOF' | $$REVIEWER
-     You are code reviewing an implementation relative to DOC_PATH="<DOC_PATH>".
-     Task:
-     - Verify completeness vs the plan (especially call sites + deletes).
-     - Verify idiomatic fit to the existing repo (avoid new patterns when existing ones suffice).
-     - Flag SSOT violations / parallel paths / hidden fallbacks.
- 
-     Constraints:
-     - Use evidence anchors: file paths / symbols / grep targets.
-     - Do NOT suggest negative-value tests (deleted-code proofs, golden/visual-constant noise, doc-driven inventory gates, mock-only interaction tests).
-     - Call out any runtime fallbacks/compat shims/placeholder behavior/silent error swallowing/defaulting.
- 
-     Output:
-     1) Verdict: COMPLETE / NOT COMPLETE (and why)
-     2) Top risks (ranked)
-     3) Concrete fixes (file anchors)
-     4) Tests/checks to run (smallest relevant set)
-     REVIEW_EOF
-     ```
-   - Integrate high-confidence feedback you agree with; keep changes minimal and in-scope.
-   - If the reviewer CLI is missing/not authenticated, report that as the blocker and proceed with a stricter self-audit (do not invent a new review mechanism).
-5) Run the smallest relevant checks again after integrating review feedback.
+4) Keep external code review out of this prompt:
+   - Do NOT launch another model from `lilarch-finish`.
+   - If the user explicitly asked for code review, stop after the self-audit and point to `/prompts:arch-codereview DOC_PATH` as the next command.
+5) Run additional checks only if late self-audit fixes changed executable behavior or invalidated the latest phase-level signal.
+   - If nothing changed after the last credible signal, reuse it and note that no rerun was needed.
 6) If code is complete, update DOC_PATH frontmatter `status:` → `complete`.
 
 OUTPUT FORMAT (console only; USERNAME-style):
@@ -139,5 +105,5 @@ Communicate naturally in English, but include (briefly):
 - Punchline (1 line; what state we’re in: implemented vs not complete)
 - What you implemented + checks you ran (short)
 - Any remaining gaps (if NOT COMPLETE) and where they live (file anchors)
-- Whether external review ran (and the top 1–2 findings)
+- Whether a follow-up code review was explicitly requested
 - Pointers (DOC_PATH / WORKLOG_PATH)

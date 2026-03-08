@@ -173,20 +173,16 @@ Finish criteria:
 - The doc reflects reality: no “done” claims without evidence.
 
 Finalization (after implementation is complete):
-1) Run a final test sweep appropriate to the plan (tests listed in the doc + any standard repo checks).
+1) Close verification gaps appropriate to the plan:
+   - Reuse the strongest recent phase-level signals if they still cover the current code.
+   - Run additional checks only when later changes invalidated that signal or DOC_PATH explicitly requires them.
 2) Run UI verification at the end (do not gate mid-implementation):
    - If UI automation exists (e.g., Maestro), run it now and record results.
    - Otherwise, provide a short manual checklist (screens/states to confirm) and mark it as pending if you can’t run it yourself.
-3) Get a code review from opus/gemini (via read-only reviewer subagents; keep main context lean):
-   - Explicit question: “Is this complete and idiomatic relative to the plan?”
-   - Reviewer subagent rules:
-     - Read-only: MUST NOT modify files.
-     - No questions: MUST answer from DOC_PATH + repo evidence only.
-     - No recursion: MUST NOT spawn other subagents.
-     - Output must be short, actionable bullets with evidence anchors (file paths/symbols).
-   - Provide ALL context they need (plan doc + key code paths + diffs).
-   - Integrate feedback you agree with; do not scope creep.
-4) Commit and push AFTER review (unless the user explicitly requested a different sequence).
+3) External code review is a separate, opt-in step:
+   - Do NOT launch another model from this prompt.
+   - If the user explicitly asked for code review, stop after local verification and point to `/prompts:arch-codereview DOC_PATH` as the next command.
+4) Commit and push AFTER local verification (unless the user explicitly requested a different sequence).
    - Stage only files you touched; ignore other dirty files.
 
 OUTPUT FORMAT (console only; USERNAME-style):

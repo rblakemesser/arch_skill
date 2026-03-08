@@ -1,6 +1,6 @@
 ---
-description: "lilarch 02) Plan: deep dive → 1–3 phase plan → internal + external plan audits (write back to DOC_PATH)."
-argument-hint: "<Required: docs/<...>.md. Optional: REVIEW=1 to force external review even if the plan seems obvious.>"
+description: "lilarch 02) Plan: deep dive → 1–3 phase plan → internal audit + optional self-review (write back to DOC_PATH)."
+argument-hint: "<Required: docs/<...>.md. Optional: REVIEW=1 to force one extra local review pass before implementation.>"
 ---
 # /prompts:lilarch-plan — $ARGUMENTS
 Execution rule: do not block on unrelated dirty files in git; ignore unrecognized changes. If committing, stage only files you touched (or as instructed).
@@ -42,7 +42,7 @@ In one pass, produce a small-feature plan that is:
 - Fully specified enough to implement (no vague “update X somewhere”),
 - Idiomatic to the repo (reuse patterns; avoid new abstractions unless necessary),
 - Call-site complete (no hidden parallel paths),
-- Audited both internally (self-audit) and externally (cross-tool reviewer),
+- Audited internally (with an optional extra local review pass for risky plans),
 …and record it all in DOC_PATH.
 
 ## Procedure (do this in order)
@@ -57,8 +57,8 @@ In one pass, produce a small-feature plan that is:
    - Idiomatic fit?
    - Call sites audited?
    - If any FAIL/PARTIAL: fix DOC_PATH immediately (within reason) and re-score.
-4) External plan audit (required for lilarch; unless blocked by missing reviewer CLI):
-   - Run a cross-tool review via the “other agent CLI” (Claude↔Codex).
+4) Optional review gate (local-only; only if the plan is unusually risky or `$ARGUMENTS` includes `REVIEW=1`):
+   - Run one extra doc-only review pass yourself.
    - Integrate the feedback you agree with (update DOC_PATH).
 5) Stop with a clear “ready to implement” verdict + next command.
 
@@ -205,44 +205,12 @@ Verdict: <PASS|PARTIAL|FAIL>
 - <blocker>
 <!-- lilarch:block:plan_audit:end -->
 
-## External plan audit (cross-tool; no PAL MCP)
-Hard constraint: DO NOT USE PAL MCP (this is a command-line action).
-Detect which agent you’re running in and use the OTHER tool for the review:
-- If `CLAUDECODE=1` is set (you are Claude Code): use Codex CLI
-  - `codex exec --dangerously-bypass-approvals-and-sandbox`
-- Otherwise: use Claude Code CLI
-  - `claude -p --dangerously-skip-permissions`
-
-Run an external plan review prompt that:
-- Reads DOC_PATH,
-- Checks completeness/idiomatic fit/call-site completeness,
-- Calls out anything too vague to safely implement,
-- Avoids recommending negative-value tests (deleted-code proofs, visual-constant/golden noise, doc-driven inventory gates, mock-only interaction tests),
-- Flags any runtime fallback/shim suggestions as unacceptable unless explicitly approved.
-
-Suggested review command pattern (pipe prompt; do NOT pass positional args):
-```bash
-if [ "$$CLAUDECODE" = "1" ]; then
-  REVIEWER="codex exec --dangerously-bypass-approvals-and-sandbox"
-else
-  REVIEWER="claude -p --dangerously-skip-permissions"
-fi
-
-cat <<'REVIEW_EOF' | $$REVIEWER
-You are reviewing a small-feature plan doc at DOC_PATH="<DOC_PATH>".
-Task: audit the plan for implementability and idiomatic fit.
-Requirements:
-- Be direct and actionable.
-- Use evidence anchors: file paths / symbols you referenced.
-- Focus on: (1) missing specs, (2) call-site misses, (3) parallel paths/SSOT risks, (4) plan phases too big or out-of-order, (5) minimal verification suggestions.
-- Do NOT suggest negative-value tests (deleted-code proof, golden/visual-constant noise, doc-driven inventory gates, mock-only interaction tests).
-Output:
-1) Verdict: PASS / PARTIAL / FAIL (and why)
-2) Top risks (ranked)
-3) Specific doc edits to make (bullets; quote the headings to update)
-4) Any repo patterns to reuse (with file anchors)
-REVIEW_EOF
-```
+## Local review gate (optional)
+If you do the extra review pass, ask yourself:
+- Is the plan specific enough to implement without guessing?
+- Did we enumerate every call site/delete we need?
+- Are any phases too big, out of order, or likely to introduce parallel paths?
+- Are the proposed checks the smallest signals that still buy confidence?
 
 Integrate the feedback you agree with:
 - Update DOC_PATH (tighten missing specifics; adjust phases; add call sites; add deletes).
@@ -250,7 +218,7 @@ Integrate the feedback you agree with:
 
 <!-- arch_skill:block:review_gate:start -->
 ## Review Gate
-- Reviewers: external (cross-tool)
+- Reviewers: self
 - Question asked: “Is this plan implementable and idiomatic relative to the repo?”
 - Feedback summary:
   - <item>

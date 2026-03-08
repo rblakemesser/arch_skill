@@ -112,9 +112,6 @@ Manual QA: <pending|complete|n/a> (non-blocking)
 ## Non-blocking follow-ups (manual QA / screenshots / human verification)
 - <manual QA follow-ups (optional)>
 
-## External second opinions
-- Opus: <received|pending|n/a>
-- Gemini: <received|pending|n/a>
 <!-- arch_skill:block:implementation_audit:end -->
 
 ---
