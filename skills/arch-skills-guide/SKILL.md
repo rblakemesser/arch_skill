@@ -1,6 +1,6 @@
 ---
 name: arch-skills-guide
-description: "Explain the arch skill suite, distinguish the subskills, and recommend the right one for a user's task. Use when a request asks which arch skill to use, what the difference is between `arch-plan`, `arch-mini-plan`, `lilarch`, `bugs-flow`, `goal-loop`, `north-star-investigation`, `arch-flow`, or wants a quick tour of the arch suite. Not for actually running the underlying workflow."
+description: "Explain the arch skill suite, distinguish the subskills, and recommend the right one for a user's task. Use when a request asks which arch skill to use, what the difference is between `arch-plan`, `arch-step`, `arch-mini-plan`, `lilarch`, `bugs-flow`, `goal-loop`, `north-star-investigation`, `arch-flow`, or wants a quick tour of the arch suite. Not for actually running the underlying workflow."
 metadata:
   short-description: "Guide and selector for the arch skill suite"
 ---
@@ -35,6 +35,7 @@ Use this skill when the user needs help choosing or understanding the arch suite
 1. Read `references/skill-map.md`.
 2. Classify the ask into one of these families:
    - full arch
+   - explicit full-arch steps
    - mini-plan
    - lilarch
    - bug flow
@@ -51,6 +52,7 @@ Use this skill when the user needs help choosing or understanding the arch suite
    - recommend the best-fit skill for a concrete task
 2. Map the task to the suite:
    - medium/large multi-step planning or implementation audit -> `arch-plan`
+   - old saved-prompt style full-arch command control, helpers, `advance`, or concise full-arch status -> `arch-step`
    - one-pass canonical mini plan -> `arch-mini-plan`
    - small 1-3 phase feature -> `lilarch`
    - bug, regression, crash, or Sentry issue -> `bugs-flow`

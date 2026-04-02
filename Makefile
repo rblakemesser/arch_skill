@@ -3,9 +3,9 @@
 ENV_FILE ?= .env
 DEFAULT_USERNAME := $(shell whoami)
 LEGACY_SKILLS := arch-skill
-SKILLS := arch-plan arch-mini-plan lilarch bugs-flow goal-loop north-star-investigation arch-flow arch-skills-guide codemagic-builds
-CLAUDE_SKILLS := arch-plan arch-mini-plan lilarch bugs-flow goal-loop north-star-investigation arch-flow arch-skills-guide
-GEMINI_SKILLS := arch-plan arch-mini-plan lilarch bugs-flow goal-loop north-star-investigation arch-flow arch-skills-guide
+SKILLS := arch-plan arch-step arch-mini-plan lilarch bugs-flow goal-loop north-star-investigation arch-flow arch-skills-guide codemagic-builds
+CLAUDE_SKILLS := arch-plan arch-step arch-mini-plan lilarch bugs-flow goal-loop north-star-investigation arch-flow arch-skills-guide
+GEMINI_SKILLS := arch-plan arch-step arch-mini-plan lilarch bugs-flow goal-loop north-star-investigation arch-flow arch-skills-guide
 PROMPT_FILES := $(notdir $(wildcard prompts/*.md))
 
 ifeq ($(NO_GEMINI),1)

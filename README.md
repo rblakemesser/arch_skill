@@ -5,6 +5,7 @@ This repo now ships a **skill suite** for **Codex CLI**, **Claude Code**, and **
 The primary skill surface is:
 
 - `arch-plan` — full research, deep dive, external research, phase plan, local implementation, and implementation audit
+- `arch-step` — explicit old-prompt-style full-arch step operator with `status` and `advance`
 - `arch-mini-plan` — one-pass mini architecture planning
 - `lilarch` — compact 1-3 phase feature flow
 - `bugs-flow` — evidence-first bug analyze/fix/review flow
@@ -45,16 +46,16 @@ make install NO_GEMINI=1
 **Codex CLI:**
 - Prompts → not installed by default; existing arch_skill prompts are moved to `~/.codex/prompts/_backup/`
 - Templates → `~/.codex/templates/arch_skill/`
-- Skills → `~/.codex/skills/arch-plan/`, `arch-mini-plan/`, `lilarch/`, `bugs-flow/`, `goal-loop/`, `north-star-investigation/`, `arch-flow/`, `arch-skills-guide/`, `codemagic-builds/`
+- Skills → `~/.codex/skills/arch-plan/`, `arch-step/`, `arch-mini-plan/`, `lilarch/`, `bugs-flow/`, `goal-loop/`, `north-star-investigation/`, `arch-flow/`, `arch-skills-guide/`, `codemagic-builds/`
 
 **Claude Code:**
 - Prompts → `~/.claude/commands/prompts/`
-- Skills → `~/.claude/skills/arch-plan/`, `arch-mini-plan/`, `lilarch/`, `bugs-flow/`, `goal-loop/`, `north-star-investigation/`, `arch-flow/`, `arch-skills-guide/`
+- Skills → `~/.claude/skills/arch-plan/`, `arch-step/`, `arch-mini-plan/`, `lilarch/`, `bugs-flow/`, `goal-loop/`, `north-star-investigation/`, `arch-flow/`, `arch-skills-guide/`
 
 **Gemini CLI:**
 - Commands → `~/.gemini/commands/prompts/*.toml` (invoked as `/prompts:<name>`)
 - Prompts → `~/.gemini/arch_skill/prompts/`
-- Skills → `~/.gemini/skills/arch-plan/`, `arch-mini-plan/`, `lilarch/`, `bugs-flow/`, `goal-loop/`, `north-star-investigation/`, `arch-flow/`, `arch-skills-guide/`
+- Skills → `~/.gemini/skills/arch-plan/`, `arch-step/`, `arch-mini-plan/`, `lilarch/`, `bugs-flow/`, `goal-loop/`, `north-star-investigation/`, `arch-flow/`, `arch-skills-guide/`
 
 Note: prompts use a `USERNAME` placeholder. `make install` creates a `.env` file (if missing), ensures it contains `USERNAME=<whoami>`, then substitutes that value into the installed prompts. Edit `.env` to override.
 
@@ -84,6 +85,9 @@ The split plan and prompt-coverage mapping live in `docs/ARCH_SKILL_SUITE_SPLIT_
 
 ### `arch-plan`
 Use for the full arch workflow: real architecture planning, research grounding, deep dives, external research, phased plans, local implementation, and implementation audits.
+
+### `arch-step`
+Use when you want the old saved-prompt full-arch flow back: prompt-close commands like `new`, `reformat`, `research`, `deep-dive`, `phase-plan`, `plan-enhance`, `fold-in`, `review-gate`, `implement`, `audit-implementation`, plus `status` and `advance`.
 
 ### `arch-mini-plan`
 Use when you want the one-pass "mini plan" version of arch: canonical blocks in one pass, without running the whole multi-step arch flow.
@@ -160,7 +164,22 @@ Deep investigation for optimization or root-cause analysis. Commander's Intent s
 
 ## Usage
 
-- Primary surface: ask the agent to use `arch-plan`, `arch-mini-plan`, `lilarch`, `bugs-flow`, `goal-loop`, `north-star-investigation`, `arch-flow`, or `arch-skills-guide`.
+- Primary surface: ask the agent to use `arch-plan`, `arch-step`, `arch-mini-plan`, `lilarch`, `bugs-flow`, `goal-loop`, `north-star-investigation`, `arch-flow`, or `arch-skills-guide`.
+- Explicit old-prompt full-arch surface via `arch-step`:
+  - `Use $arch-step new "do this"`
+  - `Use $arch-step reformat docs/OLD_PLAN.md`
+  - `Use $arch-step research docs/MY_PLAN.md`
+  - `Use $arch-step deep-dive docs/MY_PLAN.md`
+  - `Use $arch-step external-research docs/MY_PLAN.md`
+  - `Use $arch-step phase-plan docs/MY_PLAN.md`
+  - `Use $arch-step plan-enhance docs/MY_PLAN.md`
+  - `Use $arch-step fold-in docs/MY_PLAN.md docs/spec.md docs/ux.md`
+  - `Use $arch-step overbuild-protector docs/MY_PLAN.md MODE=report`
+  - `Use $arch-step review-gate docs/MY_PLAN.md`
+  - `Use $arch-step implement docs/MY_PLAN.md`
+  - `Use $arch-step audit-implementation docs/MY_PLAN.md`
+  - `Use $arch-step status docs/MY_PLAN.md`
+  - `Use $arch-step advance docs/MY_PLAN.md`
 - Legacy surface: start typing `/prompts:` in Claude Code or Gemini CLI and pick the command you want.
 - Codex intentionally uses the skill suite only by default.
 - Optional (high leverage when you have specs/design docs you don't want missed): `/prompts:arch-fold-in`

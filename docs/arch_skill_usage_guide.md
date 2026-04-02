@@ -15,6 +15,7 @@ Important:
 
 - The primary runtime surface is now the split skill suite:
   - `arch-plan`
+  - `arch-step`
   - `arch-mini-plan`
   - `lilarch`
   - `bugs-flow`
@@ -44,11 +45,11 @@ What `make install` installs:
 **Codex CLI:**
 - Prompts → removed from active install by default; existing arch_skill prompts are moved to `~/.codex/prompts/_backup/`
 - Templates → `~/.codex/templates/arch_skill/`
-- Skills → `~/.codex/skills/arch-plan/`, `arch-mini-plan/`, `lilarch/`, `bugs-flow/`, `goal-loop/`, `north-star-investigation/`, `arch-flow/`, `arch-skills-guide/`, `codemagic-builds/`
+- Skills → `~/.codex/skills/arch-plan/`, `arch-step/`, `arch-mini-plan/`, `lilarch/`, `bugs-flow/`, `goal-loop/`, `north-star-investigation/`, `arch-flow/`, `arch-skills-guide/`, `codemagic-builds/`
 
 **Claude Code:**
 - Prompts → `~/.claude/commands/prompts/`
-- Skills → `~/.claude/skills/arch-plan/`, `arch-mini-plan/`, `lilarch/`, `bugs-flow/`, `goal-loop/`, `north-star-investigation/`, `arch-flow/`, `arch-skills-guide/`
+- Skills → `~/.claude/skills/arch-plan/`, `arch-step/`, `arch-mini-plan/`, `lilarch/`, `bugs-flow/`, `goal-loop/`, `north-star-investigation/`, `arch-flow/`, `arch-skills-guide/`
 
 ---
 
@@ -100,6 +101,33 @@ At any time, either:
 - run the legacy prompt `/prompts:arch-flow DOC_PATH`
 
 It prints a checklist of where you are in the regular/mini flow and recommends the next move.
+
+### `arch-step` (explicit full-arch operator)
+Use `arch-step` when you want the old saved-prompt full-arch feel back without depending on prompts at runtime. It should preserve the same plan artifact shape and the same phase ownership the saved prompts had.
+
+Examples:
+
+- `Use $arch-step new "do this"`
+- `Use $arch-step reformat docs/OLD_PLAN.md`
+- `Use $arch-step research docs/MY_PLAN.md`
+- `Use $arch-step deep-dive docs/MY_PLAN.md`
+- `Use $arch-step external-research docs/MY_PLAN.md`
+- `Use $arch-step phase-plan docs/MY_PLAN.md`
+- `Use $arch-step plan-enhance docs/MY_PLAN.md`
+- `Use $arch-step fold-in docs/MY_PLAN.md docs/spec.md docs/ux.md`
+- `Use $arch-step overbuild-protector docs/MY_PLAN.md MODE=report`
+- `Use $arch-step review-gate docs/MY_PLAN.md`
+- `Use $arch-step implement docs/MY_PLAN.md`
+- `Use $arch-step audit-implementation docs/MY_PLAN.md`
+- `Use $arch-step status docs/MY_PLAN.md`
+- `Use $arch-step advance docs/MY_PLAN.md`
+
+Practical split:
+
+- `arch-step` mutates one explicit full-arch stage at a time.
+- `arch-step` should stay prompt-close: same artifact, same block ownership, same stop conditions where they matter.
+- `arch-flow` stays read-only and gives the longer checklist surface.
+- `arch-plan` remains the broader intent-driven full-arch skill.
 
 ### `WORKLOG_PATH` (the progress journal)
 Implementation- and progress-oriented prompts derive the worklog from the plan doc:

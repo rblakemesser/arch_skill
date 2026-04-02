@@ -101,3 +101,9 @@ Recommend `arch-plan` as the governing skill once mini-plan is complete and the 
   - marker missing
   - file missing
   - `status: draft`
+
+## Governing-skill recommendation
+
+- For full-arch docs where the user wants to execute the single next literal stage, recommend `arch-step`.
+- For full-arch asks that want a broader phase-family handoff or end-to-end continuation, `arch-plan` remains the broader option.
+- For arch-mini-plan follow-through into implementation or audits, recommend `arch-plan`.
