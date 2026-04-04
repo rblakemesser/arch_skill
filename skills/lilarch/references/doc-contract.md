@@ -27,6 +27,8 @@ When creating or repairing a fresh lilarch doc, ensure it has at least:
 - a requirements block
 - a plan-audit block
 
+When the change is agent-backed, the requirements or architecture notes must make clear whether the primary lever is prompt/capability work or deterministic code. Do not leave that decision implicit.
+
 ## WORKLOG_PATH
 
 - Derive `WORKLOG_PATH` from `DOC_PATH`:

@@ -38,6 +38,7 @@ By the end of the run:
 ## Question policy
 
 - answer anything discoverable from code, tests, fixtures, logs, docs, or repo tooling
+- answer agent-capability questions from prompt files, agent instructions, runtime config, docs, or repo tooling before assuming the model cannot do something
 - ask only for:
   - product or UX decisions not encoded anywhere
   - external constraints not present in the repo or doc
@@ -76,10 +77,16 @@ By the end of the run:
 - treat the doc as the authoritative spec and checklist
 - identify the canonical owner path before designing or extending a code path
 - if the work includes refactor, consolidation, or shared-path extraction, identify the preservation signal before editing code
+- when the changed behavior is agent-backed, inspect the current prompt and capability path before adding tooling
+- for agent-backed behavior, prefer prompt, grounding, and native-capability edits before new harnesses, wrappers, parsers, OCR layers, or scripts
+- if a phase proposes new tooling for agent-backed behavior, the plan must explain why prompt-first and capability-first options were insufficient
+- treat touched live docs, comments, and instructions as real implementation work when they would become false after the change
+- delete dead competing truth surfaces instead of preserving them for posterity; if a touched live doc/comment/instruction still matters, rewrite it to current reality in the same run
 - build a compact in-memory implementation ledger from:
   - phase tasks
   - call-site audit items
   - migration notes and delete lists
+  - live docs/comments/instructions to update or delete
   - include items from consolidation or follow-through sweeps only when the plan marked them as ship-blocking convergence work
 - reconcile the ledger at phase boundaries
 - no fallbacks or shims unless the plan explicitly approves them
@@ -91,8 +98,9 @@ Before meaningful code changes:
 
 - North Star is concrete and scoped
 - smallest credible acceptance evidence is identifiable
-- UX in-scope and out-of-scope are explicit
+- requested behavior in-scope and out-of-scope are explicit
 - the canonical owner path is identifiable or explicitly justified
+- for agent-backed work, capability-first rationale is explicit before any new tooling
 - preservation evidence for refactor-heavy work is identifiable
 - Section 7 is real enough to execute
 
@@ -107,7 +115,8 @@ Derive it from the strongest planning artifacts in this order:
 1. phase checklist items or phase tasks
 2. call-site audit rows and change-map entries
 3. migration notes and delete lists
-4. include items from consolidation or follow-through sweeps only when they are marked as required convergence work
+4. live docs/comments/instructions to update or delete
+5. include items from consolidation or follow-through sweeps only when they are marked as required convergence work
 
 Each ledger item should be concrete enough to classify later as:
 
@@ -139,7 +148,7 @@ Execute Section 7 in order.
 For each phase:
 
 1. Read the phase goal, work items, verification line, exit criteria, rollback, and any relevant call-site rows.
-2. Confirm which canonical path owns the behavior for this phase and which preservation signal must run if the phase refactors or consolidates code.
+2. Confirm which canonical path owns the behavior for this phase, which work belongs in prompt or native-capability usage versus deterministic code when agent-backed, and which preservation signal must run if the phase refactors or consolidates code.
 3. Mark the phase `Status: IN PROGRESS` once real work starts.
 4. Implement the planned work for that phase before moving to later phases.
 5. If a later-phase task must be pulled forward to preserve correctness, record the sequencing change in Section 10 and update the affected phase descriptions so Section 7 stays truthful.
@@ -168,6 +177,7 @@ Also update nearby plan sections when implementation changes the truth:
 
 - if sequencing or assumptions drift materially, append a Section 10 Decision Log entry
 - if architecture changed in a meaningful way, repair the smallest stale claims in TL;DR, Section 0, Section 5, Section 7, or Section 8
+- if a touched live doc, comment, or instruction would otherwise become stale, update or delete it in the same run and keep the phase notes truthful about that work
 - if a planned item turns out to be truly out of scope, record that explicitly with rationale instead of silently dropping it
 
 ## Completeness discipline
@@ -188,6 +198,7 @@ At each phase boundary:
 - compare the current phase tasks against touched files and symbols
 - compare affected call-site rows against code reality
 - verify required deletes or cleanup for that phase actually happened
+- verify required live docs/comments/instructions cleanup for that phase actually happened in touched areas
 - decide whether any remaining item is `done`, `blocked`, `deferred`, or `still todo`
 - keep unresolved items visible in the doc or worklog when relevant
 
@@ -207,6 +218,7 @@ At each phase boundary:
 
 - after each meaningful chunk, run the smallest credible programmatic signal
 - prefer existing checks before new tests or harnesses
+- for agent-backed systems, new harnesses or scripts do not count as progress unless the plan justified them against prompt-first and capability-first alternatives
 - any refactor, consolidation, or shared-path extraction must run a preservation signal before the phase can be called complete
 - write tests only when they buy real confidence
 - do not add negative-value proof machinery
@@ -283,9 +295,10 @@ The worklog is execution evidence only:
 - the North Star is satisfied by code and evidence
 - no new parallel path or duplicate writer was introduced
 - all required preservation checks for refactor-heavy work actually ran
+- no stale touched live docs, comments, or instructions were left behind
 - the plan reflects reality
 
-Do not call the run `complete` if any planned call site, migration, delete, or required cleanup remains unresolved.
+Do not call the run `complete` if any planned call site, migration, delete, touched-doc cleanup, or required cleanup remains unresolved.
 
 ## Finalization
 
@@ -297,8 +310,8 @@ After implementation work is complete:
 4. do a final plan-to-work reconciliation before claiming completion:
    - re-read the implementation-relevant parts of `DOC_PATH`
    - compare them against the ledger and the files or symbols actually touched
-   - search for any planned call site, module, delete, migration task, or canonical-path convergence task that never got resolved
-   - search for any lingering old path, duplicate writer, or skipped preservation signal
+   - search for any planned call site, module, delete, migration task, canonical-path convergence task, or touched-doc cleanup task that never got resolved
+   - search for any lingering old path, duplicate writer, skipped preservation signal, or stale touched live doc/comment/instruction
    - if anything remains unresolved, either finish it now or mark it explicitly as `deferred` or `blocked` with rationale and report the run as `partial`
 5. if the operating context calls for commit/push, do it only after local verification
 

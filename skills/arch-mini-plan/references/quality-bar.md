@@ -5,9 +5,11 @@
 - Strong:
   - names the files or symbols that actually control the change
   - captures existing patterns worth reusing
+  - when agent-backed, names prompt surfaces, native capabilities, and capability-first options before blessing tooling
   - calls out real constraints
 - Weak:
   - generic repo tour
+  - assumes the model lacks capability without grounded evidence
   - no file anchors
   - "we should probably" language without evidence
 
@@ -16,9 +18,11 @@
 - Strong:
   - explain where the behavior lives now
   - explain what changes after the work lands
+  - when agent-backed, explain what belongs in prompt/native-capability use versus deterministic code
   - make data flow and ownership obvious
 - Weak:
   - paraphrase the ticket
+  - jumps to custom scaffolding without a capability-first rationale
   - list components without relationships
   - describe outcomes but not structure
 
@@ -36,9 +40,11 @@
 - Strong:
   - 1-2 real phases, optionally 3 for cleanup
   - each phase has goal, work, verification, and done bar
+  - agent-backed plans prefer prompt, grounding, and native-capability changes before new tooling
   - explicit follow-ups separated from ship-blocking work
 - Weak:
   - pseudo-chronological task dump
+  - agent-backed tooling is included with no justification against prompt-first options
   - optional ideas mixed into required work
   - no verification bar
 

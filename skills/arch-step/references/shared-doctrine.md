@@ -31,6 +31,7 @@ Use repo evidence first.
 You must answer anything discoverable from:
 
 - code
+- prompt files or agent instructions
 - tests
 - fixtures
 - logs
@@ -64,6 +65,22 @@ If a question is still necessary, say where you looked first.
 - Architectural convergence may broaden touched files, symbols, or nearby adopters, but it must not broaden product capability.
 - Bad scope adds new commands, modes, templating, plugin or config layers, dry-run surfaces, speculative tooling, or operational surfaces that were not required by the ask.
 
+## Capability-first rule for agent-backed systems
+
+- If the changed behavior is meaningfully agent- or LLM-driven, understand the current prompt surfaces, runtime or agent configuration, native model capabilities, and existing tool/file/context exposure before designing.
+- Do not design around presumed incapability when that fact is discoverable from the repo or runtime surface.
+- If capability details remain unclear after inspection, ask narrowly instead of assuming the model lacks them.
+- Default decision ladder for agent-backed systems:
+  1. prompt change or prompt-structure change
+  2. grounding or context-shaping change
+  3. better use of existing files, tools, or native capabilities
+  4. narrow deterministic support tooling only if the earlier options are insufficient
+- Custom tooling for agent-backed behavior must explain which capability-first options were considered, why they were insufficient, and why the tool augments rather than replaces the intended model reasoning.
+- Default anti-examples:
+  - OCR layers when the runtime already has native vision
+  - fuzzy retrieval wrappers when grounded file access and synthesis are the intended path
+  - parser, wrapper, or orchestration layers whose main purpose is to make the model act deterministic instead of improving prompt or capability use
+
 ## Alignment checks before deeper work
 
 The North Star is an alignment lock, not a mission statement.
@@ -86,6 +103,7 @@ If the North Star, requested behavior scope, or allowed architectural convergenc
 ## Evidence philosophy
 
 - Prefer the smallest credible signal.
+- For agent-backed systems, prefer prompt, grounding, and native-capability changes before new harnesses or scripts.
 - Prefer existing tests, typecheck, lint, build, instrumentation, or log signatures before new harnesses.
 - If no cheap programmatic signal exists, use a short manual checklist.
 - Manual QA is usually non-blocking until finalization and should not be mistaken for missing code.
@@ -98,6 +116,7 @@ Negative-value defaults to avoid:
 - doc-inventory gates
 - mock-only interaction tests with no behavior assertion
 - bespoke harnesses or frameworks added just to create ceremony
+- bespoke harnesses, wrappers, OCR stacks, parsers, or fuzzy match layers added mainly to avoid using native agent or model capabilities
 - timing-hack tests when a behavior-level check or smaller signal would do
 
 ## Behavior-preservation rule
@@ -114,6 +133,8 @@ Negative-value defaults to avoid:
 - Search for the canonical existing path before designing a new abstraction or code path.
 - Single source of truth is the default.
 - Avoid parallel implementations, duplicate writers, and shadow contracts.
+- Git is the history for retired live truth surfaces. Do not keep dead competing code paths, stale live docs, stale comments, or stale instructions for archaeology.
+- If a touched live doc, comment, or instruction still matters after the change, update it to current truth in the same run instead of leaving a legacy explanation behind.
 - Boundaries and invariants should be enforceable, not merely described.
 - Prefer hard cutover, explicit deletes, and fail-loud boundaries over compatibility shims.
 - Runtime fallbacks or shims are forbidden unless the plan explicitly approves them via `fallback_policy: approved` plus a Decision Log entry with a removal plan.
@@ -123,6 +144,7 @@ Negative-value defaults to avoid:
 - Treat the plan's scope as authoritative.
 - If work is required to converge onto the canonical path, remove duplicate truth, migrate clearly related adopters, or avoid a concrete regression, include it and proceed.
 - If work adds new product functionality, alternate ways of doing the same thing, or speculative architecture, exclude it or record it as follow-up.
+- For agent-backed systems, tooling that substitutes for prompt work or native capability use without necessity is architecture theater by default.
 - If a newly discovered item is ambiguous, default to follow-up, defer, or explicit note rather than silently promoting it into ship-blocking work.
 - Only stop and ask when the plan is internally contradictory, such as required work being declared out of scope.
 
@@ -144,6 +166,7 @@ This is a quality guard, not a hard blocker. Missing passes should be surfaced c
 - If target architecture changes, check TL;DR, Section 0, Section 1, Section 7, and Section 8 for stale claims.
 - If sequencing or verification changes, check TL;DR, Section 0, Section 7, Section 8, and Section 10.
 - If rollout or telemetry implications change, check Section 9 and Section 10.
+- If architecture, ownership, or behavior changes, check touched live docs, comments, and instructions and either delete dead truth surfaces or sync surviving ones to reality.
 - Prefer minimal truthful edits over broad rewrites.
 - Record meaningful drift or approved exceptions in the Decision Log instead of silently rewriting history.
 
@@ -154,6 +177,7 @@ This is a quality guard, not a hard blocker. Missing passes should be surfaced c
 - Section 7 is the one authoritative execution checklist.
 - Helper blocks may sharpen or constrain the plan, but they must not create competing execution surfaces.
 - The Decision Log is append-only and should capture real plan drift, approved exceptions, and meaningful sequencing changes.
+- Append-only plan history does not justify stale live product docs, stale comments, or retired competing instructions elsewhere in the repo.
 
 ## Pattern propagation
 

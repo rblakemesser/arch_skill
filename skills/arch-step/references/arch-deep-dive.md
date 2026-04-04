@@ -40,14 +40,18 @@
 - if the North Star, requested behavior scope, or allowed architectural convergence scope is contradictory, stop for a quick doc correction
 - no fallback or shim design unless the plan explicitly approves it
 - search for the canonical existing path before proposing a new abstraction or code path
+- when the change is agent-backed, decide what behavior belongs in prompt or native-capability usage versus deterministic code before designing new tooling
 - if the target design does not reuse the canonical path, justify why the existing path cannot own the change
+- if the change retires or reroutes a live truth surface, name the code paths, docs, comments, or instructions that must be deleted or rewritten
 - if multiple viable technical approaches exist, choose the most idiomatic default and note alternatives instead of punting the decision
 
 ## Quality bar
 
 - Section 4 must describe current structure, flows, ownership, and failure behavior concretely enough to plan against
-- Section 5 must fully specify the future architecture, canonical owner path, contracts, boundaries, SSOT, and no-parallel-path stance
+- Section 5 must fully specify the future architecture, canonical owner path, contracts, boundaries, SSOT, no-parallel-path stance, and capability-first versus deterministic responsibilities when the system is agent-backed
 - Section 6 must be exhaustive enough within approved scope to drive implementation and later audit
+- Section 6 must explicitly capture touched live docs, comments, or instructions that need deletion or rewrite because the change would otherwise leave stale truth behind
+- Section 6 must call out capability-replacing harnesses, wrappers, or side paths that should be deleted or explicitly justified when the system is agent-backed
 - if the design introduces or sharpens a central pattern, the consolidation sweep must capture include, defer, or exclude candidates rather than ignoring drift risk
 - any required convergence or consolidation work must name the preservation signal that will prove behavior was not broken
 
@@ -100,6 +104,8 @@ Use this call-site section shape:
 * Canonical owner path / shared code path:
 * Deprecated APIs (if any):
 * Delete list (what must be removed; include superseded shims/parallel paths if any):
+* Capability-replacing harnesses to delete or justify:
+* Live docs/comments/instructions to update or delete:
 * Behavior-preservation signals for refactors:
 
 ## Pattern Consolidation Sweep (anti-blinders; scoped by plan)

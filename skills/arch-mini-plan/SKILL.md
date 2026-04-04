@@ -31,6 +31,10 @@ Use this skill for the one-pass mini-plan version of arch: enough rigor to produ
 - Keep the phase plan tight: usually 1-2 phases, optionally 3 if cleanup truly needs its own pass.
 - If the scope expands beyond a compact one-pass plan, escalate to `arch-step reformat` rather than pretending mini mode still fits.
 - Ask questions only when repo/docs/tools cannot answer them.
+- When the changed behavior is agent- or LLM-driven, inspect prompt surfaces, native model capabilities, and existing tool/file/context exposure before designing.
+- For agent-backed systems, prefer prompt engineering, grounding, and native-capability use before new harnesses, wrappers, parsers, OCR layers, or scripts.
+- If mini mode still concludes that custom tooling is needed for agent-backed behavior, say why prompt-first and capability-first options were insufficient.
+- If the real lever is prompt repair, say so plainly and recommend `prompt-authoring` instead of inventing deterministic scaffolding.
 - External guidance is optional and narrow. Do not turn mini mode into hidden full-arch research.
 
 ## First move

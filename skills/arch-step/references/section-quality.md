@@ -46,6 +46,7 @@ Strong when:
 - the claim is falsifiable
 - in-scope and out-of-scope are explicit
 - requested behavior scope and allowed convergence scope are distinguishable
+- when agent-backed, it is explicit that prompt/native-capability work gets first right of refusal before new tooling
 - definition of done is observable
 - evidence uses the smallest credible signal
 - invariants are actionable
@@ -57,6 +58,7 @@ Weak when:
 - the claim is vague or unmeasurable
 - scope boundaries are missing
 - convergence work and product scope are blurred together
+- it assumes the model or agent lacks capability without evidence
 - definition of done depends on bespoke ceremony
 - invariants are generic platitudes
 - it reads like inspiration instead of an execution contract
@@ -122,8 +124,10 @@ Strong when:
 
 - internal anchors cite concrete file paths and explain why they are authoritative
 - the canonical owner path is named explicitly
+- when agent-backed, current prompt surfaces, native model capabilities, and existing tool/file/context exposure are anchored explicitly
 - reusable patterns are named explicitly
 - duplicate or drifting paths are called out when they matter
+- capability-first alternatives are visible before new tooling is blessed
 - preservation signals are named when refactor risk is real
 - external anchors use adopt or reject reasoning instead of cargo cult
 - open questions are framed as evidence needed
@@ -131,6 +135,7 @@ Strong when:
 Weak when:
 
 - it is generic or unanchored
+- it jumps to scripts, wrappers, or harnesses without first grounding prompt and capability options
 - external references are decorative
 - open questions are vague TODOs
 
@@ -171,6 +176,7 @@ Strong when:
 
 - future structure is concrete
 - the canonical owner path is explicit
+- when agent-backed, the target architecture clearly says what behavior belongs in prompt/capability usage versus deterministic code
 - contracts and boundaries are explicit
 - SSOT is clear
 - no parallel paths are tolerated without explicit approval
@@ -181,6 +187,7 @@ Weak when:
 
 - it describes aspirations instead of contracts
 - boundaries are mushy
+- it treats agent-backed behavior as if only deterministic scaffolding can own it
 - it leaves multiple plausible architectures open
 
 Downstream can trust it when:
@@ -199,6 +206,7 @@ Strong when:
 - call sites are concrete and exhaustive enough within approved scope to drive work
 - the canonical owner path and required convergence work are explicit
 - migration notes and delete list are explicit
+- touched live docs/comments/instructions to delete or rewrite are explicit when the change would otherwise leave stale truth behind
 - tests impacted are called out when relevant
 - consolidation sweep names related adopters and default dispositions
 
@@ -225,16 +233,19 @@ Strong when:
 - the plan is foundational-first
 - each phase has goal, work, verification, docs/comments when needed, exit criteria, and rollback
 - refactor-heavy phases say how preserved behavior will be proven
+- agent-backed phases prefer prompt, grounding, and native-capability changes before new tooling, and any new tooling is explicitly justified
 - verification is small and credible
 - manual QA is deferred to finalization when appropriate
 - there is no competing checklist elsewhere
-- required deletes, cleanup, and follow-through are visible rather than buried
+- required deletes, cleanup, touched-doc reality-sync work, and follow-through are visible rather than buried
 
 Weak when:
 
 - phases are generic or unordered
 - work items are too vague to implement
 - product scope creep or architecture theater appears in the authoritative checklist
+- agent-backed work jumps to deterministic harnesses or wrappers without a capability-first rationale
+- touched live docs/comments that would go stale are left implicit
 - helper blocks compete with the phase plan
 - sequencing hides required cleanup or migration work
 
@@ -251,6 +262,7 @@ Purpose:
 Strong when:
 
 - it prefers existing checks
+- for agent-backed systems, it does not turn capability gaps into bespoke machinery without justification
 - unit, integration, or end-to-end signals are used only where they buy confidence
 - refactor-heavy work has behavior-preservation checks that survive restructuring
 - manual verification is short and purposeful
@@ -429,7 +441,7 @@ Strong when:
 - it asks the right question
 - it records integrated changes and remaining risks
 - it improves the main plan rather than merely commenting on it
-- it catches needless new code paths and missing preservation evidence
+- it catches needless new code paths, unjustified scaffolding around agent-backed behavior, and missing preservation evidence
 
 Weak when:
 
@@ -453,6 +465,7 @@ Strong when:
 - it records real progress at phase boundaries
 - entries name work completed, checks run, issues or deviations, and next steps
 - phase-boundary updates match the current phase status in Section 7
+- touched live docs/comments cleanup is reflected when that work was part of the phase
 - it does not become a second planning document
 
 Weak when:
@@ -480,6 +493,8 @@ Strong when:
 - missing items cite evidence anchors
 - each missing item says what the plan expects, what code reality is, and what fix remains
 - false-complete phases are reopened
+- stale touched live docs/comments are treated as implementation gaps when the plan required cleanup
+- unjustified scaffolding around agent-backed behavior is treated as an implementation gap when the plan required prompt-first or capability-first handling
 - manual QA is tracked as non-blocking follow-up instead of missing code
 
 Weak when:

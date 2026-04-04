@@ -11,12 +11,14 @@ Write the minimal architecture and delivery plan needed to ship the feature clea
    - implementation anchors
    - representative call sites
    - tests or verification surfaces
+   - prompt surfaces, native capabilities, and existing tool/file/context exposure when the feature is agent-backed
 3. Write or repair:
    - `research_grounding`
    - `current_architecture`
    - `target_architecture`
    - `call_site_audit`
    - `phase_plan`
+   - make the capability-first choice explicit before adding custom tooling for agent-backed behavior
 4. Run the internal plan audit and write the result into `lilarch:block:plan_audit`.
 
 ## Plan shape

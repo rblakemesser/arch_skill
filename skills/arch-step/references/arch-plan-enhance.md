@@ -40,6 +40,8 @@
 - make boundaries and invariants enforceable
 - name required deletes and cleanup
 - identify must-change call sites and drift-prone adopters
+- identify touched live docs, comments, or instructions that must be deleted or rewritten to current reality
+- when agent-backed, identify prompt-first or native-capability-first options before blessing new tooling
 - name the behavior-preservation checks that make refactors safe
 - keep the evidence plan common-sense and non-blocking
 - explicitly note where a short boundary comment should live when future drift is likely
@@ -63,6 +65,7 @@ Use this block shape:
 
 ## Architecture verdict
 - Canonical owner path: <path or boundary>
+- Capability-first path: <prompt/grounding/native capability first; tooling only if justified>
 - Is this now "best possible by our standards"? <yes/no>
 - Biggest remaining risks:
   - <bullets>
@@ -75,6 +78,8 @@ Use this block shape:
   - `<path>` — <symbol> — <why>
 - Deletes / cleanup (no parallel paths):
   - `<path>` — <what gets deleted>
+- Live docs/comments to delete or rewrite:
+  - `<path>` — <delete or rewrite> — <why it would otherwise be stale>
 
 ## Consolidation sweep (anti-blinders)
 - Other places that should adopt the new central pattern:

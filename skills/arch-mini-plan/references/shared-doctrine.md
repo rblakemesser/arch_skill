@@ -7,6 +7,9 @@
 - Planning is docs-only in this skill. No code edits.
 - Ask only for true product, UX, or access gaps that repo evidence cannot answer.
 - Default to fail-loud boundaries and hard cutover. Do not hide uncertainty behind runtime shims.
+- When the changed behavior is agent- or LLM-driven, understand prompt surfaces, native model capabilities, and existing tool/file/context exposure before designing.
+- Prefer prompt engineering, grounding, and native-capability usage before custom harnesses, wrappers, parsers, OCR layers, or scripts.
+- Do not assume the model lacks capability when that fact is discoverable from repo or runtime evidence.
 
 ## Mini-mode discipline
 
@@ -20,11 +23,13 @@
 - Strong:
   - one clear North Star
   - a small set of repo anchors
+  - capability-first analysis before new tooling when the work is agent-backed
   - direct current and target architecture
   - a concrete call-site audit
   - a 1-2 phase plan with obvious deletes and verification
 - Weak:
   - vague aspirations instead of architecture
+  - jumps to scaffolding for agent behavior before understanding prompt or model capability
   - long speculative external research
   - a "future ideas" list standing in for a phase plan
   - unresolved scope fights hidden in the TL;DR

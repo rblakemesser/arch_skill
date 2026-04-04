@@ -16,19 +16,23 @@ Write the canonical planning blocks in one pass without pretending the work was 
    - symbols
    - tests
    - reusable patterns
+   - prompt surfaces, native capabilities, and existing tool/file/context exposure when the work is agent-backed
 3. Write `research_grounding`:
    - what you inspected
    - what matters
    - what constraints the code already imposes
+   - what can be solved by prompt, grounding, or native-capability changes before new tooling
 4. Write `current_architecture` and `target_architecture` together.
 5. Write the `call_site_audit`:
    - changed files
    - representative call sites
    - deletions or consolidation work
+   - capability-replacing side paths to delete or justify when agent-backed
 6. Write the `phase_plan`:
    - phase goal
    - concrete work
    - smallest credible verification
+   - capability-first work before custom tooling when agent-backed
    - explicit deletes and follow-ups
 7. End with a readiness verdict:
    - ready for `arch-step implement`

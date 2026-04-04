@@ -31,6 +31,7 @@
 - use repo evidence first
 - read code and run read-only searches as needed
 - search for the canonical existing path before blessing a new abstraction or code path
+- when the change is agent-backed, inspect current prompt surfaces, runtime or agent configuration, native model capabilities, and existing tool/file/context exposure before blessing new tooling
 - if research reveals likely code changes, write them into the plan with file anchors instead of implementing them
 - if the North Star, requested behavior scope, or allowed architectural convergence scope is unclear or contradictory, stop for a quick doc correction before continuing
 
@@ -40,13 +41,15 @@ Good research looks like:
 
 - authoritative internal anchors with concrete file paths and what they define
 - the canonical owner path or boundary is named explicitly
+- when agent-backed, current prompt surfaces, native model capabilities, and current tool/file/context exposure are grounded explicitly
 - reusable patterns named explicitly so later stages do not reinvent them
 - duplicate or drifting paths relevant to the change are called out early
+- capability-first opportunities are visible before any new harness, wrapper, parser, or script is treated as necessary
 - existing preservation signals are named when refactor or consolidation is likely
 - external anchors only when they add real value, each with adopt or reject reasoning
 - open questions framed as evidence needed rather than vague TODOs
 
-Research is weak when it is generic, unanchored, cargo-culted, or disconnected from the plan.
+Research is weak when it is generic, unanchored, cargo-culted, disconnected from the plan, or assumes the model lacks capability without grounded evidence.
 
 ## Placement and update rules
 
@@ -73,8 +76,16 @@ Use this block shape:
   - `<path>` — <behavior or contract this path should own>
 - Existing patterns to reuse:
   - `<path>` — <pattern name> — <how we reuse it>
+- Prompt surfaces / agent contract to reuse:
+  - `<path>` — <prompt/runtime surface> — <how it shapes behavior today>
+- Native model or agent capabilities to lean on:
+  - `<runtime>` — <capability> — <why it matters here>
+- Existing grounding / tool / file exposure:
+  - `<path|tool|surface>` — <what the agent already has access to>
 - Duplicate or drifting paths relevant to this change:
   - `<path>` — <why it may need convergence or deletion>
+- Capability-first opportunities before new tooling:
+  - `<prompt|grounding|native capability>` — <why it may solve this without new machinery>
 - Behavior-preservation signals already available:
   - `<test/check>` — <what current behavior it protects>
 

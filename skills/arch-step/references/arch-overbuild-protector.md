@@ -46,6 +46,7 @@ If those sections are vague, warn in the helper block but do not hard-block.
 - Section 7 remains the one authoritative execution checklist
 - if no phase plan exists, stop and point to `phase-plan`; do not invent a new plan format
 - use code and repo evidence only to validate convergence, parity, or risk claims; do not invent obligations
+- for agent-backed systems, classify proposed tooling against prompt-first and capability-first alternatives before treating it as necessary
 
 ## Work-item extraction
 
@@ -83,6 +84,9 @@ Default reject examples for `F` or `G` unless explicitly approved:
 - coverage gates or bespoke coverage infrastructure
 - new remote-runner or distributed-execution wiring for local development tasks
 - new generators or frameworks introduced just to save small amounts of time
+- OCR pipelines when the runtime already has native vision
+- fuzzy matcher or retrieval wrappers when grounded file access and synthesis are the intended path
+- parser, wrapper, or orchestration layers whose main purpose is to make the model deterministic instead of improving prompt or capability use
 
 Tie-breakers:
 
@@ -92,6 +96,7 @@ Tie-breakers:
   - ambiguity defaults to optional, not include
 - convergence or parity is never assumed without a real anchor
 - new tooling is follow-up unless `A-D` clearly applies
+- tooling that substitutes for native capability or prompt work is rejected unless necessity is explicit
 
 ## Update rules
 

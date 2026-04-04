@@ -138,6 +138,7 @@ Required content:
 - claim that is falsifiable
 - explicit requested behavior scope and UX in-scope and out-of-scope surfaces
 - explicit technical scope, exclusions, and allowed architectural convergence scope
+- when the change is agent-backed, explicit capability-first stance for prompt/native-capability work versus deterministic support tooling
 - smallest credible acceptance evidence
 - smallest credible behavior-preservation evidence when refactor or consolidation is likely
 - invariant list
@@ -184,6 +185,7 @@ Required content:
 - adopt or reject reasoning for external anchors
 - authoritative internal behavior anchors with file paths
 - canonical owner path or boundary for the requested behavior
+- when agent-backed, current prompt surfaces, native model capabilities, and existing tool/file/context exposure relevant to the change
 - existing reusable patterns
 - duplicate or drifting paths relevant to the change
 - existing preservation signals when refactor or consolidation is likely
@@ -214,6 +216,7 @@ Required content:
 - future structure
 - future control paths
 - canonical owner path for the requested behavior
+- when agent-backed, explicit split between behavior carried by prompting/native capability use and behavior carried by deterministic code or tooling
 - new or changed contracts and APIs
 - migration notes where APIs change
 - explicit convergence plan for duplicate or drifting paths
@@ -248,6 +251,7 @@ Migration notes should capture:
 - canonical owner path / shared code path
 - deprecated APIs if any
 - delete list
+- live docs/comments/instructions to update or delete
 - behavior-preservation signals for refactors
 - cleanup and migration notes
 
@@ -258,7 +262,7 @@ Canonical heading plus rule line:
 ```text
 # Depth-First Phased Implementation Plan (authoritative)
 
-> Rule: systematic build, foundational first; every phase has exit criteria + explicit verification plan (tests optional). Refactors, consolidations, and shared-path extractions must preserve existing behavior with the smallest credible signal. No fallbacks/runtime shims - the system must work correctly or fail loudly (delete superseded paths). Prefer programmatic checks per phase; defer manual/UI verification to finalization. Avoid negative-value tests (deletion checks, visual constants, doc-driven gates). Also: document new patterns/gotchas in code comments at the canonical boundary (high leverage, not comment spam).
+> Rule: systematic build, foundational first; every phase has exit criteria + explicit verification plan (tests optional). Refactors, consolidations, and shared-path extractions must preserve existing behavior with the smallest credible signal. For agent-backed systems, prefer prompt, grounding, and native-capability changes before new harnesses or scripts. No fallbacks/runtime shims - the system must work correctly or fail loudly (delete superseded paths). Prefer programmatic checks per phase; defer manual/UI verification to finalization. Avoid negative-value tests (deletion checks, visual constants, doc-driven gates). Also: document new patterns/gotchas in code comments at the canonical boundary (high leverage, not comment spam).
 ```
 
 Canonical per-phase fields:
@@ -271,6 +275,7 @@ Canonical per-phase fields:
 - `Rollback`
 
 For refactor-heavy work, the verification line should say how preserved behavior will be proven.
+Use `Docs/comments` for live docs, comments, and instructions that must be updated or deleted so touched truth surfaces match shipped reality. Do not use it to preserve legacy explanation.
 
 The phase plan is the one authoritative execution checklist.
 
@@ -294,7 +299,9 @@ Principle lines to preserve:
 - avoid verification bureaucracy
 - prefer the smallest existing signal
 - default to 1-3 checks total
+- for agent-backed systems, prefer prompt, grounding, and native-capability improvements before new scripts or harnesses
 - do not invent new harnesses, frameworks, or scripts unless they already exist and are the cheapest guardrail
+- do not invent OCR layers, parser stacks, fuzzy matchers, or wrappers that substitute for native model capability without explicit plan justification
 - keep UI/manual verification as finalization by default
 - for refactors, prefer behavior-preservation checks that survive restructuring
 - do not create proof tests for deletions, visual constants, or doc inventories
@@ -385,7 +392,7 @@ Treat these as hard checks:
 - Section 1 should justify Section 5, not contradict it.
 - Section 2 should explain the current reality that Sections 4 and 6 make concrete.
 - Section 3 and External Research should sharpen Section 5 and Section 8, not float independently.
-- Section 3, Section 5, and Section 6 must agree on the canonical owner path, migrations, deletes, and adoption scope.
+- Section 3, Section 5, and Section 6 must agree on the canonical owner path, migrations, deletes, live docs/comments cleanup, and adoption scope.
 - Section 7 must be executable from Sections 5 and 6.
 - Section 7 phase status lines and `WORKLOG_PATH` should agree about actual progress.
 - Section 8 must match the evidence philosophy in Section 0, including preservation checks for refactor-heavy work, and the verification load implied by Section 7.

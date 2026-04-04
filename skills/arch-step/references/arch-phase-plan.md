@@ -30,7 +30,10 @@
 - docs-only; do not modify code
 - if the North Star, requested behavior scope, or allowed architectural convergence scope is contradictory, stop for a quick doc correction
 - if missing work is discovered while planning, classify whether it is required convergence, anchored pattern/parity, concrete risk mitigation, optional quality, product scope creep, or architecture theater before adding it to the phase plan
+- for agent-backed systems, prompt, grounding, and native-capability changes get first right of refusal before new harnesses, wrappers, parsers, OCR layers, or scripts
+- if a phase includes new tooling for agent-backed behavior, say why prompt-first and capability-first options were insufficient
 - only ship-blocking work belongs in the authoritative checklist
+- if the change would leave touched live docs, comments, or instructions stale, update-or-delete work for those surfaces belongs in the phase plan
 - do not turn helper blocks into competing execution checklists
 
 ## Warn-first preflight
@@ -48,8 +51,9 @@ Before writing the phase plan:
 - the plan must be foundational-first
 - each phase must have goal, work, verification, docs/comments when needed, exit criteria, and rollback
 - refactor-heavy phases must say how preserved behavior will be proven
+- agent-backed phases must make capability-first choices explicit before adding custom tooling
 - verification should be small, credible, and non-bureaucratic
-- required cleanup and deletes should not be buried
+- required cleanup, deletes, and touched doc/comment reality-sync work should not be buried
 
 ## Placement and update rules
 
@@ -67,7 +71,7 @@ Use this block shape:
 <!-- arch_skill:block:phase_plan:start -->
 # Depth-First Phased Implementation Plan (authoritative)
 
-> Rule: systematic build, foundational first; every phase has exit criteria + explicit verification plan (tests optional). Refactors, consolidations, and shared-path extractions must preserve existing behavior with the smallest credible signal. No fallbacks/runtime shims - the system must work correctly or fail loudly (delete superseded paths). Prefer programmatic checks per phase; defer manual/UI verification to finalization. Avoid negative-value tests (deletion checks, visual constants, doc-driven gates). Also: document new patterns/gotchas in code comments at the canonical boundary (high leverage, not comment spam).
+> Rule: systematic build, foundational first; every phase has exit criteria + explicit verification plan (tests optional). Refactors, consolidations, and shared-path extractions must preserve existing behavior with the smallest credible signal. For agent-backed systems, prefer prompt, grounding, and native-capability changes before new harnesses or scripts. No fallbacks/runtime shims - the system must work correctly or fail loudly (delete superseded paths). Prefer programmatic checks per phase; defer manual/UI verification to finalization. Avoid negative-value tests (deletion checks, visual constants, doc-driven gates). Also: document new patterns/gotchas in code comments at the canonical boundary (high leverage, not comment spam).
 
 ## Phase 1 — <foundation>
 
@@ -88,6 +92,8 @@ Use this block shape:
 * Rollback:
 <!-- arch_skill:block:phase_plan:end -->
 ```
+
+Use `Docs/comments` to delete dead live docs/comments or rewrite surviving ones to present truth when the phase changes what is real. Do not keep legacy explanation in live surfaces just because Git already preserves the old version.
 
 ## Consistency duties beyond local ownership
 

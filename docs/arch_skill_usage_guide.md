@@ -86,6 +86,19 @@ Install removes stale pre-skill command surfaces and removed competing skill pac
 - Prefer existing tests, typecheck, build, instrumentation, or stable behavior-level checks before adding new tests.
 - Do not write negative-value tests that only assert implementation details, deletions, or visual constants.
 
+### Capability-first for agent-backed systems
+
+- Understand current prompt surfaces, native model capabilities, and existing tool/file/context exposure before designing.
+- Lean into prompt engineering, grounding, and native capabilities before inventing custom harnesses, wrappers, parsers, OCR layers, fuzzy matchers, or scripts.
+- If custom tooling is still needed, the plan should say why prompt-first and capability-first options were insufficient and keep the tool narrow.
+- When the real lever is prompt repair, call that out plainly and use `prompt-authoring` instead of building deterministic scaffolding around the model.
+
+### Delete dead truth
+
+- Git is the history for retired code paths, docs, comments, and instructions.
+- Do not keep dead competing truth surfaces around for legacy or archaeology.
+- If a touched live doc, comment, or instruction still matters after the change, rewrite it to present reality in the same run. If it no longer matters, delete it.
+
 ## Choosing a skill
 
 ### `arch-step`
@@ -104,6 +117,7 @@ Practical rule:
 - If the ask is generic full arch, the live answer is `arch-step`.
 - If the ask names a full-arch command, the live answer is also `arch-step`.
 - `arch-step` may widen internal refactor scope to converge on one tested path and remove duplicate truth, but it must not invent extra product functionality while doing it.
+- If capability-first analysis shows the main lever is prompt repair, `arch-step` should say so plainly and point to `prompt-authoring`.
 - `arch-step status` is the concise readout.
 - `arch-step advance` owns the full checklist and exact next-command selection.
 

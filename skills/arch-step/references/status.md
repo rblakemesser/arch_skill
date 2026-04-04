@@ -95,7 +95,7 @@ Inspect:
 
 Grade:
 
-- `strong` when the block has authoritative internal anchors, names the canonical owner path, names reusable patterns, names preservation signals when needed, and uses evidence-based open questions
+- `strong` when the block has authoritative internal anchors, names the canonical owner path, names reusable patterns, grounds prompt and capability surfaces when the system is agent-backed, names preservation signals when needed, and uses evidence-based open questions
 - `decent` when present but thinner than required
 - `weak` when present but generic or under-anchored
 - `missing` when absent
@@ -111,7 +111,7 @@ Inspect:
 
 Grade:
 
-- `strong` when current architecture is grounded, target architecture is fully specified, the canonical owner path is explicit, and the call-site audit is exhaustive enough within approved scope to drive implementation and audit
+- `strong` when current architecture is grounded, target architecture is fully specified, the canonical owner path is explicit, agent-backed behavior is split cleanly between prompt/capability use and deterministic code when relevant, and the call-site audit is exhaustive enough within approved scope to drive implementation and audit
 - `decent` when all exist but one is still thin
 - `weak` when one or more exist but do not meet the depth bar
 - `missing` when one or more are absent
@@ -141,9 +141,9 @@ Inspect:
 
 Grade:
 
-- `strong` when the authoritative phased plan exists, remains the single execution checklist, each phase has concrete work, verification, exit criteria, and rollback, and refactor-heavy phases name preservation checks
+- `strong` when the authoritative phased plan exists, remains the single execution checklist, each phase has concrete work, verification, exit criteria, and rollback, refactor-heavy phases name preservation checks, touched live docs/comments that would otherwise go stale are either deleted or rewritten in the plan, and agent-backed tooling is explicitly justified against prompt-first options
 - `decent` when present but one or more phases are thin
-- `weak` when generic, incomplete, mixes product creep into ship-blocking work, or competes with helper checklists
+- `weak` when generic, incomplete, mixes product creep into ship-blocking work, leaves touched live docs/comments cleanup implicit, or competes with helper checklists
 - `missing` when absent
 
 ### Implementation
@@ -156,7 +156,7 @@ Inspect:
 
 Grade:
 
-- `strong` when worklog and doc both reflect real phased progress or completion, Section 7 phase status lines match the worklog, ledger-like completeness is visible, refactor-heavy phases ran preservation checks, and the doc matches reality
+- `strong` when worklog and doc both reflect real phased progress or completion, Section 7 phase status lines match the worklog, ledger-like completeness is visible, refactor-heavy phases ran preservation checks, touched live docs/comments that would otherwise go stale were cleaned up when needed, agent-backed changes leaned on the planned prompt or capability path before new tooling, and the doc matches reality
 - `decent` when implementation is real but progress truth is thin
 - `weak` when there are claims of progress without credible worklog or doc evidence
 - `missing` when no implementation evidence exists
@@ -170,7 +170,7 @@ Inspect:
 
 Grade:
 
-- `strong` when the audit block is evidence-anchored, reopened phases are updated in place, and missing code is clearly separated from non-blocking manual QA
+- `strong` when the audit block is evidence-anchored, reopened phases are updated in place, missing code is clearly separated from non-blocking manual QA, touched live docs/comments that would otherwise go stale are treated as implementation gaps when warranted, and unjustified scaffolding around agent-backed behavior is treated as an implementation gap
 - `decent` when present but thin
 - `weak` when nominal but not convincingly reconciled
 - `missing` when absent
@@ -207,6 +207,6 @@ Choose the command that most improves artifact completeness or core-flow progres
 - missing research -> `research`
 - weak or incomplete current architecture, target architecture, canonical-path analysis, or call-site audit -> `deep-dive`
 - warranted but missing external research -> `external-research`
-- weak, creep-heavy, or preservation-light execution checklist -> `phase-plan`
+- weak, creep-heavy, missing capability-first analysis, preservation-light, or stale-live-doc-light execution checklist -> `phase-plan`
 - code progress without worklog truth -> `implement`
 - missing implementation audit -> `audit-implementation`

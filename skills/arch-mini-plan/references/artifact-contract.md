@@ -48,6 +48,8 @@ Optional only when the task truly needs them:
 
 Use the same marker shapes that `arch-step` expects so follow-through can continue without migration work.
 
+When the change is agent-backed, these blocks must make capability-first decisions visible enough that `arch-step` can continue without inventing whether prompting, grounding, native capability use, or custom tooling should own the behavior.
+
 ## Status rules
 
 - New or unconfirmed docs stay `status: draft`.

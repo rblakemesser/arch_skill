@@ -33,6 +33,7 @@ After this command runs:
 ## Question policy
 
 - answer anything discoverable from code, tests, fixtures, logs, docs, or repo tooling
+- answer agent-capability questions from prompt files, runtime config, docs, or repo tooling before assuming the model cannot do something
 - ask only for:
   - product or UX decisions not encoded anywhere
   - external constraints not present in the repo or doc
@@ -81,6 +82,8 @@ Check all of these:
   - SSOT is real
   - boundaries and contracts match the plan
   - required deletes and cleanup happened
+  - touched live docs, comments, and instructions that the plan said to update or delete no longer contradict shipped reality
+  - for agent-backed systems, implementation did not replace prompt/native-capability work with unjustified scaffolding
   - no forbidden shims slipped in
   - no new parallel path or duplicate writer was introduced
 - idiomatic fit:
@@ -116,6 +119,7 @@ Missing manual evidence should become non-blocking follow-up.
    - call-site audit rows or equivalent migration inventory
    - phase plan and any phases marked complete, done, or checked off
    - delete list and cleanup expectations
+   - live docs/comments/instructions cleanup expectations in touched areas
    - definition-of-done evidence expectations
 3. split evidence expectations into:
    - code-verifiable evidence
@@ -126,6 +130,9 @@ Missing manual evidence should become non-blocking follow-up.
    - verify SSOT enforcement and boundary compliance
    - verify the implementation converged onto the planned canonical path instead of introducing a bypass
    - verify required deletes and cleanup through repo search, static analysis, build, or typecheck rather than proof tests
+   - verify touched live docs, comments, and instructions were deleted or rewritten when the plan said they would otherwise become stale
+   - for agent-backed systems, verify planned prompt, grounding, or native-capability changes actually landed when they were the primary lever
+   - verify any new harness, wrapper, parser, OCR layer, or script was explicitly justified by the plan instead of silently replacing intended model reasoning
    - verify required preservation signals actually ran and protect the intended behavior
    - verify claimed tests, assertions, or automation actually exist and hit the intended failure surface
 5. determine phase truth:
@@ -140,7 +147,9 @@ Always name phases as `Phase <n> (<what it does>)` using the phase heading text 
 - reopen a phase only for missing or incorrect code work
 - do not reopen a phase solely because screenshots, manual QA, or human verification are still pending
 - if the plan says an old path should be deleted, removed, or unreachable, treat that as code work and audit it accordingly
+- if the plan says a touched live doc, comment, or instruction should be deleted or rewritten, treat that as implementation work and audit it accordingly
 - if the implementation introduced a forbidden shim, fallback, or parallel source of truth, treat that as missing code correctness and reopen the responsible phase
+- if the implementation introduced capability-replacing scaffolding for agent-backed behavior without explicit plan justification, treat that as missing code correctness and reopen the responsible phase
 - if a refactor or convergence change lacks credible preservation evidence, treat that as missing code correctness and reopen the responsible phase
 
 ## Update rules
@@ -207,7 +216,7 @@ When reopening a phase:
 ## Verdict rules
 
 - `Verdict (code): COMPLETE` only when no missing or incorrect code work remains
-- `Verdict (code): NOT COMPLETE` when any required code work, migration, delete, cleanup, contract enforcement, preservation expectation, or anti-shim expectation is unmet
+- `Verdict (code): NOT COMPLETE` when any required code work, migration, delete, touched-doc cleanup, contract enforcement, preservation expectation, or anti-shim expectation is unmet
 - manual QA pending alone does not force `NOT COMPLETE`
 
 ## Stop condition

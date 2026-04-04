@@ -29,6 +29,9 @@ Use this skill for contained feature work that is too small for the full arch fl
 - Ask the small set of clarifying questions that must be answered before planning. Do not bulldoze past unresolved requirements.
 - Keep the plan to 1-3 phases. If it grows beyond that, escalate instead of pretending the fit is still good.
 - Implementation stays local. Do not launch external review unless the user explicitly asks for review.
+- When the changed behavior is agent- or LLM-driven, inspect prompt surfaces, native model capabilities, and existing tool/file/context exposure before designing.
+- For agent-backed systems, prefer prompt engineering, grounding, and native-capability use before new harnesses, wrappers, parsers, OCR layers, or scripts.
+- If the real lever is prompt repair, say so plainly and recommend `prompt-authoring` instead of inventing deterministic scaffolding.
 - No runtime fallbacks or compatibility shims unless explicitly approved in the doc.
 - Escalation out of lilarch defaults to `arch-step reformat` so the same doc can continue under the full-arch surface.
 
