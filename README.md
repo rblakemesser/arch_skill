@@ -25,7 +25,7 @@ cd arch_skill
 make install
 ```
 
-This installs the live skill surface to `~/.agents/skills/` by default, mirrors the same skills to `~/.codex/skills/` for Codex compatibility, installs the `arch-step` Codex Stop-hook entry in `~/.codex/hooks.json`, and also installs the Claude Code and Gemini CLI skill directories.
+This installs the live skill surface to `~/.agents/skills/`, installs the `arch-step` Codex Stop-hook entry in `~/.codex/hooks.json` pointing at `~/.agents/skills/arch-step/scripts/implement_loop_stop_hook.py`, removes older `~/.codex/skills/<skill>` mirrors from previous installs, and also installs the Claude Code and Gemini CLI skill directories.
 
 Codex automatic `implement-loop` is hook-backed and also requires the Codex feature flag:
 
@@ -51,16 +51,6 @@ Installed skills:
   - `~/.agents/skills/arch-flow/`
   - `~/.agents/skills/arch-skills-guide/`
   - `~/.agents/skills/codemagic-builds/`
-- Codex:
-  - `~/.codex/skills/arch-step/`
-  - `~/.codex/skills/arch-mini-plan/`
-  - `~/.codex/skills/lilarch/`
-  - `~/.codex/skills/bugs-flow/`
-  - `~/.codex/skills/goal-loop/`
-  - `~/.codex/skills/north-star-investigation/`
-  - `~/.codex/skills/arch-flow/`
-  - `~/.codex/skills/arch-skills-guide/`
-  - `~/.codex/skills/codemagic-builds/`
 - Claude Code:
   - `~/.claude/skills/arch-step/`
   - `~/.claude/skills/arch-mini-plan/`
@@ -80,7 +70,7 @@ Installed skills:
   - `~/.gemini/skills/arch-flow/`
   - `~/.gemini/skills/arch-skills-guide/`
 
-`make install` also removes stale pre-skill command surfaces and removed competing skill packages, so runtime routing stays unambiguous while the default local install stays aligned with the Codex compatibility mirror.
+Codex reads the same installed skill surface from `~/.agents/skills/`. `make install` also removes stale pre-skill command surfaces, removed competing skill packages, and older `~/.codex/skills/<skill>` mirrors so runtime routing stays unambiguous.
 
 ### Remote install
 
@@ -94,7 +84,7 @@ make remote_install HOST=user@host
 make verify_install
 ```
 
-This validates the installed active skill surface in both `~/.agents/skills/` and `~/.codex/skills/`, checks that the `arch-step` Stop-hook entry exists in `~/.codex/hooks.json`, and confirms removed competing skill packages are absent for the supported runtimes.
+This validates the installed active skill surface in `~/.agents/skills/`, checks that the `arch-step` Stop-hook entry exists in `~/.codex/hooks.json` and points at the installed runner under `~/.agents/skills/`, confirms the old `~/.codex/skills/<skill>` mirrors are absent, and confirms removed competing skill packages are absent for the supported runtimes.
 
 To confirm the Codex feature gate is enabled:
 

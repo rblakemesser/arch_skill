@@ -1,4 +1,4 @@
-.PHONY: install install_skill agents_install_skill codex_install_skill claude_install_skill gemini_install gemini_install_skill verify_install verify_agents_install verify_codex_install verify_claude_install verify_gemini_install remote_install clean_codex_stale_surfaces clean_claude_stale_surfaces clean_gemini_stale_surfaces
+.PHONY: install install_skill agents_install_skill clean_codex_skill_mirror codex_install_hook claude_install_skill gemini_install gemini_install_skill verify_install verify_agents_install verify_codex_install verify_claude_install verify_gemini_install remote_install clean_codex_stale_surfaces clean_claude_stale_surfaces clean_gemini_stale_surfaces
 
 REMOVED_SKILLS := arch-skill arch-plan
 SKILLS := arch-step arch-mini-plan lilarch bugs-flow goal-loop north-star-investigation arch-flow arch-skills-guide codemagic-builds
@@ -66,7 +66,7 @@ clean_gemini_stale_surfaces:
 	rmdir "$$prompt_backup" 2>/dev/null || true; \
 	rmdir "$$command_backup" 2>/dev/null || true
 
-install_skill: agents_install_skill codex_install_skill
+install_skill: agents_install_skill clean_codex_skill_mirror codex_install_hook
 
 agents_install_skill:
 	mkdir -p $(AGENTS_SKILLS_DIR)
@@ -77,15 +77,13 @@ agents_install_skill:
 		cp -R skills/$$skill $(AGENTS_SKILLS_DIR)/$$skill; \
 	done
 
-codex_install_skill:
-	mkdir -p $(CODEX_SKILLS_DIR)
+clean_codex_skill_mirror:
 	@for skill in $(REMOVED_SKILLS) $(SKILLS); do \
 		rm -rf $(CODEX_SKILLS_DIR)/$$skill; \
 	done
-	@for skill in $(SKILLS); do \
-		cp -R skills/$$skill $(CODEX_SKILLS_DIR)/$$skill; \
-	done
-	@python3 skills/arch-step/scripts/upsert_codex_stop_hook.py --hooks-file "$(CODEX_HOOKS_FILE)" --codex-skills-dir "$(CODEX_SKILLS_DIR)"
+
+codex_install_hook:
+	@python3 skills/arch-step/scripts/upsert_codex_stop_hook.py --hooks-file "$(CODEX_HOOKS_FILE)" --skills-dir "$(AGENTS_SKILLS_DIR)"
 
 claude_install_skill:
 	mkdir -p $(CLAUDE_SKILLS_DIR)
@@ -111,7 +109,7 @@ gemini_install_skill:
 	done
 
 verify_install: verify_agents_install verify_codex_install verify_claude_install $(VERIFY_GEMINI)
-	@echo "OK: active skill surface installed for agents, Codex, Claude Code, and requested Gemini targets; Codex implement-loop hook installed"
+	@echo "OK: active skill surface installed for agents, Claude Code, and requested Gemini targets; Codex implement-loop hook installed from ~/.agents/skills"
 
 verify_agents_install:
 	@for skill in $(SKILLS); do \
@@ -122,16 +120,14 @@ verify_agents_install:
 	@echo "OK: agents skills installed"
 
 verify_codex_install:
-	@for skill in $(SKILLS); do \
-		test -f $(CODEX_SKILLS_DIR)/$$skill/SKILL.md; \
-	done
 	@for file in $(ARCHIVED_COMMAND_FILES); do \
 		test ! -f ~/.codex/prompts/$$file; \
 	done
-	@test ! -d $(CODEX_SKILLS_DIR)/arch-plan
-	@test ! -d $(CODEX_SKILLS_DIR)/arch-skill
-	@python3 skills/arch-step/scripts/upsert_codex_stop_hook.py --verify --hooks-file "$(CODEX_HOOKS_FILE)" --codex-skills-dir "$(CODEX_SKILLS_DIR)"
-	@echo "OK: Codex compatibility mirror and implement-loop hook installed; stale command surfaces removed"
+	@for skill in $(REMOVED_SKILLS) $(SKILLS); do \
+		test ! -d $(CODEX_SKILLS_DIR)/$$skill; \
+	done
+	@python3 skills/arch-step/scripts/upsert_codex_stop_hook.py --verify --hooks-file "$(CODEX_HOOKS_FILE)" --skills-dir "$(AGENTS_SKILLS_DIR)"
+	@echo "OK: Codex implement-loop hook installed from ~/.agents/skills; stale command surfaces and old Codex skill mirrors removed"
 
 verify_claude_install:
 	@for skill in $(CLAUDE_SKILLS); do \
@@ -160,7 +156,7 @@ verify_gemini_install:
 
 remote_install:
 	@if [ -z "$(HOST)" ]; then echo "HOST is required. Usage: make remote_install HOST=<user@host>"; exit 1; fi
-	@ssh $(HOST) "mkdir -p ~/.agents/skills ~/.codex/skills ~/.codex/prompts/_backup"
+	@ssh $(HOST) "mkdir -p ~/.agents/skills ~/.codex/prompts/_backup"
 	@ssh $(HOST) "mkdir -p ~/.claude/skills ~/.claude/commands/prompts/_backup"
 	@if [ "$(NO_GEMINI)" != "1" ]; then \
 		ssh $(HOST) "mkdir -p ~/.gemini/skills ~/.gemini/commands/prompts ~/.gemini/_backup/commands ~/.gemini/arch_skill/prompts ~/.gemini/_backup/arch_skill"; \
@@ -179,10 +175,7 @@ remote_install:
 	@for skill in $(REMOVED_SKILLS) $(SKILLS); do \
 		ssh $(HOST) "rm -rf ~/.codex/skills/$$skill"; \
 	done
-	@for skill in $(SKILLS); do \
-		scp -r skills/$$skill $(HOST):~/.codex/skills/; \
-	done
-	@ssh $(HOST) "python3 ~/.codex/skills/arch-step/scripts/upsert_codex_stop_hook.py --hooks-file ~/.codex/hooks.json --codex-skills-dir ~/.codex/skills"
+	@ssh $(HOST) "python3 ~/.agents/skills/arch-step/scripts/upsert_codex_stop_hook.py --hooks-file ~/.codex/hooks.json --skills-dir ~/.agents/skills"
 	@for skill in $(REMOVED_SKILLS) $(CLAUDE_SKILLS); do \
 		ssh $(HOST) "rm -rf ~/.claude/skills/$$skill"; \
 	done

@@ -41,17 +41,7 @@ Default local path:
 - `~/.agents/skills/arch-skills-guide/`
 - `~/.agents/skills/codemagic-builds/`
 
-Codex compatibility mirror:
-
-- `~/.codex/skills/arch-step/`
-- `~/.codex/skills/arch-mini-plan/`
-- `~/.codex/skills/lilarch/`
-- `~/.codex/skills/bugs-flow/`
-- `~/.codex/skills/goal-loop/`
-- `~/.codex/skills/north-star-investigation/`
-- `~/.codex/skills/arch-flow/`
-- `~/.codex/skills/arch-skills-guide/`
-- `~/.codex/skills/codemagic-builds/`
+Codex reads the same installed skills from `~/.agents/skills/`. `make install` also installs the `arch-step` Stop hook into `~/.codex/hooks.json` and removes older `~/.codex/skills/<skill>` mirrors from previous installs.
 
 Installed skills:
 
@@ -84,7 +74,7 @@ Installed skills:
   - `arch-flow`
   - `arch-skills-guide`
 
-Install removes stale pre-skill command surfaces and removed competing skill packages while keeping the default `.agents` install surface aligned with the Codex compatibility mirror. For Codex, it also installs the `arch-step` Stop-hook entry in `~/.codex/hooks.json`.
+Install removes stale pre-skill command surfaces, removed competing skill packages, and older Codex skill mirrors. For Codex, it installs the `arch-step` Stop-hook entry in `~/.codex/hooks.json` pointing at the installed runner under `~/.agents/skills/arch-step/scripts/implement_loop_stop_hook.py`.
 
 ## Shared conventions
 

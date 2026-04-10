@@ -53,7 +53,7 @@ Before arming the loop, verify all of these:
 
 - Codex runtime is the active host
 - `~/.codex/hooks.json` contains the installed `arch-step` Stop-hook entry
-- `~/.codex/skills/arch-step/scripts/implement_loop_stop_hook.py` exists
+- `~/.agents/skills/arch-step/scripts/implement_loop_stop_hook.py` exists
 - `codex features list` shows `codex_hooks` enabled
 
 If any check fails, stop immediately and print the exact remediation:

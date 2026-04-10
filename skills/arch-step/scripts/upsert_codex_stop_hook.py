@@ -16,13 +16,13 @@ HOOK_SCRIPT_NAME = "implement_loop_stop_hook.py"
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--hooks-file", required=True)
-    parser.add_argument("--codex-skills-dir", required=True)
+    parser.add_argument("--skills-dir", required=True)
     parser.add_argument("--verify", action="store_true")
     return parser.parse_args()
 
 
-def expected_command(codex_skills_dir: Path) -> str:
-    hook_script = codex_skills_dir / "arch-step" / "scripts" / HOOK_SCRIPT_NAME
+def expected_command(skills_dir: Path) -> str:
+    hook_script = skills_dir / "arch-step" / "scripts" / HOOK_SCRIPT_NAME
     return f"python3 {hook_script}"
 
 
@@ -69,7 +69,7 @@ def expected_group(command: str) -> dict:
     }
 
 
-def install_hook(hooks_file: Path, codex_skills_dir: Path) -> None:
+def install_hook(hooks_file: Path, skills_dir: Path) -> None:
     data = load_hooks_file(hooks_file)
     stop_groups = data["hooks"].get("Stop", [])
     if stop_groups is None:
@@ -77,7 +77,7 @@ def install_hook(hooks_file: Path, codex_skills_dir: Path) -> None:
     if not isinstance(stop_groups, list):
         raise SystemExit(f"{hooks_file} must contain a list at hooks.Stop")
 
-    command = expected_command(codex_skills_dir)
+    command = expected_command(skills_dir)
     stop_groups = [group for group in stop_groups if not is_arch_step_group(group)]
     stop_groups.append(expected_group(command))
     data["hooks"]["Stop"] = stop_groups
@@ -86,7 +86,7 @@ def install_hook(hooks_file: Path, codex_skills_dir: Path) -> None:
     hooks_file.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
 
 
-def verify_hook(hooks_file: Path, codex_skills_dir: Path) -> None:
+def verify_hook(hooks_file: Path, skills_dir: Path) -> None:
     if not hooks_file.exists():
         raise SystemExit(f"missing hooks file: {hooks_file}")
     data = load_hooks_file(hooks_file)
@@ -94,7 +94,7 @@ def verify_hook(hooks_file: Path, codex_skills_dir: Path) -> None:
     if not isinstance(stop_groups, list):
         raise SystemExit(f"{hooks_file} must contain a list at hooks.Stop")
 
-    command = expected_command(codex_skills_dir)
+    command = expected_command(skills_dir)
     wanted = expected_group(command)
     for group in stop_groups:
         if group == wanted:
@@ -108,11 +108,11 @@ def verify_hook(hooks_file: Path, codex_skills_dir: Path) -> None:
 def main() -> int:
     args = parse_args()
     hooks_file = Path(args.hooks_file).expanduser()
-    codex_skills_dir = Path(args.codex_skills_dir).expanduser()
+    skills_dir = Path(args.skills_dir).expanduser()
     if args.verify:
-        verify_hook(hooks_file, codex_skills_dir)
+        verify_hook(hooks_file, skills_dir)
     else:
-        install_hook(hooks_file, codex_skills_dir)
+        install_hook(hooks_file, skills_dir)
     return 0
 
 
