@@ -100,7 +100,8 @@ Choose exactly one next command using this precedence:
    - `external-research` when warranted
    - `deep-dive` again when external research materially changed the design
    - `phase-plan`
-   - `implement`
+   - `implement` by default
+   - `implement-loop` when the user explicitly wants the bounded delivery loop to a clean audit
    - `audit-implementation`
 7. if all required stages are complete, say there is no required next `arch-step` move
 

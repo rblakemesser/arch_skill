@@ -13,7 +13,7 @@ This artifact is not a loose outline. It is one coherent plan doc that later com
   - `<DOC_DIR>/<DOC_BASENAME>_WORKLOG.md`
   - progress evidence only, never a second plan
 
-Planning commands update `DOC_PATH` only. `implement` updates both. `audit-implementation` updates `DOC_PATH` only.
+Planning commands update `DOC_PATH` only. `implement` and `implement-loop` may update code, `DOC_PATH`, and `WORKLOG_PATH`. `audit-implementation` updates `DOC_PATH` only.
 
 ## Artifact convergence rule
 
@@ -436,4 +436,4 @@ Treat these as hard checks:
 ## Write-boundary rule
 
 - `new`, `reformat`, `research`, `deep-dive`, `external-research`, `phase-plan`, `plan-enhance`, `fold-in`, `overbuild-protector`, `review-gate`, and `audit-implementation` are docs-only
-- `implement` is the only code-writing command in this skill
+- `implement` and `implement-loop` are the code-writing commands in this skill

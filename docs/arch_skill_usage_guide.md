@@ -23,6 +23,36 @@ cd arch_skill
 make install
 ```
 
+For Codex automatic `implement-loop`, also enable the Codex hook feature once:
+
+```bash
+codex features enable codex_hooks
+```
+
+Default local path:
+
+- `~/.agents/skills/arch-step/`
+- `~/.agents/skills/arch-mini-plan/`
+- `~/.agents/skills/lilarch/`
+- `~/.agents/skills/bugs-flow/`
+- `~/.agents/skills/goal-loop/`
+- `~/.agents/skills/north-star-investigation/`
+- `~/.agents/skills/arch-flow/`
+- `~/.agents/skills/arch-skills-guide/`
+- `~/.agents/skills/codemagic-builds/`
+
+Codex compatibility mirror:
+
+- `~/.codex/skills/arch-step/`
+- `~/.codex/skills/arch-mini-plan/`
+- `~/.codex/skills/lilarch/`
+- `~/.codex/skills/bugs-flow/`
+- `~/.codex/skills/goal-loop/`
+- `~/.codex/skills/north-star-investigation/`
+- `~/.codex/skills/arch-flow/`
+- `~/.codex/skills/arch-skills-guide/`
+- `~/.codex/skills/codemagic-builds/`
+
 Installed skills:
 
 - Codex:
@@ -54,7 +84,7 @@ Installed skills:
   - `arch-flow`
   - `arch-skills-guide`
 
-Install removes stale pre-skill command surfaces and removed competing skill packages.
+Install removes stale pre-skill command surfaces and removed competing skill packages while keeping the default `.agents` install surface aligned with the Codex compatibility mirror. For Codex, it also installs the `arch-step` Stop-hook entry in `~/.codex/hooks.json`.
 
 ## Shared conventions
 
@@ -109,13 +139,14 @@ Install removes stale pre-skill command surfaces and removed competing skill pac
 
 ### `arch-step`
 
-Use for full-arch planning, continuation, implementation, or implementation audit.
+Use for full-arch planning, continuation, implementation, bounded implement/audit delivery, or implementation audit.
 
 Examples:
 
 - `Use $arch-step "do the full arch flow for this change"`
 - `Use $arch-step advance docs/MY_PLAN.md`
 - `Use $arch-step implement docs/MY_PLAN.md`
+- `Use $arch-step implement-loop docs/MY_PLAN.md`
 - `Use $arch-step audit-implementation docs/MY_PLAN.md`
 
 Practical rule:
@@ -126,6 +157,9 @@ Practical rule:
 - If capability-first analysis shows the main lever is prompt repair, `arch-step` should say so plainly and point to `prompt-authoring`.
 - `arch-step status` is the concise readout.
 - `arch-step advance` owns the full checklist and exact next-command selection.
+- `arch-step implement-loop` is the explicit bounded controller when the user wants repeated implement then audit passes until the audit is clean or a real blocker stops the run.
+- In Codex, `implement-loop` is hook-backed only: it requires the installed `arch-step` Stop hook in `~/.codex/hooks.json` and enabled `codex_hooks`.
+- If that hook path is absent or disabled, `implement-loop` should fail loud with the remediation commands instead of pretending a prompt-only loop exists.
 
 ### `arch-flow`
 

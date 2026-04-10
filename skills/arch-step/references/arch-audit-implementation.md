@@ -6,6 +6,7 @@
 - reopen false-complete phases when code work is missing
 - distinguish missing code from non-blocking manual QA
 - update the main artifact with evidence-anchored audit findings
+- serve as the audit pass used directly or inside `implement-loop`
 
 ## Audit North Star
 

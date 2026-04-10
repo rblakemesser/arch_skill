@@ -6,6 +6,7 @@
 - keep code, plan, and worklog aligned as the run proceeds
 - execute systematically against the authoritative checklist
 - finish with an honest `complete` or `partial` outcome
+- serve as the single implementation pass used directly or inside `implement-loop`
 
 ## Execution North Star
 
@@ -74,6 +75,7 @@ By the end of the run:
 ## Hard rules
 
 - read `DOC_PATH` fully before editing code
+- this command is a single execution pass; if the user wants repeated implement then audit cycles until the audit is clean, use `implement-loop`
 - treat the doc as the authoritative spec and checklist
 - identify the canonical owner path before designing or extending a code path
 - if the work includes refactor, consolidation, or shared-path extraction, identify the preservation signal before editing code

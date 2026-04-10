@@ -1,6 +1,6 @@
 ---
 name: arch-step
-description: "Operate the standalone full-arch workflow against one canonical plan artifact and explicit doctrine: `new`, `reformat`, `research`, `deep-dive`, `external-research`, `phase-plan`, `plan-enhance`, `fold-in`, `overbuild-protector`, `review-gate`, `implement`, `audit-implementation`, `status`, or `advance`. Use when the user wants the full arch workflow, a specific full-arch step, or concise full-arch status for work that may require architectural convergence onto canonical repo paths. Internal refactors may widen enough to remove duplicate truth or parallel paths, but the skill must not invent new product functionality, modes, or speculative infrastructure. Not for read-only checklist routing, mini plans, lilarch, bugs, or open-ended loops."
+description: "Operate the standalone full-arch workflow against one canonical plan artifact and explicit doctrine: `new`, `reformat`, `research`, `deep-dive`, `external-research`, `phase-plan`, `plan-enhance`, `fold-in`, `overbuild-protector`, `review-gate`, `implement`, `implement-loop`, `audit-implementation`, `status`, or `advance`. Use when the user wants the full arch workflow, a specific full-arch step, or concise full-arch status for work that may require architectural convergence onto canonical repo paths. Internal refactors may widen enough to remove duplicate truth or parallel paths, but the skill must not invent new product functionality, modes, or speculative infrastructure. Not for read-only checklist routing, mini plans, lilarch, bugs, or open-ended loops."
 metadata:
   short-description: "Standalone full-arch operator"
 ---
@@ -17,7 +17,7 @@ The primary object is one canonical full-arch plan doc. Commands exist to move t
 - The ask is generic full arch language such as "do the full arch flow," "continue this architecture doc," "implement the plan," or "audit implementation against the plan."
 - The work needs one canonical plan doc plus real architectural convergence onto existing repo patterns, shared code paths, or single-source-of-truth boundaries.
 - The user wants explicit stage control instead of a more holistic or phase-family-driven flow.
-- The ask is command-shaped: `new`, `reformat`, `research`, `deep-dive`, `external-research`, `phase-plan`, `plan-enhance`, `fold-in`, `overbuild-protector`, `review-gate`, `implement`, `audit-implementation`, `status`, or `advance`.
+- The ask is command-shaped: `new`, `reformat`, `research`, `deep-dive`, `external-research`, `phase-plan`, `plan-enhance`, `fold-in`, `overbuild-protector`, `review-gate`, `implement`, `implement-loop`, `audit-implementation`, `status`, or `advance`.
 - The user wants one specific plan-doc shape with exact headings, stable markers, and consistent stage ownership.
 - The user wants `advance` to print the full checklist, choose exactly one next command, and optionally execute that one step.
 - The user wants `status` to evaluate the actual plan artifact, not emit a generic checklist.
@@ -36,7 +36,7 @@ The primary object is one canonical full-arch plan doc. Commands exist to move t
 - Present-but-weak sections are not done.
 - If the doc is materially non-canonical, repair only the safe owned portion or route to `reformat`.
 - Keep one planning source of truth. Do not create sidecar plan docs or competing checklists.
-- All planning commands are docs-only. Only `implement` may change code.
+- All planning commands are docs-only. Only `implement` and `implement-loop` may change code.
 - Distinguish requested behavior scope from architectural convergence scope. Requested behavior scope governs user-visible behavior. Architectural convergence scope covers internal refactors needed to route the ask through canonical paths, remove duplicate truth, and prevent drift.
 - Search for the canonical existing path before designing a new one. Reuse it, minimally refactor it, or justify why it cannot own the change.
 - Internal convergence work may broaden touched files or nearby adopters when needed to avoid parallel paths or shadow contracts, but it must not invent new product functionality, modes, or speculative infrastructure.
@@ -48,6 +48,7 @@ The primary object is one canonical full-arch plan doc. Commands exist to move t
 - If the real lever is prompt repair, say so plainly and recommend `prompt-authoring` instead of inventing deterministic scaffolding.
 - When porting agent instructions, prompt doctrine, or other instruction-bearing content, preserve explicit operational structure by default. Do not silently condense ordered steps, conditions, hard negatives, or escalation logic unless the artifact records why that condensation is safe and keeps the source text recoverable.
 - Default to fail-loud boundaries, hard cutover, and explicit deletes. Runtime shims are forbidden unless the plan explicitly approves them.
+- For Codex automatic looping, `implement-loop` is only real when the installed `arch-step` Stop hook is present and `codex_hooks` is enabled; prompt-only repetition does not count as the feature.
 - Git is the history for retired live truth surfaces. Do not preserve dead competing code paths, stale live docs, or stale comments for posterity. Delete them. If a touched doc, comment, or instruction still matters after the change, update it to current reality in the same run.
 - Core commands apply scope-triage and convergence rules even when helper commands are not run.
 - `advance` must choose from structure first, quality second, stage order third. Helper commands stay explicit.
@@ -89,6 +90,7 @@ The primary object is one canonical full-arch plan doc. Commands exist to move t
 - `overbuild-protector`
 - `review-gate`
 - `implement`
+- `implement-loop`
 - `audit-implementation`
 - `status`
 - `advance`
@@ -139,6 +141,23 @@ These stay explicit and do not auto-run from `advance`:
 
 Default placement is after `phase-plan` and before `implement`, unless the user explicitly asks otherwise. They are extra hardening surfaces, not the only place where scope, convergence, or preservation discipline exists.
 
+### Explicit controller commands
+
+These stay explicit unless the user directly asks for them:
+
+- `implement-loop`
+
+`implement-loop` is a bounded delivery controller. It runs `implement`, then `audit-implementation`, then repeats against the same `DOC_PATH` until the audit verdict is clean or a real blocker stops progress. Prefer a fresh audit context when the host runtime offers a truly isolated child session, subprocess, or subagent. Do not turn it into a generic open-ended loop.
+
+For real Codex automation, `implement-loop` is hook-backed only:
+
+- require the installed `arch-step` Stop hook in `~/.codex/hooks.json`
+- require `codex_hooks` to be enabled
+- require the active repo-local state file at `.codex/implement-loop-state.json`
+- fail loud with exact remediation commands when that hook path is absent or disabled
+- let the Stop hook launch the fresh audit and decide whether the session continues
+- if a real blocker appears before stopping, clear `.codex/implement-loop-state.json` and stop honestly
+
 ### Output expectations
 
 - Keep console output high-signal and natural.
@@ -172,6 +191,7 @@ Default placement is after `phase-plan` and before `implement`, unless the user 
 - `references/arch-overbuild-protector.md` - explicit scope triage and remediation using the same rubric core commands should already apply
 - `references/arch-review-gate.md` - local idiomatic and completeness review
 - `references/arch-implement.md` - implementation, worklog, and completion discipline
+- `references/arch-implement-loop.md` - hook-backed bounded implement/audit loop, required Codex preflight, and loop-state contract
 - `references/arch-audit-implementation.md` - code-completeness audit and phase reopening
 - `references/status.md` - compact artifact-first status rules
 - `references/advance.md` - full checklist, next-command selection, and optional one-step execution

@@ -16,7 +16,7 @@
 - If committing, stage only files you touched unless instructed otherwise.
 - When the command is clear, begin the work instead of restating the ask.
 - Planning commands are docs-only.
-- `implement` may change code and must respect branch discipline.
+- `implement` and `implement-loop` may change code and must respect branch discipline.
 
 ## Convergence rule
 

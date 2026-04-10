@@ -4,7 +4,7 @@ This repo ships a skills-only arch suite for Codex CLI, Claude Code, and Gemini 
 
 The live skill surface is:
 
-- `arch-step` — the only full-arch execution surface; owns the standalone full-arch workflow, command-level control, compact `status`, and guided `advance`
+- `arch-step` — the only full-arch execution surface; owns the standalone full-arch workflow, command-level control, bounded `implement-loop` delivery, compact `status`, and guided `advance`
 - `arch-mini-plan` — one-pass canonical mini planning that hands follow-through to `arch-step`
 - `lilarch` — compact 1-3 phase feature flow
 - `bugs-flow` — evidence-first bug analyze/fix/review flow
@@ -25,7 +25,13 @@ cd arch_skill
 make install
 ```
 
-This installs to Codex CLI, Claude Code, and Gemini CLI directories.
+This installs the live skill surface to `~/.agents/skills/` by default, mirrors the same skills to `~/.codex/skills/` for Codex compatibility, installs the `arch-step` Codex Stop-hook entry in `~/.codex/hooks.json`, and also installs the Claude Code and Gemini CLI skill directories.
+
+Codex automatic `implement-loop` is hook-backed and also requires the Codex feature flag:
+
+```bash
+codex features enable codex_hooks
+```
 
 To skip Gemini:
 
@@ -35,6 +41,16 @@ make install NO_GEMINI=1
 
 Installed skills:
 
+- Default local path:
+  - `~/.agents/skills/arch-step/`
+  - `~/.agents/skills/arch-mini-plan/`
+  - `~/.agents/skills/lilarch/`
+  - `~/.agents/skills/bugs-flow/`
+  - `~/.agents/skills/goal-loop/`
+  - `~/.agents/skills/north-star-investigation/`
+  - `~/.agents/skills/arch-flow/`
+  - `~/.agents/skills/arch-skills-guide/`
+  - `~/.agents/skills/codemagic-builds/`
 - Codex:
   - `~/.codex/skills/arch-step/`
   - `~/.codex/skills/arch-mini-plan/`
@@ -64,7 +80,7 @@ Installed skills:
   - `~/.gemini/skills/arch-flow/`
   - `~/.gemini/skills/arch-skills-guide/`
 
-`make install` also removes stale pre-skill command surfaces and removed competing skill packages, so runtime routing stays unambiguous.
+`make install` also removes stale pre-skill command surfaces and removed competing skill packages, so runtime routing stays unambiguous while the default local install stays aligned with the Codex compatibility mirror.
 
 ### Remote install
 
@@ -78,7 +94,13 @@ make remote_install HOST=user@host
 make verify_install
 ```
 
-This validates the installed active skill surface and confirms removed competing skill packages are absent.
+This validates the installed active skill surface in both `~/.agents/skills/` and `~/.codex/skills/`, checks that the `arch-step` Stop-hook entry exists in `~/.codex/hooks.json`, and confirms removed competing skill packages are absent for the supported runtimes.
+
+To confirm the Codex feature gate is enabled:
+
+```bash
+codex features list | rg '^codex_hooks\\s+.*\\strue$'
+```
 
 Restart your Codex, Claude Code, or Gemini CLI session after install so it reloads skills.
 
@@ -99,9 +121,12 @@ Use `arch-step` for real full-arch work. It owns the standalone full-arch workfl
 - `overbuild-protector`
 - `review-gate`
 - `implement`
+- `implement-loop`
 - `audit-implementation`
 - `status`
 - `advance`
+
+`implement-loop` is the Codex-only automatic bounded loop. It is real only when the installed `arch-step` Stop hook is present in `~/.codex/hooks.json` and `codex_hooks` is enabled. Otherwise it must fail loud and tell you to fix the hook path instead of pretending prompt-only repetition is enough.
 
 If the user says "do the full arch flow," "continue this architecture doc," or "audit implementation against the plan," the right live skill is `arch-step`.
 
@@ -145,6 +170,7 @@ Examples:
 - `Use $arch-step new "build this"`
 - `Use $arch-step advance docs/MY_PLAN.md`
 - `Use $arch-step advance docs/MY_PLAN.md RUN=1`
+- `Use $arch-step implement-loop docs/MY_PLAN.md`
 - `Use $arch-mini-plan docs/MY_PLAN.md`
 - `Use $lilarch for this small feature`
 - `Use $bugs-flow on this Sentry issue`
