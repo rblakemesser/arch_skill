@@ -23,7 +23,7 @@ cd arch_skill
 make install
 ```
 
-For Codex automatic `implement-loop`, also enable the Codex hook feature once:
+For Codex automatic `implement-loop`, also enable the Codex feature once:
 
 ```bash
 codex features enable codex_hooks
@@ -41,7 +41,7 @@ Default local path:
 - `~/.agents/skills/arch-skills-guide/`
 - `~/.agents/skills/codemagic-builds/`
 
-Codex reads the same installed skills from `~/.agents/skills/`. `make install` also installs the `arch-step` Stop hook into `~/.codex/hooks.json` and removes older `~/.codex/skills/<skill>` mirrors from previous installs.
+Codex reads the same installed skills from `~/.agents/skills/`. `make install` also wires the Codex runtime support for `implement-loop` through `~/.codex/hooks.json` and removes older `~/.codex/skills/<skill>` mirrors from previous installs.
 
 Installed skills:
 
@@ -74,7 +74,7 @@ Installed skills:
   - `arch-flow`
   - `arch-skills-guide`
 
-Install removes stale pre-skill command surfaces, removed competing skill packages, and older Codex skill mirrors. For Codex, it installs the `arch-step` Stop-hook entry in `~/.codex/hooks.json` pointing at the installed runner under `~/.agents/skills/arch-step/scripts/implement_loop_stop_hook.py`.
+Install removes stale pre-skill command surfaces, removed competing skill packages, and older Codex skill mirrors. For Codex, it installs the runtime support for `implement-loop` in `~/.codex/hooks.json` pointing at the installed runner under `~/.agents/skills/arch-step/scripts/implement_loop_stop_hook.py`.
 
 ## Shared conventions
 
@@ -148,7 +148,7 @@ Practical rule:
 - `arch-step status` is the concise readout.
 - `arch-step advance` owns the full checklist and exact next-command selection.
 - `arch-step implement-loop` is the explicit bounded controller when the user wants repeated implement then audit passes until the audit is clean or a real blocker stops the run.
-- In Codex, `implement-loop` is hook-backed only: it requires the installed `arch-step` Stop hook in `~/.codex/hooks.json` and enabled `codex_hooks`.
+- In Codex, the user still invokes only `implement-loop`; it requires the installed runtime support in `~/.codex/hooks.json` and enabled `codex_hooks`.
 - If that hook path is absent or disabled, `implement-loop` should fail loud with the remediation commands instead of pretending a prompt-only loop exists.
 
 ### `arch-flow`

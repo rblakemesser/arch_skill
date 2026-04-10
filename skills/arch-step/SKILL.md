@@ -48,7 +48,7 @@ The primary object is one canonical full-arch plan doc. Commands exist to move t
 - If the real lever is prompt repair, say so plainly and recommend `prompt-authoring` instead of inventing deterministic scaffolding.
 - When porting agent instructions, prompt doctrine, or other instruction-bearing content, preserve explicit operational structure by default. Do not silently condense ordered steps, conditions, hard negatives, or escalation logic unless the artifact records why that condensation is safe and keeps the source text recoverable.
 - Default to fail-loud boundaries, hard cutover, and explicit deletes. Runtime shims are forbidden unless the plan explicitly approves them.
-- For Codex automatic looping, `implement-loop` is only real when the installed `arch-step` Stop hook is present and `codex_hooks` is enabled; prompt-only repetition does not count as the feature.
+- `implement-loop` is one command. It either runs a real bounded implement-then-audit loop or fails loud. Prompt-only repetition does not count as the feature.
 - Git is the history for retired live truth surfaces. Do not preserve dead competing code paths, stale live docs, or stale comments for posterity. Delete them. If a touched doc, comment, or instruction still matters after the change, update it to current reality in the same run.
 - Core commands apply scope-triage and convergence rules even when helper commands are not run.
 - `advance` must choose from structure first, quality second, stage order third. Helper commands stay explicit.
@@ -149,13 +149,12 @@ These stay explicit unless the user directly asks for them:
 
 `implement-loop` is a bounded delivery controller. It runs `implement`, then `audit-implementation`, then repeats against the same `DOC_PATH` until the audit verdict is clean or a real blocker stops progress. Prefer a fresh audit context when the host runtime offers a truly isolated child session, subprocess, or subagent. Do not turn it into a generic open-ended loop.
 
-For real Codex automation, `implement-loop` is hook-backed only:
+User-facing invocation stays simple:
 
-- require the installed `arch-step` Stop hook in `~/.codex/hooks.json`
-- require `codex_hooks` to be enabled
-- require the active repo-local state file at `.codex/implement-loop-state.json`
-- fail loud with exact remediation commands when that hook path is absent or disabled
-- let the Stop hook launch the fresh audit and decide whether the session continues
+- run `$arch-step implement-loop <DOC_PATH>`
+- do not introduce a second command, mode, or user-facing control surface
+- fail loud with exact remediation commands when the installed runtime support is absent or disabled
+- keep `.codex/implement-loop-state.json` aligned with the live run
 - if a real blocker appears before stopping, clear `.codex/implement-loop-state.json` and stop honestly
 
 ### Output expectations
@@ -191,7 +190,7 @@ For real Codex automation, `implement-loop` is hook-backed only:
 - `references/arch-overbuild-protector.md` - explicit scope triage and remediation using the same rubric core commands should already apply
 - `references/arch-review-gate.md` - local idiomatic and completeness review
 - `references/arch-implement.md` - implementation, worklog, and completion discipline
-- `references/arch-implement-loop.md` - hook-backed bounded implement/audit loop, required Codex preflight, and loop-state contract
+- `references/arch-implement-loop.md` - bounded implement/audit loop, required runtime preflight, and loop-state contract
 - `references/arch-audit-implementation.md` - code-completeness audit and phase reopening
 - `references/status.md` - compact artifact-first status rules
 - `references/advance.md` - full checklist, next-command selection, and optional one-step execution

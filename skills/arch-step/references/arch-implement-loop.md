@@ -2,9 +2,9 @@
 
 ## What this command does
 
-- run the current implementation plan through one hook-backed delivery loop
-- arm the repo-local loop state the Stop hook needs in order to own fresh auditing
-- let the Stop hook launch the fresh `audit-implementation` pass when Codex tries to stop
+- run the current implementation plan through one bounded delivery loop
+- arm the repo-local loop state needed for fresh auditing
+- run a fresh `audit-implementation` pass when Codex reaches a stop point
 - repeat that implement then audit cycle until the audit is clean or a real blocker stops progress
 - keep the code, `DOC_PATH`, `WORKLOG_PATH`, and authoritative audit block aligned after each pass
 
@@ -22,7 +22,7 @@ Running `implement-loop` should end in one of two honest states:
   - the latest audit and phase status show that truth plainly
   - the loop stops instead of pretending one more pass will magically fix it
 
-Real automatic looping is Codex-only and hook-backed. If the hook path is absent or disabled, this command must fail loud instead of pretending prompt repetition is the same feature.
+User-facing invocation is just `implement-loop`. If the installed runtime support for real automatic looping is absent or disabled, this command must fail loud instead of pretending prompt repetition is the same feature.
 
 ## Shared references to carry in
 
@@ -52,8 +52,8 @@ Real automatic looping is Codex-only and hook-backed. If the hook path is absent
 Before arming the loop, verify all of these:
 
 - Codex runtime is the active host
-- `~/.codex/hooks.json` contains the installed `arch-step` Stop-hook entry
-- `~/.agents/skills/arch-step/scripts/implement_loop_stop_hook.py` exists
+- the installed Codex runtime support for this repo's `implement-loop` surface is present
+- the installed `arch-step` runner exists under `~/.agents/skills/arch-step/`
 - `codex features list` shows `codex_hooks` enabled
 
 If any check fails, stop immediately and print the exact remediation:
@@ -80,18 +80,18 @@ Minimal shape:
 Lifecycle:
 
 - create or refresh it after preflight and before the implementation pass
-- let the first Stop-hook pass claim the current `session_id` into the state file
-- leave it armed while the Stop hook is supposed to own fresh auditing
+- let the first fresh-audit pass claim the current `session_id` into the state file
+- leave it armed while fresh auditing is active
 - delete it when the audit finishes clean
-- delete it before stopping on a real blocker so the hook does not re-enter falsely
+- delete it before stopping on a real blocker so the loop does not re-enter falsely
 
 ## Hard rules
 
 - this command is a bounded controller over `implement` and `audit-implementation`; do not invent a second planning surface or second audit format
-- real Codex automation is hook-backed only; if the hook path is absent or disabled, fail loud
+- `implement-loop` is one command; if the required runtime continuation support is absent or disabled, fail loud
 - each cycle must run `implement` first and `audit-implementation` second against the same `DOC_PATH`
-- in Codex, the Stop hook owns the fresh audit pass and the continue-versus-stop decision after the parent implementation pass tries to stop
-- when the Stop hook launches the fresh audit context, pass the explicit `DOC_PATH` and current repo working context; do not ask the fresh audit pass to rediscover the artifact from stale conversation state
+- in Codex, the fresh audit pass after an implementation stop point owns the continue-versus-stop decision
+- when the fresh audit context launches, pass the explicit `DOC_PATH` and current repo working context; do not ask the fresh audit pass to rediscover the artifact from stale conversation state
 - `audit-implementation` remains docs-only; never fix code while auditing
 - if the audit verdict is `COMPLETE`, clear loop state and stop
 - if the audit verdict is `NOT COMPLETE`, continue from the reopened phases and missing-code findings instead of hand-waving them away
@@ -107,7 +107,7 @@ Lifecycle:
 5. Run one truthful implementation pass using the `implement` contract.
 6. Sync `DOC_PATH` and `WORKLOG_PATH` to the resulting code reality.
 7. If a real blocker stops progress before the run naturally stops, delete `.codex/implement-loop-state.json`, update the plan and worklog truthfully, and stop.
-8. Otherwise let Codex try to stop. The installed Stop hook should:
+8. Otherwise let Codex try to stop. The installed runtime should:
    - no-op when no active loop state matches the current session
    - launch a fresh `audit-implementation` child pass when the loop is active
    - allow stop when the audit is clean
@@ -117,7 +117,7 @@ Lifecycle:
 
 ## Fresh-audit preference
 
-When the Stop hook launches the audit, use this preference ladder:
+When the fresh audit launches, use this preference ladder:
 
 1. fresh same-runtime child session or subprocess with isolated context
 2. fresh isolated subagent or new thread when that is the cleanest available boundary
