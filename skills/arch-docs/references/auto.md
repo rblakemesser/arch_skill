@@ -34,7 +34,7 @@ Minimum shape:
   "scope_summary": "repo docs surface",
   "context_sources": [],
   "pass_index": 0,
-  "stop_condition": "no meaningful stale, duplicate, or misleading docs remain in the resolved cleanup scope and every cleaned topic has one canonical evergreen home",
+  "stop_condition": "no meaningful stale, duplicate, misleading, or obviously dated docs remain in the resolved cleanup scope and every cleaned topic has one canonical evergreen home",
   "ledger_path": ".doc-audit-ledger.md"
 }
 ```
@@ -60,6 +60,7 @@ If `scope_kind` is `explicit-context` or `arch-context`, include non-empty `cont
 - Continue only when another grounded pass is still credible for the resolved cleanup intent.
 - In repo scope, the next pass may widen across the repo docs surface when real grounded cleanup still remains.
 - In narrowed scopes, widen only enough to cover overlapping docs for the same topics.
+- Use `git log` when a doc's lasting value depends on whether it was a one-off tied to some earlier point in time.
 - Stop blocked when the evaluator says the next pass would be speculative, taxonomy-imposing, disconnected from a narrowed scope, or materially unchanged.
 - Stop clean only when the evaluator says the current stop condition is satisfied.
 
@@ -69,4 +70,5 @@ If `scope_kind` is `explicit-context` or `arch-context`, include non-empty `cont
 - Keep the resolved scope explicit.
 - In repo mode, keep each pass focused on a meaningful grounded cleanup slice, not the smallest possible topic cluster.
 - Do not let `auto` drift into speculative, taxonomy-first, or aesthetic-only docs refactoring.
+- Do not use age cutoffs or simplistic stale-doc heuristics. Use history as evidence and decide whether the doc still serves a lasting reader need.
 - The temporary ledger should survive only while cleanup is active. It must be deleted before the overall docs cleanup is declared complete.

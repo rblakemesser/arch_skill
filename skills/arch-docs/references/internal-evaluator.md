@@ -32,9 +32,11 @@ Read the armed controller state plus current repo docs and decide one of exactly
 - Did the run actually profile the repo doc system?
 - Was discovery broad enough for the resolved scope?
 - Are stale or duplicate in-scope docs still present?
+- Are obviously dated docs with no lasting reader value still present?
 - Has durable truth been promoted into one canonical evergreen home per topic?
 - Are obsolete working docs still present without good reason?
 - Are broken references or stale nav entries still present in touched scope?
+- When time context mattered, did the run inspect git history and the last meaningful content change?
 - For narrowed scopes, would the next pass stay tied to the same requested topics or their grounded overlaps?
 - Did the last pass produce enough progress that another pass is still credible?
 
@@ -42,11 +44,13 @@ Read the armed controller state plus current repo docs and decide one of exactly
 
 - `clean`:
   - no meaningful stale in-scope docs remain
+  - no obviously dated low-value docs remain unless they still serve a clear current reader need
   - durable truth has surviving evergreen homes
   - obsolete working-doc residue is retired or cleanly transformed in place
   - broken references in touched scope are repaired
 - `continue`:
   - grounded cleanup still remains
+  - more dated, low-value, or weakly justified docs can still be retired
   - another pass is credible
 - `blocked`:
   - code truth is still unstable

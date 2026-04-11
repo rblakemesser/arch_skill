@@ -1,6 +1,6 @@
 ---
 name: arch-docs
-description: "Audit and clean up repo documentation with the DGTFO loop: orient to the repo's doc system, inventory doc-shaped surfaces, ground each topic against current code, trim stale or duplicate docs, fix the surviving canonical docs, and organize navigation. Use when the user wants stale docs cleaned up, overlapping docs consolidated, outdated docs deleted, plan/worklog truth folded into evergreen docs, or explicit Codex hook-backed `auto` docs cleanup. It works as a standalone docs-audit skill in any repo and can also use active arch artifacts as narrowing context when they exist. By default, `$arch-docs` should just run one normal pass with no extra arguments. Not for generic copy editing, net-new doc authoring, or speculative taxonomy redesign."
+description: "Audit and clean up repo documentation with the DGTFO loop: orient to the repo's doc system, inventory doc-shaped surfaces, ground each topic against current code, trim stale, duplicate, or obviously dated docs, fix the surviving canonical docs, and organize navigation. Use when the user wants stale docs cleaned up, overlapping docs consolidated, outdated docs deleted, plan/worklog truth folded into evergreen docs, or explicit Codex hook-backed `auto` docs cleanup. It works as a standalone docs-audit skill in any repo and can also use active arch artifacts as narrowing context when they exist. By default, `$arch-docs` should just run one normal pass with no extra arguments. Not for generic copy editing, net-new doc authoring, or speculative taxonomy redesign."
 metadata:
   short-description: "Topic-first docs audit and cleanup"
 ---
@@ -35,11 +35,14 @@ Use this skill when the code is stable enough to ground documentation against cu
 - If explicit user context or active arch context exists, use it to narrow the audit intelligently. If not, audit the repo's docs surface directly.
 - Use a temporary repo-root `.doc-audit-ledger.md` while the cleanup is active. Delete it before the cleanup finishes.
 - Promote durable truth into evergreen docs, then delete obsolete working docs, plan/worklog residue, and stale duplicates in scope. Git is the archive.
+- Treat obviously time-bound docs as delete candidates by default once their durable truth has been folded forward. A doc does not survive just because it once mattered.
+- When a keep/delete call depends on whether a doc is stale, dated, or one-off, inspect `git log` and identify the last meaningful content change before deciding.
 - Before deleting any bounded batch of docs, stage those docs and create a backup git commit first. Stage only the docs in that delete batch, not unrelated dirty files elsewhere in the repo.
 - Default behavior is one grounded cleanup pass. `auto` is the only explicit public mode.
 - `auto` is Codex-only and must be hook-backed; if the installed runtime support is absent or disabled, fail loud instead of pretending prompt repetition is automation.
 - If the backup commit for a delete batch cannot be created, stop instead of deleting.
 - If code truth is still unstable, external doc sources are required but unavailable, or the next pass would become speculative or materially unchanged, stop and say so plainly.
+- Do not use age cutoffs or stale-doc heuristics as a substitute for judgment. Use history as evidence, then decide whether current readers still need the doc.
 - The suite's internal auto evaluator is allowed only when the ask explicitly says it is the internal evaluator. Do not suggest or advertise that internal surface to users.
 
 ## First move
@@ -67,8 +70,9 @@ Use this skill when the code is stable enough to ground documentation against cu
 - Profile the repo's doc system and resolve the strongest grounded scope.
 - Inventory the relevant doc-shaped surfaces for that scope.
 - Ground each topic against current code and current shipped behavior.
+- Use `git log` when datedness or last meaningful use matters to a keep/delete call.
 - Collapse each topic to one canonical evergreen home.
-- Before deleting a bounded batch of stale, duplicate, dead, TEMP/WIP, or obsolete working-doc residue, stage those docs and make a backup commit, then delete them.
+- Before deleting a bounded batch of stale, duplicate, dead, TEMP/WIP, obviously dated, or obsolete working-doc residue, stage those docs and make a backup commit, then delete them.
 - Repair links, indexes, and navigation for the surviving canonical docs.
 - Delete `.doc-audit-ledger.md` before finishing the run.
 
@@ -80,6 +84,7 @@ Use this skill when the code is stable enough to ground documentation against cu
 - Apply the same pre-delete backup-commit rule during each pass in `auto`.
 - Continue only while another grounded pass is still credible for the resolved cleanup intent.
 - In repo-scope `auto`, later passes may widen across the repo docs surface when grounded cleanup still remains.
+- Keep sweeping while obviously dated docs with no lasting reader value still remain.
 - Stop clean when the resolved stop condition is done, or stop blocked when the evaluator says the next pass would become speculative, taxonomy-imposing, disconnected from a narrowed scope, or materially unchanged.
 
 ## Output expectations

@@ -148,9 +148,9 @@ If the user says "do the full arch flow," "continue this architecture doc," or "
 
 ### `arch-docs`
 
-Use when the job is cleaning up stale, overlapping, or misleading docs and current code truth is stable enough to ground them. It works in any repo and, after full-arch work, uses the plan/worklog as narrowing context instead of as the whole scope.
+Use when the job is cleaning up stale, overlapping, misleading, or obviously dated docs and current code truth is stable enough to ground them. It works in any repo and, after full-arch work, uses the plan/worklog as narrowing context instead of as the whole scope.
 
-With no extra mode, `arch-docs` runs one bounded DGTFO cleanup pass: orient to the repo's doc system, inventory doc-shaped surfaces, group them by topic, ground those topics against code, consolidate each topic to one canonical home, delete stale or duplicate truth, and repair links or nav for the surviving docs.
+With no extra mode, `arch-docs` runs one grounded DGTFO cleanup pass: orient to the repo's doc system, inventory doc-shaped surfaces, group them by topic, ground those topics against code, use git history when staleness or datedness matters, consolidate each topic to one canonical home, delete stale, duplicate, or dated one-off truth, and repair links or nav for the surviving docs.
 
 `arch-docs auto` is the Codex-only hook-backed controller for repeated docs-cleanup passes. The user-facing command is still just `Use $arch-docs auto`. It is real only when the installed Codex runtime support is present in `~/.codex/hooks.json` and `codex_hooks` is enabled. Otherwise it must fail loud instead of pretending prompt-only looping is enough.
 

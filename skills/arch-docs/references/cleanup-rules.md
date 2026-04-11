@@ -30,6 +30,14 @@ Before deleting a bounded batch of these docs:
 - If the plan doc can be transformed in place into the one clean evergreen doc, do that and remove the arch scaffolding.
 - Otherwise fold the durable truth into better homes and delete the obsolete working docs.
 
+## Dated doc retirement
+
+- Treat launch notes, rollout docs, migration one-offs, completed audits, temporary investigations, incident-era notes, and similar point-in-time artifacts as disposable unless current readers still need them.
+- Use `git log` when a doc looks time-bound or suspiciously untouched and the keep/delete call is unclear.
+- Look for the last meaningful content change, not moves, renames, formatting churn, or mechanical edits.
+- Keep the durable truth, not the moment-in-time wrapper. Fold forward what still matters, then delete the rest.
+- Do not keep a doc just because it once mattered or because it feels safer to preserve it. Git is the archive.
+
 ## Reference repair
 
 - After every delete or move, grep the repo for references to the deleted path.
@@ -41,6 +49,7 @@ Before deleting a bounded batch of these docs:
 - Remove history that is no longer needed to understand the current state.
 - Remove hedging and filler.
 - Remove examples that no longer run against the current codebase.
+- Do not use fixed age thresholds as a stale-doc shortcut.
 - If a sentence cannot be grounded confidently, delete it instead of keeping an aspirational guess.
 
 ## Ledger rule
