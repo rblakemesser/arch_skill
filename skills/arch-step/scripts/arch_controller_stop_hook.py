@@ -16,11 +16,19 @@ from pathlib import Path
 IMPLEMENT_LOOP_STATE_RELATIVE_PATH = Path(".codex/implement-loop-state.json")
 AUTO_PLAN_STATE_RELATIVE_PATH = Path(".codex/auto-plan-state.json")
 ARCH_DOCS_AUTO_STATE_RELATIVE_PATH = Path(".codex/arch-docs-auto-state.json")
+AUDIT_LOOP_STATE_RELATIVE_PATH = Path(".codex/audit-loop-state.json")
 ARCH_DOCS_DEFAULT_LEDGER_RELATIVE_PATH = Path(".doc-audit-ledger.md")
+AUDIT_LOOP_DEFAULT_LEDGER_RELATIVE_PATH = Path("_audit_ledger.md")
 
 IMPLEMENT_LOOP_COMMAND = "implement-loop"
 AUTO_PLAN_COMMAND = "auto-plan"
 ARCH_DOCS_AUTO_COMMAND = "arch-docs-auto"
+AUDIT_LOOP_COMMAND = "auto"
+
+IMPLEMENT_LOOP_DISPLAY_NAME = "implement-loop"
+AUTO_PLAN_DISPLAY_NAME = "auto-plan"
+ARCH_DOCS_AUTO_DISPLAY_NAME = "arch-docs auto"
+AUDIT_LOOP_DISPLAY_NAME = "audit-loop auto"
 
 AUTO_PLAN_STAGES = (
     "research",
@@ -42,6 +50,15 @@ BLOCK_MARKERS = {
     "call_site_audit": "<!-- arch_skill:block:call_site_audit:start -->",
     "phase_plan": "<!-- arch_skill:block:phase_plan:start -->",
 }
+AUDIT_LOOP_CONTROLLER_START = "<!-- audit_loop:block:controller:start -->"
+AUDIT_LOOP_CONTROLLER_END = "<!-- audit_loop:block:controller:end -->"
+AUDIT_LOOP_VALID_VERDICTS = {"CONTINUE", "CLEAN", "BLOCKED"}
+CONTROLLER_STATE_SPECS = (
+    (IMPLEMENT_LOOP_STATE_RELATIVE_PATH, IMPLEMENT_LOOP_COMMAND, IMPLEMENT_LOOP_DISPLAY_NAME),
+    (AUTO_PLAN_STATE_RELATIVE_PATH, AUTO_PLAN_COMMAND, AUTO_PLAN_DISPLAY_NAME),
+    (ARCH_DOCS_AUTO_STATE_RELATIVE_PATH, ARCH_DOCS_AUTO_COMMAND, ARCH_DOCS_AUTO_DISPLAY_NAME),
+    (AUDIT_LOOP_STATE_RELATIVE_PATH, AUDIT_LOOP_COMMAND, AUDIT_LOOP_DISPLAY_NAME),
+)
 ARCH_DOCS_EVAL_SCHEMA = {
     "type": "object",
     "additionalProperties": False,
@@ -147,6 +164,56 @@ def display_path(path: Path, cwd: Path) -> str:
 
 def derive_worklog_path(doc_path: Path) -> Path:
     return doc_path.with_name(f"{doc_path.stem}_WORKLOG.md")
+
+
+def load_json_object_quiet(path: Path) -> dict | None:
+    if not path.exists():
+        return None
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return None
+    if not isinstance(payload, dict):
+        return None
+    return payload
+
+
+def state_is_armed_for_session(
+    state: dict | None,
+    expected_command: str,
+    payload: dict,
+) -> bool:
+    if state is None or state.get("command") != expected_command:
+        return False
+    session_id = state.get("session_id")
+    if session_id is None:
+        return True
+    return isinstance(session_id, str) and session_id == payload.get("session_id")
+
+
+def detect_active_controller_states(payload: dict) -> list[str]:
+    cwd = Path(payload["cwd"]).resolve()
+    active: list[str] = []
+    for relative_path, expected_command, display_name in CONTROLLER_STATE_SPECS:
+        state_path = cwd / relative_path
+        state = load_json_object_quiet(state_path)
+        if not state_is_armed_for_session(state, expected_command, payload):
+            continue
+        active.append(f"{display_name} ({display_path(state_path, cwd)})")
+    return active
+
+
+def stop_for_conflicting_controller_states(payload: dict) -> None:
+    active = detect_active_controller_states(payload)
+    if len(active) <= 1:
+        return
+    armed_states = ", ".join(active)
+    stop_with_json(
+        "Multiple arch_skill auto controllers are armed for this repo/session: "
+        f"{armed_states}. Clear the stale state files so only one controller remains armed, "
+        "then rerun the intended command.",
+        system_message="Multiple arch_skill auto controllers are armed.",
+    )
 
 
 def load_state(state_path: Path, command_name: str) -> dict | None:
@@ -353,6 +420,44 @@ def run_arch_docs_evaluator(
         return FreshStructuredResult(process=process, last_message=last_message, payload=payload)
 
 
+def run_fresh_review(cwd: Path) -> FreshAuditResult:
+    codex = shutil.which("codex")
+    if not codex:
+        raise RuntimeError("`codex` is not available on PATH for the Stop hook")
+
+    prompt = (
+        "Use $audit-loop review\n"
+        "Fresh context only. Repair or update `_audit_ledger.md`, set the controller verdict truthfully, "
+        "and keep the final response short."
+    )
+
+    with tempfile.TemporaryDirectory(prefix="audit-loop-review-") as temp_dir:
+        last_message_path = Path(temp_dir) / "last_message.txt"
+        process = subprocess.run(
+            [
+                codex,
+                "exec",
+                "--ephemeral",
+                "--disable",
+                "codex_hooks",
+                "--cd",
+                str(cwd),
+                "--full-auto",
+                "-o",
+                str(last_message_path),
+                prompt,
+            ],
+            cwd=str(cwd),
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        last_message = None
+        if last_message_path.exists():
+            last_message = last_message_path.read_text(encoding="utf-8").strip() or None
+        return FreshAuditResult(process=process, last_message=last_message)
+
+
 def validate_implement_loop_state(payload: dict, state_path: Path) -> tuple[Path, str] | None:
     cwd = Path(payload["cwd"]).resolve()
     state = load_state(state_path, IMPLEMENT_LOOP_COMMAND)
@@ -512,6 +617,87 @@ def validate_arch_docs_auto_state(
     if write_required:
         write_state(state_path, state)
     return scope_summary, ledger_path, state
+
+
+def validate_audit_loop_state(payload: dict, state_path: Path) -> tuple[Path, str, dict] | None:
+    cwd = Path(payload["cwd"]).resolve()
+    state = load_state(state_path, AUDIT_LOOP_DISPLAY_NAME)
+    if state is None:
+        return None
+    if state.get("command") != AUDIT_LOOP_COMMAND:
+        return None
+    if not validate_session_id(payload, state_path, state, AUDIT_LOOP_DISPLAY_NAME):
+        return None
+
+    ledger_path_value = state.get("ledger_path", str(AUDIT_LOOP_DEFAULT_LEDGER_RELATIVE_PATH))
+    if not isinstance(ledger_path_value, str) or not ledger_path_value.strip():
+        clear_state(state_path)
+        block_with_message(
+            "audit-loop auto controller state was missing ledger_path; "
+            "the controller was disarmed. Update the ledger truthfully and stop."
+        )
+
+    ledger_path = resolve_path(cwd, ledger_path_value)
+    return ledger_path, ledger_path_value, state
+
+
+def read_audit_loop_controller_fields(ledger_path: Path) -> dict[str, str] | None:
+    if not ledger_path.exists():
+        return None
+    text = ledger_path.read_text(encoding="utf-8")
+    start = text.find(AUDIT_LOOP_CONTROLLER_START)
+    end = text.find(AUDIT_LOOP_CONTROLLER_END)
+    if start == -1 or end == -1 or end < start:
+        return None
+    block = text[start + len(AUDIT_LOOP_CONTROLLER_START) : end]
+    fields: dict[str, str] = {}
+    for raw_line in block.splitlines():
+        line = raw_line.strip()
+        if not line or ":" not in line:
+            continue
+        key, value = line.split(":", 1)
+        fields[key.strip()] = value.strip()
+    return fields
+
+
+def clean_gitignore(
+    gitignore_path: Path,
+    entry: str,
+    created_by_skill: bool,
+    entry_added: bool,
+) -> None:
+    if not entry_added or not gitignore_path.exists():
+        return
+
+    original_text = gitignore_path.read_text(encoding="utf-8")
+    lines = original_text.splitlines()
+    kept_lines = [line for line in lines if line.strip() != entry]
+    trailing_newline = original_text.endswith("\n")
+
+    if kept_lines:
+        new_text = "\n".join(kept_lines)
+        if trailing_newline or new_text:
+            new_text += "\n"
+        gitignore_path.write_text(new_text, encoding="utf-8")
+        return
+
+    if created_by_skill:
+        gitignore_path.unlink()
+    else:
+        gitignore_path.write_text("", encoding="utf-8")
+
+
+def cleanup_audit_loop_runtime_artifacts(cwd: Path, ledger_path: Path, state: dict) -> None:
+    if ledger_path.exists():
+        ledger_path.unlink()
+
+    gitignore_path = cwd / ".gitignore"
+    clean_gitignore(
+        gitignore_path=gitignore_path,
+        entry=str(AUDIT_LOOP_DEFAULT_LEDGER_RELATIVE_PATH),
+        created_by_skill=bool(state.get("gitignore_created")),
+        entry_added=bool(state.get("gitignore_entry_added")),
+    )
 
 
 def auto_plan_stage_name(stage: str) -> str:
@@ -806,11 +992,99 @@ def handle_arch_docs_auto(payload: dict) -> int:
     )
 
 
+def handle_audit_loop(payload: dict) -> int:
+    cwd = Path(payload["cwd"]).resolve()
+    state_path = cwd / AUDIT_LOOP_STATE_RELATIVE_PATH
+    validated = validate_audit_loop_state(payload, state_path)
+    if validated is None:
+        return 0
+
+    ledger_path, ledger_path_value, state = validated
+
+    try:
+        review = run_fresh_review(cwd)
+    except RuntimeError as exc:
+        clear_state(state_path)
+        stop_with_json(
+            f"audit-loop could not start a fresh review pass: {exc}. The controller was disarmed.",
+            system_message="audit-loop fresh review could not start.",
+        )
+
+    child_summary = summarize_child_output(review.process, review.last_message)
+    if review.process.returncode != 0:
+        clear_state(state_path)
+        reason = "audit-loop ran a fresh review pass, but that review failed."
+        if child_summary:
+            reason += f" Failure: {child_summary}."
+        stop_with_json(
+            reason + " Treat the run as blocked, keep the ledger, and stop honestly.",
+            system_message="audit-loop fresh review failed.",
+        )
+
+    fields = read_audit_loop_controller_fields(ledger_path)
+    if not fields:
+        clear_state(state_path)
+        reason = (
+            f"audit-loop fresh review finished, but {ledger_path_value} does not contain a usable controller block. "
+            "The controller was disarmed."
+        )
+        if child_summary:
+            reason += f" Review summary: {child_summary}"
+        stop_with_json(reason, system_message="audit-loop review left no usable controller block.")
+
+    verdict = fields.get("Verdict", "").strip().upper()
+    if verdict not in AUDIT_LOOP_VALID_VERDICTS:
+        clear_state(state_path)
+        reason = (
+            f"audit-loop fresh review finished, but {ledger_path_value} has an invalid verdict. "
+            "The controller was disarmed."
+        )
+        if child_summary:
+            reason += f" Review summary: {child_summary}"
+        stop_with_json(reason, system_message="audit-loop review left an invalid verdict.")
+
+    if verdict == "CLEAN":
+        clear_state(state_path)
+        cleanup_audit_loop_runtime_artifacts(cwd, ledger_path, state)
+        stop_reason = "audit-loop fresh review finished clean. The audit ledger was removed."
+        if child_summary:
+            stop_reason += f" Review summary: {child_summary}"
+        stop_with_json(stop_reason, system_message="audit-loop completed clean.")
+
+    if verdict == "BLOCKED":
+        clear_state(state_path)
+        stop_reason = fields.get("Stop Reason") or "audit-loop review marked the loop blocked."
+        if child_summary:
+            stop_reason += f" Review summary: {child_summary}"
+        stop_with_json(stop_reason, system_message="audit-loop stopped blocked.")
+
+    next_area = fields.get("Next Area", "").strip()
+    if not next_area:
+        clear_state(state_path)
+        reason = (
+            f"audit-loop review returned CONTINUE without Next Area in {ledger_path_value}. "
+            "The controller was disarmed."
+        )
+        if child_summary:
+            reason += f" Review summary: {child_summary}"
+        stop_with_json(reason, system_message="audit-loop review omitted Next Area.")
+
+    reason = (
+        f"audit-loop fresh review found more worthwhile work. Continue now with `Use $audit-loop`. "
+        f"Next area: {next_area}. Keep .codex/audit-loop-state.json armed and stop naturally when this pass finishes."
+    )
+    if child_summary:
+        reason += f" Review summary: {child_summary}"
+    block_with_json(reason, system_message="audit-loop review found more work.")
+
+
 def main() -> int:
     payload = load_stop_payload()
+    stop_for_conflicting_controller_states(payload)
     handle_implement_loop(payload)
     handle_auto_plan(payload)
     handle_arch_docs_auto(payload)
+    handle_audit_loop(payload)
     return 0
 
 

@@ -45,7 +45,7 @@ Default local path:
 - `~/.agents/skills/arch-skills-guide/`
 - `~/.agents/skills/codemagic-builds/`
 
-Codex reads the same installed skills from `~/.agents/skills/`. `make install` also wires the Codex runtime support for `arch-step` automatic controllers, `arch-docs auto`, and `audit-loop auto` through `~/.codex/hooks.json` and removes older `~/.codex/skills/<skill>` mirrors from previous installs.
+Codex reads the same installed skills from `~/.agents/skills/`. `make install` also writes one arch_skill-managed Codex `Stop` hook through `~/.codex/hooks.json`, points it at the installed suite runner under `~/.agents/skills/arch-step/scripts/`, repairs older two-hook arch_skill installs down to that one repo-managed entry, and removes older `~/.codex/skills/<skill>` mirrors from previous installs.
 
 Installed skills:
 
@@ -84,7 +84,7 @@ Installed skills:
   - `arch-flow`
   - `arch-skills-guide`
 
-Install removes stale pre-skill command surfaces, removed competing skill packages, and older Codex skill mirrors. For Codex, it installs the runtime support for `arch-step` automatic controllers, `arch-docs auto`, and `audit-loop auto` in `~/.codex/hooks.json` pointing at the installed runners under `~/.agents/skills/`.
+Install removes stale pre-skill command surfaces, removed competing skill packages, and older Codex skill mirrors. For Codex, it installs one repo-managed `Stop` hook in `~/.codex/hooks.json` pointing at the installed suite runner under `~/.agents/skills/arch-step/scripts/`; that one hook backs `arch-step` automatic controllers, `arch-docs auto`, and `audit-loop auto`.
 
 ## Shared conventions
 

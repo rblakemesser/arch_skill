@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Install or verify the arch suite automatic controller Stop hook in Codex hooks.json."""
+"""Install or verify the unified arch_skill Stop hook in Codex hooks.json."""
 
 from __future__ import annotations
 
@@ -10,14 +10,17 @@ from pathlib import Path
 
 
 STATUS_MESSAGE = (
-    "arch suite automatic controller is running; planning continuations are quick, and fresh audits or docs evaluations can take a few minutes"
+    "arch_skill automatic controllers are running; planning continuations are quick, and fresh audits or docs evaluations can take a few minutes"
 )
 LEGACY_STATUS_MESSAGES = {
+    "arch suite automatic controller is running; planning continuations are quick, and fresh audits or docs evaluations can take a few minutes",
     "arch-step automatic controller is running; planning continuations are quick, fresh implement-loop audits can take a few minutes",
+    "audit-loop automatic controller is running; fresh review passes can take a few minutes",
 }
 HOOK_SCRIPT_NAME = "arch_controller_stop_hook.py"
 LEGACY_HOOK_SCRIPT_NAMES = {
     "implement_loop_stop_hook.py",
+    "audit_loop_stop_hook.py",
 }
 
 
@@ -49,7 +52,7 @@ def load_hooks_file(hooks_file: Path) -> dict:
     return data
 
 
-def is_arch_suite_group(group: object) -> bool:
+def is_repo_managed_group(group: object) -> bool:
     if not isinstance(group, dict):
         return False
     hooks = group.get("hooks")
@@ -68,6 +71,10 @@ def is_arch_suite_group(group: object) -> bool:
         ):
             return True
     return False
+
+
+def repo_managed_groups(stop_groups: list[object]) -> list[dict]:
+    return [group for group in stop_groups if is_repo_managed_group(group)]
 
 
 def expected_group(command: str) -> dict:
@@ -92,7 +99,7 @@ def install_hook(hooks_file: Path, skills_dir: Path) -> None:
         raise SystemExit(f"{hooks_file} must contain a list at hooks.Stop")
 
     command = expected_command(skills_dir)
-    stop_groups = [group for group in stop_groups if not is_arch_suite_group(group)]
+    stop_groups = [group for group in stop_groups if not is_repo_managed_group(group)]
     stop_groups.append(expected_group(command))
     data["hooks"]["Stop"] = stop_groups
 
@@ -110,21 +117,22 @@ def verify_hook(hooks_file: Path, skills_dir: Path) -> None:
 
     command = expected_command(skills_dir)
     wanted = expected_group(command)
-    legacy_groups: list[dict] = []
-    for group in stop_groups:
-        if is_arch_suite_group(group) and group != wanted:
-            legacy_groups.append(group)
-        if group == wanted:
-            if legacy_groups:
-                raise SystemExit(
-                    "stale arch suite Stop hook entries still exist in "
-                    f"{hooks_file}; rerun install to remove old runner paths"
-                )
-            return
-    raise SystemExit(
-        "missing arch suite automatic controller Stop hook entry in "
-        f"{hooks_file}; expected command: {command}"
-    )
+    managed_groups = repo_managed_groups(stop_groups)
+    if not managed_groups:
+        raise SystemExit(
+            "missing arch_skill automatic controller Stop hook entry in "
+            f"{hooks_file}; expected command: {command}"
+        )
+    if len(managed_groups) != 1:
+        raise SystemExit(
+            "expected exactly one arch_skill-managed Stop hook entry in "
+            f"{hooks_file}; found {len(managed_groups)}. Rerun install to remove stale runner paths."
+        )
+    if managed_groups[0] != wanted:
+        raise SystemExit(
+            "stale arch_skill Stop hook entry still exists in "
+            f"{hooks_file}; expected command: {command}. Rerun install to repair the runner path."
+        )
 
 
 def main() -> int:

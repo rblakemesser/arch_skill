@@ -19,8 +19,8 @@ User-facing invocation is just `Use $audit-loop auto`. If real hook support is a
 Before arming the controller, verify all of these:
 
 - Codex runtime is the active host
-- the installed audit-loop runner exists under `~/.agents/skills/audit-loop/`
-- the installed Codex Stop hook for audit-loop is present
+- the installed suite controller runner exists under `~/.agents/skills/arch-step/scripts/`
+- the installed arch_skill-managed Codex Stop hook is present
 - `codex features list` shows `codex_hooks` enabled
 - the working tree is clean before the audit starts
 
@@ -69,7 +69,7 @@ Lifecycle:
 
 ## Hook behavior
 
-When the loop is armed, the installed Stop hook should:
+When the loop is armed, the installed suite Stop hook should:
 
 1. no-op when no active audit-loop state matches the current session
 2. launch `codex exec --ephemeral --disable codex_hooks` with `$audit-loop review`

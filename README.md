@@ -27,7 +27,7 @@ cd arch_skill
 make install
 ```
 
-This installs the live skill surface to `~/.agents/skills/`, wires the Codex runtime support for `arch-step` automatic controllers, `arch-docs auto`, and `audit-loop auto` through `~/.codex/hooks.json` pointing at the installed runners under `~/.agents/skills/`, removes older `~/.codex/skills/<skill>` mirrors from previous installs, and also installs the Claude Code and Gemini CLI skill directories.
+This installs the live skill surface to `~/.agents/skills/`, writes one arch_skill-managed Codex `Stop` hook in `~/.codex/hooks.json` pointing at the installed suite runner under `~/.agents/skills/arch-step/scripts/`, repairs older two-hook arch_skill installs down to that one repo-managed entry, removes older `~/.codex/skills/<skill>` mirrors from previous installs, and also installs the Claude Code and Gemini CLI skill directories.
 
 Codex automatic `auto-plan`, `implement-loop`, `arch-docs auto`, and `audit-loop auto` also require the Codex feature flag:
 
@@ -92,7 +92,7 @@ make remote_install HOST=user@host
 make verify_install
 ```
 
-This validates the installed active skill surface in `~/.agents/skills/`, checks that the Codex runtime support for `arch-step` automatic controllers, `arch-docs auto`, and `audit-loop auto` exists in `~/.codex/hooks.json` and points at the installed runners under `~/.agents/skills/`, confirms the old `~/.codex/skills/<skill>` mirrors are absent, and confirms removed competing skill packages are absent for the supported runtimes.
+This validates the installed active skill surface in `~/.agents/skills/`, checks that exactly one arch_skill-managed Codex `Stop` hook exists in `~/.codex/hooks.json` and points at the installed suite runner under `~/.agents/skills/arch-step/scripts/`, confirms the old `~/.codex/skills/<skill>` mirrors are absent, and confirms removed competing skill packages are absent for the supported runtimes.
 
 To confirm the Codex feature gate is enabled:
 
