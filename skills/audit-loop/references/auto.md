@@ -23,10 +23,7 @@ Before arming the controller, verify all of these:
 - the installed arch_skill-managed Codex Stop hook is present
 - `codex features list` shows `codex_hooks` enabled
 
-If any check fails, stop immediately and print the exact remediation:
-
-- `make install`
-- `codex features enable codex_hooks`
+If any check fails, name the broken prerequisite and stop.
 
 ## State file contract
 

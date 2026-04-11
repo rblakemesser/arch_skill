@@ -57,10 +57,7 @@ Before arming the loop, verify all of these:
 - the installed `arch-step` runner exists under `~/.agents/skills/arch-step/`
 - `codex features list` shows `codex_hooks` enabled
 
-If any check fails, stop immediately and print the exact remediation:
-
-- `make install`
-- `codex features enable codex_hooks`
+If any check fails, name the broken prerequisite and stop.
 
 Do not downgrade to prompt-only same-session looping.
 

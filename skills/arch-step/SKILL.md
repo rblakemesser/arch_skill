@@ -158,7 +158,7 @@ These stay explicit unless the user directly asks for them:
 - run `$arch-step auto-plan`
 - or run `$arch-step auto-plan <DOC_PATH>`
 - prefer the current session's canonical full-arch doc when `DOC_PATH` is omitted
-- fail loud with exact remediation commands when the installed runtime support is absent, disabled, or the North Star is still unapproved
+- if the installed runtime support is absent, disabled, or the North Star is still unapproved, name the broken prerequisite and stop
 - keep `.codex/auto-plan-state.json` aligned with the live run
 - if a stage stops early, clear `.codex/auto-plan-state.json` and stop honestly
 
@@ -168,7 +168,7 @@ User-facing invocation stays simple:
 
 - run `$arch-step implement-loop <DOC_PATH>`
 - do not introduce a second command, mode, or user-facing control surface
-- fail loud with exact remediation commands when the installed runtime support is absent or disabled
+- if the installed runtime support is absent or disabled, name the broken prerequisite and stop
 - keep `.codex/implement-loop-state.json` aligned with the live run
 - if a real blocker appears before stopping, clear `.codex/implement-loop-state.json` and stop honestly
 - when the loop finishes clean, hand off to `Use $arch-docs`

@@ -59,11 +59,7 @@ Before arming the controller, verify all of these:
 - `codex features list` shows `codex_hooks` enabled
 - the target doc exists and frontmatter `status` is `active` or `complete`
 
-If any check fails, stop immediately and print the exact remediation:
-
-- `make install`
-- `codex features enable codex_hooks`
-- finish North Star approval first, then rerun `auto-plan`
+If any check fails, name the broken prerequisite and stop.
 
 Do not downgrade to prompt-only same-session chaining.
 

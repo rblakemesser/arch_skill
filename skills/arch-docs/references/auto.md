@@ -17,7 +17,7 @@ Before arming the controller, verify all of these:
 - current code truth is stable enough to ground docs
 - if active arch context exists, the implementation audit is clean enough to trust that context as a narrowing input
 
-If any preflight fails, stop immediately with the exact remediation instead of pretending `auto` is still real.
+If any preflight fails, name the broken prerequisite and stop instead of pretending `auto` is still real.
 
 ## State contract
 
