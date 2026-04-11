@@ -2,7 +2,7 @@
 
 ## Goal
 
-Run bounded repo-audit passes until a fresh review says the repo is clean enough to stop or genuinely blocked.
+Run repeated strong repo-audit passes until a fresh review says no credible major unresolved risk remains or the loop is genuinely blocked.
 
 ## What `auto` does
 
@@ -52,6 +52,7 @@ Lifecycle:
 ## Hard rules
 
 - `auto` is one controller command, not a suggestion to keep winging it forever
+- `auto` must not degrade into a tiny-safe-fix treadmill
 - the review pass must run in fresh context
 - `review` stays docs-only
 - do not continue after `BLOCKED`

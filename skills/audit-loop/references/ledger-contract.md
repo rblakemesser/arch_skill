@@ -51,6 +51,7 @@ Then keep these sections in order:
   - `CLEAN`
   - `BLOCKED`
 - `Next Area` is required for `CONTINUE`.
+- `Next Area` may name a broader risk front or problem cluster that spans multiple files or surfaces.
 - `Stop Reason` is required for `BLOCKED`.
 - `Last Review` is written by `review` in `YYYY-MM-DD` form.
 - `review` owns the authoritative controller verdict used by `auto`.

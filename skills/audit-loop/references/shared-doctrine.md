@@ -3,6 +3,7 @@
 ## Philosophy
 
 - Critical paths first. Missing coverage on payments, auth, persistence, or permissions matters more than polishing a safe utility.
+- Audit-loop exists to reduce the biggest real risks, not to harvest easy wins.
 - Dead code is a bug waiting to happen. Delete it instead of preserving it.
 - Duplication is deferred breakage. Consolidate one source of truth where the duplication matters.
 - Tests exist to protect meaningful behavior. Coverage is a trailing indicator, not the product.
@@ -20,9 +21,10 @@
 ## Fix discipline
 
 - Read the code before the tests.
-- Work one coherent area at a time, not one arbitrary line item at a time.
-- It is acceptable to fix multiple findings together when they share one fix surface or one verification surface.
-- Stop when the next credible move would shift into a different area or require a new audit cycle.
+- Work one unresolved risk front at a time, not one arbitrary line item at a time.
+- It is acceptable and expected to fix multiple findings together when they share one failure mode, critical path, or verification story.
+- Do not yield just because the next fix touches a second file, module, or test surface.
+- Stop when the next credible move would require a different risk story, a new audit cycle, or verification that no longer belongs to the same front.
 - Delete dead code boldly. Git is the history.
 - Extract duplication into one well-named shared path. Do not build a framework.
 - Prefer integration coverage on critical paths. Add unit tests only when the logic is best isolated there.
@@ -50,6 +52,7 @@ Record `unknown` instead of auto-installing any of these.
 - Chasing 100 percent coverage.
 - Adding a test for every function regardless of risk.
 - Refactoring an entire module because one smell was noticed during audit.
+- Spending the pass on a neat tiny fix while a larger justified critical-path risk is still open.
 - Spending the pass on a flaky low-priority test instead of the highest-risk open area.
 - Sneaking in formatting, linting, types, or tooling side quests that are not required by the finding.
 - Pretending a low-value assertion is meaningful because it makes the coverage number move.

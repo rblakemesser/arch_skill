@@ -1,13 +1,13 @@
 ---
 name: audit-loop
-description: "Run the standalone repo-audit workflow with a root audit ledger: find and fix real bugs, dead code, duplication, and high-value regression gaps. Use when the user wants a repo-wide audit pass, wants to keep fixing the next worthwhile defect, or wants to leave the loop running until no credible audit work remains. Not for a single known bug, feature planning, or generic optimization loops."
+description: "Run the standalone repo-audit workflow with a root audit ledger: find and fix real bugs, dead code, duplication, and high-value regression gaps. Use when the user wants a repo-wide audit pass, wants the agent to push on the biggest real unresolved risks instead of harvesting tiny safe fixes, or wants to leave the loop running until no credible audit work remains. Not for a single known bug, feature planning, or generic optimization loops."
 metadata:
   short-description: "Repo-wide bug hunt and cleanup loop"
 ---
 
 # Audit Loop
 
-Use this skill when the job is to inspect a codebase for the next real defect or fragility, fix the best current work, and leave a truthful audit ledger behind.
+Use this skill when the job is to inspect a codebase for its biggest real unresolved risks, push on the strongest current risk front until it is materially reduced, and leave a truthful audit ledger behind.
 
 ## When to use
 
@@ -26,7 +26,9 @@ Use this skill when the job is to inspect a codebase for the next real defect or
 - `_audit_ledger.md` at repo root is the source of truth. Add it to the root `.gitignore` immediately.
 - Triage before code changes. Do not skip straight to editing because one suspicious line looks fixable.
 - Start with critical paths and existing repo-native evidence. Record unavailable signals as `unknown` instead of auto-installing new tooling.
+- Reduce the top unresolved risk materially. Do not cash out a pass on a tiny safe fix while a bigger justified problem still dominates the repo.
 - Dead code deletion counts as a fix. Duplication on critical paths counts as real bug prevention work.
+- It is acceptable and often necessary to touch multiple files, modules, and tests when they belong to the same risk story.
 - Prefer behavior-level verification and integration coverage on critical paths. Do not write negative-value tests.
 - Default invocation with no mode is `run`.
 - `review` is docs-only.
@@ -50,23 +52,23 @@ Use this skill when the job is to inspect a codebase for the next real defect or
 
 - Create or repair `_audit_ledger.md` and the `.gitignore` entry.
 - Refresh triage from critical paths, churn, coverage, dead-code signals, duplication signals, and explicit `SKIP` decisions.
-- Pick the highest-priority open area.
-- Read the implementation before the tests, log findings, and fix one coherent work package in that area.
-- Verify the changes, update the ledger, and stop before drifting into a second area.
+- Pick the highest-priority unresolved risk front.
+- Read the implementation before the tests, log findings, and fix the strongest justified work across that risk front.
+- Verify the changes, update the ledger, and stop only when further useful work would require a genuinely different audit story, a new reconnaissance pass, or a real blocker.
 
 ### 2) `review`
 
 - Stay docs-only.
 - Repair the ledger if it is missing or malformed.
 - Re-read the ledger and current repo state from fresh context.
-- Set the controller verdict to `CONTINUE`, `CLEAN`, or `BLOCKED` and name the next area or blocker plainly.
+- Set the controller verdict to `CONTINUE`, `CLEAN`, or `BLOCKED` and name the next risk front or blocker plainly.
 
 ### 3) `auto`
 
 - Run Codex-only preflight for hooks and feature flags.
 - Derive `SESSION_ID` from `CODEX_THREAD_ID`, then create or refresh `.codex/audit-loop-state.<SESSION_ID>.json`.
 - Run one truthful `run` pass.
-- Let the installed Stop hook launch a fresh `review` pass and continue only while the verdict stays `CONTINUE`.
+- Let the installed Stop hook launch a fresh `review` pass and continue only while the verdict stays `CONTINUE` because real unresolved risk still remains.
 
 ## Output expectations
 
@@ -74,7 +76,7 @@ Use this skill when the job is to inspect a codebase for the next real defect or
 - Keep console output short:
   - audit North Star reminder
   - punchline
-  - current area or verdict
+  - current risk front or verdict
   - evidence or tests run
   - next action
 
@@ -82,7 +84,7 @@ Use this skill when the job is to inspect a codebase for the next real defect or
 
 - `references/ledger-contract.md` - root ledger shape, controller block, status vocabulary, and cleanup lifecycle
 - `references/shared-doctrine.md` - prioritization, fix discipline, and anti-patterns
-- `references/run.md` - bounded audit/fix pass
+- `references/run.md` - risk-front audit/fix pass
 - `references/review.md` - fresh docs-only verdict pass
 - `references/auto.md` - Codex-only controller contract and state file
 - `references/quality-bar.md` - strong vs weak triage, findings, tests, and stop decisions

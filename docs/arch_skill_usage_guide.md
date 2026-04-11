@@ -225,7 +225,7 @@ Use for regressions, crashes, incidents, or Sentry/log-driven fixes.
 
 ### `audit-loop`
 
-Use for repo-wide audit passes or "find and fix the next real defect" requests, especially when the user wants one manual pass or a Codex-only loop that keeps going until the review verdict is clean or blocked.
+Use for repo-wide audit passes or "find and fix the biggest real problems" requests, especially when the user wants one manual pass or a Codex-only loop that keeps going until the review verdict is clean or blocked.
 
 Examples:
 

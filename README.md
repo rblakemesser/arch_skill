@@ -168,7 +168,7 @@ Use for Sentry/log-driven bug analysis, narrow fixes, and explicit-review-only f
 
 ### `audit-loop`
 
-Use for repo-wide audit passes, systematic defect hunts, dead-code deletion, duplication cleanup, and Codex-only leave-it-running audit continuation.
+Use for repo-wide audit passes, systematic defect hunts, dead-code deletion, duplication cleanup, and Codex-only leave-it-running continuation that keeps pushing on the biggest real unresolved risks.
 
 ### `goal-loop`
 
