@@ -21,6 +21,13 @@
 - "The code is clean; now clean up the feature docs and retire the plan doc":
   - `arch-docs`
 
+## Single bug vs audit loop
+
+- "Analyze this Sentry crash and fix it":
+  - `bugs-flow`
+- "Scan the repo for the next real bugs and keep cleaning until it is not worth continuing":
+  - `audit-loop`
+
 ## Mini plan vs lilarch
 
 - "Small feature, but I still want the canonical architecture blocks":
@@ -30,8 +37,6 @@
 
 ## Bugs vs investigation loops
 
-- "Analyze this Sentry crash and fix it":
-  - `bugs-flow`
 - "We need to explain a metric drop and test ranked hypotheses":
   - `north-star-investigation`
 - "We know the goal but not the path, keep iterating bets":

@@ -9,6 +9,7 @@ The current skill suite is:
 - `arch-mini-plan`
 - `lilarch`
 - `bugs-flow`
+- `audit-loop`
 - `goal-loop`
 - `north-star-investigation`
 - `arch-flow`
@@ -24,7 +25,7 @@ cd arch_skill
 make install
 ```
 
-For Codex automatic `auto-plan`, `implement-loop`, and `arch-docs auto`, also enable the Codex feature once:
+For Codex automatic `auto-plan`, `implement-loop`, `arch-docs auto`, and `audit-loop auto`, also enable the Codex feature once:
 
 ```bash
 codex features enable codex_hooks
@@ -37,13 +38,14 @@ Default local path:
 - `~/.agents/skills/arch-mini-plan/`
 - `~/.agents/skills/lilarch/`
 - `~/.agents/skills/bugs-flow/`
+- `~/.agents/skills/audit-loop/`
 - `~/.agents/skills/goal-loop/`
 - `~/.agents/skills/north-star-investigation/`
 - `~/.agents/skills/arch-flow/`
 - `~/.agents/skills/arch-skills-guide/`
 - `~/.agents/skills/codemagic-builds/`
 
-Codex reads the same installed skills from `~/.agents/skills/`. `make install` also wires the Codex runtime support for `auto-plan`, `implement-loop`, and `arch-docs auto` through `~/.codex/hooks.json` and removes older `~/.codex/skills/<skill>` mirrors from previous installs.
+Codex reads the same installed skills from `~/.agents/skills/`. `make install` also wires the Codex runtime support for `arch-step` automatic controllers, `arch-docs auto`, and `audit-loop auto` through `~/.codex/hooks.json` and removes older `~/.codex/skills/<skill>` mirrors from previous installs.
 
 Installed skills:
 
@@ -53,6 +55,7 @@ Installed skills:
   - `arch-mini-plan`
   - `lilarch`
   - `bugs-flow`
+  - `audit-loop`
   - `goal-loop`
   - `north-star-investigation`
   - `arch-flow`
@@ -64,6 +67,7 @@ Installed skills:
   - `arch-mini-plan`
   - `lilarch`
   - `bugs-flow`
+  - `audit-loop`
   - `goal-loop`
   - `north-star-investigation`
   - `arch-flow`
@@ -74,12 +78,13 @@ Installed skills:
   - `arch-mini-plan`
   - `lilarch`
   - `bugs-flow`
+  - `audit-loop`
   - `goal-loop`
   - `north-star-investigation`
   - `arch-flow`
   - `arch-skills-guide`
 
-Install removes stale pre-skill command surfaces, removed competing skill packages, and older Codex skill mirrors. For Codex, it installs the runtime support for `auto-plan`, `implement-loop`, and `arch-docs auto` in `~/.codex/hooks.json` pointing at the installed runner under `~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py`.
+Install removes stale pre-skill command surfaces, removed competing skill packages, and older Codex skill mirrors. For Codex, it installs the runtime support for `arch-step` automatic controllers, `arch-docs auto`, and `audit-loop auto` in `~/.codex/hooks.json` pointing at the installed runners under `~/.agents/skills/`.
 
 ## Shared conventions
 
@@ -129,12 +134,6 @@ Install removes stale pre-skill command surfaces, removed competing skill packag
 - Git is the history for retired code paths, docs, comments, and instructions.
 - Do not keep dead competing truth surfaces around for legacy or archaeology.
 - If a touched live doc, comment, or instruction still matters after the change, rewrite it to present reality in the same run. If it no longer matters, delete it.
-
-### Full-arch finish handoff
-
-- `arch-step` owns planning, implementation, and code-completeness audit.
-- `arch-docs` owns the docs-audit cleanup pass after a clean full-arch code audit and can also run standalone in any repo.
-- A clean `implement-loop` or `audit-implementation` means the next required move is docs cleanup, not another generic full-arch command.
 
 ## Choosing a skill
 
@@ -212,6 +211,16 @@ If lilarch stops fitting, escalate to `arch-step reformat`.
 ### `bugs-flow`
 
 Use for regressions, crashes, incidents, or Sentry/log-driven fixes.
+
+### `audit-loop`
+
+Use for repo-wide audit passes or "find and fix the next real defect" requests, especially when the user wants one manual pass or a Codex-only loop that keeps going until the review verdict is clean or blocked.
+
+Examples:
+
+- `Use $audit-loop`
+- `Use $audit-loop review`
+- `Use $audit-loop auto`
 
 ### `goal-loop`
 

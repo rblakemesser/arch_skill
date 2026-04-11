@@ -1,7 +1,7 @@
 interface:
   display_name: "Arch Skills Guide"
   short_description: "Recommend the right live arch skill and explain the boundaries between lookalikes"
-  default_prompt: "Use $arch-skills-guide to recommend the right live arch skill, with `arch-step` as the default for real full-arch work and `arch-docs` as the default when the main job is docs cleanup, stale-doc consolidation, or post-arch plan/worklog retirement."
+  default_prompt: "Use $arch-skills-guide to recommend the right live arch skill, with `arch-step` as the default for real full-arch work, `arch-docs` for docs cleanup, `bugs-flow` for one known bug, and `audit-loop` for repo-wide audit and cleanup loops."
 
 policy:
   allow_implicit_invocation: true

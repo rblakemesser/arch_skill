@@ -9,6 +9,7 @@ The live skill surface is:
 - `arch-mini-plan` — one-pass canonical mini planning that hands follow-through to `arch-step`
 - `lilarch` — compact 1-3 phase feature flow
 - `bugs-flow` — evidence-first bug analyze/fix/review flow
+- `audit-loop` — repo-wide bug hunt and cleanup loop with a root audit ledger and Codex-only `auto` continuation
 - `goal-loop` — open-ended goal-seeking loop
 - `north-star-investigation` — math-first investigation loop
 - `arch-flow` — read-only "what's next?" router for arch docs
@@ -26,9 +27,9 @@ cd arch_skill
 make install
 ```
 
-This installs the live skill surface to `~/.agents/skills/`, wires the Codex runtime support for `auto-plan`, `implement-loop`, and `arch-docs auto` through `~/.codex/hooks.json` pointing at `~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py`, removes older `~/.codex/skills/<skill>` mirrors from previous installs, and also installs the Claude Code and Gemini CLI skill directories.
+This installs the live skill surface to `~/.agents/skills/`, wires the Codex runtime support for `arch-step` automatic controllers, `arch-docs auto`, and `audit-loop auto` through `~/.codex/hooks.json` pointing at the installed runners under `~/.agents/skills/`, removes older `~/.codex/skills/<skill>` mirrors from previous installs, and also installs the Claude Code and Gemini CLI skill directories.
 
-Codex automatic `auto-plan`, `implement-loop`, and `arch-docs auto` also require the Codex feature flag:
+Codex automatic `auto-plan`, `implement-loop`, `arch-docs auto`, and `audit-loop auto` also require the Codex feature flag:
 
 ```bash
 codex features enable codex_hooks
@@ -48,6 +49,7 @@ Installed skills:
   - `~/.agents/skills/arch-mini-plan/`
   - `~/.agents/skills/lilarch/`
   - `~/.agents/skills/bugs-flow/`
+  - `~/.agents/skills/audit-loop/`
   - `~/.agents/skills/goal-loop/`
   - `~/.agents/skills/north-star-investigation/`
   - `~/.agents/skills/arch-flow/`
@@ -59,6 +61,7 @@ Installed skills:
   - `~/.claude/skills/arch-mini-plan/`
   - `~/.claude/skills/lilarch/`
   - `~/.claude/skills/bugs-flow/`
+  - `~/.claude/skills/audit-loop/`
   - `~/.claude/skills/goal-loop/`
   - `~/.claude/skills/north-star-investigation/`
   - `~/.claude/skills/arch-flow/`
@@ -69,6 +72,7 @@ Installed skills:
   - `~/.gemini/skills/arch-mini-plan/`
   - `~/.gemini/skills/lilarch/`
   - `~/.gemini/skills/bugs-flow/`
+  - `~/.gemini/skills/audit-loop/`
   - `~/.gemini/skills/goal-loop/`
   - `~/.gemini/skills/north-star-investigation/`
   - `~/.gemini/skills/arch-flow/`
@@ -88,7 +92,7 @@ make remote_install HOST=user@host
 make verify_install
 ```
 
-This validates the installed active skill surface in `~/.agents/skills/`, checks that the Codex runtime support for `auto-plan`, `implement-loop`, and `arch-docs auto` exists in `~/.codex/hooks.json` and points at the installed runner under `~/.agents/skills/`, confirms the old `~/.codex/skills/<skill>` mirrors are absent, and confirms removed competing skill packages are absent for the supported runtimes.
+This validates the installed active skill surface in `~/.agents/skills/`, checks that the Codex runtime support for `arch-step` automatic controllers, `arch-docs auto`, and `audit-loop auto` exists in `~/.codex/hooks.json` and points at the installed runners under `~/.agents/skills/`, confirms the old `~/.codex/skills/<skill>` mirrors are absent, and confirms removed competing skill packages are absent for the supported runtimes.
 
 To confirm the Codex feature gate is enabled:
 
@@ -125,8 +129,6 @@ Use `arch-step` for real full-arch work. It owns the standalone full-arch workfl
 
 `implement-loop` is the Codex-only automatic bounded delivery controller. The user-facing command is still just `Use $arch-step implement-loop docs/MY_PLAN.md`. It is real only when the installed Codex runtime support is present in `~/.codex/hooks.json` and `codex_hooks` is enabled. Otherwise it must fail loud instead of pretending prompt-only repetition is enough.
 
-After a clean full-arch code audit, the required next move is `Use $arch-docs`, not another `arch-step` command. `arch-step` owns code delivery; `arch-docs` owns the docs-audit cleanup pass and uses the finished arch artifact as context when present.
-
 If the user says "do the full arch flow," "continue this architecture doc," or "audit implementation against the plan," the right live skill is `arch-step`.
 
 ### `arch-docs`
@@ -149,6 +151,10 @@ Use for contained features or improvements that should fit in 1-3 phases.
 
 Use for Sentry/log-driven bug analysis, narrow fixes, and explicit-review-only follow-up.
 
+### `audit-loop`
+
+Use for repo-wide audit passes, systematic defect hunts, dead-code deletion, duplication cleanup, and Codex-only leave-it-running audit continuation.
+
 ### `goal-loop`
 
 Use when the goal is clear but the path is not, and you want a controller doc plus append-only iteration log.
@@ -167,7 +173,7 @@ Use when the question is "which arch skill should I use?" or "what is the differ
 
 ## Usage
 
-- Primary surface: ask the agent to use `arch-step`, `arch-docs`, `arch-mini-plan`, `lilarch`, `bugs-flow`, `goal-loop`, `north-star-investigation`, `arch-flow`, or `arch-skills-guide`.
+- Primary surface: ask the agent to use `arch-step`, `arch-docs`, `arch-mini-plan`, `lilarch`, `bugs-flow`, `audit-loop`, `goal-loop`, `north-star-investigation`, `arch-flow`, or `arch-skills-guide`.
 - Full-arch execution defaults to `arch-step`.
 - Docs cleanup loops default to `arch-docs`.
 - Read-only checklist and next-step inspection uses `arch-flow`.
@@ -185,6 +191,9 @@ Examples:
 - `Use $arch-mini-plan docs/MY_PLAN.md`
 - `Use $lilarch for this small feature`
 - `Use $bugs-flow on this Sentry issue`
+- `Use $audit-loop`
+- `Use $audit-loop review`
+- `Use $audit-loop auto`
 - `Use $goal-loop for this metric problem`
 - `Use $north-star-investigation for this quantified performance hunt`
 - `Use $arch-flow docs/MY_PLAN.md`

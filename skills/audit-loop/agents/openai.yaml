@@ -1,0 +1,7 @@
+interface:
+  display_name: "Audit Loop"
+  short_description: "Run a repo-wide bug hunt and cleanup loop with a root audit ledger; supports Codex-only auto continuation"
+  default_prompt: "Use $audit-loop for a repo-wide audit pass that finds and fixes real bugs, dead code, duplication, and missing high-value regression coverage in priority order. Default invocation is one bounded pass; `review` is docs-only; `auto` is the Codex-only controller and must fail loud if hook support or `codex_hooks` is missing."
+
+policy:
+  allow_implicit_invocation: true

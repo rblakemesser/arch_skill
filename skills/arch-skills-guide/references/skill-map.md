@@ -12,17 +12,19 @@ Start with the strongest discriminator first:
    - use `arch-docs`
 3. Is the ask for the full arch workflow, one explicit full-arch step, generic continuation on a full-arch doc, `advance`, or concise stage-quality status?
    - use `arch-step`
-4. Is it a bug, regression, crash, incident, or Sentry/log investigation?
+4. Is it a repo-wide audit pass, systematic defect hunt, or leave-it-running cleanup loop?
+   - use `audit-loop`
+5. Is it a bug, regression, crash, incident, or Sentry/log investigation?
    - use `bugs-flow`
-5. Is the path unknown and the work open-ended?
+6. Is the path unknown and the work open-ended?
    - use `goal-loop`
-6. Is it a quant-heavy optimization or root-cause hunt with ranked hypotheses and brutal tests?
+7. Is it a quant-heavy optimization or root-cause hunt with ranked hypotheses and brutal tests?
    - use `north-star-investigation`
-7. Is it a small feature or improvement that should fit in 1-3 phases?
+8. Is it a small feature or improvement that should fit in 1-3 phases?
    - use `lilarch`
-8. Does the user want a one-pass mini plan with canonical arch blocks?
+9. Does the user want a one-pass mini plan with canonical arch blocks?
    - use `arch-mini-plan`
-9. Otherwise, default to `arch-step`.
+10. Otherwise, default to `arch-step`.
 
 ## Skill map
 
@@ -33,6 +35,7 @@ Start with the strongest discriminator first:
 | `arch-mini-plan` | the user wants a compact one-pass plan but still wants canonical arch blocks | the work is tiny enough for `lilarch` or large enough for full arch | "Give me the mini plan version", "one-pass arch plan for this task" |
 | `lilarch` | contained 1-3 phase feature work | the task is migration-heavy, investigation-heavy, or broad | "Small feature, use lilarch", "tight feature flow for this improvement" |
 | `bugs-flow` | regressions, crashes, incidents, Sentry/log-driven fixes | planned feature work or open-ended optimization | "Analyze this Sentry issue", "fix this bug and verify it" |
+| `audit-loop` | the user wants a repo-wide audit pass, the next worthwhile defect fixed, or a bounded cleanup loop that keeps going until review says stop | there is already one concrete known bug or the main job is docs cleanup | "Scan this repo for bugs and fix what matters", "do one audit pass", "keep cleaning this codebase until no worthwhile audit work remains" |
 | `goal-loop` | the goal is clear but the path is unknown; repeated bets matter | the task already has a fixed implementation plan | "We need to improve this metric but don't know the path" |
 | `north-star-investigation` | the user wants a quantified investigation with ranked hypotheses and brutal tests | the task is just a normal bug fix or plain goal loop | "Run a deep investigation on this performance issue" |
 | `arch-flow` | the user already has a plan doc and wants a read-only checklist or next-step routing | they actually want the work performed | "What's next on this doc?", "give me the checklist before we run anything" |
@@ -45,6 +48,12 @@ Start with the strongest discriminator first:
 - `arch-step` vs `arch-docs`:
   - use `arch-step` while the feature still needs planning, implementation, or code-completeness audit
   - use `arch-docs` once the code is clean and the remaining job is docs cleanup, consolidation, or working-doc retirement
+- `bugs-flow` vs `audit-loop`:
+  - use `bugs-flow` for one concrete known bug or incident
+  - use `audit-loop` when the job is to find the next worthwhile bug or fragility across the repo
+- `arch-docs` vs `audit-loop`:
+  - use `arch-docs` when the main job is documentation cleanup grounded in already-stable code truth
+  - use `audit-loop` when the main job is code audit, defect finding, dead-code deletion, or duplication cleanup
 - `arch-step` vs `arch-mini-plan`:
   - use `arch-mini-plan` only when the user wants a compressed one-pass plan
   - otherwise use `arch-step` for real full-arch work
@@ -74,6 +83,7 @@ When the user wants a tour:
   - `arch-flow`
   - `arch-docs`
   - `arch-step`
+  - `audit-loop`
   - `bugs-flow`
   - `goal-loop`
   - `north-star-investigation`
