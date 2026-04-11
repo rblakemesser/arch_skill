@@ -822,8 +822,9 @@ def handle_implement_loop(payload: dict) -> int:
         reason = (
             "implement-loop ran a fresh child audit and found more code work. "
             f"Read the authoritative Implementation Audit block and reopened phases in {doc_path_value}, "
-            f"implement the missing code work, update {display_path(worklog_path, cwd)} if it exists, "
-            "keep the loop armed, and stop again for another fresh audit."
+            f"implement the missing code work, run the smallest credible proof checks for the claimed fixes, "
+            f"update {display_path(worklog_path, cwd)} if it exists, keep the loop armed, "
+            "and only then stop again for another fresh audit."
         )
         if child_summary:
             reason += f" Audit summary: {child_summary}"

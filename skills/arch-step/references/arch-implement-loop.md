@@ -4,8 +4,9 @@
 
 - run the current implementation plan through one bounded delivery loop
 - arm the repo-local loop state needed for fresh auditing
+- require each implementation pass to prove its claimed fixes before fresh auditing
 - run a fresh `audit-implementation` pass when Codex reaches a stop point
-- repeat that implement then audit cycle until the audit is clean or a real blocker stops progress
+- repeat that implement, prove, then audit cycle until the audit is clean or a real blocker stops progress
 - keep the code, `DOC_PATH`, `WORKLOG_PATH`, and authoritative audit block aligned after each pass
 
 ## Delivery North Star
@@ -88,12 +89,14 @@ Lifecycle:
 - this command is a bounded controller over `implement` and `audit-implementation`; do not invent a second planning surface or second audit format
 - `implement-loop` is one command; if the required runtime continuation support is absent or disabled, fail loud
 - each cycle must run `implement` first and `audit-implementation` second against the same `DOC_PATH`
+- before handing control back to fresh audit, the implementation pass must run the smallest credible programmatic proof for each claimed fix
 - in Codex, the fresh audit pass after an implementation stop point owns the continue-versus-stop decision
 - when the fresh audit context launches, pass the explicit `DOC_PATH` and current repo working context; do not ask the fresh audit pass to rediscover the artifact from stale conversation state
 - `audit-implementation` remains docs-only; never fix code while auditing
 - if the audit verdict is `COMPLETE`, clear loop state and stop
 - when the audit verdict is `COMPLETE`, hand off docs cleanup to `arch-docs` and let it use the current artifact as context instead of inventing another hidden `arch-step` phase
 - if the audit verdict is `NOT COMPLETE`, continue from the reopened phases and missing-code findings instead of hand-waving them away
+- unproven fixes are unfinished implementation work, not something to punt to the auditor
 - do not spin mechanically; if the latest implement pass did not materially change the missing-code picture and there is no credible next move, clear loop state, stop, and report the blocker
 - no fallbacks or shims unless the plan explicitly approves them
 
@@ -103,15 +106,15 @@ Lifecycle:
 2. Run the runtime preflight. If the installed hook path or `codex_hooks` is unavailable, fail loud.
 3. Build or refresh the compact implementation ledger from Section 7, Section 6, migration notes, and touched live docs/comments/instructions.
 4. Create or refresh `.codex/implement-loop-state.json` for the current Codex session and `DOC_PATH`.
-5. Run one truthful implementation pass using the `implement` contract.
-6. Sync `DOC_PATH` and `WORKLOG_PATH` to the resulting code reality.
+5. Run one truthful implementation pass using the `implement` contract, including the smallest credible programmatic proof for each claimed fix.
+6. Sync `DOC_PATH` and `WORKLOG_PATH` to the resulting code reality and proof signals.
 7. If a real blocker stops progress before the run naturally stops, delete `.codex/implement-loop-state.json`, update the plan and worklog truthfully, and stop.
 8. Otherwise let Codex try to stop. The installed runtime should:
    - no-op when no active loop state matches the current session
    - launch a fresh `audit-implementation` child pass when the loop is active
    - allow stop when the audit is clean
    - inject a continuation prompt when the audit finds missing code
-9. On each hook-driven continuation, read the refreshed audit findings, implement the missing code work, and keep the loop armed.
+9. On each hook-driven continuation, read the refreshed audit findings, implement the missing code work, prove the claimed fixes, update execution truth, and keep the loop armed.
 10. If the next pass would be speculative, blocked, or materially unchanged from the last failed audit, delete `.codex/implement-loop-state.json`, stop, and report that state plainly.
 
 ## Fresh-audit preference

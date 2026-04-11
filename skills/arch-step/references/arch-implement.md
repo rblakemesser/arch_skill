@@ -221,6 +221,7 @@ At each phase boundary:
 ## Verification discipline
 
 - after each meaningful chunk, run the smallest credible programmatic signal
+- when `implement` is running inside `implement-loop`, do not hand control back to audit until the claimed fix has a credible programmatic proof signal
 - prefer existing checks before new tests or harnesses
 - for agent-backed systems, new harnesses or scripts do not count as progress unless the plan justified them against prompt-first and capability-first alternatives
 - any refactor, consolidation, or shared-path extraction must run a preservation signal before the phase can be called complete
@@ -286,6 +287,7 @@ The worklog is execution evidence only:
 - do not turn it into a second plan
 - keep entries short
 - make sure phase-boundary truth in the worklog matches Section 7
+- when running inside `implement-loop`, record the proof signal for claimed fixes before another audit cycle
 
 ## Stop conditions
 

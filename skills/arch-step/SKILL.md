@@ -162,13 +162,14 @@ These stay explicit unless the user directly asks for them:
 - keep `.codex/auto-plan-state.json` aligned with the live run
 - if a stage stops early, clear `.codex/auto-plan-state.json` and stop honestly
 
-`implement-loop` is a bounded delivery controller. It runs `implement`, then `audit-implementation`, then repeats against the same `DOC_PATH` until the audit verdict is clean or a real blocker stops progress. Prefer a fresh audit context when the host runtime offers a truly isolated child session, subprocess, or subagent. Do not turn it into a generic open-ended loop.
+`implement-loop` is a bounded delivery controller. It runs `implement`, requires the implementation pass to prove its claimed fixes with credible programmatic signals, then runs `audit-implementation`, and repeats against the same `DOC_PATH` until the audit verdict is clean or a real blocker stops progress. Prefer a fresh audit context when the host runtime offers a truly isolated child session, subprocess, or subagent. Do not turn it into a generic open-ended loop.
 
 User-facing invocation stays simple:
 
 - run `$arch-step implement-loop <DOC_PATH>`
 - do not introduce a second command, mode, or user-facing control surface
 - if the installed runtime support is absent or disabled, name the broken prerequisite and stop
+- do not hand control back to audit until the current implementation pass has credible proof for its claimed fixes
 - keep `.codex/implement-loop-state.json` aligned with the live run
 - if a real blocker appears before stopping, clear `.codex/implement-loop-state.json` and stop honestly
 - when the loop finishes clean, hand off to `Use $arch-docs`

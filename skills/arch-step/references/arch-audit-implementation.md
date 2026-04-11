@@ -72,6 +72,7 @@ After this command runs:
 - this is a code-completeness audit, not a bureaucracy audit
 - missing manual QA evidence is non-blocking and should not by itself reopen phases
 - do not fix the code while auditing; record gaps instead
+- if the implementation claims a fix but does not provide credible code-verifiable proof for it, treat that as missing code completeness
 - broader docs consolidation, evergreen promotion, and plan/worklog retirement belong to `arch-docs` after a clean audit unless the plan explicitly made a specific touched-doc cleanup item part of code-completeness
 
 ## Highest-bar audit criteria
@@ -92,6 +93,8 @@ Check all of these:
   - implementation aligns with existing repo patterns unless the plan justified divergence
 - behavior preservation:
   - required refactors or consolidations have credible evidence that behavior was preserved
+- fix proof:
+  - claimed behavior-changing fixes have credible code-verifiable proof, not just changed files
 - call-site completeness:
   - every call site that should have migrated actually migrated
 
@@ -136,6 +139,7 @@ Missing manual evidence should become non-blocking follow-up.
    - for agent-backed systems, verify planned prompt, grounding, or native-capability changes actually landed when they were the primary lever
    - verify any new harness, wrapper, parser, OCR layer, or script was explicitly justified by the plan instead of silently replacing intended model reasoning
    - verify required preservation signals actually ran and protect the intended behavior
+   - verify claimed fixes have credible code-verifiable proof instead of only a code diff
    - verify claimed tests, assertions, or automation actually exist and hit the intended failure surface
 5. determine phase truth:
    - if a phase is marked complete but code work is missing, reopen it
@@ -153,6 +157,7 @@ Always name phases as `Phase <n> (<what it does>)` using the phase heading text 
 - if the implementation introduced a forbidden shim, fallback, or parallel source of truth, treat that as missing code correctness and reopen the responsible phase
 - if the implementation introduced capability-replacing scaffolding for agent-backed behavior without explicit plan justification, treat that as missing code correctness and reopen the responsible phase
 - if a refactor or convergence change lacks credible preservation evidence, treat that as missing code correctness and reopen the responsible phase
+- if a claimed fix lacks credible code-verifiable proof, treat that as missing code correctness and reopen the responsible phase
 
 ## Update rules
 
