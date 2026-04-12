@@ -53,8 +53,8 @@ and Gemini.
 - Use `$arch-step` when the user wants explicit full-arch commands such as
   `new`, `reformat`, `research`, `deep-dive`, `external-research`,
   `phase-plan`, `plan-enhance`, `fold-in`, `overbuild-protector`,
-  `review-gate`, `implement`, `audit-implementation`, `status`, or
-  `advance`.
+  `consistency-pass`, `review-gate`, `implement`,
+  `audit-implementation`, `status`, or `advance`.
 - Use `$arch-flow` for read-only checklist and next-step inspection.
 - Use `$arch-skills-guide` when the user asks which arch skill to use or how
   the suite is divided.

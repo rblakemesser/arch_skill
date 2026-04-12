@@ -1,6 +1,6 @@
 ---
 name: arch-step
-description: "Operate the standalone full-arch workflow against one canonical plan artifact and explicit doctrine: `new`, `reformat`, `research`, `deep-dive`, `external-research`, `phase-plan`, `auto-plan`, `plan-enhance`, `fold-in`, `overbuild-protector`, `review-gate`, `implement`, `implement-loop`, `auto-implement`, `audit-implementation`, `status`, or `advance`. Use when the user wants the full arch workflow, a specific full-arch step, or concise full-arch status for work that may require architectural convergence onto canonical repo paths. Internal refactors may widen enough to remove duplicate truth or parallel paths, but the skill must not invent new product functionality, modes, or speculative infrastructure. Not for read-only checklist routing, mini plans, lilarch, bugs, or open-ended loops."
+description: "Operate the standalone full-arch workflow against one canonical plan artifact and explicit doctrine: `new`, `reformat`, `research`, `deep-dive`, `external-research`, `phase-plan`, `auto-plan`, `plan-enhance`, `fold-in`, `overbuild-protector`, `consistency-pass`, `review-gate`, `implement`, `implement-loop`, `auto-implement`, `audit-implementation`, `status`, or `advance`. Use when the user wants the full arch workflow, a specific full-arch step, or concise full-arch status for work that may require architectural convergence onto canonical repo paths. Internal refactors may widen enough to remove duplicate truth or parallel paths, but the skill must not invent new product functionality, modes, or speculative infrastructure. Not for read-only checklist routing, mini plans, lilarch, bugs, or open-ended loops."
 metadata:
   short-description: "Standalone full-arch operator"
 ---
@@ -17,7 +17,7 @@ The primary object is one canonical full-arch plan doc. Commands exist to move t
 - The ask is generic full arch language such as "do the full arch flow," "continue this architecture doc," "implement the plan," or "audit implementation against the plan."
 - The work needs one canonical plan doc plus real architectural convergence onto existing repo patterns, shared code paths, or single-source-of-truth boundaries.
 - The user wants explicit stage control instead of a more holistic or phase-family-driven flow.
-- The ask is command-shaped: `new`, `reformat`, `research`, `deep-dive`, `external-research`, `phase-plan`, `auto-plan`, `plan-enhance`, `fold-in`, `overbuild-protector`, `review-gate`, `implement`, `implement-loop`, `auto-implement`, `audit-implementation`, `status`, or `advance`.
+- The ask is command-shaped: `new`, `reformat`, `research`, `deep-dive`, `external-research`, `phase-plan`, `auto-plan`, `plan-enhance`, `fold-in`, `overbuild-protector`, `consistency-pass`, `review-gate`, `implement`, `implement-loop`, `auto-implement`, `audit-implementation`, `status`, or `advance`.
 - The user wants one specific plan-doc shape with exact headings, stable markers, and consistent stage ownership.
 - The user wants `advance` to print the full checklist, choose exactly one next command, and optionally execute that one step.
 - The user wants `status` to evaluate the actual plan artifact, not emit a generic checklist.
@@ -92,6 +92,7 @@ The primary object is one canonical full-arch plan doc. Commands exist to move t
 - `plan-enhance`
 - `fold-in`
 - `overbuild-protector`
+- `consistency-pass`
 - `review-gate`
 - `implement`
 - `implement-loop`
@@ -143,6 +144,7 @@ These stay explicit and do not auto-run from `advance`:
 - `plan-enhance`
 - `fold-in`
 - `overbuild-protector`
+- `consistency-pass`
 - `review-gate`
 
 Default placement is after `phase-plan` and before `implement`, unless the user explicitly asks otherwise. They are extra hardening surfaces, not the only place where scope, convergence, or preservation discipline exists.
@@ -155,13 +157,13 @@ These stay explicit unless the user directly asks for them:
 - `implement-loop`
 - `auto-implement`
 
-`auto-plan` is a bounded planning controller. In Codex, the initial `auto-plan` pass arms `.codex/auto-plan-state.<SESSION_ID>.json`, runs only `research` against the same `DOC_PATH`, then ends its turn naturally. It must not self-run `deep-dive` pass 1, `deep-dive` pass 2, or `phase-plan` in that same turn. After that first turn, the installed Stop hook owns stage-to-stage continuation: it feeds exactly one literal next command per later turn, keeps the controller state aligned, and after `phase-plan` it clears state and says the doc is ready for `implement-loop`. The user-facing command stays simple:
+`auto-plan` is a bounded planning controller. In Codex, the initial `auto-plan` pass arms `.codex/auto-plan-state.<SESSION_ID>.json`, runs only `research` against the same `DOC_PATH`, then ends its turn naturally. It must not self-run `deep-dive` pass 1, `deep-dive` pass 2, `phase-plan`, or `consistency-pass` in that same turn. After that first turn, the installed Stop hook owns stage-to-stage continuation: it feeds exactly one literal next command per later turn, keeps the controller state aligned, and only after `consistency-pass` clears state and says the doc is ready for `implement-loop`. The user-facing command stays simple:
 
 - run `$arch-step auto-plan`
 - or run `$arch-step auto-plan <DOC_PATH>`
 - do not run the Stop hook yourself; after the controller is armed, just end the turn and let Codex run the installed Stop hook
 - the initial `auto-plan` pass must run only `research`, then end the turn
-- later planning stages are hook-owned only; one literal next command per turn
+- later planning stages are hook-owned only; one literal next command per turn through `deep-dive` pass 1, `deep-dive` pass 2, `phase-plan`, and `consistency-pass`
 - the parent `auto-plan` pass must not clear successful controller state, claim the planning arc is complete, or emit the `implement-loop` handoff
 - prefer the current session's canonical full-arch doc when `DOC_PATH` is omitted
 - if the installed runtime support is absent, disabled, or the North Star is still unapproved, name the broken prerequisite and stop
@@ -216,10 +218,11 @@ and arm the session-scoped `.codex/...<SESSION_ID>.json` path for the current se
 - `references/arch-deep-dive.md` - current architecture, target architecture, call-site audit, and planning-pass rules
 - `references/arch-external-research.md` - external research contract and plan-integration rules
 - `references/arch-phase-plan.md` - authoritative phase-plan contract
-- `references/arch-auto-plan.md` - bounded planning controller over research, deep-dive twice, and phase-plan
+- `references/arch-auto-plan.md` - bounded planning controller over research, deep-dive twice, phase-plan, and consistency-pass
 - `references/arch-plan-enhance.md` - best-possible hardening of the main plan
 - `references/arch-fold-in.md` - fold references into the main artifact and wire them into phases
 - `references/arch-overbuild-protector.md` - explicit scope triage and remediation using the same rubric core commands should already apply
+- `references/arch-consistency-pass.md` - end-to-end cold-read consistency review before implementation
 - `references/arch-review-gate.md` - local idiomatic and completeness review
 - `references/arch-implement.md` - implementation, worklog, and completion discipline
 - `references/arch-implement-loop.md` - bounded implement/audit loop, required runtime preflight, and loop-state contract

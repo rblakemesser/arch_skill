@@ -161,6 +161,7 @@ Examples:
 
 - `Use $arch-step "do the full arch flow for this change"`
 - `Use $arch-step auto-plan`
+- `Use $arch-step consistency-pass docs/MY_PLAN.md`
 - `Use $arch-step advance docs/MY_PLAN.md`
 - `Use $arch-step implement docs/MY_PLAN.md`
 - `Use $arch-step implement-loop docs/MY_PLAN.md`
@@ -175,7 +176,8 @@ Practical rule:
 - If capability-first analysis shows the main lever is prompt repair, `arch-step` should say so plainly and point to `prompt-authoring`.
 - `arch-step status` is the concise readout.
 - `arch-step advance` owns the full checklist and exact next-command selection.
-- `arch-step auto-plan` is the explicit bounded planning controller after North Star approval. In Codex, the parent pass runs only `research`, then ends its turn; the installed Stop hook feeds `deep-dive` pass 1, `deep-dive` pass 2, and `phase-plan` one command per later turn, then stops and says the doc is ready for `implement-loop`.
+- `arch-step consistency-pass` is the optional end-to-end cold-read helper before implementation. In Codex it uses two parallel explorer reads, and `auto-plan` includes it automatically after `phase-plan`.
+- `arch-step auto-plan` is the explicit bounded planning controller after North Star approval. In Codex, the parent pass runs only `research`, then ends its turn; the installed Stop hook feeds `deep-dive` pass 1, `deep-dive` pass 2, `phase-plan`, and `consistency-pass` one command per later turn, then stops and says the doc is ready for `implement-loop`.
 - `arch-step implement-loop` is the explicit bounded controller when the user wants repeated implement then audit passes until the audit is clean or a real blocker stops the run.
 - `arch-step auto-implement` is an exact user-facing synonym for `implement-loop`.
 - After a clean full-arch code audit, `arch-step` hands off to `arch-docs` for docs cleanup using the finished artifact as context.
@@ -281,6 +283,7 @@ Use when the user wants a cold-read score, rationale, and improvement plan for a
 - `arch_skill:block:reference_pack`
 - `arch_skill:block:plan_enhancer`
 - `arch_skill:block:overbuild_protector`
+- `arch_skill:block:consistency_pass`
 - `arch_skill:block:review_gate`
 - `arch_skill:block:gaps_concerns`
 - `arch_skill:block:implementation_audit`

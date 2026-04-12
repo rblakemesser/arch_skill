@@ -138,6 +138,7 @@ Use `arch-step` for real full-arch work. It owns the standalone full-arch workfl
 - `plan-enhance`
 - `fold-in`
 - `overbuild-protector`
+- `consistency-pass`
 - `review-gate`
 - `implement`
 - `implement-loop`
@@ -146,7 +147,9 @@ Use `arch-step` for real full-arch work. It owns the standalone full-arch workfl
 - `status`
 - `advance`
 
-`auto-plan` is the Codex-only automatic planning controller. The user-facing command is still just `Use $arch-step auto-plan` or `Use $arch-step auto-plan docs/MY_PLAN.md`. In Codex, the parent `auto-plan` pass runs only `research`, then ends its turn; the installed Stop hook feeds one later planning command per turn and owns the successful `implement-loop` handoff. It is real only when the installed Codex runtime support is present in `~/.codex/hooks.json` and `codex_hooks` is enabled. Otherwise it must fail loud instead of pretending prompt-only chaining is enough.
+`consistency-pass` is the optional end-to-end cold-read helper before implementation. In Codex it uses two parallel cold reads; `auto-plan` runs it automatically after `phase-plan`.
+
+`auto-plan` is the Codex-only automatic planning controller. The user-facing command is still just `Use $arch-step auto-plan` or `Use $arch-step auto-plan docs/MY_PLAN.md`. In Codex, the parent `auto-plan` pass runs only `research`, then ends its turn; the installed Stop hook feeds one later planning command per turn through `deep-dive` pass 1, `deep-dive` pass 2, `phase-plan`, and `consistency-pass`, then owns the successful `implement-loop` handoff. It is real only when the installed Codex runtime support is present in `~/.codex/hooks.json` and `codex_hooks` is enabled. Otherwise it must fail loud instead of pretending prompt-only chaining is enough.
 
 `implement-loop` is the Codex-only automatic bounded delivery controller. `auto-implement` is an exact user-facing synonym for the same controller. The user-facing command is `Use $arch-step implement-loop docs/MY_PLAN.md` or `Use $arch-step auto-implement docs/MY_PLAN.md`. It is real only when the installed Codex runtime support is present in `~/.codex/hooks.json` and `codex_hooks` is enabled. Otherwise it must fail loud instead of pretending prompt-only repetition is enough.
 
@@ -216,6 +219,7 @@ Examples:
 - `Use $arch-step advance docs/MY_PLAN.md`
 - `Use $arch-step advance docs/MY_PLAN.md RUN=1`
 - `Use $arch-step auto-plan`
+- `Use $arch-step consistency-pass docs/MY_PLAN.md`
 - `Use $arch-step implement-loop docs/MY_PLAN.md`
 - `Use $arch-step auto-implement docs/MY_PLAN.md`
 - `Use $arch-docs`

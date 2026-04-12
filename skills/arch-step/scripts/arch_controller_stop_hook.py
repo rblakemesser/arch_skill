@@ -80,11 +80,16 @@ AUTO_PLAN_STAGES = (
     "deep-dive-pass-1",
     "deep-dive-pass-2",
     "phase-plan",
+    "consistency-pass",
 )
 
 VERDICT_PATTERN = re.compile(r"^Verdict \(code\): (COMPLETE|NOT COMPLETE)\s*$", re.MULTILINE)
 PLANNING_PASS_PATTERN = re.compile(
     r"^\s*(deep_dive_pass_1|deep_dive_pass_2|external_research_grounding):\s*(.+?)\s*$",
+    re.MULTILINE,
+)
+CONSISTENCY_PASS_DECISION_PATTERN = re.compile(
+    r"^\s*-\s*Decision: proceed to implement\?\s*(yes|no)\s*$",
     re.MULTILINE,
 )
 DETAIL_LIMIT = 800
@@ -94,6 +99,7 @@ BLOCK_MARKERS = {
     "target_architecture": "<!-- arch_skill:block:target_architecture:start -->",
     "call_site_audit": "<!-- arch_skill:block:call_site_audit:start -->",
     "phase_plan": "<!-- arch_skill:block:phase_plan:start -->",
+    "consistency_pass": "<!-- arch_skill:block:consistency_pass:start -->",
 }
 AUDIT_LOOP_CONTROLLER_START = "<!-- audit_loop:block:controller:start -->"
 AUDIT_LOOP_CONTROLLER_END = "<!-- audit_loop:block:controller:end -->"
@@ -505,6 +511,29 @@ def pass_is_done(pass_value: str | None) -> bool:
 
 def doc_updated_since_state(doc_path: Path, state_path: Path) -> bool:
     return doc_path.stat().st_mtime_ns > state_path.stat().st_mtime_ns
+
+
+def extract_marked_block(doc_text: str, marker_key: str) -> str | None:
+    start_marker = BLOCK_MARKERS[marker_key]
+    end_marker = start_marker.replace(":start -->", ":end -->")
+    start = doc_text.find(start_marker)
+    if start == -1:
+        return None
+    start += len(start_marker)
+    end = doc_text.find(end_marker, start)
+    if end == -1:
+        return None
+    return doc_text[start:end]
+
+
+def consistency_pass_decision(doc_text: str) -> str | None:
+    block = extract_marked_block(doc_text, "consistency_pass")
+    if block is None:
+        return None
+    match = CONSISTENCY_PASS_DECISION_PATTERN.search(block)
+    if not match:
+        return None
+    return match.group(1).lower()
 
 
 def run_fresh_audit(cwd: Path, doc_path_value: str) -> FreshAuditResult:
@@ -1043,6 +1072,7 @@ def auto_plan_stage_name(stage: str) -> str:
         "deep-dive-pass-1": "deep-dive pass 1",
         "deep-dive-pass-2": "deep-dive pass 2",
         "phase-plan": "phase-plan",
+        "consistency-pass": "consistency-pass",
     }[stage]
 
 
@@ -1066,7 +1096,15 @@ def auto_plan_stage_complete(doc_text: str, stage: str) -> bool:
         )
     if stage == "phase-plan":
         return BLOCK_MARKERS["phase_plan"] in doc_text
+    if stage == "consistency-pass":
+        return consistency_pass_decision(doc_text) == "yes"
     raise RuntimeError(f"unexpected auto-plan stage: {stage}")
+
+
+def auto_plan_stage_blocked(doc_text: str, stage: str) -> bool:
+    if stage != "consistency-pass":
+        return False
+    return consistency_pass_decision(doc_text) == "no"
 
 
 def auto_plan_continue_reason(doc_path_value: str, next_stage: str, state_path_value: str) -> str:
@@ -1086,6 +1124,12 @@ def auto_plan_continue_reason(doc_path_value: str, next_stage: str, state_path_v
         return (
             f"auto-plan finished deep-dive pass 2 for {doc_path_value}. Continue now with the next required command: "
             f"Use $arch-step phase-plan {doc_path_value}. "
+            f"Keep {state_path_value} armed and stop naturally when this command finishes."
+        )
+    if next_stage == "consistency-pass":
+        return (
+            f"auto-plan finished phase-plan for {doc_path_value}. Continue now with the next required command: "
+            f"Use $arch-step consistency-pass {doc_path_value}. This is the required end-to-end consistency cold read. "
             f"Keep {state_path_value} armed and stop naturally when this command finishes."
         )
     raise RuntimeError(f"unexpected next auto-plan stage: {next_stage}")
@@ -1202,7 +1246,23 @@ def handle_auto_plan(payload: dict) -> int:
     stage_index = state["stage_index"]
     current_stage = AUTO_PLAN_STAGES[stage_index]
     doc_text = read_doc_text(doc_path)
-    if not doc_updated_since_state(doc_path, state_path) or not auto_plan_stage_complete(doc_text, current_stage):
+    if not doc_updated_since_state(doc_path, state_path):
+        clear_state(state_path)
+        stop_with_json(
+            f"auto-plan stopped before {auto_plan_stage_name(current_stage)} completed for {doc_path_value}. "
+            "The controller was disarmed. Resolve the blocker or finish the stage manually, then rerun "
+            f"`Use $arch-step auto-plan {doc_path_value}` if you still want automatic planning continuation.",
+            system_message=f"auto-plan stopped before {auto_plan_stage_name(current_stage)} completed.",
+        )
+    if auto_plan_stage_blocked(doc_text, current_stage):
+        clear_state(state_path)
+        stop_with_json(
+            f"auto-plan stopped after consistency-pass for {doc_path_value}. "
+            "The helper block does not currently approve implementation. Resolve the remaining inconsistencies in the main "
+            f"artifact, then rerun `Use $arch-step auto-plan {doc_path_value}` if you still want automatic planning continuation.",
+            system_message="auto-plan consistency-pass did not approve implementation.",
+        )
+    if not auto_plan_stage_complete(doc_text, current_stage):
         clear_state(state_path)
         stop_with_json(
             f"auto-plan stopped before {auto_plan_stage_name(current_stage)} completed for {doc_path_value}. "
@@ -1215,7 +1275,7 @@ def handle_auto_plan(payload: dict) -> int:
     if next_index >= len(AUTO_PLAN_STAGES):
         clear_state(state_path)
         stop_with_json(
-            f"auto-plan completed for {doc_path_value}. Research, deep-dive pass 1, deep-dive pass 2, and phase-plan are in place. "
+            f"auto-plan completed for {doc_path_value}. Research, deep-dive pass 1, deep-dive pass 2, phase-plan, and consistency-pass are in place. "
             f"The doc is ready for `Use $arch-step implement-loop {doc_path_value}`.",
             system_message="auto-plan completed; the doc is ready for implement-loop.",
         )

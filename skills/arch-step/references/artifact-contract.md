@@ -352,6 +352,7 @@ Keep these markers stable when present:
 - `arch_skill:block:reference_pack`
 - `arch_skill:block:plan_enhancer`
 - `arch_skill:block:overbuild_protector`
+- `arch_skill:block:consistency_pass`
 - `arch_skill:block:review_gate`
 - `arch_skill:block:implementation_audit`
 
@@ -436,5 +437,5 @@ Treat these as hard checks:
 
 ## Write-boundary rule
 
-- `new`, `reformat`, `research`, `deep-dive`, `external-research`, `phase-plan`, `auto-plan`, `plan-enhance`, `fold-in`, `overbuild-protector`, `review-gate`, and `audit-implementation` are docs-only
+- `new`, `reformat`, `research`, `deep-dive`, `external-research`, `phase-plan`, `auto-plan`, `plan-enhance`, `fold-in`, `overbuild-protector`, `consistency-pass`, `review-gate`, and `audit-implementation` are docs-only
 - `implement` and `implement-loop` are the code-writing commands in this skill

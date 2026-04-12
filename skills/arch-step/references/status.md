@@ -196,11 +196,12 @@ Grade:
 - `plan-enhance` is present when `arch_skill:block:plan_enhancer` exists
 - `fold-in` is present when `arch_skill:block:reference_pack` exists
 - `overbuild-protector` is present when `arch_skill:block:overbuild_protector` exists
+- `consistency-pass` is present when `arch_skill:block:consistency_pass` exists
 - `review-gate` is present when `arch_skill:block:review_gate` exists
 
 Summarize helpers in one compact line. Example:
 
-- `Helpers are mixed: plan enhancer is strong, fold-in is decent, overbuild protector is missing, review gate is not needed.`
+- `Helpers are mixed: plan enhancer is strong, fold-in is decent, overbuild protector is missing, consistency pass is strong, review gate is not needed.`
 
 ## Output shape
 
@@ -224,6 +225,7 @@ Choose the command that most improves artifact completeness or core-flow progres
 - weak or incomplete current architecture, target architecture, canonical-path analysis, or call-site audit -> `deep-dive`
 - warranted but missing external research -> `external-research`
 - weak, creep-heavy, missing capability-first analysis, preservation-light, or stale-live-doc-light execution checklist -> `phase-plan`
+- execution-grade plan still has obvious end-to-end consistency drift that warrants a dedicated cold read -> `consistency-pass`
 - code progress without worklog truth -> `implement`
 - missing implementation audit -> `audit-implementation`
 - clean implementation audit with remaining docs cleanup or plan/worklog retirement -> `Use $arch-docs`

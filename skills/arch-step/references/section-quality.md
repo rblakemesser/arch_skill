@@ -432,6 +432,31 @@ Downstream can trust it when:
 
 - execution agents can tell what is ship-blocking convergence work versus optional, deferred, or rejected work without guessing
 
+## Helper block: `consistency_pass`
+
+Purpose:
+
+- run one explicit end-to-end cold-read consistency check before implementation starts
+
+Strong when:
+
+- it checks the full artifact instead of only one local block
+- it repairs real cross-section contradictions in the main plan
+- it makes remaining inconsistencies explicit
+- it says plainly whether the doc should proceed to implementation
+- in Codex, it reflects two real cold-reader passes rather than one same-voice reread
+
+Weak when:
+
+- it becomes copy editing instead of truth repair
+- it leaves contradictions parked in the helper block instead of fixing the plan
+- it says `yes` while major scope, owner-path, or phase-plan disagreements remain
+- it becomes a second execution checklist
+
+Downstream can trust it when:
+
+- the artifact has been reread end to end and the proceed or stop decision is explicit and credible
+
 ## Helper block: `review_gate`
 
 Purpose:

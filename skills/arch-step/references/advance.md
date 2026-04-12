@@ -64,10 +64,11 @@ Emit every line in this order:
 8. `plan-enhance` helper is present when needed
 9. `fold-in` helper is present when needed
 10. `overbuild-protector` helper is present when needed
-11. `review-gate` helper is present when needed
-12. Implementation progress is grounded in code, `DOC_PATH`, and `WORKLOG_PATH`
-13. Implementation audit is present and honest
-14. Docs cleanup is either clearly next or already retired from the live surface
+11. `consistency-pass` helper is present when needed
+12. `review-gate` helper is present when needed
+13. Implementation progress is grounded in code, `DOC_PATH`, and `WORKLOG_PATH`
+14. Implementation audit is present and honest
+15. Docs cleanup is either clearly next or already retired from the live surface
 
 Helper commands stay explicit:
 
@@ -101,6 +102,7 @@ Choose exactly one next move using this precedence:
    - `external-research` when warranted
    - `deep-dive` again when external research materially changed the design
    - `phase-plan`
+   - `consistency-pass` when the artifact clearly needs an end-to-end cold-read repair or the user explicitly wants it
    - `implement` by default
    - `implement-loop` when the user explicitly wants the bounded delivery loop to a clean audit
    - `audit-implementation`
@@ -112,6 +114,7 @@ Default helper placement:
 - `plan-enhance`
 - `fold-in`
 - `overbuild-protector`
+- `consistency-pass`
 - `review-gate`
 
 These stay explicit unless the artifact clearly depends on one of them for correctness or execution safety.

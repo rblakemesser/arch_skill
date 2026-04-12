@@ -509,6 +509,195 @@ class CodexStopHookTests(unittest.TestCase):
             self.assertEqual(state["session_id"], "session-1")
             self.assertEqual(state["stage_index"], 1)
 
+    def test_stop_hook_advances_auto_plan_from_phase_plan_to_consistency_pass(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo_root = Path(temp_dir)
+            docs_dir = repo_root / "docs"
+            docs_dir.mkdir()
+            state_path = self.controller_state_path(
+                repo_root,
+                self.stop_module.AUTO_PLAN_STATE_RELATIVE_PATH,
+                "session-1",
+            )
+            self.write_json(
+                state_path,
+                {
+                    "command": "auto-plan",
+                    "session_id": "session-1",
+                    "doc_path": "docs/PLAN.md",
+                    "stage_index": 3,
+                    "stages": list(self.stop_module.AUTO_PLAN_STAGES),
+                },
+            )
+            time.sleep(0.01)
+            (docs_dir / "PLAN.md").write_text(
+                "<!-- arch_skill:block:phase_plan:start -->\n",
+                encoding="utf-8",
+            )
+
+            process = self.run_stop_hook(repo_root, "session-1")
+
+            self.assertEqual(process.returncode, 0, msg=process.stderr)
+            payload = json.loads(process.stdout)
+            self.assertTrue(payload["continue"])
+            self.assertIn("Use $arch-step consistency-pass docs/PLAN.md", payload["reason"])
+            self.assertEqual(
+                payload["systemMessage"],
+                "auto-plan finished phase-plan; continuing to consistency-pass.",
+            )
+
+            state = json.loads(state_path.read_text(encoding="utf-8"))
+            self.assertEqual(state["stage_index"], 4)
+
+    def test_stop_hook_completes_auto_plan_after_consistency_pass_yes(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo_root = Path(temp_dir)
+            docs_dir = repo_root / "docs"
+            docs_dir.mkdir()
+            state_path = self.controller_state_path(
+                repo_root,
+                self.stop_module.AUTO_PLAN_STATE_RELATIVE_PATH,
+                "session-1",
+            )
+            self.write_json(
+                state_path,
+                {
+                    "command": "auto-plan",
+                    "session_id": "session-1",
+                    "doc_path": "docs/PLAN.md",
+                    "stage_index": 4,
+                    "stages": list(self.stop_module.AUTO_PLAN_STAGES),
+                },
+            )
+            time.sleep(0.01)
+            (docs_dir / "PLAN.md").write_text(
+                "\n".join(
+                    [
+                        "<!-- arch_skill:block:consistency_pass:start -->",
+                        "## Consistency Pass",
+                        "- Reviewers: explorer 1, explorer 2, self-integrator",
+                        "- Scope checked:",
+                        "  - full artifact",
+                        "- Findings summary:",
+                        "  - none",
+                        "- Integrated repairs:",
+                        "  - none",
+                        "- Remaining inconsistencies:",
+                        "  - none",
+                        "- Decision: proceed to implement? yes",
+                        "<!-- arch_skill:block:consistency_pass:end -->",
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            process = self.run_stop_hook(repo_root, "session-1")
+
+            self.assertEqual(process.returncode, 0, msg=process.stderr)
+            payload = json.loads(process.stdout)
+            self.assertFalse(payload["continue"])
+            self.assertIn("consistency-pass are in place", payload["stopReason"])
+            self.assertIn("Use $arch-step implement-loop docs/PLAN.md", payload["stopReason"])
+            self.assertEqual(
+                payload["systemMessage"],
+                "auto-plan completed; the doc is ready for implement-loop.",
+            )
+            self.assertFalse(state_path.exists())
+
+    def test_stop_hook_disarms_auto_plan_when_consistency_pass_block_is_missing(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo_root = Path(temp_dir)
+            docs_dir = repo_root / "docs"
+            docs_dir.mkdir()
+            state_path = self.controller_state_path(
+                repo_root,
+                self.stop_module.AUTO_PLAN_STATE_RELATIVE_PATH,
+                "session-1",
+            )
+            self.write_json(
+                state_path,
+                {
+                    "command": "auto-plan",
+                    "session_id": "session-1",
+                    "doc_path": "docs/PLAN.md",
+                    "stage_index": 4,
+                    "stages": list(self.stop_module.AUTO_PLAN_STAGES),
+                },
+            )
+            time.sleep(0.01)
+            (docs_dir / "PLAN.md").write_text(
+                "# Plan\nConsistency pass did not write its helper block.\n",
+                encoding="utf-8",
+            )
+
+            process = self.run_stop_hook(repo_root, "session-1")
+
+            self.assertEqual(process.returncode, 0, msg=process.stderr)
+            payload = json.loads(process.stdout)
+            self.assertFalse(payload["continue"])
+            self.assertIn("stopped before consistency-pass completed", payload["stopReason"])
+            self.assertEqual(
+                payload["systemMessage"],
+                "auto-plan stopped before consistency-pass completed.",
+            )
+            self.assertFalse(state_path.exists())
+
+    def test_stop_hook_disarms_auto_plan_when_consistency_pass_says_no(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo_root = Path(temp_dir)
+            docs_dir = repo_root / "docs"
+            docs_dir.mkdir()
+            state_path = self.controller_state_path(
+                repo_root,
+                self.stop_module.AUTO_PLAN_STATE_RELATIVE_PATH,
+                "session-1",
+            )
+            self.write_json(
+                state_path,
+                {
+                    "command": "auto-plan",
+                    "session_id": "session-1",
+                    "doc_path": "docs/PLAN.md",
+                    "stage_index": 4,
+                    "stages": list(self.stop_module.AUTO_PLAN_STAGES),
+                },
+            )
+            time.sleep(0.01)
+            (docs_dir / "PLAN.md").write_text(
+                "\n".join(
+                    [
+                        "<!-- arch_skill:block:consistency_pass:start -->",
+                        "## Consistency Pass",
+                        "- Reviewers: explorer 1, explorer 2, self-integrator",
+                        "- Scope checked:",
+                        "  - full artifact",
+                        "- Findings summary:",
+                        "  - owner path and phase sequencing still disagree",
+                        "- Integrated repairs:",
+                        "  - tightened section 7 wording",
+                        "- Remaining inconsistencies:",
+                        "  - section 5 and section 6 still disagree",
+                        "- Decision: proceed to implement? no",
+                        "<!-- arch_skill:block:consistency_pass:end -->",
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            process = self.run_stop_hook(repo_root, "session-1")
+
+            self.assertEqual(process.returncode, 0, msg=process.stderr)
+            payload = json.loads(process.stdout)
+            self.assertFalse(payload["continue"])
+            self.assertIn("does not currently approve implementation", payload["stopReason"])
+            self.assertEqual(
+                payload["systemMessage"],
+                "auto-plan consistency-pass did not approve implementation.",
+            )
+            self.assertFalse(state_path.exists())
+
     def test_arch_docs_auto_continue_uses_grounded_repo_wide_wording(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             repo_root = Path(temp_dir)
