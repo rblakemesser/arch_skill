@@ -36,9 +36,11 @@
   - catches prompt-first or capability-first misses before finish mode
   - catches silent compression of instruction-bearing content before finish mode
   - catches scope creep before finish mode
+  - rejects repo-policing heuristics when they are not the user-requested feature
 - Weak:
   - rubber-stamp approval
   - accepts agent-backed tooling without justifying why prompt-first options failed
+  - accepts docs-audit scripts, stale-term greps, absence checks, or CI cleanliness gates as if they were meaningful feature safety
   - just repeats the phase plan
 
 ## Finish-mode audit
@@ -50,4 +52,5 @@
 - Weak:
   - "looks good"
   - lets finish mode invent wrappers or scripts that the doc never justified
+  - treats missing repo-policing heuristics as missing feature code
   - equates partial verification with completion

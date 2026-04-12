@@ -78,7 +78,7 @@ Strong when:
 
 - priorities are meaningfully ranked
 - constraints are real and grounded
-- principles reflect enforceable architecture rules
+- principles reflect enforceable architecture rules in real code or runtime boundaries, not repo-policing heuristics
 - tradeoffs and rejected alternatives are explicit
 
 Weak when:
@@ -180,7 +180,7 @@ Strong when:
 - contracts and boundaries are explicit
 - SSOT is clear
 - no parallel paths are tolerated without explicit approval
-- invariants are enforceable
+- invariants are enforceable in shipped behavior or boundary code, not through grep- or absence-based hygiene gates
 - migration shape is explicit where interfaces change
 
 Weak when:
@@ -370,7 +370,7 @@ Purpose:
 Strong when:
 
 - it sharpens the main plan instead of becoming a parallel plan
-- it makes enforceable rules explicit
+- it makes hard architecture rules explicit in real runtime or code terms instead of suggesting repo-policing heuristics
 - it identifies must-change call sites, deletes, drift-prone adopters, and the canonical owner path
 
 Weak when:

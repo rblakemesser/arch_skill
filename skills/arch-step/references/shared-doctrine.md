@@ -113,6 +113,7 @@ If the North Star, requested behavior scope, or allowed architectural convergenc
 - Prefer the smallest credible signal.
 - For agent-backed systems, prefer prompt, grounding, and native-capability changes before new harnesses or scripts.
 - Prefer existing tests, typecheck, lint, build, instrumentation, or log signatures before new harnesses.
+- Prefer direct code-path convergence, real runtime guards, or existing behavior checks before inventing any repo-policing validation.
 - If no cheap programmatic signal exists, use a short manual checklist.
 - Manual QA is usually non-blocking until finalization and should not be mistaken for missing code.
 - Avoid verification bureaucracy.
@@ -122,6 +123,11 @@ Negative-value defaults to avoid:
 - deleted-code proof tests
 - visual-constant or unstable-golden tests
 - doc-inventory gates
+- keyword or stale-term grep gates
+- file-absence or folder-absence proof checks
+- repo-structure policing tests
+- CI checks whose primary job is enforcing doc, taxonomy, comment, or naming cleanliness
+- helper scripts whose main purpose is auditing docs/help or checking that certain strings are absent
 - mock-only interaction tests with no behavior assertion
 - bespoke harnesses or frameworks added just to create ceremony
 - bespoke harnesses, wrappers, OCR stacks, parsers, or fuzzy match layers added mainly to avoid using native agent or model capabilities
@@ -143,7 +149,7 @@ Negative-value defaults to avoid:
 - Avoid parallel implementations, duplicate writers, and shadow contracts.
 - Git is the history for retired live truth surfaces. Do not keep dead competing code paths, stale live docs, stale comments, or stale instructions for archaeology.
 - If a touched live doc, comment, or instruction still matters after the change, update it to current truth in the same run instead of leaving a legacy explanation behind.
-- Boundaries and invariants should be enforceable, not merely described.
+- Boundaries and invariants should be real in shipped code, runtime routing, types, APIs, or behavior, not outsourced to keyword greps, absence checks, or docs-audit scripts.
 - Prefer hard cutover, explicit deletes, and fail-loud boundaries over compatibility shims.
 - Runtime fallbacks or shims are forbidden unless the plan explicitly approves them via `fallback_policy: approved` plus a Decision Log entry with a removal plan.
 

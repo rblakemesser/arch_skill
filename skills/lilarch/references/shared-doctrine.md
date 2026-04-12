@@ -10,6 +10,7 @@
 - Default to hard cutover and explicit deletes. Do not hide risk behind runtime shims.
 - When the changed behavior is agent- or LLM-driven, understand prompt surfaces, native model capabilities, and existing tool/file/context exposure before designing.
 - Prefer prompt engineering, grounding, and native-capability usage before custom harnesses, wrappers, parsers, OCR layers, or scripts.
+- Do not answer safety, cleanup, or drift resistance with docs-audit scripts, stale-term greps, absence checks, repo-structure tests, or CI cleanliness gates unless the user explicitly asked for that tooling class.
 - Do not assume the model lacks capability when repo or runtime evidence can answer that first.
 - If the source material includes prompts, agent instructions, or other instruction-bearing doctrine, preserve explicit structure by default instead of silently condensing it.
 
@@ -26,12 +27,14 @@
 - Strong:
   - 1-3 phases
   - a short but concrete requirements block
-  - capability-first thinking is explicit when the feature is agent-backed
-  - current and target architecture with direct call-site impact
-  - explicit defaults and explicit non-requirements
-  - finish mode that either ships or escalates cleanly
+- capability-first thinking is explicit when the feature is agent-backed
+- current and target architecture with direct call-site impact
+- explicit defaults and explicit non-requirements
+- real behavior or boundary ownership instead of repo-policing heuristics
+- finish mode that either ships or escalates cleanly
 - Weak:
   - pseudo-full-arch doc hiding inside lilarch
   - agent-backed work jumps to scaffolding before understanding prompt or model capability
+  - docs-audit scripts, stale-term greps, absence checks, or repo-layout policing appear as if they were part of the feature
   - open product questions left in the phase plan
   - "cleanup later" everywhere with no ownership

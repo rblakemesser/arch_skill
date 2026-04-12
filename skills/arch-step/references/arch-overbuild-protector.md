@@ -47,6 +47,7 @@ If those sections are vague, warn in the helper block but do not hard-block.
 - if no phase plan exists, stop and point to `phase-plan`; do not invent a new plan format
 - use code and repo evidence only to validate convergence, parity, or risk claims; do not invent obligations
 - for agent-backed systems, classify proposed tooling against prompt-first and capability-first alternatives before treating it as necessary
+- treat docs-audit scripts, stale-term greps, absence checks, repo-structure tests, and CI cleanliness gates as architecture theater by default unless the user explicitly asked for that tooling class
 
 ## Work-item extraction
 
@@ -82,6 +83,11 @@ Default reject examples for `F` or `G` unless explicitly approved:
 - new deleted-code proof tests
 - visual-constant or churn-heavy golden tests
 - coverage gates or bespoke coverage infrastructure
+- docs/help audit scripts
+- stale-term grep gates
+- file-absence or folder-absence proof checks
+- repo-structure or taxonomy-policing tests
+- CI checks on keyword absence or comment cleanliness
 - new remote-runner or distributed-execution wiring for local development tasks
 - new generators or frameworks introduced just to save small amounts of time
 - OCR pipelines when the runtime already has native vision
@@ -93,9 +99,10 @@ Tie-breakers:
 - `STRICT=1`:
   - ambiguity defaults to follow-up, not include
 - `STRICT=0`:
-  - ambiguity defaults to optional, not include
+- ambiguity defaults to optional, not include
 - convergence or parity is never assumed without a real anchor
 - new tooling is follow-up unless `A-D` clearly applies
+- repo-policing heuristics are rejected unless the user explicitly asked for them
 - tooling that substitutes for native capability or prompt work is rejected unless necessity is explicit
 
 ## Update rules

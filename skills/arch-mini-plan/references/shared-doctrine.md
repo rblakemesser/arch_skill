@@ -9,6 +9,7 @@
 - Default to fail-loud boundaries and hard cutover. Do not hide uncertainty behind runtime shims.
 - When the changed behavior is agent- or LLM-driven, understand prompt surfaces, native model capabilities, and existing tool/file/context exposure before designing.
 - Prefer prompt engineering, grounding, and native-capability usage before custom harnesses, wrappers, parsers, OCR layers, or scripts.
+- Do not answer safety, drift resistance, or cleanup with docs-audit scripts, stale-term greps, absence checks, repo-structure tests, or CI cleanliness gates unless the user explicitly asked for that tooling class.
 - Do not assume the model lacks capability when that fact is discoverable from repo or runtime evidence.
 - If the source material includes prompts, agent instructions, or other instruction-bearing doctrine, preserve explicit structure by default instead of silently condensing it.
 
@@ -24,15 +25,17 @@
 
 - Strong:
   - one clear North Star
-  - a small set of repo anchors
-  - capability-first analysis before new tooling when the work is agent-backed
-  - instruction-bearing source material keeps explicit structure when it is ported into the plan
-  - direct current and target architecture
-  - a concrete call-site audit
-  - a 1-2 phase plan with obvious deletes and verification
+- a small set of repo anchors
+- capability-first analysis before new tooling when the work is agent-backed
+- instruction-bearing source material keeps explicit structure when it is ported into the plan
+- direct current and target architecture
+- a concrete call-site audit
+- real behavior- or boundary-level checks instead of repo-policing heuristics
+- a 1-2 phase plan with obvious deletes and verification
 - Weak:
   - vague aspirations instead of architecture
   - jumps to scaffolding for agent behavior before understanding prompt or model capability
+  - proposes docs-audit scripts, stale-term greps, absence checks, or repo-layout policing as if they were runtime safety
   - silently condenses prompt or agent doctrine into vague bullets
   - long speculative external research
   - a "future ideas" list standing in for a phase plan

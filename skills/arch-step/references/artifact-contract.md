@@ -165,6 +165,7 @@ Required content:
 - ranked priorities
 - constraints across correctness, performance, latency, migration, and operations as relevant
 - enforceable architectural principles
+  - these must be realizable in shipped code, runtime ownership, types, APIs, or behavior-level checks, not by keyword greps, doc scans, absence checks, or repo-shape policing
   - strong examples include fail-loud boundaries, DI rules, no business logic in UI, reuse the canonical path, and no new parallel paths
 - high-leverage pattern-propagation comments when introducing a new SSOT, contract, or tricky invariant
 
@@ -266,7 +267,7 @@ Canonical heading plus rule line:
 ```text
 # Depth-First Phased Implementation Plan (authoritative)
 
-> Rule: systematic build, foundational first; every phase has exit criteria + explicit verification plan (tests optional). Refactors, consolidations, and shared-path extractions must preserve existing behavior with the smallest credible signal. For agent-backed systems, prefer prompt, grounding, and native-capability changes before new harnesses or scripts. No fallbacks/runtime shims - the system must work correctly or fail loudly (delete superseded paths). Prefer programmatic checks per phase; defer manual/UI verification to finalization. Avoid negative-value tests (deletion checks, visual constants, doc-driven gates). Also: document new patterns/gotchas in code comments at the canonical boundary (high leverage, not comment spam).
+> Rule: systematic build, foundational first; every phase has exit criteria + explicit verification plan (tests optional). Refactors, consolidations, and shared-path extractions must preserve existing behavior with the smallest credible signal. For agent-backed systems, prefer prompt, grounding, and native-capability changes before new harnesses or scripts. No fallbacks/runtime shims - the system must work correctly or fail loudly (delete superseded paths). Prefer programmatic checks per phase; defer manual/UI verification to finalization. Avoid negative-value tests and heuristic gates (deletion checks, visual constants, doc-driven gates, keyword or absence gates, repo-shape policing). Also: document new patterns/gotchas in code comments at the canonical boundary (high leverage, not comment spam).
 ```
 
 Canonical per-phase fields:
@@ -305,6 +306,7 @@ Principle lines to preserve:
 - default to 1-3 checks total
 - for agent-backed systems, prefer prompt, grounding, and native-capability improvements before new scripts or harnesses
 - do not invent new harnesses, frameworks, or scripts unless they already exist and are the cheapest guardrail
+- do not answer "drift resistance" or "enforcement" with docs-audit scripts, stale-term greps, absence checks, repo-structure tests, or CI gates whose main job is policing the tree rather than protecting shipped behavior
 - do not invent OCR layers, parser stacks, fuzzy matchers, or wrappers that substitute for native model capability without explicit plan justification
 - keep UI/manual verification as finalization by default
 - for refactors, prefer behavior-preservation checks that survive restructuring

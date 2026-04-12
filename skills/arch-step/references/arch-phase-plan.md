@@ -32,6 +32,7 @@
 - if missing work is discovered while planning, classify whether it is required convergence, anchored pattern/parity, concrete risk mitigation, optional quality, product scope creep, or architecture theater before adding it to the phase plan
 - for agent-backed systems, prompt, grounding, and native-capability changes get first right of refusal before new harnesses, wrappers, parsers, OCR layers, or scripts
 - if a phase includes new tooling for agent-backed behavior, say why prompt-first and capability-first options were insufficient
+- do not add scripts, tests, CI checks, or validation steps whose primary job is auditing docs/help, checking keyword absence, policing repo layout, or proving deletions by grep
 - only ship-blocking work belongs in the authoritative checklist
 - if the change would leave touched live docs, comments, or instructions stale, update-or-delete work for those surfaces belongs in the phase plan
 - do not turn helper blocks into competing execution checklists
@@ -53,6 +54,7 @@ Before writing the phase plan:
 - refactor-heavy phases must say how preserved behavior will be proven
 - agent-backed phases must make capability-first choices explicit before adding custom tooling
 - verification should be small, credible, and non-bureaucratic
+- verification must stay tied to shipped behavior, runtime ownership, or real contract boundaries rather than repo-policing heuristics
 - required cleanup, deletes, and touched doc/comment reality-sync work should not be buried
 
 ## Placement and update rules
@@ -71,7 +73,7 @@ Use this block shape:
 <!-- arch_skill:block:phase_plan:start -->
 # Depth-First Phased Implementation Plan (authoritative)
 
-> Rule: systematic build, foundational first; every phase has exit criteria + explicit verification plan (tests optional). Refactors, consolidations, and shared-path extractions must preserve existing behavior with the smallest credible signal. For agent-backed systems, prefer prompt, grounding, and native-capability changes before new harnesses or scripts. No fallbacks/runtime shims - the system must work correctly or fail loudly (delete superseded paths). Prefer programmatic checks per phase; defer manual/UI verification to finalization. Avoid negative-value tests (deletion checks, visual constants, doc-driven gates). Also: document new patterns/gotchas in code comments at the canonical boundary (high leverage, not comment spam).
+> Rule: systematic build, foundational first; every phase has exit criteria + explicit verification plan (tests optional). Refactors, consolidations, and shared-path extractions must preserve existing behavior with the smallest credible signal. For agent-backed systems, prefer prompt, grounding, and native-capability changes before new harnesses or scripts. No fallbacks/runtime shims - the system must work correctly or fail loudly (delete superseded paths). Prefer programmatic checks per phase; defer manual/UI verification to finalization. Avoid negative-value tests and heuristic gates (deletion checks, visual constants, doc-driven gates, keyword or absence gates, repo-shape policing). Also: document new patterns/gotchas in code comments at the canonical boundary (high leverage, not comment spam).
 
 ## Phase 1 — <foundation>
 

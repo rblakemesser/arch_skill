@@ -135,12 +135,13 @@ Missing manual evidence should become non-blocking follow-up.
 4. validate each planned code change against repo reality:
    - verify each planned call-site change in code
    - search for missed call sites or lingering old APIs, patterns, or paths
-   - verify SSOT enforcement and boundary compliance
+   - verify SSOT ownership and boundary compliance in shipped code, runtime routing, or real contract surfaces
    - verify the implementation converged onto the planned canonical path instead of introducing a bypass
    - verify required deletes and cleanup through repo search, static analysis, build, or typecheck rather than proof tests
    - verify touched live docs, comments, and instructions were deleted or rewritten when the plan said they would otherwise become stale
    - for agent-backed systems, verify planned prompt, grounding, or native-capability changes actually landed when they were the primary lever
    - verify any new harness, wrapper, parser, OCR layer, or script was explicitly justified by the plan instead of silently replacing intended model reasoning
+   - do not treat missing docs-audit scripts, keyword greps, absence checks, or repo-policing CI as missing code work unless the user explicitly asked for that tooling class
    - verify required preservation signals actually ran and protect the intended behavior
    - verify claimed fixes have credible code-verifiable proof instead of only a code diff
    - verify claimed tests, assertions, or automation actually exist and hit the intended failure surface
@@ -161,6 +162,7 @@ Always name phases as `Phase <n> (<what it does>)` using the phase heading text 
 - if the implementation introduced capability-replacing scaffolding for agent-backed behavior without explicit plan justification, treat that as missing code correctness and reopen the responsible phase
 - if a refactor or convergence change lacks credible preservation evidence, treat that as missing code correctness and reopen the responsible phase
 - if a claimed fix lacks credible code-verifiable proof, treat that as missing code correctness and reopen the responsible phase
+- do not reopen a phase solely because someone failed to add a keyword grep, docs-audit script, absence check, or repo-structure policing gate that the user never asked for
 
 ## Update rules
 
@@ -226,7 +228,7 @@ When reopening a phase:
 ## Verdict rules
 
 - `Verdict (code): COMPLETE` only when no missing or incorrect code work remains
-- `Verdict (code): NOT COMPLETE` when any required code work, migration, delete, touched-doc cleanup, contract enforcement, preservation expectation, or anti-shim expectation is unmet
+- `Verdict (code): NOT COMPLETE` when any required code work, migration, delete, touched-doc cleanup, runtime or code contract expectation, preservation expectation, or anti-shim expectation is unmet
 - manual QA pending alone does not force `NOT COMPLETE`
 - a later `arch-docs` cleanup pass is expected after a clean verdict; that broader docs-cleanup work is not by itself a reason to keep `Verdict (code): NOT COMPLETE`
 

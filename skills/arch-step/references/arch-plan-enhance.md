@@ -37,11 +37,12 @@
 - make SSOT explicit
 - name the canonical path that should own the requested behavior
 - remove or reject parallel implementations
-- make boundaries and invariants enforceable
+- make boundaries and invariants explicit in real code, runtime, or API terms
 - name required deletes and cleanup
 - identify must-change call sites and drift-prone adopters
 - identify touched live docs, comments, or instructions that must be deleted or rewritten to current reality
 - when agent-backed, identify prompt-first or native-capability-first options before blessing new tooling
+- reject repo-policing heuristics such as docs-audit scripts, stale-term greps, absence checks, or CI cleanliness gates unless the user explicitly asked for that tooling class
 - name the behavior-preservation checks that make refactors safe
 - keep the evidence plan common-sense and non-blocking
 - explicitly note where a short boundary comment should live when future drift is likely
@@ -70,8 +71,8 @@ Use this block shape:
 - Biggest remaining risks:
   - <bullets>
 
-## Enforceable rules (drift-proofing)
-- <rules we will enforce architecturally, not socially>
+## Hard architecture rules (real surfaces only)
+- <rules that land in code paths, runtime routing, types, APIs, or real behavior checks; never keyword greps, absence checks, or docs-audit gates>
 
 ## Call sites + migration
 - Must-change call sites:
