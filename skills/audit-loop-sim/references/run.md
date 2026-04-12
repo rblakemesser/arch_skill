@@ -47,6 +47,7 @@ Do stop when the next move would require a genuinely different journey story, a 
    - same-story product bug fix exposed by the new automation
 9. Verify:
    - run the smallest targeted real-app signal that proves the fix
+   - when the repo provides `mobile-sim`, use `mobile-sim` for simulator or device control
    - iterate on iOS first when iOS is available and the risk is not platform-specific
    - before calling a cross-platform front done, run one Android confirmation on the same journey
 10. Update:
@@ -67,5 +68,6 @@ Do stop when the next move would require a genuinely different journey story, a 
 
 - Prefer behavior-level verification over implementation-detail checks.
 - Primary journeys deserve at least one realistic end-to-end signal where feasible.
+- Do not substitute Flutter unit or widget tests when the current front requires simulator or device proof; spend real effort on the sanctioned simulator path first, then stop blocked if it still cannot produce the required signal.
 - If the best evidence is a targeted real-app lane plus a broader existing suite, run both.
 - If the repo has no credible automated signal for the fix, say so plainly in the ledger.

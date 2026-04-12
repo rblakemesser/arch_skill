@@ -6,7 +6,7 @@
 - Audit-loop-sim exists to reduce the biggest real-app automation risks, not to harvest easy wins.
 - Primary-path, onboarding, auth or session restore, monetization, core content progression, offline state, and platform ingress matter more than polishing a safe corner of settings when the evidence supports that.
 - Prefer durable automation over manual QA recipes.
-- Existing repo-native automation and simulator or device surfaces come first. Extend them before inventing a parallel runner, lane family, or harness story.
+- Existing repo-native automation and simulator or device surfaces come first. In repos that provide `mobile-sim`, use `mobile-sim` for simulator or device control instead of inventing a parallel runner, lane family, or harness story.
 - Tests exist to protect meaningful behavior. Coverage is a trailing indicator, not the product.
 - Leave the app and automation surface stronger than you found them when the evidence supports a fix.
 
@@ -30,6 +30,7 @@
 - Prefer extending existing flow families and harness helpers over creating a brand-new automation island.
 - Use iOS for faster iteration when available and not contradicted by the evidence; close cross-platform fronts with one Android confirmation.
 - Do not build a second automation taxonomy just because the current one is imperfect.
+- Do not quietly swap a simulator-required risk front to Flutter unit or widget tests because simulator work is failing. Recover the sanctioned simulator path or stop blocked.
 
 ## Existing-tool guidance
 
@@ -39,7 +40,7 @@
   - `rg -n "TODO|FIXME|HACK|XXX|DEPRECATED"`
 - Existing-tool examples when they already fit the repo:
   - repo-native integration or device test runners
-  - repo-native simulator or device wrappers
+  - repo-native simulator or device wrappers such as `mobile-sim`
   - existing QA commands or log-snapshot tooling
   - existing release-gate or device-farm lanes
   - `git log` churn baselines when they sharpen judgment
@@ -53,5 +54,6 @@ Record `unknown` instead of auto-installing any of these.
 - Spending the pass on a neat tiny test fix while a larger justified primary-journey gap is still open.
 - Spending the pass on a flaky low-priority screen instead of the highest-risk open journey.
 - Inventing a second simulator, runner, or harness story because the current one is annoying.
+- Deciding that simulator work is broken and calling Flutter unit or widget tests "good enough" for the same real-app risk front.
 - Sneaking in formatting, linting, types, or tooling side quests that are not required by the finding.
 - Pretending a low-value assertion is meaningful because it makes the suite look busier.

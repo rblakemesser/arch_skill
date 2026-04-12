@@ -59,7 +59,8 @@ Lifecycle:
 - do not continue after `BLOCKED`
 - do not continue after `CLEAN`
 - do not auto-commit findings
-- use the repo's sanctioned simulator, emulator, and automation surfaces instead of inventing a second runtime story
+- use the repo's sanctioned simulator, emulator, and automation surfaces instead of inventing a second runtime story; use `mobile-sim` when the repo provides it
+- do not degrade a simulator-required front into Flutter unit or widget tests; work the simulator path for a while and stop `BLOCKED` if it still cannot produce the required real-app signal
 
 ## Hook behavior
 

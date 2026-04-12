@@ -27,11 +27,12 @@ Use this skill when the job is to inspect a mobile app codebase for its biggest 
 - `_audit_sim_ledger.md` at repo root is the source of truth. Add it to the root `.gitignore` immediately.
 - Triage before code changes. Do not skip straight to editing because one suspicious line looks fixable.
 - Start with primary journeys and existing repo-native automation evidence. Record unavailable signals as `unknown` instead of auto-installing new tooling.
-- Use the repo's canonical simulator or device surface and existing automation stack. If the repo ships a sanctioned wrapper such as `mobile-sim`, use it instead of inventing a parallel command story.
+- Use the repo's canonical simulator or device surface and existing automation stack. If the repo ships `mobile-sim`, use `mobile-sim` for simulator or device control instead of inventing a parallel command story.
 - Reduce the top unresolved real-app automation risk materially. Do not cash out a pass on a tiny safe test tweak while a bigger justified journey gap still dominates the app.
 - It is acceptable and often necessary to touch product code, integration tests, harness helpers, fixtures, native glue, or QA surfaces when they belong to the same automation risk story.
 - If the new automation exposes a same-story app bug, fix it in the same pass instead of leaving a knowingly broken lane behind.
 - Prefer behavior-level end-to-end proof on meaningful journeys. Do not write negative-value automation.
+- Do not decide that simulator or device work is annoying and quietly downgrade a real-app risk front into Flutter unit or widget tests. Work the sanctioned simulator path for a while, and if it still cannot produce the required real-app signal, stop blocked and name that blocker plainly.
 - When iOS simulator is available and the risk is not platform-specific, use iOS for faster iteration and close with one Android confirmation for the same journey before calling a cross-platform risk front done.
 - Default invocation with no mode is `run`.
 - `review` is docs-only.
@@ -57,6 +58,7 @@ Use this skill when the job is to inspect a mobile app codebase for its biggest 
 - Refresh triage from primary journeys, real-app signal, automation gaps, platform truth, churn when useful, and explicit `SKIP` decisions.
 - Pick the highest-priority unresolved automation risk front.
 - Read the implementation and current automation before patching, log findings, and fix the strongest justified work across that risk front.
+- When the repo provides `mobile-sim`, use it for simulator or device management. If the current front needs simulator or device proof, do not replace that with Flutter unit or widget tests just because the simulator path is hard; either recover it or stop blocked.
 - Verify the changes, update the ledger, and stop only when further useful work would require a genuinely different automation story, a new reconnaissance pass, or a real blocker.
 
 ### 2) `review`

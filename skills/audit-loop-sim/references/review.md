@@ -25,6 +25,7 @@ No product code changes are allowed in `review`.
    - relevant automation files, runner output, build checks, or logs when needed
    - whether the latest pass actually reduced the top open automation risk
    - whether the same automation risk front still has justified unresolved work
+   - whether the latest pass produced the required simulator or device signal through the sanctioned surface, using `mobile-sim` when the repo provides it
    - whether a cross-platform front still needs Android confirmation before it can honestly be called done
 4. Set the controller block:
    - `CONTINUE` when a concrete worthwhile next automation risk front remains
@@ -54,6 +55,7 @@ Use only when:
 - no credible `P0`, `P1`, or justified `P2` automation pass remains
 - rescanning would likely just relitigate prior `SKIP` decisions
 - the loop is not merely stopping because the next useful work touches a broader automation surface
+- the latest front did not quietly degrade into Flutter unit or widget tests where simulator or device proof was required
 - any cross-platform front that was iterated on iOS has a credible Android closeout when Android still matters for that story
 
 `Stop Reason` should be blank.
@@ -66,6 +68,9 @@ Use when:
 - the failing baseline or current repo state makes the next pass unsafe
 - the next pass would rerun the same idea without a changed lever
 - the ledger is too weak to continue honestly without first repairing the investigation
+- the current front still requires simulator or device proof, but the sanctioned path could not be made to work after bounded recovery work, using `mobile-sim` when the repo provides it
 - the remaining work would require inventing a parallel automation system instead of using the repo's existing surfaces
+
+If the latest pass only has Flutter unit or widget evidence where the current front required simulator or device proof, do not mark `CLEAN`. Mark `BLOCKED` and name the simulator blocker plainly.
 
 `Stop Reason` is required.
