@@ -155,11 +155,14 @@ These stay explicit unless the user directly asks for them:
 - `implement-loop`
 - `auto-implement`
 
-`auto-plan` is a bounded planning controller. It runs `research`, then `deep-dive`, then `deep-dive` again, then `phase-plan` against the same `DOC_PATH`, then stops and says the doc is ready for `implement-loop`. The user-facing command stays simple:
+`auto-plan` is a bounded planning controller. In Codex, the initial `auto-plan` pass arms `.codex/auto-plan-state.<SESSION_ID>.json`, runs only `research` against the same `DOC_PATH`, then ends its turn naturally. It must not self-run `deep-dive` pass 1, `deep-dive` pass 2, or `phase-plan` in that same turn. After that first turn, the installed Stop hook owns stage-to-stage continuation: it feeds exactly one literal next command per later turn, keeps the controller state aligned, and after `phase-plan` it clears state and says the doc is ready for `implement-loop`. The user-facing command stays simple:
 
 - run `$arch-step auto-plan`
 - or run `$arch-step auto-plan <DOC_PATH>`
 - do not run the Stop hook yourself; after the controller is armed, just end the turn and let Codex run the installed Stop hook
+- the initial `auto-plan` pass must run only `research`, then end the turn
+- later planning stages are hook-owned only; one literal next command per turn
+- the parent `auto-plan` pass must not clear successful controller state, claim the planning arc is complete, or emit the `implement-loop` handoff
 - prefer the current session's canonical full-arch doc when `DOC_PATH` is omitted
 - if the installed runtime support is absent, disabled, or the North Star is still unapproved, name the broken prerequisite and stop
 - keep `.codex/auto-plan-state.<SESSION_ID>.json` aligned with the live run
