@@ -27,6 +27,7 @@ No product code changes are allowed in `review`.
    - whether the same automation risk front still has justified unresolved work
    - whether the latest pass produced the required simulator or device signal through the sanctioned surface, using `mobile-sim` when the repo provides it
    - whether a cross-platform front still needs Android confirmation before it can honestly be called done
+   - treat unrelated dirty or untracked files as ordinary context, not as an automatic blocker
 4. Set the controller block:
    - `CONTINUE` when a concrete worthwhile next automation risk front remains
    - `CLEAN` when only fixed items or explicit `SKIP`s remain and no credible major automation pass is justified
@@ -74,3 +75,5 @@ Use when:
 If the latest pass only has Flutter unit or widget evidence where the current front required simulator or device proof, do not mark `CLEAN`. Mark `BLOCKED` and name the simulator blocker plainly.
 
 `Stop Reason` is required.
+
+A dirty worktree by itself is not enough for `BLOCKED`. Use `BLOCKED` only when the current repo state directly conflicts with the next justified pass or makes verification unsafe.

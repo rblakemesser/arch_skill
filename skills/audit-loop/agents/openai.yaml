@@ -1,7 +1,7 @@
 interface:
   display_name: "Audit Loop"
   short_description: "Run a repo-wide bug hunt and cleanup loop with a root audit ledger; supports Codex-only auto continuation"
-  default_prompt: "Use $audit-loop for a repo-wide audit pass that finds and fixes real bugs, dead code, duplication, and missing high-value regression coverage in priority order. Push on the biggest real unresolved risk until it is materially reduced; do not cash out on a tiny safe fix while a bigger justified problem still dominates. A pass may cross multiple files, modules, and tests when they serve the same risk story. `review` is docs-only; `auto` is the Codex-only controller and must fail loud if hook support or `codex_hooks` is missing. Do not run the Stop hook yourself, and after `auto` is armed just end the turn and let Codex run the installed Stop hook."
+  default_prompt: "Use $audit-loop for a repo-wide audit pass that finds and fixes real bugs, dead code, duplication, and missing high-value regression coverage in priority order. Push on the biggest real unresolved risk until it is materially reduced; do not cash out on a tiny safe fix while a bigger justified problem still dominates. A pass may cross multiple files, modules, and tests when they serve the same risk story. Unrelated dirty or untracked files do not block `run`, `review`, or `auto`; leave them alone unless they directly conflict with the current risk front or make verification unsafe. `review` is docs-only; `auto` is the Codex-only controller and must fail loud if hook support or `codex_hooks` is missing. Do not run the Stop hook yourself, and after `auto` is armed just end the turn and let Codex run the installed Stop hook."
 
 policy:
   allow_implicit_invocation: true

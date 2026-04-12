@@ -21,6 +21,8 @@ One `run` pass owns one automation risk front. A risk front is the highest-prior
 
 The pass may cross product files, modules, integration tests, harness helpers, fixtures, or native glue when that is what it takes to reduce the same automation risk front honestly.
 
+Unrelated dirty or untracked files are normal context, not a blocker. Leave them untouched unless they directly conflict with the current automation risk front or make verification unsafe.
+
 Do not force the pass to stop after one finding or one patch when the same risk front still has clearly justified work.
 
 Do stop when the next move would require a genuinely different journey story, a fresh audit cycle, or a different verification basis.
@@ -63,6 +65,7 @@ Do stop when the next move would require a genuinely different journey story, a 
 - A tiny isolated test tweak does not win if the same user-journey failure mode still has obvious unresolved work.
 - Existing repo-native automation or harness surfaces are usually worth extending before building a new lane family.
 - Low-risk, low-churn, already-protected behavior is a good `SKIP`.
+- Unrelated dirty or untracked files do not justify stopping or downgrading the pass on their own.
 
 ## Verification rules
 

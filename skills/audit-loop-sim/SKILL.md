@@ -34,6 +34,7 @@ Use this skill when the job is to inspect a mobile app codebase for its biggest 
 - Prefer behavior-level end-to-end proof on meaningful journeys. Do not write negative-value automation.
 - Do not decide that simulator or device work is annoying and quietly downgrade a real-app risk front into Flutter unit or widget tests. Work the sanctioned simulator path for a while, and if it still cannot produce the required real-app signal, stop blocked and name that blocker plainly.
 - When iOS simulator is available and the risk is not platform-specific, use iOS for faster iteration and close with one Android confirmation for the same journey before calling a cross-platform risk front done.
+- Unrelated dirty or untracked files are not a blocker. Leave them alone unless they directly conflict with the current automation risk front or make verification unsafe.
 - Default invocation with no mode is `run`.
 - `review` is docs-only.
 - `auto` is Codex-only and must fail loud when hook support or `codex_hooks` is missing.

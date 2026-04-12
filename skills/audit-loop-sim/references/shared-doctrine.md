@@ -24,6 +24,7 @@
 - Read the journey implementation and the current automation before patching either.
 - Work one unresolved automation risk front at a time, not one arbitrary line item at a time.
 - It is acceptable and expected to fix multiple findings together when they share one failure mode, journey, or verification story.
+- Do not block on unrelated dirty or untracked files. Leave them alone unless they directly conflict with the current automation risk front or make verification unsafe.
 - Do not yield just because the next fix touches a second file, module, harness helper, or test surface.
 - Stop when the next credible move would require a different journey story, a new audit cycle, or verification that no longer belongs to the same front.
 - If a new lane exposes a same-story product bug, fix it. Do not treat "the test found it" as enough.

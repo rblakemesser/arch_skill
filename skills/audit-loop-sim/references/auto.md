@@ -26,6 +26,8 @@ Before arming the controller, verify all of these:
 
 If any check fails, name the broken prerequisite and stop.
 
+Dirty or untracked files are not part of this runtime preflight. A dirty worktree does not stop `auto` by itself; leave unrelated dirty or untracked files alone unless they directly conflict with the current automation story or make verification unsafe.
+
 ## State file contract
 
 Resolve `SESSION_ID` from `CODEX_THREAD_ID`, then create `.codex/audit-loop-sim-state.<SESSION_ID>.json` before the first `run` pass.
@@ -54,6 +56,7 @@ Lifecycle:
 
 - `auto` is one controller command, not a suggestion to keep winging it forever
 - `auto` must not degrade into a tiny-safe-fix treadmill
+- do not refuse to arm only because the repo has unrelated dirty or untracked files
 - the review pass must run in fresh context
 - `review` stays docs-only
 - do not continue after `BLOCKED`

@@ -23,6 +23,7 @@
 - Read the code before the tests.
 - Work one unresolved risk front at a time, not one arbitrary line item at a time.
 - It is acceptable and expected to fix multiple findings together when they share one failure mode, critical path, or verification story.
+- Do not block on unrelated dirty or untracked files. Leave them alone unless they directly conflict with the current risk front or make verification unsafe.
 - Do not yield just because the next fix touches a second file, module, or test surface.
 - Stop when the next credible move would require a different risk story, a new audit cycle, or verification that no longer belongs to the same front.
 - Delete dead code boldly. Git is the history.

@@ -30,6 +30,7 @@ Use this skill when the job is to inspect a codebase for its biggest real unreso
 - Dead code deletion counts as a fix. Duplication on critical paths counts as real bug prevention work.
 - It is acceptable and often necessary to touch multiple files, modules, and tests when they belong to the same risk story.
 - Prefer behavior-level verification and integration coverage on critical paths. Do not write negative-value tests.
+- Unrelated dirty or untracked files are not a blocker. Leave them alone unless they directly conflict with the current risk front or make verification unsafe.
 - Default invocation with no mode is `run`.
 - `review` is docs-only.
 - `auto` is Codex-only and must fail loud when hook support or `codex_hooks` is missing.

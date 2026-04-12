@@ -21,6 +21,8 @@ One `run` pass owns one risk front. A risk front is the highest-priority unresol
 
 The pass may cross multiple files, modules, or tests when that is what it takes to reduce the same risk front honestly.
 
+Unrelated dirty or untracked files are normal context, not a blocker. Leave them untouched unless they directly conflict with the current risk front or make verification unsafe.
+
 Do not force the pass to stop after one finding or one patch when the same risk front still has clearly justified work.
 
 Do stop when the next move would require a genuinely different risk story, a fresh audit cycle, or a different verification basis.
@@ -61,6 +63,7 @@ Do stop when the next move would require a genuinely different risk story, a fre
 - Duplication on a critical path is immediately worth consolidating.
 - A tiny isolated fix does not win if the same critical-path failure mode still has obvious unresolved work.
 - Low-risk, low-churn, already-tested code is a good `SKIP`.
+- Unrelated dirty or untracked files do not justify stopping or downgrading the pass on their own.
 
 ## Verification rules
 
