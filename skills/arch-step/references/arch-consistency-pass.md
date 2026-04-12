@@ -6,7 +6,7 @@
 - repair obvious cross-section contradictions in place before implementation starts
 - use two parallel cold-reader passes in Codex so the parent integrator gets fresh eyes across the whole artifact
 - record the outcome in one helper block
-- decide whether the doc is ready to proceed to `implement`
+- decide whether the doc is decision-complete and ready to proceed to `implement`
 
 ## Shared references to carry in
 
@@ -31,6 +31,7 @@
 - in Codex, use exactly two parallel `explorer` agents for the cold read
 - outside Codex, keep the same review question and block shape; do not invent a second workflow just because explorer agents are not a runtime primitive
 - if the North Star, deep-dive, or phase plan is too weak to audit honestly, stop and point to the earlier command that must repair it
+- `Decision: proceed to implement? yes` is forbidden while unresolved decisions or unauthorized scope cuts remain
 
 ## Codex cold-read split
 
@@ -57,7 +58,7 @@ The parent pass owns integration:
 
 Ask the same question every time:
 
-- `Does this artifact still say the same thing end to end about outcome, requested behavior scope, allowed convergence scope, canonical owner path, required deletes or migrations, authoritative execution order, verification expectations, rollout obligations, and approved exceptions? If not, what must change in the main doc before implementation should begin?`
+- `Does this artifact still say the same thing end to end about outcome, requested behavior scope, allowed convergence scope, canonical owner path, required deletes or migrations, authoritative execution order, verification expectations, rollout obligations, and approved exceptions? Are any plan-shaping decisions still unresolved? Did the artifact silently cut any approved behavior or required work? If anything is off, what must change in the main doc before implementation should begin?`
 
 Anchor that question using `artifact-contract.md` and `section-quality.md`:
 
@@ -88,6 +89,12 @@ Use this block shape:
   - <item>
 - Remaining inconsistencies:
   - <item or `none`>
+- Unresolved decisions:
+  - <item or `none`>
+- Unauthorized scope cuts:
+  - <item or `none`>
+- Decision-complete:
+  - <yes|no>
 - Decision: proceed to implement? <yes|no>
 <!-- arch_skill:block:consistency_pass:end -->
 ```
@@ -100,6 +107,7 @@ Insert near the end before the Decision Log when possible.
 - repairs the main artifact instead of parking issues in the helper block
 - makes it obvious whether implementation should proceed now
 - keeps remaining inconsistencies explicit when the answer is `no`
+- makes unresolved decisions and unauthorized scope cuts explicit
 - stays short and decision-oriented once the repairs are integrated
 
 ## Stop condition

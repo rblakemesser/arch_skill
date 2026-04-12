@@ -2,9 +2,9 @@
 
 ## What this command does
 
-- expose the same scope-triage rubric that core commands should already be using
+- compare the authoritative phase plan against the explicit scope contract already recorded in the artifact
 - classify phase-plan work items into explicit scope buckets
-- separate ship-blocking work from optional work, follow-ups, product scope creep, and architecture theater
+- separate clearly required work from explicitly non-blocking work, product scope creep, architecture theater, and unresolved requiredness that must go back to the user
 - in apply mode, rewrite the phase plan in place so the main checklist is mechanically scope-safe
 
 ## Shared references to carry in
@@ -32,7 +32,7 @@ Treat these as the scope contract when present:
 - Section 0.4 Definition of done
 - `fallback_policy`
 
-If those sections are vague, warn in the helper block but do not hard-block.
+If those sections are vague on a work item, do not reclassify it by taste. Record a blocker question in the helper block and stop when that gap affects Section 7 readiness.
 
 ## Writes
 
@@ -48,6 +48,8 @@ If those sections are vague, warn in the helper block but do not hard-block.
 - use code and repo evidence only to validate convergence, parity, or risk claims; do not invent obligations
 - for agent-backed systems, classify proposed tooling against prompt-first and capability-first alternatives before treating it as necessary
 - treat docs-audit scripts, stale-term greps, absence checks, repo-structure tests, and CI cleanliness gates as architecture theater by default unless the user explicitly asked for that tooling class
+- do not downgrade a work item to optional, deferred, or follow-up unless the existing artifact already makes that status explicit
+- when requiredness is unclear, surface a blocker question instead of making a pruning decision on the agent's behalf
 
 ## Work-item extraction
 
@@ -66,13 +68,15 @@ If those sections are vague, warn in the helper block but do not hard-block.
 - `C` Anchored pattern or parity necessary:
   - required to match an existing internal pattern or contract, with a real repo anchor
 - `D` Concrete regression or correctness risk necessary:
-  - minimal work needed to avoid a concrete regression, correctness failure, or refactor-induced behavior change
+  - work needed to avoid a concrete regression, correctness failure, or refactor-induced behavior change
 - `E` Optional quality:
-  - nice to have, but not required to ship the North Star
+  - explicitly non-blocking by user choice or existing plan text
 - `F` Product scope creep:
   - expands requested UX or product capability beyond what the ask or Section 0 approved
 - `G` Architecture theater / speculative infra:
   - adds new layers, surfaces, or complexity that are not required to ship the ask cleanly
+- `Q` Blocker question:
+  - requiredness is not derivable from repo truth plus the approved plan, so the user must decide before the plan can be called ready
 
 Default reject examples for `F` or `G` unless explicitly approved:
 
@@ -97,11 +101,11 @@ Default reject examples for `F` or `G` unless explicitly approved:
 Tie-breakers:
 
 - `STRICT=1`:
-  - ambiguity defaults to follow-up, not include
+  - ambiguity becomes a blocker question, not a downgrade
 - `STRICT=0`:
-- ambiguity defaults to optional, not include
+  - ambiguity still becomes a blocker question
 - convergence or parity is never assumed without a real anchor
-- new tooling is follow-up unless `A-D` clearly applies
+- new tooling is never downgraded into follow-up by default; either it is explicitly non-blocking or it becomes a blocker question
 - repo-policing heuristics are rejected unless the user explicitly asked for them
 - tooling that substitutes for native capability or prompt work is rejected unless necessity is explicit
 
@@ -123,6 +127,7 @@ Summary:
 - Include (ship-blocking): <n> (A: <n>, B: <n>, C: <n>, D: <n>)
 - Optional (timeboxed): <n>
 - Follow-ups (deferred): <n>
+- Blocker questions: <n>
 - Rejected (creep / theater): <n>
 
 Include (ship-blocking):
@@ -133,6 +138,9 @@ Optional (timeboxed):
 
 Follow-ups (out of scope / intentionally deferred):
 - <item> - Bucket <E|F> - Why deferred: <...> - Evidence: <...>
+
+Blocker questions:
+- <item> - Bucket <Q> - Why user input is required: <...> - Evidence checked: <...>
 
 Rejected (product creep / architecture theater):
 - <item> - Bucket <G> - Why reject: <...> - What to do instead: <smaller alternative>
@@ -157,11 +165,13 @@ If `MODE=apply`:
 - remove follow-ups and rejected bug vectors from the phase plan
 - remove product scope creep and architecture theater from the phase plan
 - keep optional work in the phase plan but label it clearly as optional, for example by prefixing `OPTIONAL:` or appending `(optional)`
+- do not rewrite uncertain requiredness into optional or follow-up; leave it as a blocker question instead
 
 ## Stop condition
 
 - if there is no authoritative phase plan, stop and point to `phase-plan`
 - if the plan doc remains ambiguous after best effort, ask the user to choose from the top 2-3 candidates
+- if blocker questions remain, stop with those questions instead of claiming the phase plan is now safely classified
 - otherwise stop after classification is recorded, and after the phase plan is rewritten when `MODE=apply`
 
 ## Console contract

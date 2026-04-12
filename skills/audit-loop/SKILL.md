@@ -30,6 +30,7 @@ Use this skill when the job is to inspect a codebase for its biggest real unreso
 - Dead code deletion counts as a fix. Duplication on critical paths counts as real bug prevention work.
 - It is acceptable and often necessary to touch multiple files, modules, and tests when they belong to the same risk story.
 - Prefer behavior-level verification and integration coverage on critical paths. Do not write negative-value tests.
+- When you add or materially rewrite a test, leave comments in the test that explain why the behavior matters and what correct user-visible or externally observable outcome should happen. The goal is to make misunderstandings easy to spot later, not to narrate the assertion line by line.
 - Unrelated dirty or untracked files are not a blocker. Leave them alone unless they directly conflict with the current risk front or make verification unsafe.
 - Default invocation with no mode is `run`.
 - `review` is docs-only.
@@ -55,6 +56,7 @@ Use this skill when the job is to inspect a codebase for its biggest real unreso
 - Refresh triage from critical paths, churn, coverage, dead-code signals, duplication signals, and explicit `SKIP` decisions.
 - Pick the highest-priority unresolved risk front.
 - Read the implementation before the tests, log findings, and fix the strongest justified work across that risk front.
+- When the pass adds or materially rewrites tests, make the intent clear in the test code itself so a later reader can see the why and the expected experience or outcome without reconstructing it from the assertion body.
 - Verify the changes, update the ledger, and stop only when further useful work would require a genuinely different audit story, a new reconnaissance pass, or a real blocker.
 
 ### 2) `review`
@@ -62,6 +64,7 @@ Use this skill when the job is to inspect a codebase for its biggest real unreso
 - Stay docs-only.
 - Repair the ledger if it is missing or malformed.
 - Re-read the ledger and current repo state from fresh context.
+- Check whether audit-loop-added or materially rewritten tests explain their purpose clearly enough for a later reviewer to spot a misunderstanding in the protected behavior or expected experience.
 - Set the controller verdict to `CONTINUE`, `CLEAN`, or `BLOCKED` and name the next risk front or blocker plainly.
 
 ### 3) `auto`

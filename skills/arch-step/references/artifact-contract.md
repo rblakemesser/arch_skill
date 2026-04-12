@@ -1,6 +1,8 @@
 # Arch Step Artifact Contract
 
-This artifact is not a loose outline. It is one coherent plan doc that later commands keep sharpening. A command is not successful if it writes its local block but leaves the artifact structurally drifted, internally contradictory, or too vague for the next stage to trust.
+This artifact is not a loose outline. It is one coherent plan doc that later commands keep sharpening. A command is not successful if it writes its local block but leaves the artifact structurally drifted, internally contradictory, too vague for the next stage to trust, or not decision-complete enough for readiness claims.
+
+Decision-complete means the main artifact has no unresolved plan-shaping decisions left about requested behavior, canonical owner path, target architecture, required deletes or migrations, fallback policy, acceptance evidence, or required implementation scope.
 
 ## Canonical state objects
 
@@ -25,6 +27,7 @@ Planning commands update `DOC_PATH` only, except `auto-plan`, which also arms `.
 - If the doc is materially non-canonical outside that safe boundary, route to `reformat`.
 - No command may silently delete, displace, or degrade unrelated canonical sections.
 - No command may silently condense instruction-bearing source material in a way that drops operational structure while claiming meaning was preserved.
+- No command may declare the plan ready, complete, or implementation-ready while decision gaps remain in the main artifact.
 
 ## Required frontmatter
 
@@ -114,7 +117,7 @@ deep_dive_pass_1: not started
 external_research_grounding: not started
 deep_dive_pass_2: not started
 recommended_flow: deep dive -> external research grounding -> deep dive again -> phase plan -> implement
-note: This is a warn-first checklist only. It should not hard-block execution.
+note: This block tracks stage order only. It never overrides readiness blockers caused by unresolved decisions.
 -->
 <!-- arch_skill:block:planning_passes:end -->
 ```
@@ -183,7 +186,7 @@ Canonical subsection shape:
 
 - `## 3.1 External anchors (papers, systems, prior art)`
 - `## 3.2 Internal ground truth (code as spec)`
-- `## 3.3 Open questions from research`
+- `## 3.3 Decision gaps that must be resolved before implementation`
 
 Required content:
 
@@ -194,7 +197,12 @@ Required content:
 - existing reusable patterns
 - duplicate or drifting paths relevant to the change
 - existing preservation signals when refactor or consolidation is likely
-- evidence-based open questions
+- any remaining decision gaps written as explicit blockers or exact user questions
+
+Implementation readiness rule:
+
+- a plan is not ready for `implement` or `implement-loop` while Section `3.3` or any equivalent blocker surface is non-empty
+- authoritative sections must not hide unresolved plan-shaping decisions behind conditional wording, alternate branches, or "default recommendation" language
 
 ### `# 4) Current Architecture (as-is)`
 

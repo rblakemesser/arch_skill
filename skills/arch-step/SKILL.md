@@ -9,7 +9,7 @@ metadata:
 
 Use this skill when the user wants the real full-arch workflow and one canonical plan doc should govern it end to end.
 
-The primary object is one canonical full-arch plan doc. Commands exist to move that doc toward a finished, internally consistent artifact. They are not independent mini-workflows.
+The primary object is one canonical full-arch plan doc. Commands exist to move that doc toward a finished, internally consistent, decision-complete artifact. They are not independent mini-workflows.
 
 ## When to use
 
@@ -35,14 +35,18 @@ The primary object is one canonical full-arch plan doc. Commands exist to move t
 - Every invocation must check both structure and quality before doing command-local work.
 - No command may leave the doc less canonical, less honest, or more contradictory than it found it.
 - Present-but-weak sections are not done.
+- A plan is not ready, complete, or implementation-ready while any unresolved decision remains about requested behavior, architecture, canonical owner path, required deletes, fallback policy, acceptance evidence, or implementation scope.
+- Correctness and approved intent outrank speed, scope trimming, or "minimum implementation."
+- The agent has no authority to cut requested behavior, acceptance criteria, or required implementation work unless the user or the governing plan already marked that item out of scope.
 - If the doc is materially non-canonical, repair only the safe owned portion or route to `reformat`.
 - Keep one planning source of truth. Do not create sidecar plan docs or competing checklists.
 - All planning commands are docs-only. Only `implement` and `implement-loop` may change code.
 - Distinguish requested behavior scope from architectural convergence scope. Requested behavior scope governs user-visible behavior. Architectural convergence scope covers internal refactors needed to route the ask through canonical paths, remove duplicate truth, and prevent drift.
-- Search for the canonical existing path before designing a new one. Reuse it, minimally refactor it, or justify why it cannot own the change.
+- Search for the canonical existing path before designing a new one. Reuse it, refactor it as much as required to fully own the change, or justify why it cannot own the change.
 - Internal convergence work may broaden touched files or nearby adopters when needed to avoid parallel paths or shadow contracts, but it must not invent new product functionality, modes, or speculative infrastructure.
 - Any refactor, shared-path extraction, or consolidation must preserve existing behavior and name a credible verification signal before it is considered done.
 - Use repo evidence first. Ask only for true product, UX, external-constraint, access, or doc-path gaps.
+- If repo evidence cannot settle a plan-shaping decision, ask the user instead of guessing, defaulting, or parking the choice as a pseudo-complete plan.
 - When the changed behavior is agent- or LLM-driven, inspect current prompt surfaces, runtime or agent configuration, native model capabilities, and existing tool/file/context exposure before designing. If that capability picture is still unclear after inspection, ask narrowly instead of assuming the agent cannot do it.
 - For agent-backed systems, prefer prompt engineering, grounding/context shaping, and better use of native capabilities before custom harnesses, wrappers, parsers, OCR stacks, fuzzy matchers, or deterministic sidecars.
 - Any new tooling for agent-backed behavior must justify why prompt-first and capability-first options were insufficient, and it must augment the agent instead of replacing the reasoning the product is supposed to get from the model.
@@ -112,7 +116,7 @@ The primary object is one canonical full-arch plan doc. Commands exist to move t
 - optional helper blocks folded into the same plan doc
 - `WORKLOG_PATH` once implementation begins
 
-The finished artifact is not just a heading set. It is one internally consistent plan that says the same thing about outcome, requested behavior scope, architectural convergence scope, architecture, verification, rollout, and drift history from multiple angles.
+The finished artifact is not just a heading set. It is one internally consistent, decision-complete plan that says the same thing about outcome, requested behavior scope, architectural convergence scope, architecture, verification, rollout, and drift history from multiple angles.
 
 ### `advance` selection rule
 
@@ -122,7 +126,7 @@ Choose exactly one next command using this precedence:
 2. Existing doc is not canonical enough to trust: run `reformat`.
 3. North Star is still draft or too weak to support planning: stop for confirmation or repair the artifact with `reformat`.
 4. Earliest required structure or owned block is missing: run the command that repairs it.
-5. Required structure exists but the next critical sections are still weak: run the command that strengthens them.
+5. Required structure exists but the next critical sections are still weak or still contain unresolved decisions: run the command that strengthens them or stop and ask the user the exact blocker question.
 6. Otherwise follow the canonical core arc:
    - `new` or `reformat`
    - North Star confirmation
@@ -157,14 +161,14 @@ These stay explicit unless the user directly asks for them:
 - `implement-loop`
 - `auto-implement`
 
-`auto-plan` is a bounded planning controller. In Codex, the initial `auto-plan` pass arms `.codex/auto-plan-state.<SESSION_ID>.json`, runs only `research` against the same `DOC_PATH`, then ends its turn naturally. It must not self-run `deep-dive` pass 1, `deep-dive` pass 2, `phase-plan`, or `consistency-pass` in that same turn. After that first turn, the installed Stop hook owns stage-to-stage continuation: it feeds exactly one literal next command per later turn, keeps the controller state aligned, and only after `consistency-pass` clears state and says the doc is ready for `implement-loop`. The user-facing command stays simple:
+`auto-plan` is a bounded planning controller. In Codex, the initial `auto-plan` pass arms `.codex/auto-plan-state.<SESSION_ID>.json`, runs only `research` against the same `DOC_PATH`, then ends its turn naturally. It must not self-run `deep-dive` pass 1, `deep-dive` pass 2, `phase-plan`, or `consistency-pass` in that same turn. After that first turn, the installed Stop hook owns stage-to-stage continuation: it feeds exactly one literal next command per later turn, keeps the controller state aligned, and only after `consistency-pass` clears state and says the doc is decision-complete and ready for `implement-loop`. The user-facing command stays simple:
 
 - run `$arch-step auto-plan`
 - or run `$arch-step auto-plan <DOC_PATH>`
 - do not run the Stop hook yourself; after the controller is armed, just end the turn and let Codex run the installed Stop hook
 - the initial `auto-plan` pass must run only `research`, then end the turn
 - later planning stages are hook-owned only; one literal next command per turn through `deep-dive` pass 1, `deep-dive` pass 2, `phase-plan`, and `consistency-pass`
-- the parent `auto-plan` pass must not clear successful controller state, claim the planning arc is complete, or emit the `implement-loop` handoff
+- the parent `auto-plan` pass must not clear successful controller state, claim the planning arc is complete, or emit the `implement-loop` handoff while any decision gaps remain
 - prefer the current session's canonical full-arch doc when `DOC_PATH` is omitted
 - if the installed runtime support is absent, disabled, or the North Star is still unapproved, name the broken prerequisite and stop
 - keep `.codex/auto-plan-state.<SESSION_ID>.json` aligned with the live run

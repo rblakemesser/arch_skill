@@ -2,7 +2,7 @@
 
 ## What this command does
 
-- take an existing plan and harden it toward the simplest, most idiomatic, most drift-resistant version of itself
+- take an existing plan and harden it toward the most fully specified, idiomatic, drift-resistant, faithful-to-intent version of itself
 - make SSOT, canonical path ownership, boundaries, deletes, migration obligations, and preservation checks explicit
 - leave behind a concrete helper block that sharpens the main artifact without competing with it
 
@@ -29,8 +29,8 @@
 - code is ground truth
 - do not design fallbacks or compatibility shims by default
 - treat requested behavior scope as authoritative; architectural convergence may widen when needed to remove duplicate truth or prevent a new parallel path
-- if consolidation would add product behavior or speculative infrastructure, default to follow-up or ignore rather than re-asking scope
-- ask only for true product, UX, or access gaps
+- if consolidation would add product behavior or speculative infrastructure, exclude it only when the approved plan already makes that exclusion explicit; otherwise ask the user instead of downgrading it by taste
+- ask only for true product, UX, access, or other plan-shaping gaps that repo evidence cannot settle
 
 ## Quality bar
 
@@ -67,7 +67,7 @@ Use this block shape:
 ## Architecture verdict
 - Canonical owner path: <path or boundary>
 - Capability-first path: <prompt/grounding/native capability first; tooling only if justified>
-- Is this now "best possible by our standards"? <yes/no>
+- Is this now decision-complete and faithful to approved intent? <yes/no>
 - Biggest remaining risks:
   - <bullets>
 
@@ -84,7 +84,7 @@ Use this block shape:
 
 ## Consolidation sweep (anti-blinders)
 - Other places that should adopt the new central pattern:
-  - <area> — Proposed: <include|follow-up|ignore> — <why>
+  - <area> — Proposed: <include|explicitly out of scope|blocker question> — <why>
 
 ## Evidence (non-blocking)
 - Behavior-preservation checks after refactor:
@@ -94,8 +94,8 @@ Use this block shape:
 - What we will not block on:
   - <item such as screen recordings or sim screenshot baselines>
 
-## Questions (ONLY if truly needed)
-- <requested-behavior scope decision> — default recommendation: <recommendation>
+## Blocker questions (ONLY if repo evidence cannot settle them)
+- <exact blocker question> — repo evidence checked: <what was checked>
 <!-- arch_skill:block:plan_enhancer:end -->
 ```
 
@@ -105,11 +105,12 @@ Use this block shape:
 - do not let the helper block become a parallel plan or second checklist
 - if the helper block finds a simpler way to converge onto an existing path, update the main plan rather than merely praising the idea
 - if the verdict exposes a real earlier mistake, record meaningful drift in Section 10
+- do not let the helper block invent "optional" or "follow-up" status for required work that has not actually been scoped out by the user or the main artifact
 
 ## Stop condition
 
 - if the doc path remains truly ambiguous after best effort, ask the user to choose from the top 2-3 candidates
-- if the plan has a true product or UX gap that cannot be derived, stop with a default recommendation
+- if the plan has a true product, UX, or other plan-shaping gap that cannot be derived, stop and ask the exact blocker question
 - otherwise stop after the plan is hardened and the helper block reflects the upgrades
 
 ## Console contract

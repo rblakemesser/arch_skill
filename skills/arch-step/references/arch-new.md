@@ -58,7 +58,7 @@ If they are weak, every later stage becomes soft.
 - If the ask implies architectural convergence, Section 0 must make that internal scope explicit instead of leaving later stages to infer it.
 - If the ask implies refactor pressure, the initial evidence stance should name how preserved behavior will be trusted.
 - if the ask clearly implies priorities, problem framing, verification bias, rollout implications, or an immediate tradeoff, lightly seed the relevant later sections instead of leaving pure ceremony
-- lightly seeded sections must stay truthful and minimal
+- lightly seeded sections must stay truthful and must not silently narrow approved intent
 
 ## Consistency duties before stopping
 

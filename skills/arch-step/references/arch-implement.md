@@ -22,6 +22,7 @@ By the end of the run:
 - every in-scope implementation obligation is accounted for
 - the plan says what is actually true
 - unresolved items are visible instead of implied away
+- no newly discovered unresolved decision has been silently guessed or scoped away
 
 ## Shared references to carry in
 
@@ -45,6 +46,7 @@ By the end of the run:
   - external constraints not present in the repo or doc
   - doc-path ambiguity after best effort
   - missing access or permissions
+  - newly discovered plan-shaping decisions that are not encoded anywhere and cannot be settled from repo truth
 - if a question is unavoidable, state where you looked first
 
 ## Reads for alignment
@@ -85,6 +87,8 @@ By the end of the run:
 - treat touched live docs, comments, and instructions as real implementation work when they would become false after the change
 - delete dead competing truth surfaces instead of preserving them for posterity; if a touched live doc/comment/instruction still matters, rewrite it to current reality in the same run
 - broader docs consolidation, evergreen promotion, and final plan/worklog retirement belong to `arch-docs` after the code audit is clean; do not silently stretch `implement` into that separate docs-cleanup workflow
+- do not start coding from a plan that is not decision-complete
+- do not silently cut approved behavior or required implementation work because it is larger than expected
 - build a compact in-memory implementation ledger from:
   - phase tasks
   - call-site audit items
@@ -106,8 +110,9 @@ Before meaningful code changes:
 - for agent-backed work, capability-first rationale is explicit before any new tooling
 - preservation evidence for refactor-heavy work is identifiable
 - Section 7 is real enough to execute
+- no unresolved plan-shaping decisions remain in the authoritative artifact
 
-If those are contradictory, stop for a quick doc correction before continuing.
+If those are contradictory or unresolved, stop, repair what repo evidence settles, and ask the exact blocker question before continuing.
 
 ## Implementation ledger
 
@@ -181,7 +186,8 @@ Also update nearby plan sections when implementation changes the truth:
 - if sequencing or assumptions drift materially, append a Section 10 Decision Log entry
 - if architecture changed in a meaningful way, repair the smallest stale claims in TL;DR, Section 0, Section 5, Section 7, or Section 8
 - if a touched live doc, comment, or instruction would otherwise become stale, update or delete it in the same run and keep the phase notes truthful about that work
-- if a planned item turns out to be truly out of scope, record that explicitly with rationale instead of silently dropping it
+- if a planned item turns out to be truly out of scope because the user or the existing plan already says so, record that explicitly with rationale instead of silently dropping it
+- if a planned item's requiredness turns out to depend on an unresolved user decision, stop and ask instead of silently downgrading it
 - if the code becomes clean before the broader feature docs are fully consolidated, leave the handoff visible for `arch-docs` instead of burying that remaining docs-cleanup work inside finish notes
 
 ## Completeness discipline
@@ -242,9 +248,8 @@ Testing discipline:
 
 - when you introduce or upgrade a centralized pattern, contract, or SSOT, scan nearby call sites for other adopters that should migrate
 - if that work is required to converge onto the same canonical path and avoid drift, do it without asking
-- if it would materially expand product scope or introduce speculative architecture, record it as a follow-up with file or symbol anchors and continue
-- if it is useful but not required for this run, record it as a follow-up and continue
-- stop and ask only when the plan is internally contradictory about whether the work is required
+- if the plan or user already makes the work explicitly non-blocking, record it as a follow-up with file or symbol anchors and continue
+- if requiredness is not derivable from repo truth plus the approved plan, stop and ask instead of making a pruning decision
 
 ## Worklog contract
 

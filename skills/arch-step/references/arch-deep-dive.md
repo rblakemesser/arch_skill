@@ -37,13 +37,13 @@
 - docs-only; do not modify code
 - code is ground truth
 - read code and run read-only searches as needed
-- if the North Star, requested behavior scope, or allowed architectural convergence scope is contradictory, stop for a quick doc correction
+- if the North Star, requested behavior scope, allowed architectural convergence scope, or any other plan-shaping decision is contradictory, stop and ask the exact blocker question
 - no fallback or shim design unless the plan explicitly approves it
 - search for the canonical existing path before proposing a new abstraction or code path
 - when the change is agent-backed, decide what behavior belongs in prompt or native-capability usage versus deterministic code before designing new tooling
 - if the target design does not reuse the canonical path, justify why the existing path cannot own the change
 - if the change retires or reroutes a live truth surface, name the code paths, docs, comments, or instructions that must be deleted or rewritten
-- if multiple viable technical approaches exist, choose the most idiomatic default and note alternatives instead of punting the decision
+- if multiple viable technical approaches exist, resolve them from repo truth plus approved intent or ask the user the exact choice; do not leave multiple viable architectures open in the authoritative plan
 
 ## Quality bar
 
@@ -52,7 +52,7 @@
 - Section 6 must be exhaustive enough within approved scope to drive implementation and later audit
 - Section 6 must explicitly capture touched live docs, comments, or instructions that need deletion or rewrite because the change would otherwise leave stale truth behind
 - Section 6 must call out capability-replacing harnesses, wrappers, or side paths that should be deleted or explicitly justified when the system is agent-backed
-- if the design introduces or sharpens a central pattern, the consolidation sweep must capture include, defer, or exclude candidates rather than ignoring drift risk
+- if the design introduces or sharpens a central pattern, the consolidation sweep must capture only decisions that are already resolved from repo truth or explicit scope text; otherwise it must surface a blocker question
 - any required convergence or consolidation work must name the preservation signal that will prove behavior was not broken
 
 ## Planning-passes update rule
@@ -72,9 +72,9 @@ If the design introduces or updates a central pattern, contract, lifecycle primi
 - capture file paths or symbols
 - default dispositions:
   - required to converge onto the same canonical path and avoid drift -> include
-  - useful but not required for this run -> defer
-  - adds product functionality or speculative architecture -> exclude
-  - stop only if the plan is internally contradictory
+  - explicitly non-blocking by approved scope text -> defer
+  - explicitly out of scope or clearly new product behavior -> exclude
+  - if requiredness is still unclear -> ask the user instead of guessing
 
 ## Placement and update rules
 
@@ -109,9 +109,9 @@ Use this call-site section shape:
 * Behavior-preservation signals for refactors:
 
 ## Pattern Consolidation Sweep (anti-blinders; scoped by plan)
-| Area | File / Symbol | Pattern to adopt | Why (drift prevented) | Proposed scope (include/defer/exclude) |
+| Area | File / Symbol | Pattern to adopt | Why (drift prevented) | Proposed scope (include/defer/exclude/blocker question) |
 | ---- | ------------- | ---------------- | ---------------------- | ------------------------------------- |
-| <area> | <path> | <pattern> | <reason> | <include/defer/exclude> |
+| <area> | <path> | <pattern> | <reason> | <include/defer/exclude/blocker question> |
 <!-- arch_skill:block:call_site_audit:end -->
 ```
 
@@ -124,7 +124,7 @@ Use this call-site section shape:
 ## Stop condition
 
 - if the doc path remains truly ambiguous after best effort, ask the user to choose from the top 2-3 candidates
-- if the North Star, requested behavior scope, or allowed architectural convergence scope is contradictory, stop for a quick doc correction
+- if the North Star, requested behavior scope, allowed architectural convergence scope, or any other architecture-shaping decision is contradictory or unresolved, stop and ask the exact blocker question
 - otherwise stop after Sections 4 through 6 and `planning_passes` are updated for this run
 
 ## Console contract

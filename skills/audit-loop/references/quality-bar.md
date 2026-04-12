@@ -23,6 +23,7 @@
 - the proposed fix matches the actual finding
 - dead code and duplication are treated as real cleanup work, not optional polish
 - multiple related findings may be resolved together when that is what the risk front demands
+- audit-loop-added or materially rewritten tests explain why the protected behavior matters and what correct user-visible or externally observable outcome should happen
 
 ## Weak findings
 
@@ -30,6 +31,7 @@
 - no file anchors
 - broad design critiques not tied to a fixable risk
 - test additions that only protect implementation details
+- new or materially rewritten tests whose comments only restate assertions or internal mechanics
 
 ## Strong stop decisions
 

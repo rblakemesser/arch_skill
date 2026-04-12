@@ -18,13 +18,13 @@
 - keep this review local
 - do not use external reviewer CLIs or other-model consultations from this command
 - read `DOC_PATH` plus the key code anchors needed to answer the review question
-- if the North Star, requested behavior scope, or allowed architectural convergence scope is contradictory, stop for a quick doc correction first
+- if the North Star, requested behavior scope, allowed architectural convergence scope, or any other plan-shaping decision is contradictory, stop and ask the exact blocker question first
 
 ## Core review question
 
 Ask the same question every time:
 
-- `Is this idiomatic, convergent, and complete relative to DOC_PATH? Are we routing through the canonical existing path? Did we add a new way to do something unnecessarily? Did we understand the relevant agent and model capabilities before designing? Are we replacing prompt or native-capability work with scaffolding? Did we silently compress any instruction-bearing content while porting it? What is missing? Where does code or plan drift? Are there any SSOT, contract, behavior-preservation, or stale-live-doc gaps?`
+- `Is this idiomatic, convergent, complete, and decision-complete relative to DOC_PATH? Are we routing through the canonical existing path? Did we add a new way to do something unnecessarily? Did we understand the relevant agent and model capabilities before designing? Are we replacing prompt or native-capability work with scaffolding? Did we silently compress any instruction-bearing content while porting it? What is missing? Where does code or plan drift? Are there any unresolved decisions, unauthorized scope cuts, SSOT gaps, contract gaps, behavior-preservation gaps, or stale-live-doc gaps?`
 
 If suggesting tests:
 
@@ -59,11 +59,15 @@ Use this block shape:
 <!-- arch_skill:block:review_gate:start -->
 ## Review Gate
 - Reviewers: self
-- Question asked: "Is this idiomatic, convergent, and complete relative to DOC_PATH? Are we routing through the canonical existing path? Did we add a new way to do something unnecessarily? Did we understand the relevant agent and model capabilities before designing? Are we replacing prompt or native-capability work with scaffolding? Did we silently compress any instruction-bearing content while porting it? What is missing? Where does code or plan drift? Are there any SSOT, contract, behavior-preservation, or stale-live-doc gaps?"
+- Question asked: "Is this idiomatic, convergent, complete, and decision-complete relative to DOC_PATH? Are we routing through the canonical existing path? Did we add a new way to do something unnecessarily? Did we understand the relevant agent and model capabilities before designing? Are we replacing prompt or native-capability work with scaffolding? Did we silently compress any instruction-bearing content while porting it? What is missing? Where does code or plan drift? Are there any unresolved decisions, unauthorized scope cuts, SSOT gaps, contract gaps, behavior-preservation gaps, or stale-live-doc gaps?"
 - Feedback summary:
   - <item>
 - Integrated changes:
   - <item>
+- Unresolved decisions:
+  - <item or `none`>
+- Unauthorized scope cuts:
+  - <item or `none`>
 - Decision: proceed to next phase? (yes/no)
 <!-- arch_skill:block:review_gate:end -->
 ```
@@ -73,13 +77,14 @@ Insert near the end before the Decision Log when possible.
 ## Quality bar
 
 - identify plan drift, missing work, SSOT issues, contract violations, needless new code paths, unjustified scaffolding around agent behavior, silent compression of instruction-bearing content, missing preservation evidence, and stale live docs/comments left behind
+- identify unresolved decisions and unauthorized scope cuts before they are allowed to reach implementation
 - improve the main artifact rather than merely commenting on it
 - keep the helper block short and decision-oriented
 
 ## Stop condition
 
 - if the doc path remains truly ambiguous after best effort, ask the user to choose from the top 2-3 candidates
-- if the North Star, requested behavior scope, or allowed architectural convergence scope is contradictory, stop for a quick doc correction
+- if the North Star, requested behavior scope, allowed architectural convergence scope, or any review-blocking decision is contradictory or unresolved, stop and ask the exact blocker question
 - otherwise stop after the accepted review feedback is integrated and the helper block is current
 
 ## Console contract

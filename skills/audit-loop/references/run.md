@@ -10,6 +10,7 @@ Run one serious audit/fix pass that leaves `_audit_ledger.md` more truthful and 
 - root `.gitignore`
 - product code when the pass reaches a justified fix
 - tests only when they protect meaningful behavior
+- comments in audit-loop-added or materially rewritten tests when needed to explain the why and expected experience or outcome
 
 ## Pass shape
 
@@ -40,7 +41,7 @@ Do stop when the next move would require a genuinely different risk story, a fre
 4. Choose the highest-priority unresolved risk front from Phase 1.
 5. Read the implementation in that risk front before reading its tests.
 6. Log precise findings in Phase 2 with file anchors and finding type.
-7. Read the existing tests and decide what verification is missing.
+7. Read the existing tests and decide what verification is missing. If the pass adds or materially rewrites a test, leave comments in the test code that explain why the behavior matters and what correct user-visible or externally observable outcome should happen.
 8. Fix the strongest justified work across that risk front:
    - bug fix
    - dead-code deletion
@@ -70,4 +71,5 @@ Do stop when the next move would require a genuinely different risk story, a fre
 - Prefer behavior-level verification over implementation-detail checks.
 - Critical paths deserve at least one realistic integration signal where feasible.
 - If the best evidence is a targeted test plus a broader existing suite, run both.
+- When you add or materially rewrite a test, make the intent locally clear in the test code itself. Do not rely on the ledger alone to carry the why or the expected experience or outcome.
 - If the repo has no credible automated signal for the fix, say so plainly in the ledger.

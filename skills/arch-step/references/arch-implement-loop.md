@@ -97,6 +97,7 @@ Lifecycle:
 - this command is a bounded controller over `implement` and `audit-implementation`; do not invent a second planning surface or second audit format
 - `implement-loop` is one command; if the required runtime continuation support is absent or disabled, fail loud
 - each cycle must run `implement` first and `audit-implementation` second against the same `DOC_PATH`
+- `implement-loop` must not continue from a plan that is not decision-complete
 - before handing control back to fresh audit, the implementation pass must run the smallest credible programmatic proof for each claimed fix
 - in Codex, the fresh audit pass after an implementation stop point owns the continue-versus-stop decision
 - inside `implement-loop`, only the fresh `audit-implementation` child may write or replace `arch_skill:block:implementation_audit`, conclude the controller is clean, write the `Use $arch-docs` handoff, or delete `.codex/implement-loop-state.<SESSION_ID>.json`

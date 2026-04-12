@@ -44,7 +44,7 @@ Use exactly:
 
 Rules:
 
-- required stages are `[DONE]` only when the artifact is strong enough to proceed without guesswork
+- required stages are `[DONE]` only when the artifact is strong enough to proceed without guesswork or unresolved decisions
 - weak or missing required stages are `[PENDING]`
 - helper commands and non-warranted external research are `[OPTIONAL]`
 - use `[UNKNOWN]` only when the artifact genuinely does not let you determine the answer
@@ -86,6 +86,7 @@ Helper commands stay explicit:
 - for deep dive, call out whether pass 1 or pass 2 is done using `planning_passes`
 - for implementation, require both doc truth and worklog truth before calling it `[DONE]`
 - treat missing canonical-path analysis or missing preservation verification as real weakness, not optional polish
+- treat unresolved plan-shaping decisions as `[PENDING]`, even when the surrounding section is otherwise strong
 
 ## Next-command selection rule
 
@@ -94,8 +95,9 @@ Choose exactly one next move using this precedence:
 1. no plan doc yet -> `new`
 2. existing doc is not canonical enough to trust -> `reformat`
 3. North Star is still draft or too weak -> stop for confirmation or repair via `reformat`
-4. earliest required structure or owned block is missing -> run the command that repairs it
-5. required structure exists but the next critical sections are still weak, including canonical-path analysis or preservation verification -> run the command that strengthens them
+4. unresolved decision gap remains that repo truth cannot settle -> ask the user the exact blocker question
+5. earliest required structure or owned block is missing -> run the command that repairs it
+6. required structure exists but the next critical sections are still weak, including canonical-path analysis, preservation verification, or decision-completeness -> run the command that strengthens them
 6. otherwise follow the core arc:
    - `research`
    - `deep-dive`
@@ -128,7 +130,7 @@ When `RUN=1` is present:
 - execute only that one command against the same artifact when the next move is still an `arch-step` command
 - do not chain into a second command
 - do not auto-run helper commands unless the chosen next command is itself that helper
-- if the next move is North Star confirmation rather than a command, stop and ask for confirmation instead of mutating further
+- if the next move is a blocker question or North Star confirmation rather than a command, stop and ask instead of mutating further
 - if the next move is `arch-docs`, print the handoff and stop; do not silently auto-switch skills from inside `advance`
 
 ## Output shape
@@ -138,5 +140,6 @@ When `RUN=1` is present:
 - `DOC_PATH`
 - the full checklist with evidence notes
 - the exact next invocation
+- if the next move is a blocker question, print that exact question instead of an invocation
 - if `RUN=1` is absent, offer the next move without executing it
 - if `RUN=1` is present, execute the chosen `arch-step` command and stop after that command finishes

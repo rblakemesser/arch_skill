@@ -18,9 +18,10 @@ Running `auto-plan` should end in one of two honest states:
   - deep-dive pass 1 is present
   - deep-dive pass 2 is present
   - the authoritative phase plan is present
-  - the `consistency-pass` helper block is present and says `Decision: proceed to implement? yes`
+  - the `consistency-pass` helper block is present, says `Decision-complete: yes`, and says `Decision: proceed to implement? yes`
+  - no unresolved decisions remain in the authoritative artifact
   - no implementation has started
-  - the final message says the doc is ready for `implement-loop`
+  - the final message says the doc is decision-complete and ready for `implement-loop`
 - `blocked`:
   - the controller state is cleared
   - the blocker or early stop is explicit
@@ -105,8 +106,9 @@ Lifecycle:
 - the parent pass must not clear successful controller state, claim the planning arc is complete, or emit the `implement-loop` handoff
 - planning stages stay in the same visible Codex thread across separate turns; do not hide them in silent child planning runs or collapse them into one long same-turn chain
 - if a stage stops before it updates the required canonical outputs, clear `.codex/auto-plan-state.<SESSION_ID>.json`, stop, and report that truth plainly
+- if any stage uncovers an unresolved decision that repo truth cannot settle, clear `.codex/auto-plan-state.<SESSION_ID>.json`, stop, and ask the exact blocker question instead of continuing
 - if `consistency-pass` leaves `Decision: proceed to implement? no`, the Stop hook clears `.codex/auto-plan-state.<SESSION_ID>.json`, stops, and reports that the doc is not ready for `implement-loop`
-- after successful `consistency-pass`, the Stop hook clears `.codex/auto-plan-state.<SESSION_ID>.json`, stops, and says the doc is ready for `implement-loop`
+- after successful `consistency-pass`, the Stop hook clears `.codex/auto-plan-state.<SESSION_ID>.json`, stops, and says the doc is decision-complete and ready for `implement-loop`
 - do not auto-run `external-research`, helper commands other than the required `consistency-pass`, `implement`, `implement-loop`, or `audit-implementation`
 
 Wrong pattern:
@@ -135,6 +137,8 @@ Use these signals before the Stop hook continues automatically:
   - `arch_skill:block:phase_plan` is present and was updated in this stage
 - `consistency-pass`:
   - `arch_skill:block:consistency_pass` is present and was updated in this stage
+  - the helper block says `Decision-complete: yes`
+  - the helper block says `Unresolved decisions: none`
   - the helper block says `Decision: proceed to implement? yes`
   - if the helper block says `Decision: proceed to implement? no`, the controller stops blocked instead of handing off
 
@@ -150,9 +154,9 @@ Use these signals before the Stop hook continues automatically:
    - after `deep-dive` pass 1, feed `Use $arch-step deep-dive <DOC_PATH>` as deep-dive pass 2
    - after `deep-dive` pass 2, feed `Use $arch-step phase-plan <DOC_PATH>`
    - after `phase-plan`, feed `Use $arch-step consistency-pass <DOC_PATH>`
-   - after `consistency-pass` with `Decision: proceed to implement? yes`, clear state and stop with the `implement-loop` handoff message
+   - after `consistency-pass` with `Decision-complete: yes` and `Decision: proceed to implement? yes`, clear state and stop with the `implement-loop` handoff message
 6. On each hook-driven continuation, run the literal next planning command against the same `DOC_PATH`, keep the controller state aligned, and stop naturally after that one stage finishes.
-7. If a stage ends early, does not update the required canonical outputs, or the next move is no longer credible, clear `.codex/auto-plan-state.<SESSION_ID>.json`, stop, and report that state plainly.
+7. If a stage ends early, does not update the required canonical outputs, uncovers a blocker question, or the next move is no longer credible, clear `.codex/auto-plan-state.<SESSION_ID>.json`, stop, and report that state plainly.
 8. If `consistency-pass` ends with `Decision: proceed to implement? no`, clear `.codex/auto-plan-state.<SESSION_ID>.json`, stop, and report that the doc still needs planning repair before implementation.
 
 ## Console contract
@@ -160,4 +164,4 @@ Use these signals before the Stop hook continues automatically:
 - one-line North Star reminder
 - one-line punchline
 - ordinary stage output should stay visible because the planning commands run in the same Codex thread across separate turns
-- the final stop message should name `DOC_PATH` and say it is ready for `implement-loop`
+- the final stop message should name `DOC_PATH` and say it is decision-complete and ready for `implement-loop`, or print the exact blocker question that stopped the controller

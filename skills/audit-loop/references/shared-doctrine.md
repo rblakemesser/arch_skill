@@ -7,6 +7,7 @@
 - Dead code is a bug waiting to happen. Delete it instead of preserving it.
 - Duplication is deferred breakage. Consolidate one source of truth where the duplication matters.
 - Tests exist to protect meaningful behavior. Coverage is a trailing indicator, not the product.
+- When audit-loop adds or materially rewrites a test, the test should also explain the behavior it is protecting. Leave comments that make the why and the expected user-visible or externally observable outcome easy to inspect later.
 - Leave the codebase lighter than you found it when the evidence supports deletion or simplification.
 
 ## Triage order
@@ -29,6 +30,7 @@
 - Delete dead code boldly. Git is the history.
 - Extract duplication into one well-named shared path. Do not build a framework.
 - Prefer integration coverage on critical paths. Add unit tests only when the logic is best isolated there.
+- Do not force a comment template. Use the smallest nearby comment form that makes the why and expected experience or outcome unmistakable.
 - Do not write a test for code you are deleting.
 
 ## Existing-tool guidance
@@ -57,3 +59,5 @@ Record `unknown` instead of auto-installing any of these.
 - Spending the pass on a flaky low-priority test instead of the highest-risk open area.
 - Sneaking in formatting, linting, types, or tooling side quests that are not required by the finding.
 - Pretending a low-value assertion is meaningful because it makes the coverage number move.
+- Leaving a new audit-loop-authored test with no comment about why the behavior matters or what correct experience or outcome should happen.
+- Writing comments that only paraphrase the assertion or narrate implementation details without explaining the protected behavior.

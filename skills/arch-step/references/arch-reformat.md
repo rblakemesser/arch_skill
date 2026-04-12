@@ -35,10 +35,10 @@ This command must restore:
 
 - docs-only; do not modify code
 - do not rewrite from scratch
-- preserve links, code fences, tables, decisions, TODOs, open questions, and call-site notes
+- preserve links, code fences, tables, decisions, TODOs, unresolved questions, and call-site notes
 - infer only from explicit source evidence
 - label uncertain synthesis as draft inference
-- if something is truly missing, leave a TODO or placeholder instead of inventing it
+- if something is truly missing, keep the gap visible as unresolved instead of inventing it or smoothing it away
 - if content cannot be confidently placed, keep it in Appendix A instead of dropping it
 - do not introduce new scope
 - when source content is instruction-bearing, preserve explicit operational structure instead of silently condensing it
@@ -88,7 +88,7 @@ The goal is not prettier markdown. The goal is to recover one plan artifact that
 - TL;DR, Section 0, and the phase plan should not contradict each other after conversion
 - preserve the strongest explicit source claims about requested behavior scope, allowed convergence scope, evidence, fallbacks, sequencing, and canonical ownership
 - if instruction-bearing content was condensed at all, the reason must be explicit and the original text must still be recoverable in the artifact
-- if the source remains ambiguous, keep that ambiguity visible instead of smoothing it away
+- if the source remains ambiguous, keep that ambiguity visible as a blocker instead of smoothing it away
 
 ## Stop condition
 

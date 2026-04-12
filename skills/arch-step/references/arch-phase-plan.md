@@ -28,14 +28,15 @@
 ## Hard rules
 
 - docs-only; do not modify code
-- if the North Star, requested behavior scope, or allowed architectural convergence scope is contradictory, stop for a quick doc correction
-- if missing work is discovered while planning, classify whether it is required convergence, anchored pattern/parity, concrete risk mitigation, optional quality, product scope creep, or architecture theater before adding it to the phase plan
+- if the North Star, requested behavior scope, allowed architectural convergence scope, or any other plan-shaping decision is contradictory, stop and ask the exact blocker question
+- if missing work is discovered while planning, add it to the phase plan only when repo truth plus approved scope make it clearly required; if requiredness depends on an unresolved user decision, stop and ask instead of downgrading it by taste
 - for agent-backed systems, prompt, grounding, and native-capability changes get first right of refusal before new harnesses, wrappers, parsers, OCR layers, or scripts
 - if a phase includes new tooling for agent-backed behavior, say why prompt-first and capability-first options were insufficient
 - do not add scripts, tests, CI checks, or validation steps whose primary job is auditing docs/help, checking keyword absence, policing repo layout, or proving deletions by grep
 - only ship-blocking work belongs in the authoritative checklist
 - if the change would leave touched live docs, comments, or instructions stale, update-or-delete work for those surfaces belongs in the phase plan
 - do not turn helper blocks into competing execution checklists
+- do not leave the authoritative checklist holding unresolved branches, `if needed` work, or alternative execution paths
 
 ## Warn-first preflight
 
@@ -56,6 +57,7 @@ Before writing the phase plan:
 - verification should be small, credible, and non-bureaucratic
 - verification must stay tied to shipped behavior, runtime ownership, or real contract boundaries rather than repo-policing heuristics
 - required cleanup, deletes, and touched doc/comment reality-sync work should not be buried
+- phases must name the actual chosen work to do, not conditional or alternate branches the agent would have to choose between later
 
 ## Placement and update rules
 
@@ -73,7 +75,7 @@ Use this block shape:
 <!-- arch_skill:block:phase_plan:start -->
 # Depth-First Phased Implementation Plan (authoritative)
 
-> Rule: systematic build, foundational first; every phase has exit criteria + explicit verification plan (tests optional). Refactors, consolidations, and shared-path extractions must preserve existing behavior with the smallest credible signal. For agent-backed systems, prefer prompt, grounding, and native-capability changes before new harnesses or scripts. No fallbacks/runtime shims - the system must work correctly or fail loudly (delete superseded paths). Prefer programmatic checks per phase; defer manual/UI verification to finalization. Avoid negative-value tests and heuristic gates (deletion checks, visual constants, doc-driven gates, keyword or absence gates, repo-shape policing). Also: document new patterns/gotchas in code comments at the canonical boundary (high leverage, not comment spam).
+> Rule: systematic build, foundational first; every phase has exit criteria + explicit verification plan (tests optional). Refactors, consolidations, and shared-path extractions must preserve existing behavior with the smallest credible signal. For agent-backed systems, prefer prompt, grounding, and native-capability changes before new harnesses or scripts. No fallbacks/runtime shims - the system must work correctly or fail loudly (delete superseded paths). The authoritative checklist must name the actual chosen work, not unresolved branches or "if needed" placeholders. Prefer programmatic checks per phase; defer manual/UI verification to finalization. Avoid negative-value tests and heuristic gates (deletion checks, visual constants, doc-driven gates, keyword or absence gates, repo-shape policing). Also: document new patterns/gotchas in code comments at the canonical boundary (high leverage, not comment spam).
 
 ## Phase 1 — <foundation>
 
@@ -106,7 +108,7 @@ Use `Docs/comments` to delete dead live docs/comments or rewrite surviving ones 
 ## Stop condition
 
 - if the doc path remains truly ambiguous after best effort, ask the user to choose from the top 2-3 candidates
-- if the North Star, requested behavior scope, or allowed architectural convergence scope is contradictory, stop for a quick doc correction
+- if the North Star, requested behavior scope, allowed architectural convergence scope, or any phase-shaping decision is contradictory or unresolved, stop and ask the exact blocker question
 - otherwise stop after the authoritative phase plan is updated and any warn-first caveats are surfaced
 
 ## Console contract

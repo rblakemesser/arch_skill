@@ -33,8 +33,8 @@
 - use web research only for topics with general external guidance
 - keep the topic set narrow
 - prefer primary or clearly authoritative sources
-- if sources disagree, summarize the disagreement and choose a default recommendation
-- if the North Star, requested behavior scope, or allowed architectural convergence scope is contradictory, stop for a quick doc correction before continuing
+- if sources disagree on a plan-shaping decision, summarize the disagreement, apply any repo-grounded constraint that resolves it, and otherwise ask the user the exact blocker question instead of inventing a default
+- if the North Star, requested behavior scope, allowed architectural convergence scope, or any other plan-shaping decision is contradictory, stop and ask the exact blocker question before continuing
 - do the research directly inside this command; do not rely on external model orchestration
 
 ## Relevance filter
@@ -98,7 +98,9 @@ Use this block shape:
 ### <Topic A>
 - Best practices (synthesized):
   - <bullet>
-- Recommended default for this plan:
+- Adopt for this plan:
+  - <bullet>
+- Reject for this plan:
   - <bullet>
 - Pitfalls / footguns:
   - <bullet>
@@ -111,8 +113,8 @@ Use this block shape:
 - Reject:
   - <what we will not do + why>
 
-## Open questions (ONLY if truly not answerable)
-- <question> — evidence needed: <what would settle it>
+## Decision gaps that must be resolved before implementation
+- <exact blocker question> — repo evidence checked: <what was checked> — answer needed: <what the user must decide>
 <!-- arch_skill:block:external_research:end -->
 ```
 
@@ -121,11 +123,12 @@ Use this block shape:
 - if external guidance changes architecture, sequencing, or verification stance, repair the smallest clearly stale claims elsewhere in the doc without silently changing requested behavior scope or allowed architectural convergence scope
 - append or update a Decision Log entry when the research changes an earlier conclusion in a meaningful way
 - do not leave external research saying one thing while TL;DR, Section 0, or Section 8 still say another
+- do not let unresolved external disagreements sit in the artifact as if the plan were now ready
 
 ## Stop condition
 
 - if the doc path remains truly ambiguous after best effort, ask the user to choose from the top 2-3 candidates
-- if the North Star, requested behavior scope, or allowed architectural convergence scope is contradictory, stop for a quick doc correction
+- if the North Star, requested behavior scope, allowed architectural convergence scope, or any research-shaped decision is contradictory or unresolved, stop and ask the exact blocker question
 - otherwise stop after the external research block, planning-pass update, and any required plan repairs are complete
 
 ## Console contract

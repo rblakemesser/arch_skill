@@ -22,7 +22,7 @@
 
 - `arch-step` always works toward one finished full-arch artifact.
 - Local ownership is subordinate to artifact convergence.
-- If a command updates one part of the plan and can see that nearby sections are now stale, it should repair the smallest safe set of contradictions before exiting.
+- If a command updates one part of the plan and can see that nearby sections are now stale, it should repair the necessary safe set of contradictions before exiting.
 
 ## Question policy
 
@@ -46,7 +46,7 @@ Allowed questions are narrow:
 - real doc-path ambiguity after best-effort resolution
 - missing access or permissions
 
-If a question is still necessary, say where you looked first.
+If a question is still necessary, say where you looked first and ask the exact blocker question instead of offering a guess as if the plan were already decided.
 
 ## DOC_PATH resolution defaults
 
@@ -105,8 +105,9 @@ Before substantive planning or implementation:
 - requested behavior scope must be explicit
 - allowed architectural convergence scope must be explicit enough to tell convergence from product creep
 - scope must not silently expand
+- plan-shaping decisions must be resolved explicitly enough that later commands do not need to guess, invent alternatives, or silently cut requested behavior
 
-If the North Star, requested behavior scope, or allowed architectural convergence scope is unclear or contradictory, stop for a quick doc correction before going deeper.
+If the North Star, requested behavior scope, allowed architectural convergence scope, or any other plan-shaping decision is unclear, contradictory, or still branchy, stop, repair what repo evidence can settle, and ask the user the remaining exact blocker question before going deeper.
 
 ## Evidence philosophy
 
@@ -159,8 +160,9 @@ Negative-value defaults to avoid:
 - If work is required to converge onto the canonical path, remove duplicate truth, migrate clearly related adopters, or avoid a concrete regression, include it and proceed.
 - If work adds new product functionality, alternate ways of doing the same thing, or speculative architecture, exclude it or record it as follow-up.
 - For agent-backed systems, tooling that substitutes for prompt work or native capability use without necessity is architecture theater by default.
-- If a newly discovered item is ambiguous, default to follow-up, defer, or explicit note rather than silently promoting it into ship-blocking work.
-- Only stop and ask when the plan is internally contradictory, such as required work being declared out of scope.
+- If requiredness is not derivable from repo truth plus the approved plan, ask the user. Do not downgrade that uncertainty into follow-up, defer, optional, or a silent scope cut.
+- Do not remove or relabel approved behavior just because it looks larger than expected. Only the user or explicit plan text can narrow approved intent.
+- Stop and ask whenever the plan cannot truthfully become decision-complete without a user choice.
 
 ## Warn-first sequencing
 
@@ -182,7 +184,7 @@ This is a quality guard, not a hard blocker. Missing passes should be surfaced c
 - If rollout or telemetry implications change, check Section 9 and Section 10.
 - If architecture, ownership, or behavior changes, check touched live docs, comments, and instructions and either delete dead truth surfaces or sync surviving ones to reality.
 - If prompts, agent instructions, or other instruction-bearing content are being re-homed, check that operational structure was preserved or that any intentional condensation is explicitly recorded with source text still recoverable.
-- Prefer minimal truthful edits over broad rewrites.
+- Prefer direct truthful edits over broad rewrites.
 - Record meaningful drift or approved exceptions in the Decision Log instead of silently rewriting history.
 
 ## Authoritative surfaces
@@ -205,5 +207,6 @@ This is a quality guard, not a hard blocker. Missing passes should be surfaced c
 Presence is not enough.
 
 - A section is only useful when it is concrete enough for later phases to trust.
-- A stage is only complete when the sections it owns are both present and strong enough to support downstream decisions.
+- A stage is only complete when the sections it owns are both present and strong enough to support downstream decisions without guesswork.
+- A plan is not implementation-ready until its plan-shaping decisions are resolved in the main artifact.
 - Consistency across sections matters as much as local section quality.

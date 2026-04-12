@@ -59,9 +59,9 @@ Inspect:
 
 Grade:
 
-- `strong` when the doc is structurally canonical, the major sections have credible content, the core sections agree, and any instruction-bearing imported content is either preserved structurally or explicitly condensed with recoverable source text
+- `strong` when the doc is structurally canonical, the major sections have credible content, the core sections agree, the artifact is decision-complete, and any instruction-bearing imported content is either preserved structurally or explicitly condensed with recoverable source text
 - `decent` when the structure is mostly canonical but one important section is thin
-- `weak` when the doc is usable but structurally drifted, partially canonical, missing multiple required sections, internally inconsistent, or silently compresses instruction-bearing imported content
+- `weak` when the doc is usable but structurally drifted, partially canonical, missing multiple required sections, internally inconsistent, still contains unresolved plan-shaping decisions, or silently compresses instruction-bearing imported content
 - `missing` when there is no credible canonical full-arch artifact
 
 Also apply the "big 3" readiness bar:
@@ -70,7 +70,7 @@ Also apply the "big 3" readiness bar:
 - architecture sufficiently idiomatic and convergent
 - call sites audited exhaustively enough within approved scope to trust the plan
 
-A doc cannot be artifact-strong if TL;DR, Section 0, Section 5, Section 6, or Section 7 are still weak.
+A doc cannot be artifact-strong if TL;DR, Section 0, Section 5, Section 6, or Section 7 are still weak, or if unresolved decisions remain anywhere in the authoritative artifact.
 
 ### North Star
 
@@ -82,9 +82,9 @@ Inspect:
 
 Grade:
 
-- `strong` when TL;DR and Section 0 are concrete, scoped, falsifiable, evidence-aware, clearly distinguish requested behavior scope from allowed convergence scope, and `status` is `active` or `complete`
+- `strong` when TL;DR and Section 0 are concrete, scoped, falsifiable, evidence-aware, clearly distinguish requested behavior scope from allowed convergence scope, contain no unresolved plan-shaping decisions, and `status` is `active` or `complete`
 - `decent` when the content is mostly real but thin in one important place
-- `weak` when the draft is vague, contradictory, or placeholder-heavy
+- `weak` when the draft is vague, contradictory, placeholder-heavy, or still leaves plan-shaping decisions unresolved
 - `missing` when the doc is not credibly bootstrapped
 
 ### Research
@@ -96,7 +96,7 @@ Inspect:
 
 Grade:
 
-- `strong` when the block has authoritative internal anchors, names the canonical owner path, names reusable patterns, grounds prompt and capability surfaces when the system is agent-backed, names preservation signals when needed, and uses evidence-based open questions
+- `strong` when the block has authoritative internal anchors, names the canonical owner path, names reusable patterns, grounds prompt and capability surfaces when the system is agent-backed, names preservation signals when needed, and turns any remaining decision gaps into explicit blockers instead of hiding them
 - `decent` when present but thinner than required
 - `weak` when present but generic or under-anchored
 - `missing` when absent
@@ -112,7 +112,7 @@ Inspect:
 
 Grade:
 
-- `strong` when current architecture is grounded, target architecture is fully specified, the canonical owner path is explicit, agent-backed behavior is split cleanly between prompt/capability use and deterministic code when relevant, and the call-site audit is exhaustive enough within approved scope to drive implementation and audit
+- `strong` when current architecture is grounded, target architecture is fully specified, the canonical owner path is explicit, agent-backed behavior is split cleanly between prompt/capability use and deterministic code when relevant, the call-site audit is exhaustive enough within approved scope to drive implementation and audit, and no architecture-shaping decisions remain unresolved
 - `decent` when all exist but one is still thin
 - `weak` when one or more exist but do not meet the depth bar
 - `missing` when one or more are absent
@@ -142,9 +142,9 @@ Inspect:
 
 Grade:
 
-- `strong` when the authoritative phased plan exists, remains the single execution checklist, each phase has concrete work, verification, exit criteria, and rollback, refactor-heavy phases name preservation checks, touched live docs/comments that would otherwise go stale are either deleted or rewritten in the plan, and agent-backed tooling is explicitly justified against prompt-first options
+- `strong` when the authoritative phased plan exists, remains the single execution checklist, each phase has concrete work, verification, exit criteria, and rollback, refactor-heavy phases name preservation checks, touched live docs/comments that would otherwise go stale are either deleted or rewritten in the plan, agent-backed tooling is explicitly justified against prompt-first options, and the checklist contains no unresolved branches or "decide later" language
 - `decent` when present but one or more phases are thin
-- `weak` when generic, incomplete, mixes product creep into ship-blocking work, leaves touched live docs/comments cleanup implicit, or competes with helper checklists
+- `weak` when generic, incomplete, mixes product creep into ship-blocking work, leaves touched live docs/comments cleanup implicit, competes with helper checklists, or still contains unresolved execution choices
 - `missing` when absent
 
 ### Implementation
@@ -226,6 +226,7 @@ Choose the command that most improves artifact completeness or core-flow progres
 - warranted but missing external research -> `external-research`
 - weak, creep-heavy, missing capability-first analysis, preservation-light, or stale-live-doc-light execution checklist -> `phase-plan`
 - execution-grade plan still has obvious end-to-end consistency drift that warrants a dedicated cold read -> `consistency-pass`
+- unresolved decision gap that repo truth cannot settle -> ask the user the exact blocker question and do not route to implementation
 - code progress without worklog truth -> `implement`
 - missing implementation audit -> `audit-implementation`
 - clean implementation audit with remaining docs cleanup or plan/worklog retirement -> `Use $arch-docs`

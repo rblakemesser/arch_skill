@@ -21,6 +21,7 @@ Strong when:
 - `Approach` names the actual architectural move
 - `Plan` names real phases or work slices
 - `Non-negotiables` materially constrain later decisions
+- the section does not leave plan-shaping alternatives unresolved
 
 Weak when:
 
@@ -28,6 +29,7 @@ Weak when:
 - the plan is generic or empty
 - the non-negotiables do not rule anything out
 - it disagrees with Section 0 or Section 7
+- it contains conditional or branchy plan language that leaves real choices unresolved
 
 Downstream can trust it when:
 
@@ -52,6 +54,7 @@ Strong when:
 - invariants are actionable
 - fallback stance is explicit and respected
 - later commands can answer ordinary scope and tradeoff questions from it
+- no plan-shaping decisions are still waiting for the agent to guess later
 
 Weak when:
 
@@ -62,6 +65,7 @@ Weak when:
 - definition of done depends on bespoke ceremony
 - invariants are generic platitudes
 - it reads like inspiration instead of an execution contract
+- it leaves real behavior, scope, owner-path, or evidence decisions unresolved
 
 Downstream can trust it when:
 
@@ -130,14 +134,14 @@ Strong when:
 - capability-first alternatives are visible before new tooling is blessed
 - preservation signals are named when refactor risk is real
 - external anchors use adopt or reject reasoning instead of cargo cult
-- open questions are framed as evidence needed
+- decision gaps are either already resolved in the main artifact or written as explicit blockers that prevent readiness
 
 Weak when:
 
 - it is generic or unanchored
 - it jumps to scripts, wrappers, or harnesses without first grounding prompt and capability options
 - external references are decorative
-- open questions are vague TODOs
+- plan-shaping decisions remain unresolved
 
 Downstream can trust it when:
 
@@ -182,6 +186,7 @@ Strong when:
 - no parallel paths are tolerated without explicit approval
 - invariants are enforceable in shipped behavior or boundary code, not through grep- or absence-based hygiene gates
 - migration shape is explicit where interfaces change
+- there is one chosen architecture, not multiple viable branches left open
 
 Weak when:
 
@@ -209,6 +214,7 @@ Strong when:
 - touched live docs/comments/instructions to delete or rewrite are explicit when the change would otherwise leave stale truth behind
 - tests impacted are called out when relevant
 - consolidation sweep names related adopters and default dispositions
+- required scope calls are resolved instead of parked as later choices
 
 Weak when:
 
@@ -216,6 +222,7 @@ Weak when:
 - it mixes product creep or architecture theater into the required work
 - deletes and cleanup are absent
 - it cannot be used to verify completeness
+- required migrations, owner-path choices, or include-vs-exclude decisions are still unresolved
 
 Downstream can trust it when:
 
@@ -238,6 +245,7 @@ Strong when:
 - manual QA is deferred to finalization when appropriate
 - there is no competing checklist elsewhere
 - required deletes, cleanup, touched-doc reality-sync work, and follow-through are visible rather than buried
+- phases describe the actual work to do rather than conditional branches the agent must choose between later
 
 Weak when:
 
@@ -248,6 +256,7 @@ Weak when:
 - touched live docs/comments that would go stale are left implicit
 - helper blocks compete with the phase plan
 - sequencing hides required cleanup or migration work
+- the authoritative checklist still contains unresolved alternatives, "if needed" work, or other branchy plan language
 
 Downstream can trust it when:
 
@@ -445,12 +454,14 @@ Strong when:
 - it makes remaining inconsistencies explicit
 - it says plainly whether the doc should proceed to implementation
 - in Codex, it reflects two real cold-reader passes rather than one same-voice reread
+- it makes unresolved decisions and unauthorized scope cuts explicit
 
 Weak when:
 
 - it becomes copy editing instead of truth repair
 - it leaves contradictions parked in the helper block instead of fixing the plan
 - it says `yes` while major scope, owner-path, or phase-plan disagreements remain
+- it says `yes` while unresolved decisions or unauthorized scope cuts remain
 - it becomes a second execution checklist
 
 Downstream can trust it when:

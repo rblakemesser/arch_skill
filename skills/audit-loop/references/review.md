@@ -25,6 +25,7 @@ No product code changes are allowed in `review`.
    - relevant tests, build checks, or scanner output when needed
    - whether the latest pass actually reduced the top open risk
    - whether the same risk front still has justified unresolved work
+   - whether audit-loop-added or materially rewritten tests make the protected behavior, why it matters, and the expected user-visible or externally observable outcome clear enough to catch misunderstanding later
    - treat unrelated dirty or untracked files as ordinary context, not as an automatic blocker
 4. Set the controller block:
    - `CONTINUE` when a concrete worthwhile next risk front remains
@@ -42,6 +43,7 @@ Use only when:
 - a concrete next risk front exists
 - that risk front is still justified by the priority matrix
 - the current front still has unresolved work or the next front clearly dominates the repo
+- the latest pass did not leave key new verification ambiguous or underexplained
 - the next pass would not merely repeat the last failed idea
 
 `Next Area` is required. It may name a risk front or problem cluster, not just a tiny local file.
@@ -65,6 +67,7 @@ Use when:
 - the failing baseline or current repo state makes the next pass unsafe
 - the next pass would rerun the same idea without a changed lever
 - the ledger is too weak to continue honestly without first repairing the investigation
+- the claimed risk reduction depends on new or materially rewritten tests whose intent is too unclear to trust
 
 `Stop Reason` is required.
 
