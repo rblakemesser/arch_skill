@@ -99,6 +99,81 @@ class CodexStopHookTests(unittest.TestCase):
             sys.stderr = saved_stderr
         return raised.exception.code, json.loads(stdout.getvalue()), stderr.getvalue(), state_path
 
+    def run_audit_loop_sim_handler(
+        self,
+        repo_root: Path,
+        session_id: str,
+        *,
+        controller_fields: dict[str, str],
+        review_summary: str | None = None,
+        gitignore_text: str | None = None,
+        gitignore_created: bool = False,
+    ) -> tuple[int, dict, str, Path, Path]:
+        state_path = self.controller_state_path(
+            repo_root,
+            self.stop_module.AUDIT_LOOP_SIM_STATE_RELATIVE_PATH,
+            session_id,
+        )
+        ledger_path = repo_root / "_audit_sim_ledger.md"
+        controller_block = "\n".join(
+            [
+                "<!-- audit_loop_sim:block:controller:start -->",
+                f"Verdict: {controller_fields.get('Verdict', '')}",
+                f"Next Area: {controller_fields.get('Next Area', '')}",
+                f"Stop Reason: {controller_fields.get('Stop Reason', '')}",
+                f"Last Review: {controller_fields.get('Last Review', '')}",
+                "<!-- audit_loop_sim:block:controller:end -->",
+            ]
+        )
+        ledger_path.write_text(
+            "# Audit Sim Ledger\n"
+            "Started: 2026-04-11\n"
+            "Last updated: 2026-04-11\n\n"
+            f"{controller_block}\n",
+            encoding="utf-8",
+        )
+        self.write_json(
+            state_path,
+            {
+                "command": "auto",
+                "session_id": session_id,
+                "ledger_path": "_audit_sim_ledger.md",
+                "gitignore_created": gitignore_created,
+                "gitignore_entry_added": True,
+            },
+        )
+        if gitignore_text is not None:
+            (repo_root / ".gitignore").write_text(gitignore_text, encoding="utf-8")
+
+        review_result = self.stop_module.FreshAuditResult(
+            process=subprocess.CompletedProcess(args=["codex"], returncode=0, stdout="", stderr=""),
+            last_message=review_summary,
+        )
+        original = self.stop_module.run_fresh_sim_review
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        self.stop_module.run_fresh_sim_review = lambda *args, **kwargs: review_result
+        try:
+            saved_stdout = sys.stdout
+            saved_stderr = sys.stderr
+            sys.stdout = stdout
+            sys.stderr = stderr
+            with self.assertRaises(SystemExit) as raised:
+                self.stop_module.handle_audit_loop_sim(
+                    {"cwd": str(repo_root), "session_id": session_id}
+                )
+        finally:
+            self.stop_module.run_fresh_sim_review = original
+            sys.stdout = saved_stdout
+            sys.stderr = saved_stderr
+        return (
+            raised.exception.code,
+            json.loads(stdout.getvalue()),
+            stderr.getvalue(),
+            state_path,
+            ledger_path,
+        )
+
     def test_install_hook_preserves_unrelated_and_collapses_repo_managed_entries(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_root = Path(temp_dir)
@@ -248,6 +323,44 @@ class CodexStopHookTests(unittest.TestCase):
             self.assertFalse(payload["continue"])
             self.assertIn(".codex/implement-loop-state.session-1.json", payload["stopReason"])
             self.assertIn(".codex/audit-loop-state.session-1.json", payload["stopReason"])
+
+    def test_stop_hook_blocks_when_same_session_has_audit_loop_sim_and_other_controller_states(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo_root = Path(temp_dir)
+            self.write_json(
+                self.controller_state_path(
+                    repo_root,
+                    self.stop_module.AUTO_PLAN_STATE_RELATIVE_PATH,
+                    "session-1",
+                ),
+                {
+                    "command": "auto-plan",
+                    "session_id": "session-1",
+                    "doc_path": "docs/PLAN.md",
+                    "stage_index": 0,
+                    "stages": list(self.stop_module.AUTO_PLAN_STAGES),
+                },
+            )
+            self.write_json(
+                self.controller_state_path(
+                    repo_root,
+                    self.stop_module.AUDIT_LOOP_SIM_STATE_RELATIVE_PATH,
+                    "session-1",
+                ),
+                {
+                    "command": "auto",
+                    "session_id": "session-1",
+                    "ledger_path": "_audit_sim_ledger.md",
+                },
+            )
+
+            process = self.run_stop_hook(repo_root, "session-1")
+
+            self.assertEqual(process.returncode, 0, msg=process.stderr)
+            payload = json.loads(process.stdout)
+            self.assertFalse(payload["continue"])
+            self.assertIn(".codex/auto-plan-state.session-1.json", payload["stopReason"])
+            self.assertIn(".codex/audit-loop-sim-state.session-1.json", payload["stopReason"])
 
     def test_stop_hook_ignores_other_session_controller_states(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -453,6 +566,107 @@ class CodexStopHookTests(unittest.TestCase):
                 "arch-docs auto evaluation stopped: no credible grounded next pass.",
             )
             self.assertFalse(state_path.exists())
+
+    def test_audit_loop_sim_continue_keeps_state_armed(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo_root = Path(temp_dir)
+
+            exit_code, payload, stderr, state_path, ledger_path = self.run_audit_loop_sim_handler(
+                repo_root,
+                "session-1",
+                controller_fields={
+                    "Verdict": "CONTINUE",
+                    "Next Area": "new-user auth plus session restore risk front",
+                    "Stop Reason": "",
+                    "Last Review": "2026-04-11",
+                },
+                review_summary="The same auth journey still lacks durable Android closeout.",
+            )
+
+            self.assertEqual(exit_code, 0)
+            self.assertEqual(stderr, "")
+            self.assertTrue(payload["continue"])
+            self.assertIn("more worthwhile automation work", payload["reason"])
+            self.assertIn("Use $audit-loop-sim", payload["reason"])
+            self.assertIn("new-user auth plus session restore risk front", payload["reason"])
+            self.assertEqual(payload["systemMessage"], "audit-loop-sim review found more work.")
+            self.assertTrue(state_path.exists())
+            self.assertTrue(ledger_path.exists())
+
+    def test_audit_loop_sim_clean_removes_runtime_artifacts(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo_root = Path(temp_dir)
+
+            exit_code, payload, stderr, state_path, ledger_path = self.run_audit_loop_sim_handler(
+                repo_root,
+                "session-1",
+                controller_fields={
+                    "Verdict": "CLEAN",
+                    "Next Area": "",
+                    "Stop Reason": "",
+                    "Last Review": "2026-04-11",
+                },
+                review_summary="No credible major automation risk remains.",
+                gitignore_text="_audit_sim_ledger.md\n",
+                gitignore_created=True,
+            )
+
+            self.assertEqual(exit_code, 0)
+            self.assertEqual(stderr, "")
+            self.assertFalse(payload["continue"])
+            self.assertIn("fresh review finished clean", payload["stopReason"])
+            self.assertEqual(payload["systemMessage"], "audit-loop-sim completed clean.")
+            self.assertFalse(state_path.exists())
+            self.assertFalse(ledger_path.exists())
+            self.assertFalse((repo_root / ".gitignore").exists())
+
+    def test_audit_loop_sim_blocked_disarms_state(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo_root = Path(temp_dir)
+
+            exit_code, payload, stderr, state_path, ledger_path = self.run_audit_loop_sim_handler(
+                repo_root,
+                "session-1",
+                controller_fields={
+                    "Verdict": "BLOCKED",
+                    "Next Area": "",
+                    "Stop Reason": "Backend realism is unavailable on this host.",
+                    "Last Review": "2026-04-11",
+                },
+                review_summary="The repo-managed backend runner is unavailable.",
+            )
+
+            self.assertEqual(exit_code, 0)
+            self.assertEqual(stderr, "")
+            self.assertFalse(payload["continue"])
+            self.assertIn("Backend realism is unavailable on this host.", payload["stopReason"])
+            self.assertEqual(payload["systemMessage"], "audit-loop-sim stopped blocked.")
+            self.assertFalse(state_path.exists())
+            self.assertTrue(ledger_path.exists())
+
+    def test_audit_loop_sim_continue_without_next_area_disarms_state(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo_root = Path(temp_dir)
+
+            exit_code, payload, stderr, state_path, ledger_path = self.run_audit_loop_sim_handler(
+                repo_root,
+                "session-1",
+                controller_fields={
+                    "Verdict": "CONTINUE",
+                    "Next Area": "",
+                    "Stop Reason": "",
+                    "Last Review": "2026-04-11",
+                },
+                review_summary="The review forgot to name the next automation front.",
+            )
+
+            self.assertEqual(exit_code, 0)
+            self.assertEqual(stderr, "")
+            self.assertFalse(payload["continue"])
+            self.assertIn("CONTINUE without Next Area", payload["stopReason"])
+            self.assertEqual(payload["systemMessage"], "audit-loop-sim review omitted Next Area.")
+            self.assertFalse(state_path.exists())
+            self.assertTrue(ledger_path.exists())
 
 
 if __name__ == "__main__":

@@ -1,0 +1,7 @@
+interface:
+  display_name: "Audit Loop Sim"
+  short_description: "Run a repo-wide real-app automation audit loop with a root simulator ledger; supports Codex-only auto continuation"
+  default_prompt: "Use $audit-loop-sim for a repo-wide real-app automation audit pass that finds and fixes the biggest simulator or emulator coverage gaps, missing high-value mobile end-to-end signal, and same-story bugs exposed by real-app runs. Push on the strongest unresolved automation risk until it is materially reduced; do not cash out on a tiny safe test tweak while a bigger justified journey gap still dominates. A pass may cross product code, integration tests, harness, fixtures, and native glue when they serve the same risk story. `review` is docs-only; `auto` is the Codex-only controller and must fail loud if hook support or `codex_hooks` is missing. Do not run the Stop hook yourself, and after `auto` is armed just end the turn and let Codex run the installed Stop hook."
+
+policy:
+  allow_implicit_invocation: true

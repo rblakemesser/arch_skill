@@ -159,6 +159,7 @@ These stay explicit unless the user directly asks for them:
 
 - run `$arch-step auto-plan`
 - or run `$arch-step auto-plan <DOC_PATH>`
+- do not run the Stop hook yourself; after the controller is armed, just end the turn and let Codex run the installed Stop hook
 - prefer the current session's canonical full-arch doc when `DOC_PATH` is omitted
 - if the installed runtime support is absent, disabled, or the North Star is still unapproved, name the broken prerequisite and stop
 - keep `.codex/auto-plan-state.<SESSION_ID>.json` aligned with the live run
@@ -172,6 +173,7 @@ User-facing invocation stays simple:
 
 - run `$arch-step implement-loop <DOC_PATH>`
 - or run `$arch-step auto-implement <DOC_PATH>`
+- do not run the Stop hook yourself; after the controller is armed, just end the turn and let Codex run the installed Stop hook
 - do not introduce a second command, mode, or user-facing control surface
 - if the installed runtime support is absent or disabled, name the broken prerequisite and stop
 - do not hand control back to audit until the current implementation pass has credible proof for its claimed fixes

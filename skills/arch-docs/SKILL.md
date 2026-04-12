@@ -84,6 +84,7 @@ Use this skill when the code is stable enough to ground documentation against cu
 
 - Run the same docs-health discipline as the default pass, but only under real Codex Stop-hook continuation.
 - Derive `SESSION_ID` from `CODEX_THREAD_ID`, then create or refresh `.codex/arch-docs-auto-state.<SESSION_ID>.json` before the first pass.
+- Do not run the Stop hook yourself. After `auto` is armed, just end the turn and let Codex run the installed Stop hook.
 - Expect a fresh external evaluator after each stop point.
 - Apply the same pre-delete backup-commit rule during each pass in `auto`.
 - Continue only while another grounded pass is still credible for the resolved docs-health intent.

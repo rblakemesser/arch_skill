@@ -17,18 +17,22 @@ IMPLEMENT_LOOP_STATE_RELATIVE_PATH = Path(".codex/implement-loop-state.json")
 AUTO_PLAN_STATE_RELATIVE_PATH = Path(".codex/auto-plan-state.json")
 ARCH_DOCS_AUTO_STATE_RELATIVE_PATH = Path(".codex/arch-docs-auto-state.json")
 AUDIT_LOOP_STATE_RELATIVE_PATH = Path(".codex/audit-loop-state.json")
+AUDIT_LOOP_SIM_STATE_RELATIVE_PATH = Path(".codex/audit-loop-sim-state.json")
 ARCH_DOCS_DEFAULT_LEDGER_RELATIVE_PATH = Path(".doc-audit-ledger.md")
 AUDIT_LOOP_DEFAULT_LEDGER_RELATIVE_PATH = Path("_audit_ledger.md")
+AUDIT_LOOP_SIM_DEFAULT_LEDGER_RELATIVE_PATH = Path("_audit_sim_ledger.md")
 
 IMPLEMENT_LOOP_COMMAND = "implement-loop"
 AUTO_PLAN_COMMAND = "auto-plan"
 ARCH_DOCS_AUTO_COMMAND = "arch-docs-auto"
 AUDIT_LOOP_COMMAND = "auto"
+AUDIT_LOOP_SIM_COMMAND = "auto"
 
 IMPLEMENT_LOOP_DISPLAY_NAME = "implement-loop"
 AUTO_PLAN_DISPLAY_NAME = "auto-plan"
 ARCH_DOCS_AUTO_DISPLAY_NAME = "arch-docs auto"
 AUDIT_LOOP_DISPLAY_NAME = "audit-loop auto"
+AUDIT_LOOP_SIM_DISPLAY_NAME = "audit-loop-sim auto"
 
 
 @dataclass(frozen=True)
@@ -65,6 +69,11 @@ AUDIT_LOOP_STATE_SPEC = ControllerStateSpec(
     expected_command=AUDIT_LOOP_COMMAND,
     display_name=AUDIT_LOOP_DISPLAY_NAME,
 )
+AUDIT_LOOP_SIM_STATE_SPEC = ControllerStateSpec(
+    relative_path=AUDIT_LOOP_SIM_STATE_RELATIVE_PATH,
+    expected_command=AUDIT_LOOP_SIM_COMMAND,
+    display_name=AUDIT_LOOP_SIM_DISPLAY_NAME,
+)
 
 AUTO_PLAN_STAGES = (
     "research",
@@ -88,12 +97,15 @@ BLOCK_MARKERS = {
 }
 AUDIT_LOOP_CONTROLLER_START = "<!-- audit_loop:block:controller:start -->"
 AUDIT_LOOP_CONTROLLER_END = "<!-- audit_loop:block:controller:end -->"
+AUDIT_LOOP_SIM_CONTROLLER_START = "<!-- audit_loop_sim:block:controller:start -->"
+AUDIT_LOOP_SIM_CONTROLLER_END = "<!-- audit_loop_sim:block:controller:end -->"
 AUDIT_LOOP_VALID_VERDICTS = {"CONTINUE", "CLEAN", "BLOCKED"}
 CONTROLLER_STATE_SPECS = (
     IMPLEMENT_LOOP_STATE_SPEC,
     AUTO_PLAN_STATE_SPEC,
     ARCH_DOCS_AUTO_STATE_SPEC,
     AUDIT_LOOP_STATE_SPEC,
+    AUDIT_LOOP_SIM_STATE_SPEC,
 )
 ARCH_DOCS_EVAL_SCHEMA = {
     "type": "object",
@@ -631,6 +643,44 @@ def run_fresh_review(cwd: Path) -> FreshAuditResult:
         return FreshAuditResult(process=process, last_message=last_message)
 
 
+def run_fresh_sim_review(cwd: Path) -> FreshAuditResult:
+    codex = shutil.which("codex")
+    if not codex:
+        raise RuntimeError("`codex` is not available on PATH for the Stop hook")
+
+    prompt = (
+        "Use $audit-loop-sim review\n"
+        "Fresh context only. Repair or update `_audit_sim_ledger.md`, set the controller verdict truthfully, "
+        "and keep the final response short."
+    )
+
+    with tempfile.TemporaryDirectory(prefix="audit-loop-sim-review-") as temp_dir:
+        last_message_path = Path(temp_dir) / "last_message.txt"
+        process = subprocess.run(
+            [
+                codex,
+                "exec",
+                "--ephemeral",
+                "--disable",
+                "codex_hooks",
+                "--cd",
+                str(cwd),
+                "--full-auto",
+                "-o",
+                str(last_message_path),
+                prompt,
+            ],
+            cwd=str(cwd),
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        last_message = None
+        if last_message_path.exists():
+            last_message = last_message_path.read_text(encoding="utf-8").strip() or None
+        return FreshAuditResult(process=process, last_message=last_message)
+
+
 def validate_implement_loop_state(
     payload: dict,
     resolved_state: ResolvedControllerState | None,
@@ -860,6 +910,42 @@ def validate_audit_loop_state(
     return ledger_path, ledger_path_value, state, state_path
 
 
+def validate_audit_loop_sim_state(
+    payload: dict,
+    resolved_state: ResolvedControllerState | None,
+) -> tuple[Path, str, dict, Path] | None:
+    cwd = Path(payload["cwd"]).resolve()
+    loaded = load_controller_state(
+        cwd,
+        resolved_state,
+        AUDIT_LOOP_SIM_DISPLAY_NAME,
+        AUDIT_LOOP_SIM_COMMAND,
+    )
+    if loaded is None:
+        return None
+    state_path, state, is_legacy = loaded
+    if not validate_session_id(
+        payload,
+        cwd,
+        state_path,
+        state,
+        AUDIT_LOOP_SIM_DISPLAY_NAME,
+        allow_claim=is_legacy,
+    ):
+        return None
+
+    ledger_path_value = state.get("ledger_path", str(AUDIT_LOOP_SIM_DEFAULT_LEDGER_RELATIVE_PATH))
+    if not isinstance(ledger_path_value, str) or not ledger_path_value.strip():
+        clear_state(state_path)
+        block_with_message(
+            "audit-loop-sim auto controller state was missing ledger_path; "
+            "the controller was disarmed. Update the ledger truthfully and stop."
+        )
+
+    ledger_path = resolve_path(cwd, ledger_path_value)
+    return ledger_path, ledger_path_value, state, state_path
+
+
 def read_audit_loop_controller_fields(ledger_path: Path) -> dict[str, str] | None:
     if not ledger_path.exists():
         return None
@@ -869,6 +955,25 @@ def read_audit_loop_controller_fields(ledger_path: Path) -> dict[str, str] | Non
     if start == -1 or end == -1 or end < start:
         return None
     block = text[start + len(AUDIT_LOOP_CONTROLLER_START) : end]
+    fields: dict[str, str] = {}
+    for raw_line in block.splitlines():
+        line = raw_line.strip()
+        if not line or ":" not in line:
+            continue
+        key, value = line.split(":", 1)
+        fields[key.strip()] = value.strip()
+    return fields
+
+
+def read_audit_loop_sim_controller_fields(ledger_path: Path) -> dict[str, str] | None:
+    if not ledger_path.exists():
+        return None
+    text = ledger_path.read_text(encoding="utf-8")
+    start = text.find(AUDIT_LOOP_SIM_CONTROLLER_START)
+    end = text.find(AUDIT_LOOP_SIM_CONTROLLER_END)
+    if start == -1 or end == -1 or end < start:
+        return None
+    block = text[start + len(AUDIT_LOOP_SIM_CONTROLLER_START) : end]
     fields: dict[str, str] = {}
     for raw_line in block.splitlines():
         line = raw_line.strip()
@@ -914,6 +1019,19 @@ def cleanup_audit_loop_runtime_artifacts(cwd: Path, ledger_path: Path, state: di
     clean_gitignore(
         gitignore_path=gitignore_path,
         entry=str(AUDIT_LOOP_DEFAULT_LEDGER_RELATIVE_PATH),
+        created_by_skill=bool(state.get("gitignore_created")),
+        entry_added=bool(state.get("gitignore_entry_added")),
+    )
+
+
+def cleanup_audit_loop_sim_runtime_artifacts(cwd: Path, ledger_path: Path, state: dict) -> None:
+    if ledger_path.exists():
+        ledger_path.unlink()
+
+    gitignore_path = cwd / ".gitignore"
+    clean_gitignore(
+        gitignore_path=gitignore_path,
+        entry=str(AUDIT_LOOP_SIM_DEFAULT_LEDGER_RELATIVE_PATH),
         created_by_skill=bool(state.get("gitignore_created")),
         entry_added=bool(state.get("gitignore_entry_added")),
     )
@@ -1298,6 +1416,93 @@ def handle_audit_loop(payload: dict) -> int:
     block_with_json(reason, system_message="audit-loop review found more work.")
 
 
+def handle_audit_loop_sim(payload: dict) -> int:
+    cwd = Path(payload["cwd"]).resolve()
+    resolved_state = resolve_controller_state_for_handler(payload, AUDIT_LOOP_SIM_STATE_SPEC)
+    validated = validate_audit_loop_sim_state(payload, resolved_state)
+    if validated is None:
+        return 0
+
+    ledger_path, ledger_path_value, state, state_path = validated
+    state_path_value = display_path(state_path, cwd)
+
+    try:
+        review = run_fresh_sim_review(cwd)
+    except RuntimeError as exc:
+        clear_state(state_path)
+        stop_with_json(
+            f"audit-loop-sim could not start a fresh review pass: {exc}. The controller was disarmed.",
+            system_message="audit-loop-sim fresh review could not start.",
+        )
+
+    child_summary = summarize_child_output(review.process, review.last_message)
+    if review.process.returncode != 0:
+        clear_state(state_path)
+        reason = "audit-loop-sim ran a fresh review pass, but that review failed."
+        if child_summary:
+            reason += f" Failure: {child_summary}."
+        stop_with_json(
+            reason + " Treat the run as blocked, keep the ledger, and stop honestly.",
+            system_message="audit-loop-sim fresh review failed.",
+        )
+
+    fields = read_audit_loop_sim_controller_fields(ledger_path)
+    if not fields:
+        clear_state(state_path)
+        reason = (
+            f"audit-loop-sim fresh review finished, but {ledger_path_value} does not contain a usable controller block. "
+            "The controller was disarmed."
+        )
+        if child_summary:
+            reason += f" Review summary: {child_summary}"
+        stop_with_json(reason, system_message="audit-loop-sim review left no usable controller block.")
+
+    verdict = fields.get("Verdict", "").strip().upper()
+    if verdict not in AUDIT_LOOP_VALID_VERDICTS:
+        clear_state(state_path)
+        reason = (
+            f"audit-loop-sim fresh review finished, but {ledger_path_value} has an invalid verdict. "
+            "The controller was disarmed."
+        )
+        if child_summary:
+            reason += f" Review summary: {child_summary}"
+        stop_with_json(reason, system_message="audit-loop-sim review left an invalid verdict.")
+
+    if verdict == "CLEAN":
+        clear_state(state_path)
+        cleanup_audit_loop_sim_runtime_artifacts(cwd, ledger_path, state)
+        stop_reason = "audit-loop-sim fresh review finished clean. The audit sim ledger was removed."
+        if child_summary:
+            stop_reason += f" Review summary: {child_summary}"
+        stop_with_json(stop_reason, system_message="audit-loop-sim completed clean.")
+
+    if verdict == "BLOCKED":
+        clear_state(state_path)
+        stop_reason = fields.get("Stop Reason") or "audit-loop-sim review marked the loop blocked."
+        if child_summary:
+            stop_reason += f" Review summary: {child_summary}"
+        stop_with_json(stop_reason, system_message="audit-loop-sim stopped blocked.")
+
+    next_area = fields.get("Next Area", "").strip()
+    if not next_area:
+        clear_state(state_path)
+        reason = (
+            f"audit-loop-sim review returned CONTINUE without Next Area in {ledger_path_value}. "
+            "The controller was disarmed."
+        )
+        if child_summary:
+            reason += f" Review summary: {child_summary}"
+        stop_with_json(reason, system_message="audit-loop-sim review omitted Next Area.")
+
+    reason = (
+        f"audit-loop-sim fresh review found more worthwhile automation work. Continue now with `Use $audit-loop-sim`. "
+        f"Next area: {next_area}. Keep {state_path_value} armed and stop naturally when this pass finishes."
+    )
+    if child_summary:
+        reason += f" Review summary: {child_summary}"
+    block_with_json(reason, system_message="audit-loop-sim review found more work.")
+
+
 def main() -> int:
     payload = load_stop_payload()
     stop_for_conflicting_controller_states(payload)
@@ -1305,6 +1510,7 @@ def main() -> int:
     handle_auto_plan(payload)
     handle_arch_docs_auto(payload)
     handle_audit_loop(payload)
+    handle_audit_loop_sim(payload)
     return 0
 
 

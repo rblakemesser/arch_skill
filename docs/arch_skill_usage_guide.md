@@ -10,6 +10,7 @@ The current skill suite is:
 - `lilarch`
 - `bugs-flow`
 - `audit-loop`
+- `audit-loop-sim`
 - `goal-loop`
 - `north-star-investigation`
 - `arch-flow`
@@ -30,11 +31,13 @@ cd arch_skill
 make install
 ```
 
-For Codex automatic `auto-plan`, `implement-loop`, `arch-docs auto`, and `audit-loop auto`, also enable the Codex feature once:
+For Codex automatic `auto-plan`, `implement-loop`, `arch-docs auto`, `audit-loop auto`, and `audit-loop-sim auto`, also enable the Codex feature once:
 
 ```bash
 codex features enable codex_hooks
 ```
+
+For any of those Codex auto controllers, do not run the Stop hook yourself. After the controller is armed, just end the turn and let Codex run the installed Stop hook.
 
 Default local path:
 
@@ -44,6 +47,7 @@ Default local path:
 - `~/.agents/skills/lilarch/`
 - `~/.agents/skills/bugs-flow/`
 - `~/.agents/skills/audit-loop/`
+- `~/.agents/skills/audit-loop-sim/`
 - `~/.agents/skills/goal-loop/`
 - `~/.agents/skills/north-star-investigation/`
 - `~/.agents/skills/arch-flow/`
@@ -62,6 +66,7 @@ Installed skills:
   - `lilarch`
   - `bugs-flow`
   - `audit-loop`
+  - `audit-loop-sim`
   - `goal-loop`
   - `north-star-investigation`
   - `arch-flow`
@@ -75,6 +80,7 @@ Installed skills:
   - `lilarch`
   - `bugs-flow`
   - `audit-loop`
+  - `audit-loop-sim`
   - `goal-loop`
   - `north-star-investigation`
   - `arch-flow`
@@ -87,13 +93,14 @@ Installed skills:
   - `lilarch`
   - `bugs-flow`
   - `audit-loop`
+  - `audit-loop-sim`
   - `goal-loop`
   - `north-star-investigation`
   - `arch-flow`
   - `arch-skills-guide`
   - `agent-definition-auditor`
 
-Install removes stale pre-skill command surfaces, removed competing skill packages, and older Codex skill mirrors. For Codex, it installs one repo-managed `Stop` hook in `~/.codex/hooks.json` pointing at the installed suite runner under `~/.agents/skills/arch-step/scripts/`; that one hook backs `arch-step` automatic controllers, `arch-docs auto`, and `audit-loop auto`.
+Install removes stale pre-skill command surfaces, removed competing skill packages, and older Codex skill mirrors. For Codex, it installs one repo-managed `Stop` hook in `~/.codex/hooks.json` pointing at the installed suite runner under `~/.agents/skills/arch-step/scripts/`; that one hook backs `arch-step` automatic controllers, `arch-docs auto`, `audit-loop auto`, and `audit-loop-sim auto`.
 
 ## Shared conventions
 
@@ -173,6 +180,7 @@ Practical rule:
 - `arch-step auto-implement` is an exact user-facing synonym for `implement-loop`.
 - After a clean full-arch code audit, `arch-step` hands off to `arch-docs` for docs cleanup using the finished artifact as context.
 - In Codex, the user still invokes only `auto-plan`, `implement-loop`, or `auto-implement`; the last two are the same controller and require the installed runtime support in `~/.codex/hooks.json` and enabled `codex_hooks`.
+- Do not run the Stop hook yourself for any of those controllers. After the controller is armed, just end the turn and let Codex run the installed Stop hook.
 - If that hook path is absent or disabled, those commands should fail loud with the remediation commands instead of pretending a prompt-only loop exists.
 
 ### `arch-docs`
@@ -232,6 +240,16 @@ Examples:
 - `Use $audit-loop`
 - `Use $audit-loop review`
 - `Use $audit-loop auto`
+
+### `audit-loop-sim`
+
+Use for repo-wide real-app automation passes, simulator or emulator gap hunts, impactful mobile end-to-end coverage work, or "find the biggest automation blind spots in the real app" requests, especially when the user wants one manual pass or a Codex-only loop that keeps going until the review verdict is clean or blocked.
+
+Examples:
+
+- `Use $audit-loop-sim`
+- `Use $audit-loop-sim review`
+- `Use $audit-loop-sim auto`
 
 ### `goal-loop`
 

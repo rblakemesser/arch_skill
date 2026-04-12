@@ -1,6 +1,7 @@
 # `auto` Mode
 
 `auto` is the real Codex controller for repeated docs-audit passes. It is not prompt-only chaining.
+Do not run the Stop hook yourself. After `auto` is armed, just end the turn and let Codex run the installed Stop hook.
 
 ## Goal
 

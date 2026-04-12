@@ -67,6 +67,7 @@ Use this skill when the job is to inspect a codebase for its biggest real unreso
 
 - Run Codex-only preflight for hooks and feature flags.
 - Derive `SESSION_ID` from `CODEX_THREAD_ID`, then create or refresh `.codex/audit-loop-state.<SESSION_ID>.json`.
+- Do not run the Stop hook yourself. After `auto` is armed, just end the turn and let Codex run the installed Stop hook.
 - Run one truthful `run` pass.
 - Let the installed Stop hook launch a fresh `review` pass and continue only while the verdict stays `CONTINUE` because real unresolved risk still remains.
 

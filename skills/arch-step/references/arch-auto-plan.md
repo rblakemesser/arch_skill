@@ -24,7 +24,7 @@ Running `auto-plan` should end in one of two honest states:
   - the blocker or early stop is explicit
   - the run stops instead of silently pretending the planning arc finished
 
-User-facing invocation is just `auto-plan`. If the installed runtime support for real automatic sequencing is absent or disabled, this command must fail loud instead of pretending prompt-only chaining is the same feature.
+User-facing invocation is just `auto-plan`. Do not run the Stop hook yourself. After the controller is armed, just end the turn and let Codex run the installed Stop hook. If the installed runtime support for real automatic sequencing is absent or disabled, this command must fail loud instead of pretending prompt-only chaining is the same feature.
 
 ## Shared references to carry in
 
