@@ -40,7 +40,7 @@ Use this skill when the job is to inspect a mobile app codebase for its biggest 
 - Unrelated dirty or untracked files are not a blocker. Leave them alone unless they directly conflict with the current automation risk front or make verification unsafe.
 - Default invocation with no mode is `run`.
 - `review` is docs-only.
-- `auto` is Codex-only and must fail loud when hook support or `codex_hooks` is missing.
+- `auto` is Codex-only and must fail loud when the repo-managed `Stop` entry in `~/.codex/hooks.json`, the installed runner at `~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py`, or `codex_hooks` is missing.
 - Missing or deleted auto-controller state is not verdict truth. Repair the state file or ledger from fresh repo context before honoring a stop decision.
 - No auto commits. Keep the ledger truthful without relying on git history.
 

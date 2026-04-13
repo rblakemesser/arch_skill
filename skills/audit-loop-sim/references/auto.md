@@ -20,11 +20,12 @@ Do not run the Stop hook yourself. After `auto` is armed, just end the turn and 
 Before arming the controller, verify all of these:
 
 - Codex runtime is the active host
-- the installed suite controller runner exists under `~/.agents/skills/arch-step/scripts/`
-- the installed arch_skill-managed Codex Stop hook is present
+- the installed suite controller runner exists at `~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py`
+- `~/.codex/hooks.json` contains the arch_skill-managed `Stop` hook entry pointing at that runner
 - `codex features list` shows `codex_hooks` enabled
 
 If any check fails, name the broken prerequisite and stop.
+Do not preflight against a copied hook file under `~/.codex/hooks/`; that is not the install contract.
 
 Dirty or untracked files are not part of this runtime preflight. A dirty worktree does not stop `auto` by itself; leave unrelated dirty or untracked files alone unless they directly conflict with the current automation story or make verification unsafe.
 

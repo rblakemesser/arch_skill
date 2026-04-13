@@ -57,7 +57,7 @@ Default local path:
 - `~/.agents/skills/agent-definition-auditor/`
 - `~/.agents/skills/codemagic-builds/`
 
-Codex reads the same installed skills from `~/.agents/skills/`. `make install` also writes one arch_skill-managed Codex `Stop` hook through `~/.codex/hooks.json`, points it at the installed suite runner under `~/.agents/skills/arch-step/scripts/`, repairs older two-hook arch_skill installs down to that one repo-managed entry, and removes older `~/.codex/skills/<skill>` mirrors from previous installs.
+Codex reads the same installed skills from `~/.agents/skills/`. `make install` also writes one arch_skill-managed Codex `Stop` hook through `~/.codex/hooks.json`, points it at `~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py`, repairs older two-hook arch_skill installs down to that one repo-managed entry, and removes older `~/.codex/skills/<skill>` mirrors from previous installs.
 
 Installed skills:
 
@@ -103,7 +103,7 @@ Installed skills:
   - `arch-skills-guide`
   - `agent-definition-auditor`
 
-Install removes stale pre-skill command surfaces, removed competing skill packages, and older Codex skill mirrors. For Codex, it installs one repo-managed `Stop` hook in `~/.codex/hooks.json` pointing at the installed suite runner under `~/.agents/skills/arch-step/scripts/`; that one hook backs `arch-step` automatic controllers, `arch-docs auto`, `audit-loop auto`, `audit-loop-sim auto`, and `delay-poll`.
+Install removes stale pre-skill command surfaces, removed competing skill packages, and older Codex skill mirrors. For Codex, it installs one repo-managed `Stop` hook in `~/.codex/hooks.json` pointing at `~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py`; that one hook backs `arch-step` automatic controllers, `arch-docs auto`, `audit-loop auto`, `audit-loop-sim auto`, and `delay-poll`.
 
 `delay-poll` is installed only on the agents/Codex surface because it depends on the Codex `Stop` hook runtime and is not a real feature on Claude Code or Gemini CLI.
 
@@ -187,9 +187,9 @@ Practical rule:
 - `arch-step implement-loop` is the explicit bounded controller when the user wants repeated implement then audit passes until the audit is clean or a real blocker stops the run.
 - `arch-step auto-implement` is an exact user-facing synonym for `implement-loop`.
 - After a clean full-arch code audit, `arch-step` hands off to `arch-docs` for docs cleanup using the finished artifact as context.
-- In Codex, the user still invokes only `auto-plan`, `implement-loop`, or `auto-implement`; the last two are the same controller and require the installed runtime support in `~/.codex/hooks.json` and enabled `codex_hooks`.
+- In Codex, the user still invokes only `auto-plan`, `implement-loop`, or `auto-implement`; the last two are the same controller and require the repo-managed `Stop` entry in `~/.codex/hooks.json` pointing at `~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py` plus enabled `codex_hooks`.
 - Do not run the Stop hook yourself for any of those controllers. After the controller is armed, just end the turn and let Codex run the installed Stop hook.
-- If that hook path is absent or disabled, those commands should fail loud with the remediation commands instead of pretending a prompt-only loop exists.
+- If that `hooks.json` entry, the installed runner path, or `codex_hooks` is missing, those commands should fail loud with the remediation commands instead of pretending a prompt-only loop exists. Do not check for a copied hook file under `~/.codex/hooks/`.
 
 ### `arch-docs`
 

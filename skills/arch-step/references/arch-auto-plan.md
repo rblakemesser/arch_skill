@@ -58,14 +58,15 @@ User-facing invocation is just `auto-plan`. Do not run the Stop hook yourself. A
 Before arming the controller, verify all of these:
 
 - Codex runtime is the active host
-- the installed Codex runtime support for this repo's automatic controller surface is present
-- the installed `arch-step` runner exists under `~/.agents/skills/arch-step/`
+- `~/.codex/hooks.json` contains the repo-managed `Stop` entry pointing at `~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py`
+- the installed `arch-step` runner exists at `~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py`
 - `codex features list` shows `codex_hooks` enabled
 - the target doc exists and frontmatter `status` is `active` or `complete`
 
 If any check fails, name the broken prerequisite and stop.
 
 Do not downgrade to prompt-only same-session chaining.
+Do not preflight against a copied hook file under `~/.codex/hooks/`; that is not the install contract.
 
 ## Active planning-state contract
 
@@ -145,7 +146,7 @@ Use these signals before the Stop hook continues automatically:
 ## Controller procedure
 
 1. Read `DOC_PATH` fully and run the same alignment checks required by the planning commands it will invoke.
-2. Run the runtime preflight. If the installed continuation path or `codex_hooks` is unavailable, fail loud.
+2. Run the runtime preflight. If the `~/.codex/hooks.json` entry, the installed runner, or `codex_hooks` is unavailable, fail loud.
 3. Resolve `SESSION_ID` from `CODEX_THREAD_ID`, then create or refresh `.codex/auto-plan-state.<SESSION_ID>.json` for the current Codex session and `DOC_PATH`.
 4. Run one truthful `research` pass using the `research` contract. The parent `auto-plan` pass stops there; it must not self-run later planning stages in the same turn.
 5. Let Codex try to stop. The installed runtime should:

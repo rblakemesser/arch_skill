@@ -12,6 +12,26 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 UPSERT_HOOK_PATH = REPO_ROOT / "skills/arch-step/scripts/upsert_codex_stop_hook.py"
 STOP_HOOK_PATH = REPO_ROOT / "skills/arch-step/scripts/arch_controller_stop_hook.py"
+HOOK_CONTRACT_TEXT_PATHS = [
+    Path("README.md"),
+    Path("docs/arch_skill_usage_guide.md"),
+    Path("skills/arch-step/SKILL.md"),
+    Path("skills/arch-step/agents/openai.yaml"),
+    Path("skills/arch-step/references/arch-auto-plan.md"),
+    Path("skills/arch-step/references/arch-implement-loop.md"),
+    Path("skills/audit-loop/SKILL.md"),
+    Path("skills/audit-loop/agents/openai.yaml"),
+    Path("skills/audit-loop/references/auto.md"),
+    Path("skills/audit-loop-sim/SKILL.md"),
+    Path("skills/audit-loop-sim/agents/openai.yaml"),
+    Path("skills/audit-loop-sim/references/auto.md"),
+]
+REQUIRED_HOOKS_FILE_TEXT = "~/.codex/hooks.json"
+REQUIRED_RUNNER_PATH_TEXT = "~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py"
+FORBIDDEN_HOOK_PATH_TEXTS = (
+    "~/.codex/hooks/arch_controller_stop_hook.py",
+    "/Users/aelaguiz/.codex/hooks/arch_controller_stop_hook.py",
+)
 
 
 def load_module(path: Path, module_name: str):
@@ -391,6 +411,15 @@ class CodexStopHookTests(unittest.TestCase):
             with self.assertRaises(SystemExit) as raised:
                 self.upsert_module.verify_hook(hooks_file, skills_dir)
             self.assertIn("stale arch_skill Stop hook entry still exists", str(raised.exception))
+
+    def test_hook_contract_docs_anchor_preflight_to_hooks_json(self) -> None:
+        for relative_path in HOOK_CONTRACT_TEXT_PATHS:
+            with self.subTest(path=str(relative_path)):
+                text = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
+                self.assertIn(REQUIRED_HOOKS_FILE_TEXT, text)
+                self.assertIn(REQUIRED_RUNNER_PATH_TEXT, text)
+                for forbidden_text in FORBIDDEN_HOOK_PATH_TEXTS:
+                    self.assertNotIn(forbidden_text, text)
 
     def test_stop_hook_blocks_when_same_session_has_multiple_controller_states(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

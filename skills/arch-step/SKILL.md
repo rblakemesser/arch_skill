@@ -38,6 +38,7 @@ The primary object is one canonical full-arch plan doc. Commands exist to move t
 - A plan is not ready, complete, or implementation-ready while any unresolved decision remains about requested behavior, architecture, canonical owner path, required deletes, fallback policy, acceptance evidence, or implementation scope.
 - Correctness and approved intent outrank speed, scope trimming, or "minimum implementation."
 - The agent has no authority to cut requested behavior, acceptance criteria, or required implementation work unless the user or the governing plan already marked that item out of scope.
+- During `implement` and `implement-loop`, the approved plan stays authoritative for requirements, scope, acceptance criteria, and phase obligations. Execution may record progress truth, but it may not rewrite the plan to make unfinished work disappear.
 - If the doc is materially non-canonical, repair only the safe owned portion or route to `reformat`.
 - Keep one planning source of truth. Do not create sidecar plan docs or competing checklists.
 - All planning commands are docs-only. Only `implement` and `implement-loop` may change code.
@@ -170,11 +171,13 @@ These stay explicit unless the user directly asks for them:
 - later planning stages are hook-owned only; one literal next command per turn through `deep-dive` pass 1, `deep-dive` pass 2, `phase-plan`, and `consistency-pass`
 - the parent `auto-plan` pass must not clear successful controller state, claim the planning arc is complete, or emit the `implement-loop` handoff while any decision gaps remain
 - prefer the current session's canonical full-arch doc when `DOC_PATH` is omitted
-- if the installed runtime support is absent, disabled, or the North Star is still unapproved, name the broken prerequisite and stop
+- preflight the real continuation surface: `~/.codex/hooks.json` must contain the repo-managed `Stop` entry pointing at `~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py`, and that installed runner must exist
+- do not preflight against a copied hook file under `~/.codex/hooks/`; that is not the install contract
+- if that `hooks.json` entry, the installed runner, `codex_hooks`, or the North Star approval is missing, name the broken prerequisite and stop
 - keep `.codex/auto-plan-state.<SESSION_ID>.json` aligned with the live run
 - if a stage stops early, clear `.codex/auto-plan-state.<SESSION_ID>.json` and stop honestly
 
-`implement-loop` is a bounded delivery controller. It runs `implement`, requires the implementation pass to prove its claimed fixes with credible programmatic signals, then runs `audit-implementation`, and repeats against the same `DOC_PATH` until the audit verdict is clean or a real blocker stops progress. In Codex, the parent implementation pass may ship code and sync plan/worklog truth, but only the fresh `audit-implementation` child may author the authoritative audit outcome, emit `Use $arch-docs`, or clear loop state. Do not turn it into a generic open-ended loop.
+`implement-loop` is a bounded delivery controller. It runs `implement`, requires the implementation pass to prove its claimed fixes with credible programmatic signals, then runs `audit-implementation`, and repeats against the same approved `DOC_PATH` until the audit verdict is clean or a real blocker stops progress. In Codex, the parent implementation pass may ship code and sync plan/worklog truth, but only the fresh `audit-implementation` child may author the authoritative audit outcome, emit `Use $arch-docs`, or clear loop state. Execution does not get to change requirements, scope, acceptance criteria, or phase obligations while coding; if the plan itself needs to change, stop and repair the plan instead of continuing on a rewritten story. Do not turn it into a generic open-ended loop.
 
 `auto-implement` is an exact user-facing synonym for `implement-loop`. Resolve it to the same controller behavior and keep the internal runtime names, hook state, and file paths under `implement-loop`.
 
@@ -184,7 +187,9 @@ User-facing invocation stays simple:
 - or run `$arch-step auto-implement <DOC_PATH>`
 - do not run the Stop hook yourself; after the controller is armed, just end the turn and let Codex run the installed Stop hook
 - do not introduce a second command, mode, or user-facing control surface
-- if the installed runtime support is absent or disabled, name the broken prerequisite and stop
+- preflight the real loop surface: `~/.codex/hooks.json` must contain the repo-managed `Stop` entry pointing at `~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py`, and that installed runner must exist
+- do not preflight against a copied hook file under `~/.codex/hooks/`; that is not the install contract
+- if that `hooks.json` entry, the installed runner, or `codex_hooks` is missing, name the broken prerequisite and stop
 - do not hand control back to audit until the current implementation pass has credible proof for its claimed fixes
 - keep `.codex/implement-loop-state.<SESSION_ID>.json` aligned with the live run
 - do not clear `.codex/implement-loop-state.<SESSION_ID>.json` from the implementation side before fresh `audit-implementation` has run, even if the pass believes the work is done

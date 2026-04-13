@@ -34,7 +34,7 @@ cd arch_skill
 make install
 ```
 
-This installs the live skill surface to `~/.agents/skills/`, writes one arch_skill-managed Codex `Stop` hook in `~/.codex/hooks.json` pointing at the installed suite runner under `~/.agents/skills/arch-step/scripts/`, repairs older two-hook arch_skill installs down to that one repo-managed entry, removes older `~/.codex/skills/<skill>` mirrors from previous installs, and also installs the Claude Code and Gemini CLI skill directories.
+This installs the live skill surface to `~/.agents/skills/`, writes one arch_skill-managed Codex `Stop` hook in `~/.codex/hooks.json` pointing at `~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py`, repairs older two-hook arch_skill installs down to that one repo-managed entry, removes older `~/.codex/skills/<skill>` mirrors from previous installs, and also installs the Claude Code and Gemini CLI skill directories.
 
 Codex automatic `auto-plan`, `implement-loop`, `arch-docs auto`, `audit-loop auto`, `audit-loop-sim auto`, and `delay-poll` also require the Codex feature flag:
 
@@ -116,7 +116,7 @@ make remote_install HOST=user@host
 make verify_install
 ```
 
-This validates the installed active skill surface in `~/.agents/skills/`, checks that exactly one arch_skill-managed Codex `Stop` hook exists in `~/.codex/hooks.json` and points at the installed suite runner under `~/.agents/skills/arch-step/scripts/`, confirms the old `~/.codex/skills/<skill>` mirrors are absent, and confirms removed competing skill packages are absent for the supported runtimes.
+This validates the installed active skill surface in `~/.agents/skills/`, checks that exactly one arch_skill-managed Codex `Stop` hook exists in `~/.codex/hooks.json` and points at `~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py`, confirms the old `~/.codex/skills/<skill>` mirrors are absent, and confirms removed competing skill packages are absent for the supported runtimes.
 
 To confirm the Codex feature gate is enabled:
 
@@ -153,11 +153,11 @@ Use `arch-step` for real full-arch work. It owns the standalone full-arch workfl
 
 `consistency-pass` is the optional end-to-end cold-read helper before implementation. In Codex it uses two parallel cold reads; `auto-plan` runs it automatically after `phase-plan`. When it runs, `Decision: proceed to implement? yes` is only legal if the artifact is decision-complete and has no unresolved plan-shaping decisions left.
 
-`auto-plan` is the Codex-only automatic planning controller. The user-facing command is still just `Use $arch-step auto-plan` or `Use $arch-step auto-plan docs/MY_PLAN.md`. In Codex, the parent `auto-plan` pass runs only `research`, then ends its turn; the installed Stop hook feeds one later planning command per turn through `deep-dive` pass 1, `deep-dive` pass 2, `phase-plan`, and `consistency-pass`, then owns the successful `implement-loop` handoff. That handoff is allowed only when the artifact is decision-complete. If any unresolved plan-shaping decision remains, `auto-plan` must stop, clear controller state, and ask the user the exact blocker question. It is real only when the installed Codex runtime support is present in `~/.codex/hooks.json` and `codex_hooks` is enabled. Otherwise it must fail loud instead of pretending prompt-only chaining is enough.
+`auto-plan` is the Codex-only automatic planning controller. The user-facing command is still just `Use $arch-step auto-plan` or `Use $arch-step auto-plan docs/MY_PLAN.md`. In Codex, the parent `auto-plan` pass runs only `research`, then ends its turn; the installed Stop hook feeds one later planning command per turn through `deep-dive` pass 1, `deep-dive` pass 2, `phase-plan`, and `consistency-pass`, then owns the successful `implement-loop` handoff. That handoff is allowed only when the artifact is decision-complete. If any unresolved plan-shaping decision remains, `auto-plan` must stop, clear controller state, and ask the user the exact blocker question. It is real only when `~/.codex/hooks.json` contains the repo-managed `Stop` entry pointing at `~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py` and `codex_hooks` is enabled. Preflight must verify that `hooks.json` entry and runner path, not a copied hook file under `~/.codex/hooks/`. Otherwise it must fail loud instead of pretending prompt-only chaining is enough.
 
 `arch-step` does not have authority to silently cut approved behavior, acceptance criteria, or required implementation work because the agent wants to narrow scope on its own. If repo evidence cannot settle a plan-shaping choice, the skill must ask the user instead of guessing.
 
-`implement-loop` is the Codex-only automatic bounded delivery controller. `auto-implement` is an exact user-facing synonym for the same controller. The user-facing command is `Use $arch-step implement-loop docs/MY_PLAN.md` or `Use $arch-step auto-implement docs/MY_PLAN.md`. It is real only when the installed Codex runtime support is present in `~/.codex/hooks.json` and `codex_hooks` is enabled. Otherwise it must fail loud instead of pretending prompt-only repetition is enough.
+`implement-loop` is the Codex-only automatic bounded delivery controller. `auto-implement` is an exact user-facing synonym for the same controller. The user-facing command is `Use $arch-step implement-loop docs/MY_PLAN.md` or `Use $arch-step auto-implement docs/MY_PLAN.md`. It is real only when `~/.codex/hooks.json` contains the repo-managed `Stop` entry pointing at `~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py` and `codex_hooks` is enabled. Preflight must verify that `hooks.json` entry and runner path, not a copied hook file under `~/.codex/hooks/`. Otherwise it must fail loud instead of pretending prompt-only repetition is enough.
 
 If the user says "do the full arch flow," "continue this architecture doc," or "audit implementation against the plan," the right live skill is `arch-step`.
 
@@ -167,7 +167,7 @@ Use when the job is leaving repo docs healthier: cleaning up stale, overlapping,
 
 With no extra mode, `arch-docs` runs one grounded DGTFO docs-health pass: orient to the repo's doc system, inventory doc-shaped surfaces, group them by topic, ground those topics against code, use git history when staleness or datedness matters, consolidate each topic to one canonical home, update stale surviving docs, clarify confusing docs, add grounded evergreen docs when the repo clearly lacks a viable home, delete stale, duplicate, or dated one-off truth, and repair links or nav for the surviving docs.
 
-`arch-docs auto` is the Codex-only hook-backed controller for repeated docs-cleanup passes. The user-facing command is still just `Use $arch-docs auto`. It is real only when the installed Codex runtime support is present in `~/.codex/hooks.json` and `codex_hooks` is enabled. Otherwise it must fail loud instead of pretending prompt-only looping is enough.
+`arch-docs auto` is the Codex-only hook-backed controller for repeated docs-cleanup passes. The user-facing command is still just `Use $arch-docs auto`. It is real only when `~/.codex/hooks.json` contains the repo-managed `Stop` entry pointing at `~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py` and `codex_hooks` is enabled. Otherwise it must fail loud instead of pretending prompt-only looping is enough.
 
 For any of these Codex auto controllers, do not run the Stop hook yourself. After the controller is armed, just end the turn and let Codex run the installed Stop hook.
 
