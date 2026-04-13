@@ -54,7 +54,7 @@ Before writing the phase plan:
 - each phase must have goal, work, verification, docs/comments when needed, exit criteria, and rollback
 - refactor-heavy phases must say how preserved behavior will be proven
 - agent-backed phases must make capability-first choices explicit before adding custom tooling
-- verification should be small, credible, and non-bureaucratic
+- verification should be credible, proportionate, and non-bureaucratic
 - verification must stay tied to shipped behavior, runtime ownership, or real contract boundaries rather than repo-policing heuristics
 - required cleanup, deletes, and touched doc/comment reality-sync work should not be buried
 - phases must name the actual chosen work to do, not conditional or alternate branches the agent would have to choose between later
@@ -75,13 +75,13 @@ Use this block shape:
 <!-- arch_skill:block:phase_plan:start -->
 # Depth-First Phased Implementation Plan (authoritative)
 
-> Rule: systematic build, foundational first; every phase has exit criteria + explicit verification plan (tests optional). Refactors, consolidations, and shared-path extractions must preserve existing behavior with the smallest credible signal. For agent-backed systems, prefer prompt, grounding, and native-capability changes before new harnesses or scripts. No fallbacks/runtime shims - the system must work correctly or fail loudly (delete superseded paths). The authoritative checklist must name the actual chosen work, not unresolved branches or "if needed" placeholders. Prefer programmatic checks per phase; defer manual/UI verification to finalization. Avoid negative-value tests and heuristic gates (deletion checks, visual constants, doc-driven gates, keyword or absence gates, repo-shape policing). Also: document new patterns/gotchas in code comments at the canonical boundary (high leverage, not comment spam).
+> Rule: systematic build, foundational first; every phase has exit criteria + explicit verification plan (tests optional). Refactors, consolidations, and shared-path extractions must preserve existing behavior with credible evidence proportional to the risk. For agent-backed systems, prefer prompt, grounding, and native-capability changes before new harnesses or scripts. No fallbacks/runtime shims - the system must work correctly or fail loudly (delete superseded paths). The authoritative checklist must name the actual chosen work, not unresolved branches or "if needed" placeholders. Prefer programmatic checks per phase; defer manual/UI verification to finalization. Avoid negative-value tests and heuristic gates (deletion checks, visual constants, doc-driven gates, keyword or absence gates, repo-shape policing). Also: document new patterns/gotchas in code comments at the canonical boundary (high leverage, not comment spam).
 
 ## Phase 1 — <foundation>
 
 * Goal:
 * Work:
-* Verification (smallest signal):
+* Verification (required proof):
 * Docs/comments (propagation; only if needed):
 * Exit criteria:
 * Rollback:
@@ -90,7 +90,7 @@ Use this block shape:
 
 * Goal:
 * Work:
-* Verification (smallest signal):
+* Verification (required proof):
 * Docs/comments (propagation; only if needed):
 * Exit criteria:
 * Rollback:
@@ -101,7 +101,7 @@ Use `Docs/comments` to delete dead live docs/comments or rewrite surviving ones 
 
 ## Consistency duties beyond local ownership
 
-- if the phase plan changes sequencing, convergence scope, or verification expectations, repair the smallest stale claims in TL;DR, Section 0, and Section 8
+- if the phase plan changes sequencing, convergence scope, or verification expectations, repair the now-stale claims in TL;DR, Section 0, and Section 8
 - if new sequencing or scope decisions replace an earlier assumption, append or update Section 10
 - Section 7 must remain the one execution checklist even after helper blocks exist
 

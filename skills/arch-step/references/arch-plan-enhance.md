@@ -88,7 +88,7 @@ Use this block shape:
 
 ## Evidence (non-blocking)
 - Behavior-preservation checks after refactor:
-  - <existing test/check OR smallest new behavior-level check> — <what it proves stayed the same>
+  - <existing test/check OR new targeted behavior-level check> — <what it proves stayed the same>
 - Evidence we'll rely on:
   - <existing test/check OR instrumentation/log signature OR manual checklist> — <what you'll look for>
 - What we will not block on:

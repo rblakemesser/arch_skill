@@ -39,6 +39,8 @@ The primary object is one canonical full-arch plan doc. Commands exist to move t
 - Correctness and approved intent outrank speed, scope trimming, or "minimum implementation."
 - The agent has no authority to cut requested behavior, acceptance criteria, or required implementation work unless the user or the governing plan already marked that item out of scope.
 - During `implement` and `implement-loop`, the approved plan stays authoritative for requirements, scope, acceptance criteria, and phase obligations. Execution may record progress truth, but it may not rewrite the plan to make unfinished work disappear.
+- During `implement` and `implement-loop`, execution scope is the full approved Section 7 frontier in order: start from the earliest incomplete or reopened phase and continue through later reachable phases until that frontier is done or a real blocker stops progress.
+- Credible proof supports continued implementation. It does not justify stopping after one local fix, one phase, or one convenient subset while later approved phases are still reachable.
 - If the doc is materially non-canonical, repair only the safe owned portion or route to `reformat`.
 - Keep one planning source of truth. Do not create sidecar plan docs or competing checklists.
 - All planning commands are docs-only. Only `implement` and `implement-loop` may change code.
@@ -55,7 +57,7 @@ The primary object is one canonical full-arch plan doc. Commands exist to move t
 - When porting agent instructions, prompt doctrine, or other instruction-bearing content, preserve explicit operational structure by default. Do not silently condense ordered steps, conditions, hard negatives, or escalation logic unless the artifact records why that condensation is safe and keeps the source text recoverable.
 - Default to fail-loud boundaries, hard cutover, and explicit deletes. Runtime shims are forbidden unless the plan explicitly approves them.
 - `auto-plan` is one command. It either runs a real bounded planning sequence or fails loud. Prompt-only chaining does not count as the feature.
-- `implement-loop` is one command. It either runs a real bounded implement-then-audit loop or fails loud. Prompt-only repetition does not count as the feature.
+- `implement-loop` is one command. It either runs a real full-frontier implement-then-audit controller or fails loud. Prompt-only repetition does not count as the feature.
 - Git is the history for retired live truth surfaces. Do not preserve dead competing code paths, stale live docs, or stale comments for posterity. Delete them. If a touched doc, comment, or instruction still matters after the change, update it to current reality in the same run.
 - Broader docs audit, consolidation, and final plan/worklog retirement after a clean full-arch code audit belong to `arch-docs`, not to extra hidden `arch-step` commands.
 - Core commands apply scope-triage and convergence rules even when helper commands are not run.
@@ -179,7 +181,7 @@ These stay explicit unless the user directly asks for them:
 - keep `.codex/auto-plan-state.<SESSION_ID>.json` armed for the live run; treat `DOC_PATH` as the progress ledger
 - if a stage stops early, clear `.codex/auto-plan-state.<SESSION_ID>.json` and stop honestly
 
-`implement-loop` is a bounded delivery controller. It runs `implement`, requires the implementation pass to prove its claimed fixes with credible programmatic signals, then runs `audit-implementation`, and repeats against the same approved `DOC_PATH` until the audit verdict is clean or a real blocker stops progress. In Codex, the parent implementation pass may ship code and sync plan/worklog truth, but only the fresh `audit-implementation` child may author the authoritative audit outcome, emit `Use $arch-docs`, or clear loop state. Execution does not get to change requirements, scope, acceptance criteria, or phase obligations while coding; if the plan itself needs to change, stop and repair the plan instead of continuing on a rewritten story. Do not turn it into a generic open-ended loop.
+`implement-loop` is a full-frontier delivery controller. It arms state before implementation work, runs `implement` across the current approved Section 7 frontier in order from the earliest incomplete or reopened phase through later reachable phases, requires credible programmatic proof along the way, then runs `audit-implementation`, and repeats against the same approved `DOC_PATH` until the audit verdict is clean or a real blocker stops progress. In Codex, the parent implementation pass may ship code and sync plan/worklog truth, but only the fresh `audit-implementation` child may author the authoritative audit outcome, emit `Use $arch-docs`, or clear loop state. Execution does not get to change requirements, scope, acceptance criteria, or phase obligations while coding; if the plan itself needs to change, stop and repair the plan instead of continuing on a rewritten story. Do not turn it into a generic open-ended loop.
 
 `auto-implement` is an exact user-facing synonym for `implement-loop`. Resolve it to the same controller behavior and keep the internal runtime names, hook state, and file paths under `implement-loop`.
 
@@ -192,7 +194,8 @@ User-facing invocation stays simple:
 - preflight the real loop surface: `~/.codex/hooks.json` must contain the repo-managed `Stop` entry pointing at `~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py`, and that installed runner must exist
 - do not preflight against a copied hook file under `~/.codex/hooks/`; that is not the install contract
 - if that `hooks.json` entry, the installed runner, or `codex_hooks` is missing, name the broken prerequisite and stop
-- do not hand control back to audit until the current implementation pass has credible proof for its claimed fixes
+- arm `.codex/implement-loop-state.<SESSION_ID>.json` before implementation work so the live loop cannot be forgotten mid-run
+- do not hand control back to audit until the current full ordered implementation frontier is done or genuinely blocked, and its phase claims have credible proof
 - keep `.codex/implement-loop-state.<SESSION_ID>.json` aligned with the live run
 - do not clear `.codex/implement-loop-state.<SESSION_ID>.json` from the implementation side before fresh `audit-implementation` has run, even if the pass believes the work is done
 - do not let the parent implementation pass stand in for the clean auditor by writing the authoritative audit block or the `Use $arch-docs` handoff
@@ -236,7 +239,7 @@ and arm the session-scoped `.codex/...<SESSION_ID>.json` path for the current se
 - `references/arch-consistency-pass.md` - end-to-end cold-read consistency review before implementation
 - `references/arch-review-gate.md` - local idiomatic and completeness review
 - `references/arch-implement.md` - implementation, worklog, and completion discipline
-- `references/arch-implement-loop.md` - bounded implement/audit loop, required runtime preflight, and loop-state contract
+- `references/arch-implement-loop.md` - full-frontier implement/audit loop, required runtime preflight, and loop-state contract
 - `references/arch-audit-implementation.md` - code-completeness audit and phase reopening
 - `references/status.md` - compact artifact-first status rules
 - `references/advance.md` - full checklist, next-command selection, and optional one-step execution

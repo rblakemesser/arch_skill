@@ -6,7 +6,7 @@
 - keep code, plan, and worklog aligned as the run proceeds
 - execute systematically against the authoritative checklist
 - finish with an honest `complete` or `partial` outcome
-- serve as the single implementation pass used directly or inside `implement-loop`
+- serve as the single full-frontier implementation pass used directly or inside `implement-loop`
 
 ## Execution North Star
 
@@ -77,7 +77,7 @@ By the end of the run:
 ## Hard rules
 
 - read `DOC_PATH` fully before editing code
-- this command is a single execution pass; if the user wants repeated implement then audit cycles until the audit is clean, use `implement-loop`
+- this command is a full ordered implementation run across the current approved Section 7 frontier; if the user wants hook-backed fresh auditing after each full-frontier run, use `implement-loop`
 - treat the doc as the authoritative spec and checklist
 - identify the canonical owner path before designing or extending a code path
 - if the work includes refactor, consolidation, or shared-path extraction, identify the preservation signal before editing code
@@ -105,7 +105,7 @@ By the end of the run:
 Before meaningful code changes:
 
 - North Star is concrete and scoped
-- smallest credible acceptance evidence is identifiable
+- credible acceptance evidence proportional to the current phase risk is identifiable
 - requested behavior in-scope and out-of-scope are explicit
 - the canonical owner path is identifiable or explicitly justified
 - for agent-backed work, capability-first rationale is explicit before any new tooling
@@ -152,7 +152,7 @@ This ledger is working memory, not a second plan doc. Write it down only when it
 
 ## Phase-by-phase execution loop
 
-Execute Section 7 in order.
+Execute Section 7 in order from the earliest incomplete or reopened phase through later reachable phases.
 
 For each phase:
 
@@ -161,18 +161,19 @@ For each phase:
 3. Mark the phase `Status: IN PROGRESS` once real work starts.
 4. Implement the planned work for that phase before moving to later phases.
 5. If a later-phase task must be pulled forward to preserve correctness, record the sequencing change in Section 10 and update the affected phase descriptions so Section 7 stays truthful.
-6. After each meaningful chunk, and at least once per phase, run the smallest relevant programmatic signal.
+6. After each meaningful chunk, and whenever a phase-level claim needs proof, run the required programmatic evidence for that phase. Proof supports continued implementation; it does not authorize stopping early.
 7. Reconcile the ledger against the changed code before leaving the phase.
 8. Update `DOC_PATH` and `WORKLOG_PATH` before moving on.
 
 Do not skip ahead just because the happy path works.
+Do not stop once one phase, one subset, or one local fix is green if later approved phases are still reachable.
 Do not start the next phase while the current phase still has hidden `still todo` items.
 
 ## Plan document update rules
 
 Keep Section 7 current as execution proceeds.
 
-Under the current phase heading, add or update only the smallest truthful execution annotations needed:
+Under the current phase heading, add or update only the minimal truthful execution annotations needed:
 
 - `Status: IN PROGRESS` when work has started
 - `Status: COMPLETE` when the phase exit criteria are actually met
@@ -229,8 +230,8 @@ At each phase boundary:
 
 ## Verification discipline
 
-- after each meaningful chunk, run the smallest credible programmatic signal
-- when `implement` is running inside `implement-loop`, do not hand control back to audit until the claimed fix has a credible programmatic proof signal
+- after each meaningful chunk, run the required credible programmatic evidence for the current phase claim
+- when `implement` is running inside `implement-loop`, do not hand control back to audit until the current full ordered implementation frontier is done or genuinely blocked and its claimed work has credible proof
 - prefer existing checks before new tests or harnesses
 - for agent-backed systems, new harnesses or scripts do not count as progress unless the plan justified them against prompt-first and capability-first alternatives
 - any refactor, consolidation, or shared-path extraction must run a preservation signal before the phase can be called complete
@@ -299,7 +300,7 @@ The worklog is execution evidence only:
 
 ## Stop conditions
 
-- if a key invariant fails, stop, fix it, and re-run the smallest relevant check
+- if a key invariant fails, stop, fix it, and re-run the required proof for the affected claim
 - if a real blocker prevents progress, stop and report with evidence anchors
 
 ## Finish criteria

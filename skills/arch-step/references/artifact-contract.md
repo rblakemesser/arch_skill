@@ -146,8 +146,8 @@ Required content:
 - explicit requested behavior scope and UX in-scope and out-of-scope surfaces
 - explicit technical scope, exclusions, and allowed architectural convergence scope
 - when the change is agent-backed, explicit capability-first stance for prompt/native-capability work versus deterministic support tooling
-- smallest credible acceptance evidence
-- smallest credible behavior-preservation evidence when refactor or consolidation is likely
+- credible acceptance evidence proportional to the work and risk
+- credible behavior-preservation evidence when refactor or consolidation is likely
 - invariant list
   - strong examples include `No fallbacks`, `Fail-loud boundaries`, `No dual sources of truth`, and `No undefined behavior`
 - strict fallback stance:
@@ -275,14 +275,14 @@ Canonical heading plus rule line:
 ```text
 # Depth-First Phased Implementation Plan (authoritative)
 
-> Rule: systematic build, foundational first; every phase has exit criteria + explicit verification plan (tests optional). Refactors, consolidations, and shared-path extractions must preserve existing behavior with the smallest credible signal. For agent-backed systems, prefer prompt, grounding, and native-capability changes before new harnesses or scripts. No fallbacks/runtime shims - the system must work correctly or fail loudly (delete superseded paths). Prefer programmatic checks per phase; defer manual/UI verification to finalization. Avoid negative-value tests and heuristic gates (deletion checks, visual constants, doc-driven gates, keyword or absence gates, repo-shape policing). Also: document new patterns/gotchas in code comments at the canonical boundary (high leverage, not comment spam).
+> Rule: systematic build, foundational first; every phase has exit criteria + explicit verification plan (tests optional). Refactors, consolidations, and shared-path extractions must preserve existing behavior with credible evidence proportional to the risk. For agent-backed systems, prefer prompt, grounding, and native-capability changes before new harnesses or scripts. No fallbacks/runtime shims - the system must work correctly or fail loudly (delete superseded paths). Prefer programmatic checks per phase; defer manual/UI verification to finalization. Avoid negative-value tests and heuristic gates (deletion checks, visual constants, doc-driven gates, keyword or absence gates, repo-shape policing). Also: document new patterns/gotchas in code comments at the canonical boundary (high leverage, not comment spam).
 ```
 
 Canonical per-phase fields:
 
 - `Goal`
 - `Work`
-- `Verification (smallest signal)`
+- `Verification (required proof)`
 - `Docs/comments (propagation; only if needed)`
 - `Exit criteria`
 - `Rollback`
@@ -310,8 +310,8 @@ Keep these additions short and truthful. They are execution truth, not a second 
 Principle lines to preserve:
 
 - avoid verification bureaucracy
-- prefer the smallest existing signal
-- default to 1-3 checks total
+- prefer existing credible signals that genuinely prove the claim
+- keep the proof set lean but sufficient
 - for agent-backed systems, prefer prompt, grounding, and native-capability improvements before new scripts or harnesses
 - do not invent new harnesses, frameworks, or scripts unless they already exist and are the cheapest guardrail
 - do not answer "drift resistance" or "enforcement" with docs-audit scripts, stale-term greps, absence checks, repo-structure tests, or CI gates whose main job is policing the tree rather than protecting shipped behavior

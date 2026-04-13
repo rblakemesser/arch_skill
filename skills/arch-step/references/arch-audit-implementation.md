@@ -77,6 +77,7 @@ When this command runs inside `implement-loop`, it alone owns the authoritative 
 - when running inside `implement-loop`, do not let the parent implementation pass stand in for this audit or author the authoritative clean outcome
 - if the implementation claims a fix but does not provide credible code-verifiable proof for it, treat that as missing code completeness
 - audit against the approved plan's explicit promises, not against a narrower story execution wrote after the fact
+- audit against the entire approved ordered implementation frontier, not just the first visible local gap
 - if execution rewrote requirements, scope, acceptance criteria, or phase obligations to make unfinished work disappear, treat that as `NOT COMPLETE`
 - do not accept "mostly done", "core path done", or similar broad completion claims when explicit plan details or sub-obligations are still missing
 - broader docs consolidation, evergreen promotion, and plan/worklog retirement belong to `arch-docs` after a clean audit unless the plan explicitly made a specific touched-doc cleanup item part of code-completeness
@@ -154,6 +155,7 @@ Missing manual evidence should become non-blocking follow-up.
    - verify claimed tests, assertions, or automation actually exist and hit the intended failure surface
 5. determine phase truth:
    - if a phase is marked complete but code work is missing, reopen it
+   - if implementation stopped after one local win while later approved reachable phases remain unfinished, treat that remaining ordered frontier as missing code work
    - if code is complete but manual QA is pending, do not reopen it
 6. write the audit block and any required in-place phase updates
 
@@ -170,6 +172,7 @@ Always name phases as `Phase <n> (<what it does>)` using the phase heading text 
 - if a refactor or convergence change lacks credible preservation evidence, treat that as missing code correctness and reopen the responsible phase
 - if a claimed fix lacks credible code-verifiable proof, treat that as missing code correctness and reopen the responsible phase
 - if execution-side plan edits weakened requirements, scope, acceptance criteria, or phase obligations to match partial code, treat that as missing code correctness and reopen the responsible phase
+- if missing work spans later reachable phases, reopen the full remaining ordered frontier instead of emitting a one-gap-at-a-time partial reopening
 - do not reopen a phase solely because someone failed to add a keyword grep, docs-audit script, absence check, or repo-structure policing gate that the user never asked for
 
 ## Update rules

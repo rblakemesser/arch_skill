@@ -50,7 +50,7 @@ Strong when:
 - requested behavior scope and allowed convergence scope are distinguishable
 - when agent-backed, it is explicit that prompt/native-capability work gets first right of refusal before new tooling
 - definition of done is observable
-- evidence uses the smallest credible signal
+- evidence uses credible proof proportional to the work and risk
 - invariants are actionable
 - fallback stance is explicit and respected
 - later commands can answer ordinary scope and tradeoff questions from it
@@ -285,7 +285,7 @@ Weak when:
 
 Downstream can trust it when:
 
-- each phase has a believable smallest-signal verification story and final QA expectations are proportionate
+- each phase has a believable required-proof story and final QA expectations are proportionate
 
 ## `# 9) Rollout / Ops / Telemetry`
 

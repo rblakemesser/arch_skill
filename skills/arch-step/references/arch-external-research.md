@@ -120,7 +120,7 @@ Use this block shape:
 
 ## Consistency duties beyond local ownership
 
-- if external guidance changes architecture, sequencing, or verification stance, repair the smallest clearly stale claims elsewhere in the doc without silently changing requested behavior scope or allowed architectural convergence scope
+- if external guidance changes architecture, sequencing, or verification stance, repair the clearly stale claims elsewhere in the doc without silently changing requested behavior scope or allowed architectural convergence scope
 - append or update a Decision Log entry when the research changes an earlier conclusion in a meaningful way
 - do not leave external research saying one thing while TL;DR, Section 0, or Section 8 still say another
 - do not let unresolved external disagreements sit in the artifact as if the plan were now ready

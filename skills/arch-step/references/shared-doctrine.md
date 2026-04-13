@@ -101,7 +101,7 @@ Before substantive planning or implementation:
 
 - North Star must be concrete and scoped
 - claim must be falsifiable
-- smallest credible acceptance signal must be explicit
+- credible acceptance evidence proportional to the work and risk must be explicit
 - requested behavior scope must be explicit
 - allowed architectural convergence scope must be explicit enough to tell convergence from product creep
 - scope must not silently expand
@@ -111,7 +111,7 @@ If the North Star, requested behavior scope, allowed architectural convergence s
 
 ## Evidence philosophy
 
-- Prefer the smallest credible signal.
+- Prefer existing credible signals that genuinely prove the claim.
 - For agent-backed systems, prefer prompt, grounding, and native-capability changes before new harnesses or scripts.
 - Prefer existing tests, typecheck, lint, build, instrumentation, or log signatures before new harnesses.
 - Prefer direct code-path convergence, real runtime guards, or existing behavior checks before inventing any repo-policing validation.
@@ -138,7 +138,7 @@ Negative-value defaults to avoid:
 
 - Any refactor, consolidation, shared-path extraction, or call-site migration must preserve existing behavior.
 - Prefer existing behavior-level checks, integration tests, targeted unit tests, builds, typechecks, instrumentation, or stable manual checklists over new machinery.
-- If refactor risk is real and no existing signal buys enough confidence, add the smallest behavior-level, structure-insensitive check that would fail for the right reason.
+- If refactor risk is real and no existing signal buys enough confidence, add a targeted behavior-level, structure-insensitive check that would fail for the right reason.
 - Do not call convergence work complete until the preservation signal has actually run.
 
 ## Architecture doctrine

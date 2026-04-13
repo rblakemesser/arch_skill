@@ -83,8 +83,8 @@ If they are weak, every later stage becomes soft.
    - requested behavior in scope
    - allowed architectural convergence scope
    - UX and technical out-of-scope
-   - smallest credible acceptance evidence
-   - smallest credible behavior-preservation evidence when refactor or consolidation is likely
+   - credible acceptance evidence proportional to the work and risk
+   - credible behavior-preservation evidence when refactor or consolidation is likely
    - key invariants
      - no new parallel paths
      - no silent behavior drift during refactors

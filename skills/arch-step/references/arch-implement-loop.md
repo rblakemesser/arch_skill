@@ -2,11 +2,12 @@
 
 ## What this command does
 
-- run the current implementation plan through one bounded delivery loop
+- run the current implementation plan through one full ordered implementation frontier per loop cycle
 - arm the repo-local loop state needed for fresh auditing
-- require each implementation pass to prove its claimed fixes before fresh auditing
+- arm loop state before implementation work starts so the live loop cannot be forgotten mid-run
+- require each implementation pass to prove its claimed phase work before fresh auditing
 - run a fresh `audit-implementation` pass when Codex reaches a stop point
-- repeat that implement, prove, then audit cycle until the audit is clean or a real blocker stops progress
+- repeat that full-frontier implement, prove, then audit cycle until the audit is clean or a real blocker stops progress
 - keep the code, `DOC_PATH`, and `WORKLOG_PATH` aligned after each implementation pass, then let the fresh audit child author the authoritative audit block
 
 ## Delivery North Star
@@ -87,7 +88,7 @@ Minimal shape:
 
 Lifecycle:
 
-- create or refresh it after preflight and before the implementation pass
+- create or refresh it immediately after preflight and before any implementation work
 - leave it armed while fresh auditing is active
 - let fresh `audit-implementation` own the clean-versus-not-clean decision before clearing it
 - the implementation side never deletes it
@@ -95,12 +96,12 @@ Lifecycle:
 
 ## Hard rules
 
-- this command is a bounded controller over `implement` and `audit-implementation`; do not invent a second planning surface or second audit format
+- this command is a full-frontier controller over `implement` and `audit-implementation`; do not invent a second planning surface or second audit format
 - `implement-loop` is one command; if the required runtime continuation support is absent or disabled, fail loud
 - each cycle must run `implement` first and `audit-implementation` second against the same `DOC_PATH`
 - `implement-loop` must not continue from a plan that is not decision-complete
 - `implement-loop` runs against the same approved plan; the implementation side may not rewrite requirements, scope, acceptance criteria, or phase obligations while the loop is active
-- before handing control back to fresh audit, the implementation pass must run the smallest credible programmatic proof for each claimed fix
+- before handing control back to fresh audit, the implementation pass must finish the current reachable ordered plan frontier or hit a real blocker, and the claimed phase work must have credible programmatic proof
 - in Codex, the fresh audit pass after an implementation stop point owns the continue-versus-stop decision
 - inside `implement-loop`, only the fresh `audit-implementation` child may write or replace `arch_skill:block:implementation_audit`, conclude the controller is clean, write the `Use $arch-docs` handoff, or delete `.codex/implement-loop-state.<SESSION_ID>.json`
 - the implementation side must not act as the authoritative auditor just because it believes the code is complete
@@ -119,7 +120,7 @@ Lifecycle:
 2. Run the runtime preflight. If the `~/.codex/hooks.json` entry, the installed runner, or `codex_hooks` is unavailable, fail loud.
 3. Build or refresh the compact implementation ledger from Section 7, Section 6, migration notes, and touched live docs/comments/instructions.
 4. Resolve `SESSION_ID` from `CODEX_THREAD_ID`, then create or refresh `.codex/implement-loop-state.<SESSION_ID>.json` for the current Codex session and `DOC_PATH`.
-5. Run one truthful implementation pass using the `implement` contract, including the smallest credible programmatic proof for each claimed fix.
+5. Run one truthful implementation pass using the `implement` contract, starting from the earliest incomplete or reopened phase and continuing through the remaining approved phases in order until the current reachable frontier is done or genuinely blocked. Run the required credible proof along the way, but do not stop just because one local fix is green.
 6. Sync `DOC_PATH` and `WORKLOG_PATH` to the resulting execution truth and proof signals, but do not replace `arch_skill:block:implementation_audit`, write clean-handoff language from the parent implementation pass, or rewrite requirements, scope, acceptance criteria, or phase obligations to fit partial code.
 7. If the implementation pass stops before the run naturally stops, update the plan and worklog truthfully as awaiting fresh audit, leave `.codex/implement-loop-state.<SESSION_ID>.json` armed, and let fresh `audit-implementation` author the authoritative audit outcome.
 8. Otherwise let Codex try to stop. The installed runtime should:
@@ -127,7 +128,7 @@ Lifecycle:
    - launch a fresh `audit-implementation` child pass when the loop is active
    - allow stop when the audit is clean
    - inject a continuation prompt when the audit finds missing code
-9. On each hook-driven continuation, read the refreshed audit findings, implement the missing code work against the same approved plan, prove the claimed fixes, update execution truth, and keep the loop armed while awaiting the next fresh audit.
+9. On each hook-driven continuation, read the refreshed audit findings, resume from the earliest reopened or incomplete phase, continue linearly through the remaining approved phases, prove the claimed work as you go, update execution truth, and keep the loop armed while awaiting the next fresh audit.
 10. If a fresh audit concludes that the next pass would be speculative, blocked, or materially unchanged from the last failed audit, let the fresh audit path clear `.codex/implement-loop-state.<SESSION_ID>.json`, stop, and report that state plainly.
 
 ## Fresh-audit requirement

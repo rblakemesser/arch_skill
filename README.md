@@ -4,7 +4,7 @@ This repo ships installable agent skills centered on the arch suite for Codex CL
 
 The live arch suite is:
 
-- `arch-step` — the only full-arch execution surface; owns the standalone full-arch workflow, command-level control, bounded `auto-plan` and `implement-loop` controllers, compact `status`, and guided `advance`
+- `arch-step` — the only full-arch execution surface; owns the standalone full-arch workflow, command-level control, bounded `auto-plan`, full-frontier `implement-loop`, compact `status`, and guided `advance`
 - `arch-docs` — standalone docs-audit and cleanup skill; owns topic-first stale-doc cleanup, consolidation onto canonical docs, working-doc retirement, and hook-backed Codex `auto` docs cleanup
 - `arch-mini-plan` — one-pass canonical mini planning that hands follow-through to `arch-step`
 - `lilarch` — compact 1-3 phase feature flow
@@ -161,7 +161,7 @@ Use `arch-step` for real full-arch work. It owns the standalone full-arch workfl
 
 `arch-step` does not have authority to silently cut approved behavior, acceptance criteria, or required implementation work because the agent wants to narrow scope on its own. If repo evidence cannot settle a plan-shaping choice, the skill must ask the user instead of guessing.
 
-`implement-loop` is the Codex-only automatic bounded delivery controller. `auto-implement` is an exact user-facing synonym for the same controller. The user-facing command is `Use $arch-step implement-loop docs/MY_PLAN.md` or `Use $arch-step auto-implement docs/MY_PLAN.md`. It is real only when `~/.codex/hooks.json` contains the repo-managed `Stop` entry pointing at `~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py` and `codex_hooks` is enabled. Preflight must verify that `hooks.json` entry and runner path, not a copied hook file under `~/.codex/hooks/`. Otherwise it must fail loud instead of pretending prompt-only repetition is enough.
+`implement-loop` is the Codex-only automatic full-frontier delivery controller. `auto-implement` is an exact user-facing synonym for the same controller. The user-facing command is `Use $arch-step implement-loop docs/MY_PLAN.md` or `Use $arch-step auto-implement docs/MY_PLAN.md`. It arms loop state before implementation work, then runs the full approved Section 7 frontier in order from the earliest incomplete or reopened phase through later reachable phases before handing control to fresh audit. It is real only when `~/.codex/hooks.json` contains the repo-managed `Stop` entry pointing at `~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py` and `codex_hooks` is enabled. Preflight must verify that `hooks.json` entry and runner path, not a copied hook file under `~/.codex/hooks/`. Otherwise it must fail loud instead of pretending prompt-only repetition is enough.
 
 If the user says "do the full arch flow," "continue this architecture doc," or "audit implementation against the plan," the right live skill is `arch-step`.
 

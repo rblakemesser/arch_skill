@@ -587,10 +587,11 @@ def run_fresh_audit(cwd: Path, doc_path_value: str) -> FreshAuditResult:
 
     prompt = (
         f"Use $arch-step audit-implementation {doc_path_value}\n"
-        "Fresh context only. Audit against the approved plan in DOC_PATH, not against any narrower "
-        "execution-side rewrite. Update the authoritative implementation audit block and any reopened "
-        "phase statuses in DOC_PATH. If implementation weakened requirements, scope, acceptance "
-        "criteria, or phase obligations to hide unfinished work, fail it. Keep the final response short."
+        "Fresh context only. Audit against the full approved ordered plan frontier in DOC_PATH, not against "
+        "any narrower execution-side rewrite. Update the authoritative implementation audit block and any "
+        "reopened phase statuses in DOC_PATH. If implementation weakened requirements, scope, acceptance "
+        "criteria, or phase obligations to hide unfinished work, fail it. Group remaining missing work as "
+        "the real remaining frontier instead of one tiny gap. Keep the final response short."
     )
 
     with tempfile.TemporaryDirectory(prefix="arch-step-implement-loop-") as temp_dir:
@@ -1537,11 +1538,12 @@ def handle_implement_loop(payload: dict) -> int:
         reason = (
             "implement-loop ran a fresh child audit and found more code work. "
             f"Read the authoritative Implementation Audit block and reopened phases in {doc_path_value}, "
-            f"implement the missing code work, run the smallest credible proof checks for the claimed fixes, "
+            "resume from the earliest reopened or incomplete phase, continue linearly through the remaining "
+            "approved phases, run the required credible proof for the claimed work as you go, "
             f"update {display_path(worklog_path, cwd)} if it exists, keep the loop armed, "
             "and do not rewrite plan requirements, scope, acceptance criteria, or phase obligations while coding. "
             "If the audit shows the plan itself needs to change, stop and repair the plan instead of continuing on a rewritten story, "
-            "and only then stop again for another fresh audit."
+            "and only then stop again for another fresh audit after the current reachable frontier is done or genuinely blocked."
         )
         if child_summary:
             reason += f" Audit summary: {child_summary}"

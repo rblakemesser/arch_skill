@@ -335,6 +335,66 @@ class CodexStopHookTests(unittest.TestCase):
             ledger_path,
         )
 
+    def run_implement_loop_handler(
+        self,
+        repo_root: Path,
+        session_id: str,
+        *,
+        verdict: str,
+        audit_summary: str | None = None,
+    ) -> tuple[int, dict, str, Path, Path]:
+        state_path = self.controller_state_path(
+            repo_root,
+            self.stop_module.IMPLEMENT_LOOP_STATE_RELATIVE_PATH,
+            session_id,
+        )
+        docs_dir = repo_root / "docs"
+        docs_dir.mkdir(parents=True, exist_ok=True)
+        doc_path = docs_dir / "PLAN.md"
+        doc_path.write_text(
+            "# Plan\n"
+            "## Implementation Audit\n"
+            f"Verdict (code): {verdict}\n",
+            encoding="utf-8",
+        )
+        self.write_json(
+            state_path,
+            {
+                "command": "implement-loop",
+                "session_id": session_id,
+                "doc_path": "docs/PLAN.md",
+            },
+        )
+
+        audit_result = self.stop_module.FreshAuditResult(
+            process=subprocess.CompletedProcess(args=["codex"], returncode=0, stdout="", stderr=""),
+            last_message=audit_summary,
+        )
+        original = self.stop_module.run_fresh_audit
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        self.stop_module.run_fresh_audit = lambda *args, **kwargs: audit_result
+        try:
+            saved_stdout = sys.stdout
+            saved_stderr = sys.stderr
+            sys.stdout = stdout
+            sys.stderr = stderr
+            with self.assertRaises(SystemExit) as raised:
+                self.stop_module.handle_implement_loop(
+                    {"cwd": str(repo_root), "session_id": session_id}
+                )
+        finally:
+            self.stop_module.run_fresh_audit = original
+            sys.stdout = saved_stdout
+            sys.stderr = saved_stderr
+        return (
+            raised.exception.code,
+            json.loads(stdout.getvalue()),
+            stderr.getvalue(),
+            state_path,
+            doc_path,
+        )
+
     def structured_result(
         self,
         payload: dict | None,
@@ -1043,6 +1103,31 @@ class CodexStopHookTests(unittest.TestCase):
                 "auto-plan completed; the doc is ready for implement-loop.",
             )
             self.assertFalse(state_path.exists())
+
+    def test_handle_implement_loop_continuation_resumes_full_remaining_frontier(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo_root = Path(temp_dir)
+
+            exit_code, payload, stderr, state_path, doc_path = self.run_implement_loop_handler(
+                repo_root,
+                "session-1",
+                verdict="NOT COMPLETE",
+                audit_summary="later approved phases still need code work",
+            )
+
+            self.assertEqual(exit_code, 0)
+            self.assertEqual(stderr, "")
+            self.assertTrue(payload["continue"])
+            self.assertIn("docs/PLAN.md", payload["reason"])
+            self.assertIn("resume from the earliest reopened or incomplete phase", payload["reason"])
+            self.assertIn("continue linearly through the remaining approved phases", payload["reason"])
+            self.assertIn("current reachable frontier is done or genuinely blocked", payload["reason"])
+            self.assertNotIn("smallest credible proof", payload["reason"])
+            self.assertEqual(
+                payload["systemMessage"],
+                "implement-loop fresh audit finished; more work remains.",
+            )
+            self.assertTrue(state_path.exists())
 
     def test_stop_hook_disarms_auto_plan_when_research_is_still_incomplete(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

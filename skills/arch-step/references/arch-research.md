@@ -96,7 +96,7 @@ Use this block shape:
 
 ## Consistency duties beyond local ownership
 
-- if research disproves an assumption already stated in TL;DR or Section 0, repair the smallest stale claim so the doc stays honest
+- if research disproves an assumption already stated in TL;DR or Section 0, repair the stale claim so the doc stays honest
 - if research materially changes likely architecture, convergence scope, or verification choices, point the next move to `deep-dive` or `phase-plan` as appropriate
 - do not rewrite later sections here, but do not leave obvious contradictions unmarked
 - do not leave unresolved plan-shaping decisions disguised as "open questions" once they are known blockers

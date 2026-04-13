@@ -107,7 +107,7 @@ Choose exactly one next move using this precedence:
    - `phase-plan`
    - `consistency-pass` when the artifact clearly needs an end-to-end cold-read repair or the user explicitly wants it
    - `implement` by default
-   - `implement-loop` when the user explicitly wants the bounded delivery loop to a clean audit
+   - `implement-loop` when the user explicitly wants the full-frontier delivery loop to a clean audit
    - `audit-implementation`
 7. if the code audit is clean and the feature still needs docs cleanup, hand off to `Use $arch-docs`
 8. if all required stages are complete and the live feature residue is already retired, say there is no required next move
