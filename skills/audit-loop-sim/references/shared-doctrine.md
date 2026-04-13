@@ -8,6 +8,7 @@
 - Primary-path, onboarding, auth or session restore, monetization, core content progression, offline state, and platform ingress matter more than polishing a safe corner of settings when the evidence supports that.
 - Prefer durable automation over manual QA recipes.
 - Existing repo-native automation and simulator or device surfaces come first. In repos that provide `mobile-sim`, use `mobile-sim` for simulator or device control instead of inventing a parallel runner, lane family, or harness story.
+- A green lane is not enough. Every editful pass must also survive a post-change audit for safety, downstream consequences, elegance, and duplication.
 - Tests exist to protect meaningful behavior. Coverage is a trailing indicator, not the product.
 - Leave the app and automation surface stronger than you found them when the evidence supports a fix.
 
@@ -25,16 +26,20 @@
 2. Rank journeys, surfaces, and risk fronts by consequence first.
 3. Rank within that by proof weakness or ambiguity.
 4. Use churn, fragility, missing real-app signal, flake evidence, and harness drift to sharpen ties.
-5. Write the priority, proof plan, and explicit `SKIP` decisions into the ledger before coding.
+5. Write the priority, proof plan, post-change audit focus, and explicit `SKIP` decisions into the ledger before coding.
 
 ## Fix discipline
 
 - Read the journey implementation and the current automation before patching either.
 - Work one unresolved automation risk front at a time, not one arbitrary line item at a time.
 - Choose that front from the completed map, not from convenience or curiosity.
-- Record the proof plan before making edits. Higher-consequence fronts require broader downstream real-app proof.
+- Record the proof plan and post-change audit focus before making edits. Higher-consequence fronts require broader downstream real-app proof.
 - Fix bugs inside the existing product, journey, and automation contracts. If the apparent fix would change that contract, log the conflict and stop.
 - It is acceptable and expected to fix multiple findings together when they share one failure mode, journey, or verification story.
+- After the first verification pass, audit the actual diff and touched surfaces for safety, downstream consequences, elegance, and duplication.
+- If that audit finds a problem, repair it in the same pass and re-run the proof that the repair affects.
+- New duplication is never an acceptable temporary result. If the fix copied product logic, lane behavior, harness steps, or fallback handling into a second place, consolidate before stopping.
+- Broader same-story cleanup is allowed when the post-change audit shows the first fix is awkward or duplicative, but keep it inside the same contract and automation risk front.
 - Do not block on unrelated dirty or untracked files. Leave them alone unless they directly conflict with the current automation risk front or make verification unsafe.
 - Do not yield just because the next fix touches a second file, module, harness helper, or test surface.
 - Stop when the next credible move would require a different journey story, a new audit cycle, or verification that no longer belongs to the same front.
@@ -68,11 +73,13 @@ Record `unknown` instead of auto-installing any of these.
 - Sampling 5-10 journeys and calling that a full audit.
 - Picking something that looks fixable before the map is complete.
 - Letting a neat safe lane tweak outrank a higher-consequence journey with weaker proof.
+- Calling a pass done because the first lane went green even though the diff is still risky, awkward, or duplicative.
 - Chasing automation counts instead of meaningful journey protection.
 - Adding a lane for every screen regardless of risk.
 - Spending the pass on a neat tiny test fix while a larger justified primary-journey gap is still open.
 - Spending the pass on a flaky low-priority screen instead of the highest-risk open journey.
 - Changing a product, journey, or automation contract because it makes the current fix easier.
+- Copying the same lane logic, harness steps, or fallback handling into a second place because it feels faster than converging on one truthful path.
 - Inventing a second simulator, runner, or harness story because the current one is annoying.
 - Deciding that simulator work is broken and calling Flutter unit or widget tests "good enough" for the same real-app risk front.
 - Marking a front `BLOCKED` only because the current review context cannot inspect the sanctioned runtime surface.

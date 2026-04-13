@@ -8,7 +8,7 @@
 
 ## Ledger shape
 
-The ledger is the single source of truth for exhaustive mapping, triage, findings, automation additions, explicit skips, and controller verdicts.
+The ledger is the single source of truth for exhaustive mapping, triage, findings, automation additions, post-change audit results, explicit skips, and controller verdicts.
 
 Keep this top block at the top of the file:
 
@@ -42,8 +42,8 @@ Then keep these sections in order:
 |---|------------|---------------------|-------------|----------------|-----------|----------|---------|
 
 ### 1D: Proof Plan For Current Front
-| Risk Front | Required Real-App Proof | Platform Closeout | Why This Depth | Status |
-|------------|-------------------------|-------------------|----------------|--------|
+| Risk Front | Required Real-App Proof | Platform Closeout | Post-Change Audit Focus | Why This Depth | Status |
+|------------|-------------------------|-------------------|-------------------------|----------------|--------|
 
 ## Phase 2: Findings
 | # | File:Line | Type | Description | Fix | Status |
@@ -52,6 +52,10 @@ Then keep these sections in order:
 ## Phase 3: Automation Additions
 | # | Test/Harness | Covers | Platform | Why It Matters |
 |---|--------------|--------|----------|----------------|
+
+## Phase 4: Post-Change Audit
+| Lens | Checked Diff / Surface | Result | Required Repair | Status |
+|------|------------------------|--------|-----------------|--------|
 
 ## Decisions Log
 ```
@@ -73,6 +77,7 @@ Then keep these sections in order:
 
 - `Type` values:
   - `BUG`
+  - `DUP`
   - `GAP`
   - `FLAKE`
   - `DRIFT`
@@ -84,6 +89,20 @@ Then keep these sections in order:
   - `FIXED (verified)`
   - `SKIP`
   - `BLOCKED`
+
+## Post-change audit rules
+
+- Keep one row for each lens:
+  - `SAFETY`
+  - `DOWNSTREAM`
+  - `ELEGANCE`
+  - `DUPLICATION`
+- `Status` values are:
+  - `PASS`
+  - `REPAIR REQUIRED`
+  - `REPAIRED`
+  - `BLOCKED`
+- `CLEAN` is only honest when every post-change audit row is `PASS` or `REPAIRED`.
 
 ## Priority matrix
 

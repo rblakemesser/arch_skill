@@ -2,7 +2,7 @@
 
 ## Goal
 
-Run a fresh, docs-only automation verdict pass that decides whether the exhaustive map is complete, whether the current ranking is still truthful, and whether a major unresolved real-app automation risk front still justifies more work.
+Run a fresh, docs-only automation verdict pass that decides whether the exhaustive map is complete, whether the current ranking is still truthful, whether a major unresolved real-app automation risk front still justifies more work, and whether the latest editful pass actually survived the required post-change audit.
 
 ## Writes
 
@@ -19,6 +19,7 @@ No product code changes are allowed in `review`.
    - Phase 1 triage
    - open findings
    - automation additions
+   - post-change audit
    - decisions log
 3. Inspect current repo state from fresh context:
    - changed files
@@ -28,7 +29,9 @@ No product code changes are allowed in `review`.
    - whether the latest pass actually reduced the top open automation risk
    - whether the same automation risk front still has justified unresolved work
    - whether the latest pass used proof proportional to the front's consequence and blast radius
+   - whether the latest editful pass completed and passed the post-change audit for safety, downstream consequences, elegance, and duplication
    - whether the latest pass produced the required simulator or device signal through the sanctioned surface, using `mobile-sim` when the repo provides it
+   - whether the fix introduced new duplicate product logic, lane behavior, harness steps, or fallback handling instead of converging on one truthful path
    - whether the sanctioned simulator or device surface is unavailable only because the current review context cannot inspect it cleanly, for example sandbox `EPERM`, host permission issues, or wrapper failures that are not yet evidence of app or harness breakage
    - whether a cross-platform front still needs Android confirmation before it can honestly be called done
    - treat unrelated dirty or untracked files as ordinary context, not as an automatic blocker
@@ -48,6 +51,7 @@ Use only when:
 - the exhaustive map is not complete and a concrete next mapping tranche exists, or a concrete next automation risk front exists
 - the current or next front is still justified by the priority matrix
 - the current front still has unresolved work or the next front clearly dominates the app
+- the latest editful pass still has unresolved post-change audit issues that should be repaired in the same automation story
 - the next pass would not merely repeat the last failed idea
 
 `Next Area` is required. It may name an unfinished mapping tranche, real-app automation risk front, or problem cluster, not just a tiny local file.
@@ -63,6 +67,7 @@ Use only when:
 - the loop is not merely stopping because the next useful work touches a broader automation surface
 - the latest front did not quietly degrade into Flutter unit or widget tests where simulator or device proof was required
 - any cross-platform front that was iterated on iOS has a credible Android closeout when Android still matters for that story
+- the latest editful pass passed the post-change audit for safety, downstream consequences, elegance, and duplication
 
 `Stop Reason` should be blank.
 
@@ -75,6 +80,7 @@ Use when:
 - the next pass would rerun the same idea without a changed lever
 - the ledger is too weak to continue honestly without first repairing the investigation
 - the only honest next move would change an existing product, journey, or automation contract instead of fixing a bug inside it
+- the remaining repair required by the post-change audit depends on missing access, tooling, or evidence rather than ordinary same-story cleanup
 - the current front still requires simulator or device proof, but the sanctioned path could not be made to work after bounded recovery work, using `mobile-sim` when the repo provides it
 - the remaining work would require inventing a parallel automation system instead of using the repo's existing surfaces
 

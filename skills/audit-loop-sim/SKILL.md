@@ -1,13 +1,13 @@
 ---
 name: audit-loop-sim
-description: "Run the standalone real-app automation audit workflow with a root simulator audit ledger: exhaustively map the app, journeys, and current automation surface before any edits, rank automation risk fronts by consequence and proof weakness, then fix the biggest end-to-end automation gaps and same-story bugs without changing contracts. Use when the user wants repo-wide simulator or emulator automation work, wants the agent to build a full mental model before acting, or wants to leave the automation audit running in Codex until no credible work remains. Not for a single known bug, generic repo audit, or manual QA-only work."
+description: "Run the standalone real-app automation audit workflow with a root simulator audit ledger: exhaustively map the app, journeys, and current automation surface before any edits, rank automation risk fronts by consequence and proof weakness, then fix the biggest end-to-end automation gaps and same-story bugs without changing contracts. Every editful pass must then audit its own diff for safety, unintended downstream consequences, elegance, and duplication before it can count as done. Use when the user wants repo-wide simulator or emulator automation work, wants the agent to build a full mental model before acting, or wants to leave the automation audit running in Codex until no credible work remains. Not for a single known bug, generic repo audit, or manual QA-only work."
 metadata:
   short-description: "Exhaustive map-first real-app automation loop"
 ---
 
 # Audit Loop Sim
 
-Use this skill when the job is to exhaustively map a mobile app, its journeys, and its current automation surface, rank the strongest automation risk fronts by consequence, and then reduce the biggest unresolved real-app automation risks without changing contracts.
+Use this skill when the job is to exhaustively map a mobile app, its journeys, and its current automation surface, rank the strongest automation risk fronts by consequence, reduce the biggest unresolved real-app automation risks without changing contracts, and audit each resulting change before it counts as done.
 
 ## When to use
 
@@ -33,9 +33,13 @@ Use this skill when the job is to exhaustively map a mobile app, its journeys, a
 - Select a risk front from the completed map, not from a hunch.
 - Fix bugs inside the existing product, journey, and automation contracts. If the only apparent fix would change a contract, log the conflict and stop.
 - Verification depth must be proportional to downstream consequence and blast radius.
+- Every editful pass must run a post-change audit on the actual diff and touched surfaces for safety, downstream consequences, elegance, and duplication before it can stop.
+- If that audit fails, repair the issue in the same pass and re-verify before stopping.
+- New duplication is illegal. Do not solve a journey or automation front by copying product logic, lane behavior, harness steps, or fallback handling into a second place.
 - Use the repo's canonical simulator or device surface and existing automation stack. If the repo ships `mobile-sim`, use `mobile-sim` for simulator or device control instead of inventing a parallel command story.
 - Reduce the top unresolved real-app automation risk materially. Do not cash out a pass on a tiny safe test tweak while a bigger justified journey gap still dominates the app.
 - It is acceptable and often necessary to touch product code, integration tests, harness helpers, fixtures, native glue, or QA surfaces when they belong to the same automation risk story.
+- Broader same-story cleanup is allowed when the post-change audit shows the current fix is awkward or duplicative, but keep it inside the same contract and risk front. Do not build a framework or a parallel harness family.
 - If the new automation exposes a same-story app bug, fix it in the same pass instead of leaving a knowingly broken lane behind.
 - Prefer behavior-level end-to-end proof on meaningful journeys. Do not write negative-value automation.
 - Do not decide that simulator or device work is annoying and quietly downgrade a real-app risk front into Flutter unit or widget tests. Work the sanctioned simulator path for a while, and if it still cannot produce the required real-app signal, stop blocked and name that blocker plainly.
@@ -69,10 +73,12 @@ Use this skill when the job is to exhaustively map a mobile app, its journeys, a
 - Build or refresh the exhaustive map of app surfaces, user journeys, and the current automation surface.
 - If the map is incomplete, record the next unfinished mapping tranche in `Next Area`, update the ledger, and stop without edits.
 - Once the map is complete, rank automation risk fronts by consequence first, then proof weakness, then fragility.
-- Pick the highest-priority unresolved automation risk front from that ranking and record the pre-edit proof plan.
+- Pick the highest-priority unresolved automation risk front from that ranking and record the pre-edit proof plan plus the post-change audit focus.
 - Read the implementation and current automation before patching, log findings, and fix the strongest justified work across that risk front.
 - When the repo provides `mobile-sim`, use it for simulator or device management. If the current front needs simulator or device proof, do not replace that with Flutter unit or widget tests just because the simulator path is hard; either recover it or stop blocked.
-- Verify the changes with proof proportional to the front's consequence, update the ledger, and stop only when further useful work would require a genuinely different automation story, a new reconnaissance pass, or a real blocker.
+- Verify the changes with proof proportional to the front's consequence.
+- Audit the resulting diff and touched surfaces for safety, unintended downstream consequences, elegance, and duplication. If any lens fails, repair it in the same pass and re-verify.
+- Update the ledger and stop only when further useful work would require a genuinely different automation story, a new reconnaissance pass, or a real blocker.
 
 ### 2) `review`
 
@@ -80,6 +86,7 @@ Use this skill when the job is to exhaustively map a mobile app, its journeys, a
 - Repair the ledger if it is missing or malformed.
 - Re-read the ledger and current repo state from fresh context.
 - Confirm whether the map is complete, whether the current or next front comes from the ranked map, and whether verification depth matched the front's consequence.
+- Confirm whether the latest editful pass completed and passed the post-change audit for safety, downstream consequences, elegance, and duplication.
 - Set the controller verdict to `CONTINUE`, `CLEAN`, or `BLOCKED` and name the next mapping tranche, automation risk front, or blocker plainly.
 
 ### 3) `auto`

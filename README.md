@@ -9,9 +9,9 @@ The live arch suite is:
 - `arch-mini-plan` — one-pass canonical mini planning that hands follow-through to `arch-step`
 - `lilarch` — compact 1-3 phase feature flow
 - `bugs-flow` — evidence-first bug analyze/fix/review flow
-- `audit-loop` — exhaustive map-first repo audit loop with a root audit ledger and Codex-only `auto` continuation
+- `audit-loop` — exhaustive map-first repo audit loop with a root audit ledger, mandatory post-change self-audit, and Codex-only `auto` continuation
 - `comment-loop` — exhaustive map-first repo comment hardening loop with a root comment ledger and Codex-only `auto` continuation
-- `audit-loop-sim` — exhaustive map-first real-app automation audit loop with a root simulator ledger and Codex-only `auto` continuation
+- `audit-loop-sim` — exhaustive map-first real-app automation audit loop with a root simulator ledger, mandatory post-change self-audit, and Codex-only `auto` continuation
 - `goal-loop` — open-ended goal-seeking loop
 - `north-star-investigation` — math-first investigation loop
 - `arch-flow` — read-only "what's next?" router for arch docs
@@ -189,7 +189,7 @@ Use for Sentry/log-driven bug analysis, narrow fixes, and explicit-review-only f
 
 ### `audit-loop`
 
-Use for repo-wide audit passes where the agent should exhaustively map the codebase and current proof surface before editing, then rank and attack the biggest real unresolved risks by consequence instead of picking something convenient.
+Use for repo-wide audit passes where the agent should exhaustively map the codebase and current proof surface before editing, then rank and attack the biggest real unresolved risks by consequence instead of picking something convenient. Every editful pass must then audit its own diff for safety, downstream consequences, elegance, and duplication before it can count as done.
 
 ### `comment-loop`
 
@@ -197,7 +197,7 @@ Use for repo-wide code comment hardening passes where the agent should exhaustiv
 
 ### `audit-loop-sim`
 
-Use for repo-wide real-app automation passes where the agent should exhaustively map the app, journeys, and current automation surface before editing, then rank and attack the biggest unresolved automation risks by consequence instead of cashing out on tiny safe test tweaks.
+Use for repo-wide real-app automation passes where the agent should exhaustively map the app, journeys, and current automation surface before editing, then rank and attack the biggest unresolved automation risks by consequence instead of cashing out on tiny safe test tweaks. Every editful pass must then audit its own diff for safety, downstream consequences, elegance, and duplication before it can count as done.
 
 ### `delay-poll`
 

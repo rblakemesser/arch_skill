@@ -2,7 +2,7 @@
 
 ## Goal
 
-Run a fresh, docs-only audit verdict pass that decides whether the exhaustive map is complete, whether the current ranking is still truthful, and whether a major unresolved risk front still justifies more work.
+Run a fresh, docs-only audit verdict pass that decides whether the exhaustive map is complete, whether the current ranking is still truthful, whether a major unresolved risk front still justifies more work, and whether the latest editful pass actually survived the required post-change audit.
 
 ## Writes
 
@@ -19,6 +19,7 @@ No product code changes are allowed in `review`.
    - Phase 1 triage
    - open findings
    - test additions
+   - post-change audit
    - decisions log
 3. Inspect current repo state from fresh context:
    - changed files
@@ -28,6 +29,8 @@ No product code changes are allowed in `review`.
    - whether the latest pass actually reduced the top open risk
    - whether the same risk front still has justified unresolved work
    - whether the latest pass used proof proportional to the front's consequence and blast radius
+   - whether the latest editful pass completed and passed the post-change audit for safety, downstream consequences, elegance, and duplication
+   - whether the fix introduced new duplicate logic, assertions, or fallback handling instead of converging on one truthful path
    - whether audit-loop-added or materially rewritten tests make the protected behavior, why it matters, and the expected user-visible or externally observable outcome clear enough to catch misunderstanding later
    - treat unrelated dirty or untracked files as ordinary context, not as an automatic blocker
 4. Set the controller block:
@@ -46,6 +49,7 @@ Use only when:
 - the exhaustive map is not complete and a concrete next mapping tranche exists, or a concrete next risk front exists
 - the current or next front is still justified by the priority matrix
 - the current front still has unresolved work or the next front clearly dominates the repo
+- the latest editful pass still has unresolved post-change audit issues that should be repaired in the same risk story
 - the latest pass did not leave key new verification ambiguous or underexplained
 - the next pass would not merely repeat the last failed idea
 
@@ -60,6 +64,7 @@ Use only when:
 - no credible `P0`, `P1`, or justified `P2` audit pass remains
 - rescanning would likely just relitigate prior `SKIP` decisions
 - the loop is not merely stopping because the next useful work touches a broader surface
+- the latest editful pass passed the post-change audit for safety, downstream consequences, elegance, and duplication
 
 `Stop Reason` should be blank.
 
@@ -72,6 +77,7 @@ Use when:
 - the next pass would rerun the same idea without a changed lever
 - the ledger is too weak to continue honestly without first repairing the investigation
 - the only honest next move would change an existing product, API, or behavior contract instead of fixing a bug inside it
+- the remaining repair required by the post-change audit depends on missing access, tooling, or evidence rather than ordinary same-story cleanup
 - the claimed risk reduction depends on new or materially rewritten tests whose intent is too unclear to trust
 
 `Stop Reason` is required.

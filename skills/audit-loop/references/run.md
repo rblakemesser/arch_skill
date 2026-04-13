@@ -2,7 +2,7 @@
 
 ## Goal
 
-Run one serious mapping, audit, or fix pass that leaves `_audit_ledger.md` more truthful and materially advances either the exhaustive repo map or the biggest unresolved risk in the repo.
+Run one serious mapping, audit, or fix pass that leaves `_audit_ledger.md` more truthful and materially advances either the exhaustive repo map or the biggest unresolved risk in the repo. Editful passes are not done until the resulting diff passes a post-change audit for safety, downstream consequences, elegance, and duplication.
 
 ## Writes
 
@@ -48,7 +48,7 @@ Do stop when the next move would require a genuinely different mapping tranche, 
 5. If the map is incomplete, update `Next Area` with the next unfinished mapping tranche, update the ledger, and stop without edits.
 6. Rank risk fronts from the completed map by consequence first, then proof weakness, then fragility.
 7. Choose the highest-priority unresolved risk front from that ranking.
-8. Record the pre-edit proof plan for that front in Phase 1.
+8. Record the pre-edit proof plan and post-change audit focus for that front in Phase 1.
 9. Read the implementation in that risk front before reading its tests.
 10. Log precise findings in Phase 2 with file anchors and finding type.
 11. Read the existing tests and decide what verification is missing. If the pass adds or materially rewrites a test, leave comments in the test code that explain why the behavior matters and what correct user-visible or externally observable outcome should happen.
@@ -57,17 +57,27 @@ Do stop when the next move would require a genuinely different mapping tranche, 
    - dead-code deletion
    - duplication extraction
    - high-value test addition
-13. Verify:
+13. Verify the initial fix:
    - run the smallest targeted signal that proves the fix
    - run the broader relevant suite when that signal exists and is credible
    - make the proof depth proportional to the consequence and blast radius of the touched surfaces
-14. Update:
+14. Audit the resulting diff and touched surfaces:
+   - `SAFETY`: contracts, invariants, edge handling, and blast-radius containment still hold
+   - `DOWNSTREAM`: callers, dependents, shared helpers, and proof surfaces do not have unaddressed fallout
+   - `ELEGANCE`: the fix is coherent rather than patchy, brittle, or obviously awkward
+   - `DUPLICATION`: no new duplicate logic, assertions, or fallback handling was introduced
+15. If the post-change audit finds a problem, repair it in the same pass:
+   - keep the repair inside the same risk front and existing contract
+   - allow broader same-story cleanup only when that is the cleanest way to remove the new fragility or duplication
+   - re-run the targeted and broader proof that the repair affects
+16. Update:
    - finding status
    - test additions
+   - post-change audit status
    - `Last updated`
    - the map and ranking if the fix changed them materially
    - `Next Area` or `Stop Reason` if the next unfinished mapping tranche, unresolved risk front, or blocker is obvious
-15. Stop only when further useful work would become a different mapping story, audit story, or verification basis, not merely because another file or module is involved.
+17. Stop only when further useful work would become a different mapping story, audit story, or verification basis, not merely because another file or module is involved.
 
 ## Triage reminders
 
@@ -76,6 +86,7 @@ Do stop when the next move would require a genuinely different mapping tranche, 
 - Duplication on a critical path is immediately worth consolidating.
 - A tiny isolated fix does not win if the same critical-path failure mode still has obvious unresolved work.
 - An incomplete map is not good enough to justify a quick patch.
+- A quick fix that creates a second copy of the logic loses, even if the first test pass is green.
 - Low-risk, low-churn, already-tested code is a good `SKIP`.
 - Unrelated dirty or untracked files do not justify stopping or downgrading the pass on their own.
 
@@ -85,5 +96,6 @@ Do stop when the next move would require a genuinely different mapping tranche, 
 - Critical paths deserve at least one realistic integration signal where feasible.
 - Higher-consequence surfaces deserve broader downstream proof than narrow utility fixes.
 - If the best evidence is a targeted test plus a broader existing suite, run both.
+- Every editful pass also needs the post-change audit. Passing tests do not waive that requirement.
 - When you add or materially rewrite a test, make the intent locally clear in the test code itself. Do not rely on the ledger alone to carry the why or the expected experience or outcome.
 - If the repo has no credible automated signal for the fix, say so plainly in the ledger.
