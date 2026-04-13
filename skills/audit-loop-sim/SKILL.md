@@ -1,17 +1,18 @@
 ---
 name: audit-loop-sim
-description: "Run the standalone real-app automation audit workflow with a root simulator audit ledger: find and fix the biggest end-to-end automation gaps, missing high-value mobile coverage, and same-story bugs exposed by simulator or emulator runs. Use when the user wants repo-wide simulator or emulator automation work, wants the agent to push on the highest-value real-app coverage gaps instead of tiny safe test tweaks, or wants to leave the automation audit running in Codex until no credible work remains. Not for a single known bug, generic repo audit, or manual QA-only work."
+description: "Run the standalone real-app automation audit workflow with a root simulator audit ledger: exhaustively map the app, journeys, and current automation surface before any edits, rank automation risk fronts by consequence and proof weakness, then fix the biggest end-to-end automation gaps and same-story bugs without changing contracts. Use when the user wants repo-wide simulator or emulator automation work, wants the agent to build a full mental model before acting, or wants to leave the automation audit running in Codex until no credible work remains. Not for a single known bug, generic repo audit, or manual QA-only work."
 metadata:
-  short-description: "Repo-wide real-app automation risk loop"
+  short-description: "Exhaustive map-first real-app automation loop"
 ---
 
 # Audit Loop Sim
 
-Use this skill when the job is to inspect a mobile app codebase for its biggest unresolved real-app automation risks, push on the strongest current automation risk front until it is materially reduced, and leave a truthful simulator audit ledger behind.
+Use this skill when the job is to exhaustively map a mobile app, its journeys, and its current automation surface, rank the strongest automation risk fronts by consequence, and then reduce the biggest unresolved real-app automation risks without changing contracts.
 
 ## When to use
 
 - The user wants a repo-wide simulator or emulator automation pass rather than help with one already-known bug.
+- The user wants the agent to build a full mental model of the app and automation surface before acting.
 - The user wants to find and close real-app blind spots, weak critical-path automation, or missing end-to-end coverage in priority order.
 - The user wants to run one manual pass now or leave the automation audit running in Codex until the worthwhile work is exhausted.
 
@@ -26,7 +27,12 @@ Use this skill when the job is to inspect a mobile app codebase for its biggest 
 
 - `_audit_sim_ledger.md` at repo root is the source of truth. Add it to the root `.gitignore` immediately.
 - Triage before code changes. Do not skip straight to editing because one suspicious line looks fixable.
-- Start with primary journeys and existing repo-native automation evidence. Record unavailable signals as `unknown` instead of auto-installing new tooling.
+- Exhaustively map app surfaces, user journeys, and the current automation surface before any product-code or automation edits. If the map is incomplete, update the ledger and stop.
+- When the runtime supports delegation, use parallel read-only agents during mapping. Otherwise build the same exhaustive map sequentially.
+- Rank consequence and impact first, then proof weakness, then fragility. Do not let a tiny safe automation tweak outrank a higher-consequence journey or surface.
+- Select a risk front from the completed map, not from a hunch.
+- Fix bugs inside the existing product, journey, and automation contracts. If the only apparent fix would change a contract, log the conflict and stop.
+- Verification depth must be proportional to downstream consequence and blast radius.
 - Use the repo's canonical simulator or device surface and existing automation stack. If the repo ships `mobile-sim`, use `mobile-sim` for simulator or device control instead of inventing a parallel command story.
 - Reduce the top unresolved real-app automation risk materially. Do not cash out a pass on a tiny safe test tweak while a bigger justified journey gap still dominates the app.
 - It is acceptable and often necessary to touch product code, integration tests, harness helpers, fixtures, native glue, or QA surfaces when they belong to the same automation risk story.
@@ -60,26 +66,29 @@ Use this skill when the job is to inspect a mobile app codebase for its biggest 
 ### 1) `run`
 
 - Create or repair `_audit_sim_ledger.md` and the `.gitignore` entry.
-- Refresh triage from primary journeys, real-app signal, automation gaps, platform truth, churn when useful, and explicit `SKIP` decisions.
-- Pick the highest-priority unresolved automation risk front.
+- Build or refresh the exhaustive map of app surfaces, user journeys, and the current automation surface.
+- If the map is incomplete, record the next unfinished mapping tranche in `Next Area`, update the ledger, and stop without edits.
+- Once the map is complete, rank automation risk fronts by consequence first, then proof weakness, then fragility.
+- Pick the highest-priority unresolved automation risk front from that ranking and record the pre-edit proof plan.
 - Read the implementation and current automation before patching, log findings, and fix the strongest justified work across that risk front.
 - When the repo provides `mobile-sim`, use it for simulator or device management. If the current front needs simulator or device proof, do not replace that with Flutter unit or widget tests just because the simulator path is hard; either recover it or stop blocked.
-- Verify the changes, update the ledger, and stop only when further useful work would require a genuinely different automation story, a new reconnaissance pass, or a real blocker.
+- Verify the changes with proof proportional to the front's consequence, update the ledger, and stop only when further useful work would require a genuinely different automation story, a new reconnaissance pass, or a real blocker.
 
 ### 2) `review`
 
 - Stay docs-only.
 - Repair the ledger if it is missing or malformed.
 - Re-read the ledger and current repo state from fresh context.
-- Set the controller verdict to `CONTINUE`, `CLEAN`, or `BLOCKED` and name the next automation risk front or blocker plainly.
+- Confirm whether the map is complete, whether the current or next front comes from the ranked map, and whether verification depth matched the front's consequence.
+- Set the controller verdict to `CONTINUE`, `CLEAN`, or `BLOCKED` and name the next mapping tranche, automation risk front, or blocker plainly.
 
 ### 3) `auto`
 
 - Run Codex-only preflight for hooks and feature flags.
 - Derive `SESSION_ID` from `CODEX_THREAD_ID`, then create or refresh `.codex/audit-loop-sim-state.<SESSION_ID>.json`.
 - Do not run the Stop hook yourself. After `auto` is armed, just end the turn and let Codex run the installed Stop hook.
-- Run one truthful `run` pass.
-- Let the installed Stop hook launch a fresh `review` pass and continue only while the verdict stays `CONTINUE` because real unresolved automation risk still remains.
+- Run one truthful `run` pass. The first turns may be mapping-only.
+- Let the installed Stop hook launch a fresh `review` pass and continue only while the verdict stays `CONTINUE` because mapping work or real unresolved automation risk still remains.
 
 ## Output expectations
 
@@ -87,7 +96,7 @@ Use this skill when the job is to inspect a mobile app codebase for its biggest 
 - Keep console output short:
   - automation North Star reminder
   - punchline
-  - current automation risk front or verdict
+  - current mapping tranche, automation risk front, or verdict
   - evidence or tests run
   - next action
 
@@ -95,7 +104,7 @@ Use this skill when the job is to inspect a mobile app codebase for its biggest 
 
 - `references/ledger-contract.md` - root ledger shape, controller block, status vocabulary, and cleanup lifecycle
 - `references/shared-doctrine.md` - prioritization, fix discipline, and anti-patterns
-- `references/run.md` - risk-front automation audit or fix pass
+- `references/run.md` - mapping-aware automation audit or fix pass
 - `references/review.md` - fresh docs-only automation verdict pass
 - `references/auto.md` - Codex-only controller contract and state file
 - `references/quality-bar.md` - strong vs weak triage, findings, tests, and stop decisions

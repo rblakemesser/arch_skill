@@ -8,7 +8,7 @@
 
 ## Ledger shape
 
-The ledger is the single source of truth for triage, findings, test additions, explicit skips, and automation verdicts.
+The ledger is the single source of truth for exhaustive mapping, triage, findings, test additions, explicit skips, and controller verdicts.
 
 Keep this top block at the top of the file:
 
@@ -29,8 +29,17 @@ Then keep these sections in order:
 
 ```md
 ## Phase 1: Triage (complete/in-progress)
-| # | Area | Risk | Churn | Coverage | Dead Code? | Duplication? | Priority |
-|---|------|------|-------|----------|------------|--------------|----------|
+### 1A: Surface Inventory
+| # | Surface | Kind | Why It Matters | Contract / Invariant | Downstream Dependents | Current Proof | Proof Quality | Consequence if Wrong | Churn / Fragility | Map Status |
+|---|---------|------|----------------|----------------------|-----------------------|---------------|---------------|----------------------|-------------------|------------|
+
+### 1B: Risk Front Ranking
+| # | Risk Front | Surfaces | Consequence | Proof Weakness | Fragility | Priority | Why Now |
+|---|------------|----------|-------------|----------------|-----------|----------|---------|
+
+### 1C: Proof Plan For Current Front
+| Risk Front | Required Proof | Why This Depth | Status |
+|------------|----------------|----------------|--------|
 
 ## Phase 2: Findings
 | # | File:Line | Type | Description | Fix | Status |
@@ -51,7 +60,7 @@ Then keep these sections in order:
   - `CLEAN`
   - `BLOCKED`
 - `Next Area` is required for `CONTINUE`.
-- `Next Area` may name a broader risk front or problem cluster that spans multiple files or surfaces.
+- `Next Area` may name an unfinished mapping tranche, broader risk front, or problem cluster that spans multiple files or surfaces.
 - `Stop Reason` is required for `BLOCKED`.
 - `Last Review` is written by `review` in `YYYY-MM-DD` form.
 - `review` owns the authoritative controller verdict used by `auto`.
@@ -74,11 +83,11 @@ Then keep these sections in order:
 
 ## Priority matrix
 
-- `P0` = critical path + (`low coverage` or `high churn` or `duplication`)
-- `P1` = critical path + adequately tested but still has dead code or duplication worth fixing
-- `P2` = non-critical but high-churn with low coverage or repeated fragility
+- `P0` = high-consequence surface or risk front with weak, ambiguous, or misleading proof
+- `P1` = high-consequence surface or risk front with partial proof or structural fragility worth fixing now
+- `P2` = meaningful but lower-consequence surface with real proof gaps or repeated fragility
 - `P3` = everything else
-- `SKIP` = low risk, low churn, already tested enough, or explicitly not worth investing in now
+- `SKIP` = explicitly not worth investing in now after consequence and proof quality were evaluated
 
 Every `SKIP` needs a reason in `## Decisions Log`.
 
@@ -87,6 +96,7 @@ Every `SKIP` needs a reason in `## Decisions Log`.
 - Use existing repo-native coverage, dead-code, and duplication tooling first.
 - If a signal is unavailable, record `unknown` in triage and explain it in `## Decisions Log`.
 - Do not auto-install new tools just to satisfy the ledger.
+- The exhaustive map must come from repo truth, not from canned category lists or grep-only shortcuts.
 
 ## Cleanup lifecycle
 

@@ -2,27 +2,39 @@
 
 ## Philosophy
 
-- Critical paths first. Missing coverage on payments, auth, persistence, or permissions matters more than polishing a safe utility.
+- Exhaustive understanding before action. The first deliverable is a truthful map of shipped code and proof surfaces, not a quick patch.
+- Consequence first. Wrong results on core algorithms, monetization, auth, persistence, permissions, or other outcome-critical surfaces matter more than polishing a safe utility.
 - Audit-loop exists to reduce the biggest real risks, not to harvest easy wins.
+- Weak or misleading proof on a fundamental surface is itself a real risk.
 - Dead code is a bug waiting to happen. Delete it instead of preserving it.
 - Duplication is deferred breakage. Consolidate one source of truth where the duplication matters.
 - Tests exist to protect meaningful behavior. Coverage is a trailing indicator, not the product.
 - When audit-loop adds or materially rewrites a test, the test should also explain the behavior it is protecting. Leave comments that make the why and the expected user-visible or externally observable outcome easy to inspect later.
 - Leave the codebase lighter than you found it when the evidence supports deletion or simplification.
 
-## Triage order
+## Mapping discipline
 
-1. Identify 5-10 critical paths first.
-2. Measure recent churn.
-3. Measure coverage on the critical paths, when coverage tooling already exists.
-4. Scan for dead code and explicit fragility markers.
-5. Scan for duplication.
-6. Write the priority and explicit `SKIP` decisions into the ledger before coding.
+- Enumerate shipped code surfaces exhaustively from repo truth before editing.
+- Enumerate the current proof surface exhaustively before editing.
+- For each surface, record why it matters, its governing contract or invariant, its downstream dependents, the current proof, the proof quality, and the consequence if it is wrong.
+- Use parallel read-only agents when the runtime supports delegation. Split by disjoint surface families such as entrypoints, core logic, integrations, and proof surfaces. Treat those splits as examples, not a rigid taxonomy.
+- If the map is incomplete, stop after updating the ledger. Do not patch yet.
+
+## Ranking order
+
+1. Finish the exhaustive map of code and proof surfaces.
+2. Rank surfaces and risk fronts by consequence first.
+3. Rank within that by proof weakness or ambiguity.
+4. Use churn, dead-code evidence, duplication, and explicit fragility markers to sharpen ties.
+5. Write the priority, proof plan, and explicit `SKIP` decisions into the ledger before coding.
 
 ## Fix discipline
 
 - Read the code before the tests.
 - Work one unresolved risk front at a time, not one arbitrary line item at a time.
+- Choose that front from the completed map, not from convenience or curiosity.
+- Record the proof plan before making edits. Higher-consequence fronts require broader downstream proof.
+- Fix bugs inside the existing contract. If the apparent fix would change the product, API, or behavior contract, log the conflict and stop.
 - It is acceptable and expected to fix multiple findings together when they share one failure mode, critical path, or verification story.
 - Do not block on unrelated dirty or untracked files. Leave them alone unless they directly conflict with the current risk front or make verification unsafe.
 - Do not yield just because the next fix touches a second file, module, or test surface.
@@ -52,11 +64,15 @@ Record `unknown` instead of auto-installing any of these.
 
 ## Anti-patterns
 
+- Sampling 5-10 paths and calling that a full audit.
+- Picking something that looks fixable before the map is complete.
+- Letting a neat safe fix outrank a higher-consequence surface with weaker proof.
 - Chasing 100 percent coverage.
 - Adding a test for every function regardless of risk.
 - Refactoring an entire module because one smell was noticed during audit.
 - Spending the pass on a neat tiny fix while a larger justified critical-path risk is still open.
 - Spending the pass on a flaky low-priority test instead of the highest-risk open area.
+- Changing a contract because it makes the current fix easier.
 - Sneaking in formatting, linting, types, or tooling side quests that are not required by the finding.
 - Pretending a low-value assertion is meaningful because it makes the coverage number move.
 - Leaving a new audit-loop-authored test with no comment about why the behavior matters or what correct experience or outcome should happen.

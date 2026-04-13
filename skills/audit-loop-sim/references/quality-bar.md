@@ -2,16 +2,20 @@
 
 ## Strong triage
 
-- major user journeys and primary-path risk fronts are explicit
-- major unresolved automation risk fronts are explicit
-- priorities reflect real user impact, missing real-app signal, platform truth, and churn when useful
+- the app surface, journey surface, and automation surface are mapped exhaustively
+- major user journeys, primary-path risk fronts, and automation owners are explicit
+- major unresolved automation risk fronts are explicit and come from the completed map
+- priorities reflect real user impact first, then missing or weak real-app signal, then platform truth and fragility
+- the proof plan is explicit before edits begin
 - `SKIP` entries are deliberate and explained
 - unavailable signals are recorded as `unknown`, not silently ignored
 
 ## Weak triage
 
+- the map is sampled or obviously incomplete
 - priority order follows file size, aesthetics, or guesswork
-- the ledger has no clear primary journeys
+- the ledger has no clear journey model or automation-surface inventory
+- the pass picked something that looked fixable before the map was complete
 - the pass keeps cashing out on low-amplitude test tweaks while a larger journey gap stays open
 - `SKIP` means "did not feel like it"
 - the same low-value area keeps returning with no justification
@@ -19,7 +23,7 @@
 ## Strong findings
 
 - file anchors are concrete
-- the description names the real-app blind spot, breakage, or fragility clearly
+- the description names the real-app blind spot, breakage, or fragility clearly and ties it back to the mapped consequence
 - the proposed fix matches the actual finding
 - multiple related findings may be resolved together when that is what the automation risk front demands
 - the pass adds or repairs durable automation instead of only explaining what should probably be tested someday
@@ -33,14 +37,15 @@
 
 ## Strong stop decisions
 
-- `CONTINUE` names a concrete next automation risk front
-- `CLEAN` means there is no credible major unresolved automation pass worth the cost
+- `CONTINUE` names a concrete next mapping tranche or automation risk front
+- `CLEAN` means the map is complete and there is no credible major unresolved automation pass worth the cost
 - `BLOCKED` names the real blocker plainly
 - repeated lane-independent provider failures with no meaningful app signal are classified plainly as provider blockers instead of being rerun as if they were app bugs
 
 ## Weak stop decisions
 
 - `CONTINUE` with no next area
+- `CLEAN` before the exhaustive map is complete
 - `CLEAN` while obvious `P0` or `P1` work still exists
 - `CLEAN` because one small lane landed even though the same larger journey gap still has open justified work
 - `BLOCKED` when the real issue is simply lack of triage discipline

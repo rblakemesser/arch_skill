@@ -1,17 +1,18 @@
 ---
 name: audit-loop
-description: "Run the standalone repo-audit workflow with a root audit ledger: find and fix real bugs, dead code, duplication, and high-value regression gaps. Use when the user wants a repo-wide audit pass, wants the agent to push on the biggest real unresolved risks instead of harvesting tiny safe fixes, or wants to leave the loop running until no credible audit work remains. Not for a single known bug, feature planning, or generic optimization loops."
+description: "Run the standalone repo-audit workflow with a root audit ledger: exhaustively map the codebase and current proof surface before any edits, rank risk fronts by consequence and proof weakness, then fix the biggest real bugs, dead code, duplication, and high-value regression gaps without changing contracts. Use when the user wants a repo-wide audit pass, wants the agent to build a full mental model before acting, or wants to leave the audit running in Codex until no credible audit work remains. Not for a single known bug, feature planning, or generic optimization loops."
 metadata:
-  short-description: "Repo-wide bug hunt and cleanup loop"
+  short-description: "Exhaustive map-first repo audit loop"
 ---
 
 # Audit Loop
 
-Use this skill when the job is to inspect a codebase for its biggest real unresolved risks, push on the strongest current risk front until it is materially reduced, and leave a truthful audit ledger behind.
+Use this skill when the job is to exhaustively map a codebase and its current proof surface, rank the strongest risk fronts by consequence, and then reduce the biggest real unresolved risks without changing contracts.
 
 ## When to use
 
 - The user wants a repo-wide audit pass rather than help with one already-known bug.
+- The user wants the agent to build a full mental model of the repo before acting.
 - The user wants to find and fix real bugs, dead code, duplication, or missing high-value tests in priority order.
 - The user wants to run one manual pass now or leave the audit running in Codex until the worthwhile work is exhausted.
 
@@ -25,7 +26,12 @@ Use this skill when the job is to inspect a codebase for its biggest real unreso
 
 - `_audit_ledger.md` at repo root is the source of truth. Add it to the root `.gitignore` immediately.
 - Triage before code changes. Do not skip straight to editing because one suspicious line looks fixable.
-- Start with critical paths and existing repo-native evidence. Record unavailable signals as `unknown` instead of auto-installing new tooling.
+- Exhaustively map shipped code surfaces and the current proof surface before any product-code or test edits. If the map is incomplete, update the ledger and stop.
+- When the runtime supports delegation, use parallel read-only agents during mapping. Otherwise build the same exhaustive map sequentially.
+- Rank consequence and impact first, then proof weakness, then fragility. Do not let a tiny safe fix outrank a higher-consequence surface.
+- Select a risk front from the completed map, not from a hunch.
+- Fix bugs inside the existing product, API, and behavior contracts. If the only apparent fix would change a contract, log the conflict and stop.
+- Verification depth must be proportional to downstream consequence and blast radius.
 - Reduce the top unresolved risk materially. Do not cash out a pass on a tiny safe fix while a bigger justified problem still dominates the repo.
 - Dead code deletion counts as a fix. Duplication on critical paths counts as real bug prevention work.
 - It is acceptable and often necessary to touch multiple files, modules, and tests when they belong to the same risk story.
@@ -53,27 +59,30 @@ Use this skill when the job is to inspect a codebase for its biggest real unreso
 ### 1) `run`
 
 - Create or repair `_audit_ledger.md` and the `.gitignore` entry.
-- Refresh triage from critical paths, churn, coverage, dead-code signals, duplication signals, and explicit `SKIP` decisions.
-- Pick the highest-priority unresolved risk front.
+- Build or refresh the exhaustive map of shipped code surfaces and the current proof surface.
+- If the map is incomplete, record the next unfinished mapping tranche in `Next Area`, update the ledger, and stop without edits.
+- Once the map is complete, rank risk fronts by consequence first, then proof weakness, then fragility.
+- Pick the highest-priority unresolved risk front from that ranking and record the pre-edit proof plan.
 - Read the implementation before the tests, log findings, and fix the strongest justified work across that risk front.
 - When the pass adds or materially rewrites tests, make the intent clear in the test code itself so a later reader can see the why and the expected experience or outcome without reconstructing it from the assertion body.
-- Verify the changes, update the ledger, and stop only when further useful work would require a genuinely different audit story, a new reconnaissance pass, or a real blocker.
+- Verify the changes with proof proportional to the front's consequence, update the ledger, and stop only when further useful work would require a genuinely different audit story, a new reconnaissance pass, or a real blocker.
 
 ### 2) `review`
 
 - Stay docs-only.
 - Repair the ledger if it is missing or malformed.
 - Re-read the ledger and current repo state from fresh context.
+- Confirm whether the map is complete, whether the current or next front comes from the ranked map, and whether verification depth matched the front's consequence.
 - Check whether audit-loop-added or materially rewritten tests explain their purpose clearly enough for a later reviewer to spot a misunderstanding in the protected behavior or expected experience.
-- Set the controller verdict to `CONTINUE`, `CLEAN`, or `BLOCKED` and name the next risk front or blocker plainly.
+- Set the controller verdict to `CONTINUE`, `CLEAN`, or `BLOCKED` and name the next mapping tranche, risk front, or blocker plainly.
 
 ### 3) `auto`
 
 - Run Codex-only preflight for hooks and feature flags.
 - Derive `SESSION_ID` from `CODEX_THREAD_ID`, then create or refresh `.codex/audit-loop-state.<SESSION_ID>.json`.
 - Do not run the Stop hook yourself. After `auto` is armed, just end the turn and let Codex run the installed Stop hook.
-- Run one truthful `run` pass.
-- Let the installed Stop hook launch a fresh `review` pass and continue only while the verdict stays `CONTINUE` because real unresolved risk still remains.
+- Run one truthful `run` pass. The first turns may be mapping-only.
+- Let the installed Stop hook launch a fresh `review` pass and continue only while the verdict stays `CONTINUE` because mapping work or real unresolved risk still remains.
 
 ## Output expectations
 
@@ -81,7 +90,7 @@ Use this skill when the job is to inspect a codebase for its biggest real unreso
 - Keep console output short:
   - audit North Star reminder
   - punchline
-  - current risk front or verdict
+  - current mapping tranche, risk front, or verdict
   - evidence or tests run
   - next action
 
@@ -89,7 +98,7 @@ Use this skill when the job is to inspect a codebase for its biggest real unreso
 
 - `references/ledger-contract.md` - root ledger shape, controller block, status vocabulary, and cleanup lifecycle
 - `references/shared-doctrine.md` - prioritization, fix discipline, and anti-patterns
-- `references/run.md` - risk-front audit/fix pass
+- `references/run.md` - mapping-aware audit or fix pass
 - `references/review.md` - fresh docs-only verdict pass
 - `references/auto.md` - Codex-only controller contract and state file
 - `references/quality-bar.md` - strong vs weak triage, findings, tests, and stop decisions

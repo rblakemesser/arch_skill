@@ -241,7 +241,7 @@ Use for regressions, crashes, incidents, or Sentry/log-driven fixes.
 
 ### `audit-loop`
 
-Use for repo-wide audit passes or "find and fix the biggest real problems" requests, especially when the user wants one manual pass or a Codex-only loop that keeps going until the review verdict is clean or blocked.
+Use for repo-wide audit passes or "find and fix the biggest real problems" requests when the agent should first exhaustively map the codebase and current proof surface, then choose work from a consequence-first ranking rather than just picking something.
 
 Examples:
 
@@ -251,7 +251,7 @@ Examples:
 
 ### `audit-loop-sim`
 
-Use for repo-wide real-app automation passes, simulator or emulator gap hunts, impactful mobile end-to-end coverage work, or "find the biggest automation blind spots in the real app" requests, especially when the user wants one manual pass or a Codex-only loop that keeps going until the review verdict is clean or blocked.
+Use for repo-wide real-app automation passes, simulator or emulator gap hunts, impactful mobile end-to-end coverage work, or "find the biggest automation blind spots in the real app" requests when the agent should first exhaustively map the app, journeys, and current automation surface, then choose work from a consequence-first ranking rather than just picking something.
 
 Examples:
 

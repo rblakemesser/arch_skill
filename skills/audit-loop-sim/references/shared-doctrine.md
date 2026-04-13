@@ -2,6 +2,7 @@
 
 ## Philosophy
 
+- Exhaustive understanding before action. The first deliverable is a truthful map of the app, the journeys, and the automation surface, not a quick lane tweak.
 - Real app first. The job is to close the biggest gaps in the automation that catches bugs unit and widget tests miss.
 - Audit-loop-sim exists to reduce the biggest real-app automation risks, not to harvest easy wins.
 - Primary-path, onboarding, auth or session restore, monetization, core content progression, offline state, and platform ingress matter more than polishing a safe corner of settings when the evidence supports that.
@@ -10,19 +11,29 @@
 - Tests exist to protect meaningful behavior. Coverage is a trailing indicator, not the product.
 - Leave the app and automation surface stronger than you found them when the evidence supports a fix.
 
-## Triage order
+## Mapping discipline
 
-1. Identify 5-10 primary user journeys first.
-2. Read the existing automation SSOT, flow registry, and sanctioned simulator or device surface.
-3. Measure current real-app signal on those journeys.
-4. Measure recent churn when it sharpens judgment.
-5. Scan for flaky, archived, missing, or obviously weak automation on those journeys.
-6. Write the priority and explicit `SKIP` decisions into the ledger before coding.
+- Enumerate app surfaces, user journeys, and the current automation surface exhaustively from repo truth before editing.
+- For each journey or surface, record why it matters, its governing contract or expected outcome, the current real-app proof, the proof quality, cross-platform obligations, and the consequence if it is wrong.
+- Map both the app and the proof surface. A missing or misleading lane on a fundamental journey is itself a real risk.
+- Use parallel read-only agents when the runtime supports delegation. Split by disjoint surface families such as journeys, app surfaces, harness surfaces, and platform ingress. Treat those splits as examples, not a rigid taxonomy.
+- If the map is incomplete, stop after updating the ledger. Do not patch yet.
+
+## Ranking order
+
+1. Finish the exhaustive map of the app and automation surfaces.
+2. Rank journeys, surfaces, and risk fronts by consequence first.
+3. Rank within that by proof weakness or ambiguity.
+4. Use churn, fragility, missing real-app signal, flake evidence, and harness drift to sharpen ties.
+5. Write the priority, proof plan, and explicit `SKIP` decisions into the ledger before coding.
 
 ## Fix discipline
 
 - Read the journey implementation and the current automation before patching either.
 - Work one unresolved automation risk front at a time, not one arbitrary line item at a time.
+- Choose that front from the completed map, not from convenience or curiosity.
+- Record the proof plan before making edits. Higher-consequence fronts require broader downstream real-app proof.
+- Fix bugs inside the existing product, journey, and automation contracts. If the apparent fix would change that contract, log the conflict and stop.
 - It is acceptable and expected to fix multiple findings together when they share one failure mode, journey, or verification story.
 - Do not block on unrelated dirty or untracked files. Leave them alone unless they directly conflict with the current automation risk front or make verification unsafe.
 - Do not yield just because the next fix touches a second file, module, harness helper, or test surface.
@@ -54,10 +65,14 @@ Record `unknown` instead of auto-installing any of these.
 
 ## Anti-patterns
 
+- Sampling 5-10 journeys and calling that a full audit.
+- Picking something that looks fixable before the map is complete.
+- Letting a neat safe lane tweak outrank a higher-consequence journey with weaker proof.
 - Chasing automation counts instead of meaningful journey protection.
 - Adding a lane for every screen regardless of risk.
 - Spending the pass on a neat tiny test fix while a larger justified primary-journey gap is still open.
 - Spending the pass on a flaky low-priority screen instead of the highest-risk open journey.
+- Changing a product, journey, or automation contract because it makes the current fix easier.
 - Inventing a second simulator, runner, or harness story because the current one is annoying.
 - Deciding that simulator work is broken and calling Flutter unit or widget tests "good enough" for the same real-app risk front.
 - Marking a front `BLOCKED` only because the current review context cannot inspect the sanctioned runtime surface.

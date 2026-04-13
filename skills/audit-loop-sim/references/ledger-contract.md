@@ -8,7 +8,7 @@
 
 ## Ledger shape
 
-The ledger is the single source of truth for triage, findings, automation additions, explicit skips, and controller verdicts.
+The ledger is the single source of truth for exhaustive mapping, triage, findings, automation additions, explicit skips, and controller verdicts.
 
 Keep this top block at the top of the file:
 
@@ -29,8 +29,21 @@ Then keep these sections in order:
 
 ```md
 ## Phase 1: Triage (complete/in-progress)
-| # | Area | Journey | Real-App Risk | Current Signal | Platform Plan | Priority |
-|---|------|---------|---------------|----------------|---------------|----------|
+### 1A: Journey And Surface Inventory
+| # | Journey / Surface | App Surface | Why It Matters | Contract / Expected Outcome | Platform Scope | Current Real-App Proof | Proof Quality | Consequence if Wrong | Harness / Owner | Map Status |
+|---|-------------------|-------------|----------------|-----------------------------|----------------|------------------------|---------------|----------------------|-----------------|------------|
+
+### 1B: Automation And Harness Inventory
+| # | Automation Surface | Covers | Platform | Entry / Command | Proof Quality | Gaps | Map Status |
+|---|--------------------|--------|----------|-----------------|---------------|------|------------|
+
+### 1C: Risk Front Ranking
+| # | Risk Front | Journeys / Surfaces | Consequence | Proof Weakness | Fragility | Priority | Why Now |
+|---|------------|---------------------|-------------|----------------|-----------|----------|---------|
+
+### 1D: Proof Plan For Current Front
+| Risk Front | Required Real-App Proof | Platform Closeout | Why This Depth | Status |
+|------------|-------------------------|-------------------|----------------|--------|
 
 ## Phase 2: Findings
 | # | File:Line | Type | Description | Fix | Status |
@@ -51,7 +64,7 @@ Then keep these sections in order:
   - `CLEAN`
   - `BLOCKED`
 - `Next Area` is required for `CONTINUE`.
-- `Next Area` may name a broader risk front or problem cluster that spans multiple files or surfaces.
+- `Next Area` may name an unfinished mapping tranche, broader risk front, or problem cluster that spans multiple files or surfaces.
 - `Stop Reason` is required for `BLOCKED`.
 - `Last Review` is written by `review` in `YYYY-MM-DD` form.
 - `review` owns the authoritative controller verdict used by `auto`.
@@ -74,11 +87,11 @@ Then keep these sections in order:
 
 ## Priority matrix
 
-- `P0` = the current top real-app automation risk front
-- `P1` = important real-app automation work that matters soon but is not the top front
-- `P2` = worthwhile but clearly secondary automation work
+- `P0` = high-consequence journey, surface, or risk front with weak, ambiguous, or missing real-app proof
+- `P1` = high-consequence journey, surface, or risk front with partial proof or structural fragility worth fixing now
+- `P2` = worthwhile but clearly secondary automation work with real proof gaps or repeated fragility
 - `P3` = everything else
-- `SKIP` = low risk, low churn, already protected enough, or explicitly not worth investing in now
+- `SKIP` = explicitly not worth investing in now after consequence and proof quality were evaluated
 
 Primary journeys, onboarding, monetization, auth or session restore, core content progression, offline state, and platform ingress often dominate when the evidence supports that. Do not turn that into a rigid ranking table.
 
@@ -90,6 +103,7 @@ Every `SKIP` needs a reason in `## Decisions Log`.
 - Use git history, churn, telemetry, logs, or current automation artifacts when they sharpen keep or skip judgment.
 - If a signal is unavailable, record `unknown` in triage and explain it in `## Decisions Log`.
 - Do not auto-install new tools or create a parallel automation system just to satisfy the ledger.
+- The exhaustive map must come from repo truth, not from canned category lists or grep-only shortcuts.
 
 ## Cleanup lifecycle
 
