@@ -35,7 +35,7 @@ Minimum shape:
   "scope_summary": "repo docs surface",
   "context_sources": [],
   "pass_index": 0,
-  "stop_condition": "no meaningful stale, duplicate, misleading, obviously dated, missing, or still-confusing docs remain in the resolved cleanup scope and every grounded topic has one canonical evergreen home",
+  "stop_condition": "no meaningful stale, duplicate, misleading, obviously dated, missing, or still-confusing docs remain in the resolved cleanup scope, every grounded topic has one canonical evergreen home, and any required public-repo baseline docs exist as standalone canonical homes",
   "ledger_path": ".doc-audit-ledger.md"
 }
 ```
@@ -43,9 +43,12 @@ Minimum shape:
 Recommended extra fields:
 
 - `context_paths`
+- `repo_posture`
+- `repo_posture_evidence`
 - `candidate_topics`
 - `completed_topics`
 - `blocked_topics`
+- `missing_canonical_docs`
 - `current_risk`
 - `notes`
 
@@ -63,6 +66,7 @@ If `scope_kind` is `explicit-context` or `arch-context`, include non-empty `cont
 - In narrowed scopes, widen only enough to cover overlapping docs for the same topics.
 - Use `git log` when a doc's lasting value depends on whether it was a one-off tied to some earlier point in time.
 - Do not degrade into a remover-only loop. Update stale surviving docs, clarify confusing docs, and create or expand canonical evergreen docs when the repo clearly needs them.
+- When the repo is `public OSS`, keep going while required standard community-doc homes are still missing.
 - Stop blocked when the evaluator says the next pass would be speculative, taxonomy-imposing, disconnected from a narrowed scope, or materially unchanged.
 - Stop clean only when the evaluator says the current stop condition is satisfied.
 
@@ -73,4 +77,5 @@ If `scope_kind` is `explicit-context` or `arch-context`, include non-empty `cont
 - In repo mode, keep each pass focused on a meaningful grounded cleanup slice, not the smallest possible topic cluster.
 - Do not let `auto` drift into speculative, taxonomy-first, or aesthetic-only docs refactoring.
 - Do not use age cutoffs or simplistic stale-doc heuristics. Use history as evidence and decide whether the doc still serves a lasting reader need.
+- Do not re-guess repo posture every pass when the earlier evidence is still valid. Persist it in controller state.
 - The temporary ledger should survive only while cleanup is active. It must be deleted before the overall docs cleanup is declared complete.

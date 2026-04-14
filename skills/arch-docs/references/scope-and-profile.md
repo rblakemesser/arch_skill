@@ -37,6 +37,8 @@ Before changing docs, answer these with repo evidence:
 - What formats are used?
 - Is there a docs build or nav system?
 - Who are the likely readers for the scoped docs?
+- Is the repo best treated as `public OSS` or `private/internal` for docs-baseline purposes?
+- What evidence supports that posture call?
 
 Write the answers at the top of `.doc-audit-ledger.md`.
 
@@ -55,11 +57,12 @@ Write the answers at the top of `.doc-audit-ledger.md`.
 - Each in-scope topic ends with one canonical evergreen home.
 - Prefer the repo's existing gravity:
   - root `README.md`
+  - standard root community docs in `public OSS` repos
   - docs index or usage guide
   - focused doc under `docs/`
   - module README when that is the established local pattern
 - Do not create a new doc home just because a cleanup pass wants a tidier taxonomy.
-- Do create a focused new canonical home when existing gravity cannot carry grounded reader-critical truth clearly without becoming worse.
+- Do create a focused new canonical home when `references/canonical-home-judgment.md` says the topic should stand alone.
 
 ## Stop and route back
 

@@ -1,6 +1,6 @@
 ---
 name: arch-docs
-description: "Audit and repair repo documentation with the DGTFO loop: orient to the repo's doc system, inventory doc-shaped surfaces, ground each topic against current code, trim stale, duplicate, or obviously dated docs, update stale surviving docs, clarify confusing docs, promote or author canonical evergreen docs when the repo clearly needs them, and organize navigation. Use when the user wants stale docs cleaned up, overlapping docs consolidated, outdated docs deleted, confusing docs clarified, missing grounded docs promoted into evergreen homes, plan/worklog truth folded into evergreen docs, or explicit Codex hook-backed `auto` docs cleanup. It works as a standalone docs-audit skill in any repo and can also use active arch artifacts as narrowing context when they exist. By default, `$arch-docs` should just run one normal pass with no extra arguments. Not for generic copy editing, open-ended net-new doc authoring, or speculative taxonomy redesign."
+description: "Audit and repair repo documentation with the DGTFO loop: orient to the repo's doc system, inventory doc-shaped surfaces, ground each topic against current code, trim stale, duplicate, or obviously dated docs, update stale surviving docs, clarify confusing docs, promote or author canonical evergreen docs when the repo clearly needs them, and organize navigation. Use when the user wants stale docs cleaned up, overlapping docs consolidated, outdated docs deleted, confusing docs clarified, missing grounded docs promoted into evergreen homes, missing standard public-repo docs filled in, plan/worklog truth folded into evergreen docs, or explicit Codex hook-backed `auto` docs cleanup. It works as a standalone docs-audit skill in any repo and can also use active arch artifacts as narrowing context when they exist. By default, `$arch-docs` should just run one normal pass with no extra arguments. Not for generic copy editing, open-ended aspirational doc authoring, or speculative taxonomy redesign."
 metadata:
   short-description: "Topic-first docs audit and cleanup"
 ---
@@ -11,7 +11,7 @@ Use this skill when the code is stable enough to ground documentation against cu
 
 ## When to use
 
-- The user wants a docs audit pass that finds stale docs, duplicate docs, outdated READMEs, dead migration notes, misleading setup/architecture docs, or grounded doc gaps that should exist in evergreen docs.
+- The user wants a docs audit pass that finds stale docs, duplicate docs, outdated READMEs, dead migration notes, misleading setup/architecture docs, missing standard public-repo docs, or grounded doc gaps that should exist in evergreen docs.
 - A repo needs topic-first cleanup where one topic may be spread across several files and several files may overlap on the same topic.
 - A full-arch plan and worklog should be treated as context, mined for durable truth, and then retired or transformed into evergreen docs.
 - The user wants to run the DGTFO loop directly in a repo with no requirement that an arch plan already exists.
@@ -29,13 +29,19 @@ Use this skill when the code is stable enough to ground documentation against cu
 - The unit of work is the topic, not the file.
 - Adapt to the repo's current doc gravity instead of imposing a new framework.
 - Code is ground truth. Existing docs are evidence to inspect, not authority to trust.
+- Resolve repo posture from repo evidence: `public OSS` versus `private/internal`.
+- If repo posture is unclear, default to `private/internal` instead of guessing `public OSS`.
 - Every in-scope topic should end with one canonical evergreen home.
+- In `public OSS` repos, treat the standard community-doc surface as expected standalone canonical homes: `README`, `LICENSE*`, `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, and `SUPPORT.md`.
 - Bias toward deleting stale truth and promoting durable truth. Stale docs are worse than no docs, but missing or confusing canonical docs are also a failure.
 - Standalone runs must still work with no `DOC_PATH` and no explicit path arguments.
 - If explicit user context or active arch context exists, use it to narrow the audit intelligently. If not, audit the repo's docs surface directly.
 - Use a temporary repo-root `.doc-audit-ledger.md` while the cleanup is active. Delete it before the cleanup finishes.
 - Promote durable truth into evergreen docs, then delete obsolete working docs, plan/worklog residue, and stale duplicates in scope. Git is the archive.
-- If a grounded topic clearly lacks a viable canonical home, create or expand the best evergreen doc for it instead of stopping at cleanup.
+- Create a net-new doc only when it is the canonical result of the cleanup, not because the topic feels interesting.
+- New docs are allowed in exactly two grounded cases:
+  - a `public OSS` repo is missing a standard community-doc home
+  - a differentiated evergreen topic fails the split-versus-expand test in `references/canonical-home-judgment.md`
 - Deleting stale docs while leaving stale survivors, missing canonical truth, or confusing reader-critical docs behind is not a successful pass.
 - Treat obviously time-bound docs as delete candidates by default once their durable truth has been folded forward. A doc does not survive just because it once mattered.
 - When a keep/delete call depends on whether a doc is stale, dated, or one-off, inspect `git log` and identify the last meaningful content change before deciding.
@@ -45,6 +51,7 @@ Use this skill when the code is stable enough to ground documentation against cu
 - If the backup commit for a delete batch cannot be created, stop instead of deleting.
 - If code truth is still unstable, external doc sources are required but unavailable, or the next pass would become speculative or materially unchanged, stop and say so plainly.
 - Do not use age cutoffs or stale-doc heuristics as a substitute for judgment. Use history as evidence, then decide whether current readers still need the doc.
+- Do not bury standard public-repo docs as README subsections when they should exist as their own conventional docs.
 - Do not create docs just because a topic seems interesting. New or expanded docs must be grounded, canonical, and clearly useful to current readers.
 - The suite's internal auto evaluator is allowed only when the ask explicitly says it is the internal evaluator. Do not suggest or advertise that internal surface to users.
 
@@ -60,8 +67,9 @@ Use this skill when the code is stable enough to ground documentation against cu
    - active arch plan, worklog, or clean implementation audit when present
    - otherwise the repo docs surface itself
 4. Set `LEDGER_PATH` to `.doc-audit-ledger.md` and derive any scoped working artifacts only when they actually exist.
-5. Read `references/cleanup-rules.md`.
-6. Read the mode reference:
+5. Read `references/canonical-home-judgment.md`.
+6. Read `references/cleanup-rules.md`.
+7. Read the mode reference:
    - `references/pass.md`
    - `references/auto.md`
    - `references/internal-evaluator.md` for the suite-only evaluator
@@ -73,8 +81,9 @@ Use this skill when the code is stable enough to ground documentation against cu
 - Profile the repo's doc system and resolve the strongest grounded scope.
 - Inventory the relevant doc-shaped surfaces for that scope.
 - Ground each topic against current code and current shipped behavior.
+- Resolve repo posture from evidence and decide whether the public-repo baseline applies.
 - Use `git log` when datedness or last meaningful use matters to a keep/delete call.
-- Collapse each topic to one canonical evergreen home, expanding existing homes first and creating a focused one when the repo clearly lacks a viable home.
+- Collapse each topic to one canonical evergreen home, expanding existing homes first and creating a focused new one only when the canonical-home judgment says the topic should stand alone.
 - Update stale surviving docs, clarify confusing docs, and promote missing grounded truth into the canonical home.
 - Before deleting a bounded batch of stale, duplicate, dead, TEMP/WIP, obviously dated, or obsolete working-doc residue, stage those docs and make a backup commit, then delete them.
 - Repair links, indexes, and navigation for the surviving canonical docs.
@@ -89,7 +98,7 @@ Use this skill when the code is stable enough to ground documentation against cu
 - Apply the same pre-delete backup-commit rule during each pass in `auto`.
 - Continue only while another grounded pass is still credible for the resolved docs-health intent.
 - In repo-scope `auto`, later passes may widen across the repo docs surface when grounded docs-health work still remains.
-- Keep sweeping while obviously dated docs, stale surviving docs, confusing docs, or missing grounded evergreen docs still remain.
+- Keep sweeping while obviously dated docs, stale surviving docs, confusing docs, missing required public-repo docs, or missing grounded evergreen docs still remain.
 - Stop clean when the resolved stop condition is done, or stop blocked when the evaluator says the next pass would become speculative, taxonomy-imposing, disconnected from a narrowed scope, or materially unchanged.
 
 ## Output expectations
@@ -105,6 +114,7 @@ Use this skill when the code is stable enough to ground documentation against cu
 ## Reference map
 
 - `references/scope-and-profile.md` - resolve repo profile, working scope, topic grouping, and canonical-home choices
+- `references/canonical-home-judgment.md` - resolve repo posture, public-repo baseline docs, and split-versus-expand decisions for new docs
 - `references/cleanup-rules.md` - deletion bias, canonical-home rules, working-doc retirement, and link-repair rules
 - `references/pass.md` - the default DGTFO pass contract and ledger shape
 - `references/auto.md` - hook-backed Codex auto controller contract, preflight, and state rules

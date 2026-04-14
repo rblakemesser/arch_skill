@@ -5,9 +5,12 @@ The bias is delete stale truth and promote durable truth, not preserve every doc
 ## Promote or author durable truth
 
 - Rewrite or expand the best existing canonical doc first when it can honestly carry the topic.
-- Create a focused new evergreen doc when grounded truth clearly needs a home and the existing README, docs index, or module docs cannot carry it cleanly.
+- In `public OSS` repos, create the standard community-doc homes when they are missing.
+- Create a focused new evergreen doc when the canonical-home judgment says the topic should stand alone and the existing README, docs index, or module docs cannot carry it cleanly.
 - Good additions are grounded, current, canonical, and clearly useful to current readers.
 - Bad additions are speculative, aspirational, duplicate, or taxonomy-first.
+- Do not hide `LICENSE*`, `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, or `SUPPORT.md` inside another doc when the repo is `public OSS` and those homes are missing.
+- If equivalent truth already exists in a weaker home, normalize it into the conventional canonical doc before deleting the old wrapper.
 - Do not delete the old wrapper until the durable truth actually lives in the surviving canonical home.
 
 ## Commit, then delete
@@ -67,6 +70,8 @@ Before deleting a bounded batch of these docs:
 - It should include:
   - repo doc profile
   - inventory
+  - missing canonical homes
+  - canonical home decisions
   - topic map
   - deletions
   - fixes applied

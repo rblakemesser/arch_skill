@@ -15,7 +15,7 @@ Read the armed controller state plus current repo docs and decide one of exactly
 ## Inputs
 
 - `STATE_PATH`: the resolved `.codex/arch-docs-auto-state.<SESSION_ID>.json` path for the current session
-- scope metadata from the state file, including `scope_kind`, `scope_summary`, and any `context_sources` or `context_paths`
+- scope metadata from the state file, including `scope_kind`, `scope_summary`, any `context_sources` or `context_paths`, and any repo-posture fields already recorded
 - `.doc-audit-ledger.md` when it still exists
 - current repo docs in the resolved scope
 - current README or docs index surfaces touched by the cleanup
@@ -30,10 +30,12 @@ Read the armed controller state plus current repo docs and decide one of exactly
 
 - Is code truth stable enough that docs can be trusted?
 - Did the run actually profile the repo doc system?
+- Did the run make and record a grounded repo-posture call?
 - Was discovery broad enough for the resolved scope?
 - Are stale or duplicate in-scope docs still present?
 - Are stale surviving docs still present in docs that clearly should have been updated?
 - Are obviously dated docs with no lasting reader value still present?
+- If the repo is `public OSS`, are any standard community-doc homes still missing?
 - Are grounded topics still missing a viable canonical evergreen home?
 - Has durable truth been promoted into one canonical evergreen home per topic?
 - Are confusing docs still obscuring how readers should use, operate, or understand the system?
@@ -49,6 +51,7 @@ Read the armed controller state plus current repo docs and decide one of exactly
   - no meaningful stale in-scope docs remain
   - no stale surviving docs remain in reader-critical docs that should have been updated
   - no obviously dated low-value docs remain unless they still serve a clear current reader need
+  - if the repo is `public OSS`, the standard community-doc baseline exists as standalone canonical homes
   - no grounded topic is still missing a viable canonical evergreen home
   - durable truth has surviving evergreen homes
   - confusing docs that still matter have been clarified enough for current readers
@@ -60,10 +63,12 @@ Read the armed controller state plus current repo docs and decide one of exactly
   - another pass is credible
 - `blocked`:
   - code truth is still unstable
-  - the canonical home is ambiguous
+  - a required canonical home is still genuinely ambiguous after profiling repo gravity and applying the default `private/internal` posture
   - for a narrowed scope, the cleanup would need a materially wider or different topic scope than the resolved one
   - the next pass would drift into speculative or taxonomy-first reorganization
   - the latest pass did not materially improve the cleanup state
+
+Repo-posture ambiguity by itself is not a blocker. Default `private/internal` unless strong `public OSS` evidence exists.
 
 ## Output contract
 

@@ -22,6 +22,8 @@ Recommended sections:
 - `## Repo Doc Profile`
 - `## Inventory`
 - `## History Signals`
+- `## Missing Canonical Homes`
+- `## Canonical Home Decisions`
 - `## Topic Map`
 - `## Deletions`
 - `## Fixes Applied`
@@ -36,7 +38,9 @@ This file is scaffolding, not a shipped artifact.
 - If the run started with no narrower context, inventory the repo docs surface first, then choose the strongest grounded docs-health slice for the current pass.
 - In repo-scope `auto`, the next pass may widen or shift across the repo docs surface when discovery shows more grounded docs debt elsewhere.
 - Record file, location, topic, likely freshness, and overlap notes.
+- Resolve repo posture and record whether the standard public-repo baseline applies.
 - Record clear grounded doc gaps where current readers would expect canonical evergreen guidance but do not have it.
+- In `public OSS` repos, record each missing standard community doc as a real canonical-home gap, not an optional note.
 - When staleness, datedness, or one-off status matters, inspect `git log` and identify the last meaningful content change.
 - Record history evidence only where it changed the keep/delete judgment.
 
@@ -45,6 +49,7 @@ This file is scaffolding, not a shipped artifact.
 - For each topic, read the current code and current shipped behavior.
 - Record contradictions across docs, code, and surviving behavior.
 - Identify the one best canonical home for the topic, or determine that the repo currently lacks a viable home.
+- Record why the topic stays in an existing home or why it now deserves its own doc.
 - Ask whether an old doc still serves a current reader need or is only preserving a point-in-time snapshot that git already remembers.
 - Ask what a current reader still would not understand, trust, or be able to do if the surviving docs stayed as they are.
 
@@ -63,7 +68,9 @@ This file is scaffolding, not a shipped artifact.
 - Correct stale surviving docs against code truth.
 - Clarify confusing explanations, missing prerequisites, and misleading ordering when readers would otherwise fail or misunderstand the system.
 - Expand the existing canonical home when it is the right place for grounded missing truth.
-- Author a focused new canonical evergreen doc only when the repo clearly lacks a viable home and the current gravity cannot carry the topic cleanly.
+- Author a focused new canonical evergreen doc only when one of these is true:
+  - the repo is `public OSS` and a standard community-doc home is missing
+  - the canonical-home judgment says a differentiated evergreen topic should stand alone
 - Front-load what readers actually need.
 - Remove history and context that no longer helps.
 
@@ -83,6 +90,7 @@ A pass is strong when:
 - stale surviving docs are updated
 - confusing docs that still matter are clarified
 - grounded missing truth has been promoted into a canonical evergreen home
+- required public-repo baseline docs exist when the repo is `public OSS`
 - broken references in touched scope are repaired
 - durable truth was promoted before deletions
 - `.doc-audit-ledger.md` is deleted before the run finishes clean, or kept only while an explicitly continuing multi-pass cleanup is still active
