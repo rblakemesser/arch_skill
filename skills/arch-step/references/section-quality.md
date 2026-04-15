@@ -238,7 +238,11 @@ Purpose:
 Strong when:
 
 - the plan is foundational-first
-- each phase has goal, work, verification, docs/comments when needed, exit criteria, and rollback
+- each phase owns one coherent self-contained unit that later phases clearly build upon
+- when two decompositions are both valid, the plan prefers more phases than fewer
+- each phase has goal, work, checklist, verification, docs/comments when needed, exit criteria, and rollback
+- `Checklist` is exhaustive enough that required work cannot hide behind a vague phase summary
+- `Exit criteria` are exhaustive, concrete, and all required
 - refactor-heavy phases say how preserved behavior will be proven
 - agent-backed phases prefer prompt, grounding, and native-capability changes before new tooling, and any new tooling is explicitly justified
 - verification is small and credible
@@ -249,8 +253,10 @@ Strong when:
 
 Weak when:
 
-- phases are generic or unordered
+- phases are generic, unordered, or blend multiple coherent units that could have been phased separately
 - work items are too vague to implement
+- the checklist is missing, incomplete, or easy to paper over
+- a phase could be marked complete without satisfying all of its planned obligations
 - product scope creep or architecture theater appears in the authoritative checklist
 - agent-backed work jumps to deterministic harnesses or wrappers without a capability-first rationale
 - touched live docs/comments that would go stale are left implicit
@@ -260,7 +266,7 @@ Weak when:
 
 Downstream can trust it when:
 
-- `implement` can execute from it directly and `audit-implementation` can reopen work against it concretely
+- `implement` can execute from it directly and `audit-implementation` can reopen work against it concretely without inventing what "done" means for a phase
 
 ## `# 8) Verification Strategy (common-sense; non-blocking)`
 

@@ -121,7 +121,7 @@ Build a compact in-memory implementation ledger before editing code.
 
 Derive it from the strongest planning artifacts in this order:
 
-1. phase checklist items or phase tasks
+1. phase checklist items, or legacy phase tasks when the checklist field is absent
 2. call-site audit rows and change-map entries
 3. migration notes and delete lists
 4. live docs/comments/instructions to update or delete
@@ -156,13 +156,13 @@ Execute Section 7 in order from the earliest incomplete or reopened phase throug
 
 For each phase:
 
-1. Read the phase goal, work items, verification line, exit criteria, rollback, and any relevant call-site rows.
+1. Read the phase goal, work description, checklist items, verification line, docs/comments notes, exit criteria, rollback, and any relevant call-site rows.
 2. Confirm which canonical path owns the behavior for this phase, which work belongs in prompt or native-capability usage versus deterministic code when agent-backed, and which preservation signal must run if the phase refactors or consolidates code.
 3. Mark the phase `Status: IN PROGRESS` once real work starts.
-4. Implement the planned work for that phase before moving to later phases.
+4. Implement the planned checklist items for that phase before moving to later phases.
 5. If a later-phase task must be pulled forward to preserve correctness, record the sequencing change in Section 10 and update the affected phase descriptions so Section 7 stays truthful.
 6. After each meaningful chunk, and whenever a phase-level claim needs proof, run the required programmatic evidence for that phase. Proof supports continued implementation; it does not authorize stopping early.
-7. Reconcile the ledger against the changed code before leaving the phase.
+7. Reconcile the ledger and every checklist item against the changed code before leaving the phase.
 8. Update `DOC_PATH` and `WORKLOG_PATH` before moving on.
 
 Do not skip ahead just because the happy path works.
@@ -176,7 +176,7 @@ Keep Section 7 current as execution proceeds.
 Under the current phase heading, add or update only the minimal truthful execution annotations needed:
 
 - `Status: IN PROGRESS` when work has started
-- `Status: COMPLETE` when the phase exit criteria are actually met
+- `Status: COMPLETE` when every checklist item and every exit criterion is actually met
 - `Status: BLOCKED` when a real blocker stops the phase
 - `Completed work:` for brief high-signal bullets
 - `Deferred:` only for explicit carry-forwards the user or approved plan already allowed; never use it to shrink required work discovered during execution
@@ -209,8 +209,9 @@ Do not use `deferred` to hide originally required work unless that carry-forward
 
 At each phase boundary:
 
-- compare the current phase tasks against touched files and symbols
+- compare the current phase checklist items, or legacy phase tasks, against touched files and symbols
 - compare affected call-site rows against code reality
+- verify every required checklist item for that phase actually happened
 - verify required deletes or cleanup for that phase actually happened
 - verify required live docs/comments/instructions cleanup for that phase actually happened in touched areas
 - decide whether any remaining item is `done`, `blocked`, `deferred`, or `still todo`

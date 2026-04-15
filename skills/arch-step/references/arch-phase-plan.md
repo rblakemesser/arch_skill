@@ -37,6 +37,11 @@
 - if the change would leave touched live docs, comments, or instructions stale, update-or-delete work for those surfaces belongs in the phase plan
 - do not turn helper blocks into competing execution checklists
 - do not leave the authoritative checklist holding unresolved branches, `if needed` work, or alternative execution paths
+- split Section 7 into the smallest reasonable sequence of coherent self-contained units that can be completed, verified, and built on later
+- earlier phases should establish the most fundamental owner paths, contracts, prompt surfaces, or migration prerequisites, and later phases should clearly build on that foundation
+- if two decompositions are both valid, bias toward more phases than fewer
+- `Work` explains the coherent unit; `Checklist` is the exhaustive must-do list inside that phase
+- a phase is not complete on paper unless every checklist item and every exit criterion is satisfied
 
 ## Warn-first preflight
 
@@ -51,13 +56,18 @@ Before writing the phase plan:
 
 - Section 7 must stay the one authoritative execution checklist
 - the plan must be foundational-first
-- each phase must have goal, work, verification, docs/comments when needed, exit criteria, and rollback
+- each phase should own one coherent self-contained unit of work that later phases can build upon
+- if two decompositions are both valid, the plan should prefer more phases than fewer
+- each phase must have goal, work, checklist, verification, docs/comments when needed, exit criteria, and rollback
+- `Checklist` must be exhaustive enough that the implementer cannot escape required work by claiming the phase is "basically done"
+- `Exit criteria` must be exhaustive, concrete, and all required
 - refactor-heavy phases must say how preserved behavior will be proven
 - agent-backed phases must make capability-first choices explicit before adding custom tooling
 - verification should be credible, proportionate, and non-bureaucratic
 - verification must stay tied to shipped behavior, runtime ownership, or real contract boundaries rather than repo-policing heuristics
 - required cleanup, deletes, and touched doc/comment reality-sync work should not be buried
 - phases must name the actual chosen work to do, not conditional or alternate branches the agent would have to choose between later
+- if a phase contains multiple coherent units that could be built and verified separately, split it
 
 ## Placement and update rules
 
@@ -75,28 +85,31 @@ Use this block shape:
 <!-- arch_skill:block:phase_plan:start -->
 # Depth-First Phased Implementation Plan (authoritative)
 
-> Rule: systematic build, foundational first; every phase has exit criteria + explicit verification plan (tests optional). Refactors, consolidations, and shared-path extractions must preserve existing behavior with credible evidence proportional to the risk. For agent-backed systems, prefer prompt, grounding, and native-capability changes before new harnesses or scripts. No fallbacks/runtime shims - the system must work correctly or fail loudly (delete superseded paths). The authoritative checklist must name the actual chosen work, not unresolved branches or "if needed" placeholders. Prefer programmatic checks per phase; defer manual/UI verification to finalization. Avoid negative-value tests and heuristic gates (deletion checks, visual constants, doc-driven gates, keyword or absence gates, repo-shape policing). Also: document new patterns/gotchas in code comments at the canonical boundary (high leverage, not comment spam).
+> Rule: systematic build, foundational first; split Section 7 into the smallest reasonable sequence of coherent self-contained units that can be completed, verified, and built on later. If two decompositions are both valid, bias toward more phases than fewer. `Work` explains the unit; `Checklist (must all be done)` is the authoritative must-do list inside the phase; `Exit criteria (all required)` names the concrete done conditions. Refactors, consolidations, and shared-path extractions must preserve existing behavior with credible evidence proportional to the risk. For agent-backed systems, prefer prompt, grounding, and native-capability changes before new harnesses or scripts. No fallbacks/runtime shims - the system must work correctly or fail loudly (delete superseded paths). The authoritative checklist must name the actual chosen work, not unresolved branches or "if needed" placeholders. Prefer programmatic checks per phase; defer manual/UI verification to finalization. Avoid negative-value tests and heuristic gates (deletion checks, visual constants, doc-driven gates, keyword or absence gates, repo-shape policing). Also: document new patterns/gotchas in code comments at the canonical boundary (high leverage, not comment spam).
 
-## Phase 1 — <foundation>
+## Phase 1 — <most fundamental coherent unit>
 
 * Goal:
 * Work:
+* Checklist (must all be done):
 * Verification (required proof):
 * Docs/comments (propagation; only if needed):
-* Exit criteria:
+* Exit criteria (all required):
 * Rollback:
 
-## Phase N — <end state + cleanup>
+## Phase N — <next coherent unit built on earlier phases>
 
 * Goal:
 * Work:
+* Checklist (must all be done):
 * Verification (required proof):
 * Docs/comments (propagation; only if needed):
-* Exit criteria:
+* Exit criteria (all required):
 * Rollback:
 <!-- arch_skill:block:phase_plan:end -->
 ```
 
+Use `Work` to describe the coherent unit and why it is isolated in that phase. Use `Checklist` for the exhaustive must-do items inside that unit. If a planned item could be left undone while the phase still sounds "basically complete," the phase is underspecified and should be split or tightened.
 Use `Docs/comments` to delete dead live docs/comments or rewrite surviving ones to present truth when the phase changes what is real. Do not keep legacy explanation in live surfaces just because Git already preserves the old version.
 
 ## Consistency duties beyond local ownership

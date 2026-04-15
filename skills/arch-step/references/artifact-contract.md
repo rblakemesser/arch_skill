@@ -275,18 +275,21 @@ Canonical heading plus rule line:
 ```text
 # Depth-First Phased Implementation Plan (authoritative)
 
-> Rule: systematic build, foundational first; every phase has exit criteria + explicit verification plan (tests optional). Refactors, consolidations, and shared-path extractions must preserve existing behavior with credible evidence proportional to the risk. For agent-backed systems, prefer prompt, grounding, and native-capability changes before new harnesses or scripts. No fallbacks/runtime shims - the system must work correctly or fail loudly (delete superseded paths). Prefer programmatic checks per phase; defer manual/UI verification to finalization. Avoid negative-value tests and heuristic gates (deletion checks, visual constants, doc-driven gates, keyword or absence gates, repo-shape policing). Also: document new patterns/gotchas in code comments at the canonical boundary (high leverage, not comment spam).
+> Rule: systematic build, foundational first; split Section 7 into the smallest reasonable sequence of coherent self-contained units that can be completed, verified, and built on later. If two decompositions are both valid, bias toward more phases than fewer. `Work` explains the unit; `Checklist (must all be done)` is the authoritative must-do list inside the phase; `Exit criteria (all required)` names the concrete done conditions. Refactors, consolidations, and shared-path extractions must preserve existing behavior with credible evidence proportional to the risk. For agent-backed systems, prefer prompt, grounding, and native-capability changes before new harnesses or scripts. No fallbacks/runtime shims - the system must work correctly or fail loudly (delete superseded paths). Prefer programmatic checks per phase; defer manual/UI verification to finalization. Avoid negative-value tests and heuristic gates (deletion checks, visual constants, doc-driven gates, keyword or absence gates, repo-shape policing). Also: document new patterns/gotchas in code comments at the canonical boundary (high leverage, not comment spam).
 ```
 
 Canonical per-phase fields:
 
 - `Goal`
 - `Work`
+- `Checklist (must all be done)`
 - `Verification (required proof)`
 - `Docs/comments (propagation; only if needed)`
-- `Exit criteria`
+- `Exit criteria (all required)`
 - `Rollback`
 
+Each phase should own one coherent self-contained unit of work that later phases can build upon directly. Earlier phases should establish the most fundamental primitives, owner paths, contracts, prompt surfaces, or migration prerequisites. If two decompositions are both valid, prefer more phases than fewer.
+`Work` describes the unit. `Checklist` is the authoritative must-do list within that phase. `Exit criteria` are exhaustive concrete done conditions, and all of them are required.
 For refactor-heavy work, the verification line should say how preserved behavior will be proven.
 Use `Docs/comments` for live docs, comments, and instructions that must be updated or deleted so touched truth surfaces match shipped reality. Do not use it to preserve legacy explanation.
 
@@ -303,7 +306,7 @@ Execution-time progress annotations may be added under a phase heading once impl
 - `Blocked on:`
 - `Manual QA (non-blocking):`
 
-Keep these additions short and truthful. They are execution truth, not a second checklist.
+Keep these additions short and truthful. They are execution truth, not a second checklist. A phase is only complete when every checklist item and every exit criterion is satisfied.
 
 ### `# 8) Verification Strategy (common-sense; non-blocking)`
 

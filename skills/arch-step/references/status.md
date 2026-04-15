@@ -142,9 +142,9 @@ Inspect:
 
 Grade:
 
-- `strong` when the authoritative phased plan exists, remains the single execution checklist, each phase has concrete work, verification, exit criteria, and rollback, refactor-heavy phases name preservation checks, touched live docs/comments that would otherwise go stale are either deleted or rewritten in the plan, agent-backed tooling is explicitly justified against prompt-first options, and the checklist contains no unresolved branches or "decide later" language
+- `strong` when the authoritative phased plan exists, remains the single execution checklist, each phase owns one coherent self-contained unit, the decomposition is foundational-first and biases toward more phases than fewer when both are valid, each phase has concrete work, an explicit exhaustive checklist, verification, exhaustive exit criteria, and rollback, refactor-heavy phases name preservation checks, touched live docs/comments that would otherwise go stale are either deleted or rewritten in the plan, agent-backed tooling is explicitly justified against prompt-first options, and the checklist contains no unresolved branches or "decide later" language
 - `decent` when present but one or more phases are thin
-- `weak` when generic, incomplete, mixes product creep into ship-blocking work, leaves touched live docs/comments cleanup implicit, competes with helper checklists, or still contains unresolved execution choices
+- `weak` when generic, incomplete, blends coherent units into oversized phases, omits or underspecifies phase checklists, mixes product creep into ship-blocking work, leaves touched live docs/comments cleanup implicit, competes with helper checklists, or still contains unresolved execution choices
 - `missing` when absent
 
 ### Implementation
@@ -157,7 +157,7 @@ Inspect:
 
 Grade:
 
-- `strong` when worklog and doc both reflect real phased progress or completion, Section 7 phase status lines match the worklog, ledger-like completeness is visible, refactor-heavy phases ran preservation checks, touched live docs/comments that would otherwise go stale were cleaned up when needed, agent-backed changes leaned on the planned prompt or capability path before new tooling, and the doc matches reality
+- `strong` when worklog and doc both reflect real phased progress or completion against the Section 7 checklist and exit criteria, Section 7 phase status lines match the worklog, ledger-like completeness is visible, refactor-heavy phases ran preservation checks, touched live docs/comments that would otherwise go stale were cleaned up when needed, agent-backed changes leaned on the planned prompt or capability path before new tooling, and the doc matches reality
 - `decent` when implementation is real but progress truth is thin
 - `weak` when there are claims of progress without credible worklog or doc evidence
 - `missing` when no implementation evidence exists

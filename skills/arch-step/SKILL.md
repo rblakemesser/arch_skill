@@ -38,6 +38,9 @@ The primary object is one canonical full-arch plan doc. Commands exist to move t
 - A plan is not ready, complete, or implementation-ready while any unresolved decision remains about requested behavior, architecture, canonical owner path, required deletes, fallback policy, acceptance evidence, or implementation scope.
 - Correctness and approved intent outrank speed, scope trimming, or "minimum implementation."
 - The agent has no authority to cut requested behavior, acceptance criteria, or required implementation work unless the user or the governing plan already marked that item out of scope.
+- Section 7 phases should split work into coherent self-contained units, with the most fundamental units first and later phases clearly building on earlier ones.
+- If two valid decompositions exist, bias toward more, smaller coherent phases rather than fewer blended phases.
+- A phase is not complete while any checklist item or exit criterion in that phase remains unmet.
 - During `implement` and `implement-loop`, the approved plan stays authoritative for requirements, scope, acceptance criteria, and phase obligations. Execution may record progress truth, but it may not rewrite the plan to make unfinished work disappear.
 - During `implement` and `implement-loop`, execution scope is the full approved Section 7 frontier in order: start from the earliest incomplete or reopened phase and continue through later reachable phases until that frontier is done or a real blocker stops progress.
 - Credible proof supports continued implementation. It does not justify stopping after one local fix, one phase, or one convenient subset while later approved phases are still reachable.

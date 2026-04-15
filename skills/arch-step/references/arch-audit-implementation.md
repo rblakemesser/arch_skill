@@ -47,7 +47,7 @@ After this command runs:
 - the full plan doc
 - target architecture contracts
 - call-site audit and delete list
-- phase plan and phase status
+- phase plan, checklist items, exit criteria, and phase status
 - definition of done and evidence expectations
 - worklog when present
 
@@ -88,7 +88,7 @@ Check all of these:
 
 - absolute completeness:
   - if the plan says something is done, it is actually built
-  - if the plan promises a detail, sub-obligation, migration, delete, cleanup, or proof item, it is actually satisfied
+  - if the plan promises a checklist item, detail, sub-obligation, migration, delete, cleanup, or proof item, it is actually satisfied
 - architecture compliance:
   - SSOT is real
   - boundaries and contracts match the plan
@@ -131,7 +131,7 @@ Missing manual evidence should become non-blocking follow-up.
    - explicit requirements, exclusions, and acceptance criteria
    - target architecture contracts, APIs, names, and paths
    - call-site audit rows or equivalent migration inventory
-   - phase plan and any phases marked complete, done, or checked off
+   - phase plan, checklist items, exit criteria, and any phases marked complete, done, or checked off
    - delete list and cleanup expectations
    - live docs/comments/instructions cleanup expectations in touched areas
    - definition-of-done evidence expectations
@@ -139,8 +139,9 @@ Missing manual evidence should become non-blocking follow-up.
    - code-verifiable evidence
    - manual non-blocking evidence
 4. validate each planned code change against repo reality:
+   - when a phase has `Checklist (must all be done)`, treat it as the authoritative sub-obligation list for that phase; use `Work` bullets only for legacy docs that predate the checklist field
    - verify the implementation did not weaken or rewrite the plan to hide unfinished work
-   - verify every explicit requirement and sub-obligation in the plan, not just the main happy path
+   - verify every explicit requirement, checklist item, and sub-obligation in the plan, not just the main happy path
    - verify each planned call-site change in code
    - search for missed call sites or lingering old APIs, patterns, or paths
    - verify SSOT ownership and boundary compliance in shipped code, runtime routing, or real contract surfaces
@@ -154,7 +155,7 @@ Missing manual evidence should become non-blocking follow-up.
    - verify claimed fixes have credible code-verifiable proof instead of only a code diff
    - verify claimed tests, assertions, or automation actually exist and hit the intended failure surface
 5. determine phase truth:
-   - if a phase is marked complete but code work is missing, reopen it
+   - if a phase is marked complete but any checklist item, exit criterion, or other required code work is missing, reopen it
    - if implementation stopped after one local win while later approved reachable phases remain unfinished, treat that remaining ordered frontier as missing code work
    - if code is complete but manual QA is pending, do not reopen it
 6. write the audit block and any required in-place phase updates

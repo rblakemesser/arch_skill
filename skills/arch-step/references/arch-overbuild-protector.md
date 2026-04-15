@@ -53,9 +53,10 @@ If those sections are vague on a work item, do not reclassify it by taste. Recor
 
 ## Work-item extraction
 
-- prefer explicit checkbox items
+- prefer explicit checklist items under `Checklist (must all be done)`
+- otherwise prefer explicit checkbox items
 - preserve stable task IDs if they exist
-- if there are no checkboxes, treat each top-level `Work` bullet as a work item
+- if there is no checklist, treat each top-level `Work` bullet as a work item
 - if the plan is too unstructured for reliable item extraction, classify at the phase level instead
 
 ## Classification buckets
