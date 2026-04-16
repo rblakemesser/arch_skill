@@ -91,7 +91,7 @@ If they are weak, every later stage becomes soft.
    - strict fallback stance
 6. Lightly seed Sections `1`, `2`, `8`, `9`, and `10` when the ask clearly supports it.
 7. Insert the canonical `planning_passes` block near the top.
-8. Make one consistency pass across frontmatter, TL;DR, Section 0, and any lightly seeded later sections.
+8. Make one final alignment reread across frontmatter, TL;DR, Section 0, and any lightly seeded later sections.
 9. Stop for North Star confirmation.
 
 ## Stop condition

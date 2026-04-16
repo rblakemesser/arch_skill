@@ -25,6 +25,7 @@ Other shipped skills:
 - `delay-poll`
 - `agent-definition-auditor`
 - `codemagic-builds`
+- `amir-publish`
 
 ## Install
 
@@ -60,6 +61,7 @@ Default local path:
 - `~/.agents/skills/delay-poll/`
 - `~/.agents/skills/agent-definition-auditor/`
 - `~/.agents/skills/codemagic-builds/`
+- `~/.agents/skills/amir-publish/`
 
 Codex reads the same installed skills from `~/.agents/skills/`. `make install` also writes one arch_skill-managed Codex `Stop` hook through `~/.codex/hooks.json`, points it at `~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py`, repairs older two-hook arch_skill installs down to that one repo-managed entry, and removes older `~/.codex/skills/<skill>` mirrors from previous installs.
 
@@ -82,6 +84,7 @@ Installed skills:
   - `arch-skills-guide`
   - `agent-definition-auditor`
   - `codemagic-builds`
+  - `amir-publish`
 - Claude Code:
   - `arch-step`
   - `miniarch-step`
@@ -115,7 +118,7 @@ Installed skills:
 
 Install removes stale pre-skill command surfaces, removed competing skill packages, and older Codex skill mirrors. For Codex, it installs one repo-managed `Stop` hook in `~/.codex/hooks.json` pointing at `~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py`; that one hook backs `arch-step` automatic controllers, `arch-docs auto`, `audit-loop auto`, `comment-loop auto`, `audit-loop-sim auto`, and `delay-poll`.
 
-`delay-poll` is installed only on the agents/Codex surface because it depends on the Codex `Stop` hook runtime and is not a real feature on Claude Code or Gemini CLI.
+`delay-poll`, `codemagic-builds`, and `amir-publish` are installed only on the agents/Codex surface. `delay-poll` depends on the Codex `Stop` hook runtime; the others are local operator shortcuts.
 
 ## Shared conventions
 
@@ -209,7 +212,7 @@ Practical rule:
 
 ### `miniarch-step`
 
-Use for smaller well-defined features that still need a canonical full-arch doc, phased execution, consistency gating, and real Codex auto controllers, but do not need the broader `arch-step` helper surface.
+Use for smaller well-defined features that still need a canonical full-arch doc, phased execution, and real Codex auto controllers, but do not need the broader `arch-step` helper surface.
 
 Examples:
 
@@ -223,10 +226,10 @@ Examples:
 Practical rule:
 
 - If the task is bigger than `lilarch`, but still small and crisp enough that one research pass plus one deep-dive pass is the right shape, use `miniarch-step`.
-- `miniarch-step auto-plan` is the shorter bounded planning controller. In Codex, `DOC_PATH` is the planning ledger and `.codex/miniarch-step-auto-plan-state.<SESSION_ID>.json` is only armed controller state. On a fresh doc, the parent pass runs only `research`, then ends its turn. On reruns, the installed Stop hook reads the doc and feeds `deep-dive`, `phase-plan`, or `consistency-pass` from the first incomplete stage it finds, then stops and says the doc is decision-complete and ready for `implement-loop`.
+- `miniarch-step auto-plan` is the shorter bounded planning controller. In Codex, `DOC_PATH` is the planning ledger and `.codex/miniarch-step-auto-plan-state.<SESSION_ID>.json` is only armed controller state. On a fresh doc, the parent pass runs only `research`, then ends its turn. On reruns, the installed Stop hook reads the doc and feeds `deep-dive` or `phase-plan` from the first incomplete stage it finds, then stops and says the doc is decision-complete and ready for `implement-loop`.
 - `miniarch-step implement-loop` is the explicit full-frontier controller when the user wants repeated implement then audit passes until the audit is clean or a real blocker stops the run.
 - `miniarch-step auto-implement` is an exact user-facing synonym for `implement-loop`.
-- In that controller, implementation scope is the full approved Section 7 frontier in order. It must arm `.codex/miniarch-step-implement-loop-state.<SESSION_ID>.json` before implementation work, resume from the earliest incomplete or reopened phase, continue through later reachable phases, and only then hand control to fresh audit unless a real blocker stops progress.
+- In that controller, implementation scope is the full approved Section 7 frontier in order. It must arm `.codex/miniarch-step-implement-loop-state.<SESSION_ID>.json` before implementation work, resume from the earliest incomplete or reopened phase, continue through later reachable phases, and only then hand control to fresh audit unless a real blocker stops progress. In Codex, that fresh miniarch audit child runs with `gpt-5.4-mini` at `xhigh` reasoning effort.
 - After a clean code audit, `miniarch-step` hands off to `arch-docs` for docs cleanup using the finished artifact as context.
 - In Codex, these commands still rely on the repo-managed `Stop` entry in `~/.codex/hooks.json` pointing at `~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py` plus enabled `codex_hooks`.
 - Do not run the Stop hook yourself for any of those controllers. After the controller is armed, just end the turn and let Codex run the installed Stop hook.
@@ -335,9 +338,17 @@ Use when the question is which live arch skill should handle the task.
 
 Use when the user wants a cold-read score, rationale, and improvement plan for an `AGENTS.md`, `CLAUDE.md`, `SKILL.md`, `SOUL.md`, system prompt, or other agent-definition markdown.
 
+### `amir-publish`
+
+Use when Amir wants to publish this skills repo across his usual machines: commit and push the current local work, install locally, then SSH to the fixed host list, skip the current host, pull the same branch from the same directory, and install remotely.
+
+Examples:
+
+- `Use $amir-publish`
+
 ## Full-arch doc conventions
 
-`arch-step`, `miniarch-step`, and `arch-mini-plan` all work against a canonical full-arch doc shape. The main stable markers are:
+`arch-step`, `miniarch-step`, and `arch-mini-plan` all work against a canonical full-arch doc shape. Across those surfaces, the main stable markers include the following; some are owned only by the broader `arch-step` surface:
 
 - `arch_skill:block:planning_passes`
 - `arch_skill:block:research_grounding`

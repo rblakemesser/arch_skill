@@ -1,6 +1,6 @@
 ---
 name: miniarch-step
-description: "Operate a faster standalone full-arch workflow against one canonical plan artifact for smaller well-defined features: `new`, `reformat`, `research`, `deep-dive`, `phase-plan`, `auto-plan`, `consistency-pass`, `implement`, `implement-loop`, `auto-implement`, `audit-implementation`, `status`, or `advance`. Use when the work still needs canonical architecture grounding, phased execution, and real auto controllers, but does not need the broader staged surface of `arch-step`. Not for one-pass mini planning, tiny 1-3 phase feature flow, broad or ambiguity-heavy full-arch work, bugs, or open-ended loops."
+description: "Operate a faster standalone full-arch workflow against one canonical plan artifact for smaller well-defined features: `new`, `reformat`, `research`, `deep-dive`, `phase-plan`, `auto-plan`, `implement`, `implement-loop`, `auto-implement`, `audit-implementation`, `status`, or `advance`. Use when the work still needs canonical architecture grounding, phased execution, and real auto controllers, but does not need the broader staged surface of `arch-step`. Not for one-pass mini planning, tiny 1-3 phase feature flow, broad or ambiguity-heavy full-arch work, bugs, or open-ended loops."
 metadata:
   short-description: "Faster full-arch for smaller features"
 ---
@@ -9,7 +9,7 @@ metadata:
 
 Use this skill when the user wants the full arch shape and full auto support, but the work is small enough and well-defined enough to run a faster core arc.
 
-The primary object is one canonical full-arch plan doc. `miniarch-step` keeps that artifact discipline, but trims the workflow to the minimum stages that still produce an honest plan, phased execution, and authoritative audit.
+The primary object is one canonical full-arch plan doc. `miniarch-step` keeps that artifact discipline, but trims the workflow to the faster core stages that still produce an honest plan, phased execution, and authoritative audit.
 
 ## When to use
 
@@ -17,7 +17,7 @@ The primary object is one canonical full-arch plan doc. `miniarch-step` keeps th
 - The user wants phased planning, implementation, and audit against one full-arch doc.
 - The work should move faster than `arch-step` because it does not need external research, repeated architecture passes, or extra hardening helpers.
 - The user wants real auto controllers rather than one-pass planning only.
-- The ask is command-shaped: `new`, `reformat`, `research`, `deep-dive`, `phase-plan`, `auto-plan`, `consistency-pass`, `implement`, `implement-loop`, `auto-implement`, `audit-implementation`, `status`, or `advance`.
+- The ask is command-shaped: `new`, `reformat`, `research`, `deep-dive`, `phase-plan`, `auto-plan`, `implement`, `implement-loop`, `auto-implement`, `audit-implementation`, `status`, or `advance`.
 
 ## When not to use
 
@@ -47,6 +47,7 @@ The primary object is one canonical full-arch plan doc. `miniarch-step` keeps th
 - If the doc is materially non-canonical, repair only the safe owned portion or route to `reformat`.
 - Keep one planning source of truth. Do not create sidecar plan docs or competing checklists.
 - All planning commands are docs-only. Only `implement` and `implement-loop` may change code.
+- In Codex, if a miniarch planning step explicitly uses parallel agents, spawn those planning agents with model `gpt-5.4-mini` and reasoning effort `xhigh`.
 - Distinguish requested behavior scope from architectural convergence scope.
 - Search for the canonical existing path before designing a new one. Reuse it, refactor it as much as required to fully own the change, or justify why it cannot own the change.
 - Internal convergence work may broaden touched files or nearby adopters when needed to avoid parallel paths or shadow contracts, but it must not invent new product functionality, modes, or speculative infrastructure.
@@ -96,7 +97,6 @@ The primary object is one canonical full-arch plan doc. `miniarch-step` keeps th
 - `deep-dive`
 - `phase-plan`
 - `auto-plan`
-- `consistency-pass`
 - `implement`
 - `implement-loop`
 - `auto-implement`
@@ -133,7 +133,6 @@ Choose exactly one next command using this precedence:
    - `research`
    - `deep-dive`
    - `phase-plan`
-   - `consistency-pass`
    - `implement`
    - `audit-implementation`
 8. If the code audit is clean and the feature still needs docs cleanup, hand off to `arch-docs`.
@@ -148,7 +147,7 @@ These stay explicit unless the user directly asks for them:
 - `implement-loop`
 - `auto-implement`
 
-`auto-plan` is a bounded planning controller. In Codex, `DOC_PATH` is the planning ledger and `.codex/miniarch-step-auto-plan-state.<SESSION_ID>.json` is only the armed controller state for that doc/session. On a fresh doc, the initial `auto-plan` pass arms state, runs only `research` against the same `DOC_PATH`, then ends its turn naturally. On reruns, the parent pass re-arms state against the same `DOC_PATH` and lets the installed Stop hook continue from the first incomplete stage already visible in the doc. It must not self-run `deep-dive`, `phase-plan`, or `consistency-pass` in that same turn. After that first turn, the installed Stop hook owns stage-to-stage continuation: it reads doc truth, feeds exactly one literal next command per later turn, and only after `consistency-pass` clears state and says the doc is decision-complete and ready for `implement-loop`.
+`auto-plan` is a bounded planning controller. In Codex, `DOC_PATH` is the planning ledger and `.codex/miniarch-step-auto-plan-state.<SESSION_ID>.json` is only the armed controller state for that doc/session. On a fresh doc, the initial `auto-plan` pass arms state, runs only `research` against the same `DOC_PATH`, then ends its turn naturally. On reruns, the parent pass re-arms state against the same `DOC_PATH` and lets the installed Stop hook continue from the first incomplete stage already visible in the doc. It must not self-run `deep-dive` or `phase-plan` in that same turn. After that first turn, the installed Stop hook owns stage-to-stage continuation: it reads doc truth, feeds exactly one literal next command per later turn, and after `phase-plan` clears state and says the doc is decision-complete and ready for `implement-loop`.
 
 User-facing invocation stays simple:
 
@@ -157,7 +156,7 @@ User-facing invocation stays simple:
 - do not run the Stop hook yourself; after the controller is armed, just end the turn and let Codex run the installed Stop hook
 - the initial `auto-plan` pass must run only `research`, then end the turn
 - rerunning `auto-plan` on a partially complete doc is legal; the hook resumes from the first incomplete stage already visible in `DOC_PATH`
-- later planning stages are hook-owned only: `deep-dive`, `phase-plan`, and `consistency-pass`
+- later planning stages are hook-owned only: `deep-dive` and `phase-plan`
 - the parent `auto-plan` pass must not clear successful controller state, claim the planning arc is complete, or emit the `implement-loop` handoff while any decision gaps remain
 - prefer the current session's canonical mini/full-arch doc when `DOC_PATH` is omitted
 - preflight the real continuation surface: `~/.codex/hooks.json` must contain the repo-managed `Stop` entry pointing at `~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py`, and that installed runner must exist
@@ -179,6 +178,7 @@ User-facing invocation stays simple:
 - keep `.codex/miniarch-step-implement-loop-state.<SESSION_ID>.json` aligned with the live run
 - do not clear `.codex/miniarch-step-implement-loop-state.<SESSION_ID>.json` from the implementation side before fresh `audit-implementation` has run, even if the pass believes the work is done
 - do not let the parent implementation pass stand in for the clean auditor by writing the authoritative audit block or the `Use $arch-docs` handoff
+- in Codex, the Stop-hook fresh audit child for this mini controller runs with `--model gpt-5.4-mini` and `-c model_reasoning_effort="xhigh"`
 - when the fresh audit child finishes clean, hand off to `Use $arch-docs`
 
 For any Codex controller state in this skill, derive `<SESSION_ID>` from `CODEX_THREAD_ID` and arm the session-scoped `.codex/...<SESSION_ID>.json` path for the current session.
@@ -209,8 +209,7 @@ For any Codex controller state in this skill, derive `<SESSION_ID>` from `CODEX_
 - `references/arch-research.md` - research grounding contract
 - `references/arch-deep-dive.md` - current architecture, target architecture, call-site audit, and single-pass planning rules
 - `references/arch-phase-plan.md` - authoritative phase-plan contract
-- `references/arch-auto-plan.md` - bounded planning controller over research, one deep-dive pass, phase-plan, and consistency-pass
-- `references/arch-consistency-pass.md` - end-to-end cold-read consistency review before implementation
+- `references/arch-auto-plan.md` - bounded planning controller over research, one deep-dive pass, and phase-plan
 - `references/arch-implement.md` - implementation, worklog, and completion discipline
 - `references/arch-implement-loop.md` - full-frontier implement/audit loop, required runtime preflight, and loop-state contract
 - `references/arch-audit-implementation.md` - code-completeness audit and phase reopening

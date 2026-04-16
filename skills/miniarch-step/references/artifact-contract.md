@@ -114,7 +114,7 @@ This warn-first bookkeeping block belongs near the top of the doc:
 <!--
 arch_skill:planning_passes
 deep_dive_pass_1: not started
-recommended_flow: research -> deep dive -> phase plan -> consistency pass -> implement
+recommended_flow: research -> deep dive -> phase plan -> implement
 note: This block tracks stage order only. It never overrides readiness blockers caused by unresolved decisions.
 -->
 <!-- arch_skill:block:planning_passes:end -->
@@ -372,7 +372,6 @@ Keep these markers stable when present:
 - `arch_skill:block:target_architecture`
 - `arch_skill:block:call_site_audit`
 - `arch_skill:block:phase_plan`
-- `arch_skill:block:consistency_pass`
 - `arch_skill:block:implementation_audit`
 
 If a matching semantic section exists without the marker, update it in place rather than duplicating it.
@@ -452,5 +451,5 @@ Treat these as hard checks:
 
 ## Write-boundary rule
 
-- `new`, `reformat`, `research`, `deep-dive`, `phase-plan`, `auto-plan`, `consistency-pass`, and `audit-implementation` are docs-only
+- `new`, `reformat`, `research`, `deep-dive`, `phase-plan`, `auto-plan`, and `audit-implementation` are docs-only
 - `implement` and `implement-loop` are the code-writing commands in this skill

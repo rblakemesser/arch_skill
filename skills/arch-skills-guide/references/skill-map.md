@@ -12,7 +12,7 @@ Start with the strongest discriminator first:
    - use `arch-docs`
 3. Is the ask for broad, ambiguity-heavy, or helper-heavy full arch work?
    - use `arch-step`
-4. Is the ask for faster full-arch work on a smaller well-defined feature, still with phasing, consistency, and real auto controllers?
+4. Is the ask for faster full-arch work on a smaller well-defined feature, still with phasing and real auto controllers?
    - use `miniarch-step`
 5. Is it a repo-wide map-first comment hardening pass focused on shared contracts, conventions, gotchas, or subtle behavior in code?
    - use `comment-loop`
@@ -35,7 +35,7 @@ Start with the strongest discriminator first:
 | Skill | Use when | Do not default to it when | Example asks |
 | --- | --- | --- | --- |
 | `arch-step` | the user wants the broad full arch workflow, a specific helper-heavy full-arch command, or a generic full-arch continuation where scope or architecture may still widen materially | they only need a read-only checklist, a one-pass mini plan, or a smaller well-defined feature that fits the faster full-arch tier | "Do the full arch flow", "Run research on this plan", "do the review gate", "advance the flow one step", "audit implementation vs plan" |
-| `miniarch-step` | the user wants the faster full-arch workflow for a smaller well-defined feature that still needs canonical arch blocks, phasing, consistency, and real auto controllers | the work is tiny enough for `lilarch`, planning-only, or broad enough to need the full `arch-step` helper surface | "Use the faster full arch flow for this feature", "run miniarch-step on this plan", "do the quick full-arch pass with auto-plan and implement-loop" |
+| `miniarch-step` | the user wants the faster full-arch workflow for a smaller well-defined feature that still needs canonical arch blocks, phased execution, and real auto controllers | the work is tiny enough for `lilarch`, planning-only, or broad enough to need the full `arch-step` helper surface | "Use the faster full arch flow for this feature", "run miniarch-step on this plan", "do the quick full-arch pass with auto-plan and implement-loop" |
 | `arch-docs` | the code is already clean enough to trust and the main job is cleaning stale, overlapping, or misleading docs, including post-arch plan/worklog retirement | the feature still needs code work, or the ask is generic copy editing or net-new documentation authoring | "Clean up the docs in this repo", "retire this plan/worklog and fold the truth into evergreen docs", "run the docs cleanup loop" |
 | `arch-mini-plan` | the user wants a compact one-pass plan but still wants canonical arch blocks | the work is tiny enough for `lilarch` or needs actual full-arch execution now | "Give me the mini plan version", "one-pass arch plan for this task" |
 | `lilarch` | contained 1-3 phase feature work | the task is migration-heavy, investigation-heavy, or broad | "Small feature, use lilarch", "tight feature flow for this improvement" |

@@ -83,6 +83,18 @@ class CodexStopHookTests(unittest.TestCase):
             state["stages"] = list(self.stop_module.AUTO_PLAN_STAGES)
         return state
 
+    def miniarch_step_auto_plan_state(
+        self,
+        *,
+        session_id: str = "session-1",
+        doc_path: str = "docs/PLAN.md",
+    ) -> dict:
+        return {
+            "command": "miniarch-step-auto-plan",
+            "session_id": session_id,
+            "doc_path": doc_path,
+        }
+
     def auto_plan_doc_text(
         self,
         *,
@@ -395,6 +407,74 @@ class CodexStopHookTests(unittest.TestCase):
             doc_path,
         )
 
+    def run_miniarch_step_implement_loop_handler(
+        self,
+        repo_root: Path,
+        session_id: str,
+        *,
+        verdict: str,
+        audit_summary: str | None = None,
+    ) -> tuple[int, dict, str, Path, Path, tuple[tuple, dict]]:
+        state_path = self.controller_state_path(
+            repo_root,
+            self.stop_module.MINIARCH_STEP_IMPLEMENT_LOOP_STATE_RELATIVE_PATH,
+            session_id,
+        )
+        docs_dir = repo_root / "docs"
+        docs_dir.mkdir(parents=True, exist_ok=True)
+        doc_path = docs_dir / "PLAN.md"
+        doc_path.write_text(
+            "# Plan\n"
+            "## Implementation Audit\n"
+            f"Verdict (code): {verdict}\n",
+            encoding="utf-8",
+        )
+        self.write_json(
+            state_path,
+            {
+                "command": "miniarch-step-implement-loop",
+                "session_id": session_id,
+                "doc_path": "docs/PLAN.md",
+            },
+        )
+
+        audit_result = self.stop_module.FreshAuditResult(
+            process=subprocess.CompletedProcess(args=["codex"], returncode=0, stdout="", stderr=""),
+            last_message=audit_summary,
+        )
+        calls: list[tuple[tuple, dict]] = []
+
+        def fake_run_fresh_audit(*args, **kwargs):
+            calls.append((args, kwargs))
+            return audit_result
+
+        original = self.stop_module.run_fresh_audit
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        self.stop_module.run_fresh_audit = fake_run_fresh_audit
+        try:
+            saved_stdout = sys.stdout
+            saved_stderr = sys.stderr
+            sys.stdout = stdout
+            sys.stderr = stderr
+            with self.assertRaises(SystemExit) as raised:
+                self.stop_module.handle_miniarch_step_implement_loop(
+                    {"cwd": str(repo_root), "session_id": session_id}
+                )
+        finally:
+            self.stop_module.run_fresh_audit = original
+            sys.stdout = saved_stdout
+            sys.stderr = saved_stderr
+        self.assertEqual(len(calls), 1)
+        return (
+            raised.exception.code,
+            json.loads(stdout.getvalue()),
+            stderr.getvalue(),
+            state_path,
+            doc_path,
+            calls[0],
+        )
+
     def structured_result(
         self,
         payload: dict | None,
@@ -673,6 +753,48 @@ class CodexStopHookTests(unittest.TestCase):
         self.assertIn("--dangerously-bypass-approvals-and-sandbox", args)
         self.assertNotIn("--full-auto", args)
         self.assertEqual(args[-1].splitlines()[0], "Use $audit-loop-sim review")
+
+    def test_run_fresh_audit_default_does_not_pin_model(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            args = self.capture_codex_exec_args(
+                lambda: self.stop_module.run_fresh_audit(Path(temp_dir), "docs/PLAN.md")
+            )
+
+        self.assertIn("--dangerously-bypass-approvals-and-sandbox", args)
+        self.assertNotIn("--model", args)
+        self.assertNotIn('model_reasoning_effort="xhigh"', args)
+        self.assertEqual(args[-1].splitlines()[0], "Use $arch-step audit-implementation docs/PLAN.md")
+
+    def test_run_fresh_audit_can_pin_miniarch_model_and_effort(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            args = self.capture_codex_exec_args(
+                lambda: self.stop_module.run_fresh_audit(
+                    Path(temp_dir),
+                    "docs/PLAN.md",
+                    skill_name="miniarch-step",
+                    temp_prefix="miniarch-step-implement-loop-",
+                    model=self.stop_module.MINIARCH_STEP_AUDIT_MODEL,
+                    model_reasoning_effort=(
+                        self.stop_module.MINIARCH_STEP_AUDIT_MODEL_REASONING_EFFORT
+                    ),
+                )
+            )
+
+        self.assertIn("--dangerously-bypass-approvals-and-sandbox", args)
+        self.assertIn("--model", args)
+        self.assertEqual(
+            args[args.index("--model") + 1],
+            self.stop_module.MINIARCH_STEP_AUDIT_MODEL,
+        )
+        self.assertIn("-c", args)
+        self.assertIn(
+            'model_reasoning_effort="xhigh"',
+            args,
+        )
+        self.assertEqual(
+            args[-1].splitlines()[0],
+            "Use $miniarch-step audit-implementation docs/PLAN.md",
+        )
 
     def test_run_arch_docs_evaluator_stays_read_only(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -1104,6 +1226,69 @@ class CodexStopHookTests(unittest.TestCase):
             )
             self.assertFalse(state_path.exists())
 
+    def test_stop_hook_completes_miniarch_auto_plan_after_phase_plan(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo_root = Path(temp_dir)
+            docs_dir = repo_root / "docs"
+            docs_dir.mkdir()
+            state_path = self.controller_state_path(
+                repo_root,
+                self.stop_module.MINIARCH_STEP_AUTO_PLAN_STATE_RELATIVE_PATH,
+                "session-1",
+            )
+            self.write_json(state_path, self.miniarch_step_auto_plan_state())
+            (docs_dir / "PLAN.md").write_text(
+                self.auto_plan_doc_text(
+                    research=True,
+                    deep_dive_pass_1=True,
+                    phase_plan=True,
+                ),
+                encoding="utf-8",
+            )
+
+            process = self.run_stop_hook(repo_root, "session-1")
+
+            self.assertEqual(process.returncode, 0, msg=process.stderr)
+            payload = json.loads(process.stdout)
+            self.assertFalse(payload["continue"])
+            self.assertIn("Research, deep-dive, and phase-plan are in place", payload["stopReason"])
+            self.assertIn("Use $miniarch-step implement-loop docs/PLAN.md", payload["stopReason"])
+            self.assertNotIn("consistency-pass", payload["stopReason"])
+            self.assertEqual(
+                payload["systemMessage"],
+                "miniarch-step auto-plan completed; the doc is ready for implement-loop.",
+            )
+            self.assertFalse(state_path.exists())
+
+    def test_stop_hook_miniarch_auto_plan_continues_from_research_to_deep_dive(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo_root = Path(temp_dir)
+            docs_dir = repo_root / "docs"
+            docs_dir.mkdir()
+            state_path = self.controller_state_path(
+                repo_root,
+                self.stop_module.MINIARCH_STEP_AUTO_PLAN_STATE_RELATIVE_PATH,
+                "session-1",
+            )
+            self.write_json(state_path, self.miniarch_step_auto_plan_state())
+            (docs_dir / "PLAN.md").write_text(
+                self.auto_plan_doc_text(research=True),
+                encoding="utf-8",
+            )
+
+            process = self.run_stop_hook(repo_root, "session-1")
+
+            self.assertEqual(process.returncode, 0, msg=process.stderr)
+            payload = json.loads(process.stdout)
+            self.assertTrue(payload["continue"])
+            self.assertIn("Use $miniarch-step deep-dive docs/PLAN.md", payload["reason"])
+            self.assertNotIn("consistency-pass", payload["reason"])
+            self.assertEqual(
+                payload["systemMessage"],
+                "miniarch-step auto-plan continuing with deep-dive.",
+            )
+            self.assertTrue(state_path.exists())
+
     def test_handle_implement_loop_continuation_resumes_full_remaining_frontier(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             repo_root = Path(temp_dir)
@@ -1126,6 +1311,37 @@ class CodexStopHookTests(unittest.TestCase):
             self.assertEqual(
                 payload["systemMessage"],
                 "implement-loop fresh audit finished; more work remains.",
+            )
+            self.assertTrue(state_path.exists())
+
+    def test_handle_miniarch_implement_loop_uses_pinned_fresh_audit(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo_root = Path(temp_dir)
+
+            (
+                exit_code,
+                payload,
+                stderr,
+                state_path,
+                _doc_path,
+                audit_call,
+            ) = self.run_miniarch_step_implement_loop_handler(
+                repo_root,
+                "session-1",
+                verdict="NOT COMPLETE",
+                audit_summary="more miniarch code work remains",
+            )
+
+            _args, kwargs = audit_call
+            self.assertEqual(exit_code, 0)
+            self.assertEqual(stderr, "")
+            self.assertTrue(payload["continue"])
+            self.assertEqual(kwargs["skill_name"], "miniarch-step")
+            self.assertEqual(kwargs["temp_prefix"], "miniarch-step-implement-loop-")
+            self.assertEqual(kwargs["model"], self.stop_module.MINIARCH_STEP_AUDIT_MODEL)
+            self.assertEqual(
+                kwargs["model_reasoning_effort"],
+                self.stop_module.MINIARCH_STEP_AUDIT_MODEL_REASONING_EFFORT,
             )
             self.assertTrue(state_path.exists())
 

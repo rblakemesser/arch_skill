@@ -5,7 +5,7 @@ This repo ships installable agent skills centered on the arch suite for Codex CL
 The live arch suite is:
 
 - `arch-step` — the broad full-arch execution surface; owns the full staged workflow, extended helper passes, bounded `auto-plan`, full-frontier `implement-loop`, compact `status`, and guided `advance`
-- `miniarch-step` — the faster full-arch middle tier for smaller well-defined features; keeps canonical arch docs, phasing, consistency, and real auto controllers without the broader `arch-step` helper surface
+- `miniarch-step` — the faster full-arch middle tier for smaller well-defined features; keeps canonical arch docs, phasing, and real auto controllers without the broader `arch-step` helper surface
 - `arch-docs` — standalone docs-audit and cleanup skill; owns topic-first stale-doc cleanup, consolidation onto canonical docs, working-doc retirement, and hook-backed Codex `auto` docs cleanup
 - `arch-mini-plan` — one-pass canonical mini planning that hands follow-through to `miniarch-step` or `arch-step`
 - `lilarch` — compact 1-3 phase feature flow
@@ -25,6 +25,7 @@ Other shipped skills are:
 - `delay-poll` — Codex-only delay-and-check controller that waits inside the installed `Stop` hook, re-runs a read-only condition check on a fixed interval, and resumes the same thread when the condition becomes true
 - `agent-definition-auditor` — cold-reader scoring and findings for `AGENTS.md`, `CLAUDE.md`, `SKILL.md`, `SOUL.md`, system prompts, and other agent-definition markdown
 - `codemagic-builds` — Codemagic CI/CD build monitoring and build control via the Codemagic REST API
+- `amir-publish` — prompt-only shortcut for committing, pushing, installing locally, then pulling and installing this repo across Amir's usual machines
 
 Historical pre-skill materials are archived under `archive/` and `docs/archive/`. They are repo history, not part of the runtime surface.
 
@@ -77,6 +78,7 @@ Installed skills:
   - `~/.agents/skills/delay-poll/`
   - `~/.agents/skills/agent-definition-auditor/`
   - `~/.agents/skills/codemagic-builds/`
+  - `~/.agents/skills/amir-publish/`
 - Claude Code:
   - `~/.claude/skills/arch-step/`
   - `~/.claude/skills/miniarch-step/`
@@ -110,7 +112,7 @@ Installed skills:
 
 Codex reads the same installed skill surface from `~/.agents/skills/`. `make install` also removes stale pre-skill command surfaces, removed competing skill packages, and older `~/.codex/skills/<skill>` mirrors so runtime routing stays unambiguous.
 
-`delay-poll` is installed only on the agents/Codex surface because it depends on the Codex `Stop` hook runtime and is not a real feature on Claude Code or Gemini CLI.
+`delay-poll`, `codemagic-builds`, and `amir-publish` are installed only on the agents/Codex surface. `delay-poll` depends on the Codex `Stop` hook runtime; the others are local operator shortcuts.
 
 ### Remote install
 
@@ -177,7 +179,7 @@ If the user says "do the full arch flow," "continue this architecture doc," or "
 
 ### `miniarch-step`
 
-Use `miniarch-step` for smaller well-defined features that still need a canonical full-arch doc, phased execution, consistency gating, and real Codex auto controllers, but do not need `arch-step`'s broader staged helper surface.
+Use `miniarch-step` for smaller well-defined features that still need a canonical full-arch doc, phased execution, and real Codex auto controllers, but do not need `arch-step`'s broader staged helper surface.
 
 It keeps the same full-arch artifact shape and the same clean-audit handoff to `arch-docs`, but with a shorter command surface:
 
@@ -187,7 +189,6 @@ It keeps the same full-arch artifact shape and the same clean-audit handoff to `
 - `deep-dive`
 - `phase-plan`
 - `auto-plan`
-- `consistency-pass`
 - `implement`
 - `implement-loop`
 - `auto-implement`
@@ -195,9 +196,9 @@ It keeps the same full-arch artifact shape and the same clean-audit handoff to `
 - `status`
 - `advance`
 
-`miniarch-step auto-plan` is the shorter bounded planning controller. In Codex, `DOC_PATH` is the planning ledger and `.codex/miniarch-step-auto-plan-state.<SESSION_ID>.json` is only the armed controller state. On a fresh doc, the parent pass runs only `research`, then ends its turn. On reruns, the installed Stop hook resumes from the first incomplete stage through `deep-dive`, `phase-plan`, and `consistency-pass`, then owns the successful `implement-loop` handoff.
+`miniarch-step auto-plan` is the shorter bounded planning controller. In Codex, `DOC_PATH` is the planning ledger and `.codex/miniarch-step-auto-plan-state.<SESSION_ID>.json` is only the armed controller state. On a fresh doc, the parent pass runs only `research`, then ends its turn. On reruns, the installed Stop hook resumes from the first incomplete stage through `deep-dive` and `phase-plan`, then owns the successful `implement-loop` handoff.
 
-`miniarch-step implement-loop` and `miniarch-step auto-implement` share the same full-frontier delivery controller. They arm `.codex/miniarch-step-implement-loop-state.<SESSION_ID>.json`, implement the full approved remaining frontier, and let fresh `audit-implementation` decide whether the loop is clean or more work remains.
+`miniarch-step implement-loop` and `miniarch-step auto-implement` share the same full-frontier delivery controller. They arm `.codex/miniarch-step-implement-loop-state.<SESSION_ID>.json`, implement the full approved remaining frontier, and let fresh `audit-implementation` decide whether the loop is clean or more work remains. In Codex, that fresh miniarch audit child runs with `gpt-5.4-mini` at `xhigh` reasoning effort.
 
 Use `miniarch-step` when the feature is too serious for `lilarch`, but still small and crisp enough that a faster full-arch pass is the best fit.
 
@@ -259,9 +260,13 @@ Use when the question is "which arch skill should I use?" or "what is the differ
 
 Use when the user wants a cold-read score, rationale, and prioritized improvements for an `AGENTS.md`, `CLAUDE.md`, `SKILL.md`, `SOUL.md`, system prompt, or other agent-definition markdown.
 
+### `amir-publish`
+
+Use when Amir wants to publish this skills repo across his usual machines: commit and push the current local work, run `make install` locally, then SSH to the fixed host list, skip the current host, pull the same branch from the same directory, and run `make install` remotely.
+
 ## Usage
 
-- Primary surface: ask the agent to use `arch-step`, `arch-docs`, `arch-mini-plan`, `lilarch`, `bugs-flow`, `audit-loop`, `comment-loop`, `audit-loop-sim`, `delay-poll`, `goal-loop`, `north-star-investigation`, `arch-flow`, `arch-skills-guide`, or `agent-definition-auditor`.
+- Primary surface: ask the agent to use `arch-step`, `arch-docs`, `arch-mini-plan`, `lilarch`, `bugs-flow`, `audit-loop`, `comment-loop`, `audit-loop-sim`, `delay-poll`, `goal-loop`, `north-star-investigation`, `arch-flow`, `arch-skills-guide`, `agent-definition-auditor`, or `amir-publish`.
 - Full-arch execution defaults to `miniarch-step` for smaller well-defined work and `arch-step` for broader or helper-heavy work.
 - Docs cleanup loops default to `arch-docs`.
 - Read-only checklist and next-step inspection uses `arch-flow`.
@@ -300,3 +305,4 @@ Examples:
 - `Use $arch-flow docs/MY_PLAN.md`
 - `Use $arch-skills-guide for this request`
 - `Use $agent-definition-auditor to audit this AGENTS.md`
+- `Use $amir-publish`

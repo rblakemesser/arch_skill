@@ -122,8 +122,10 @@ MINIARCH_STEP_AUTO_PLAN_STAGES = (
     "research",
     "deep-dive",
     "phase-plan",
-    "consistency-pass",
 )
+
+MINIARCH_STEP_AUDIT_MODEL = "gpt-5.4-mini"
+MINIARCH_STEP_AUDIT_MODEL_REASONING_EFFORT = "xhigh"
 
 VERDICT_PATTERN = re.compile(r"^Verdict \(code\): (COMPLETE|NOT COMPLETE)\s*$", re.MULTILINE)
 PLANNING_PASS_PATTERN = re.compile(
@@ -612,6 +614,8 @@ def run_fresh_audit(
     *,
     skill_name: str = "arch-step",
     temp_prefix: str = "arch-step-implement-loop-",
+    model: str | None = None,
+    model_reasoning_effort: str | None = None,
 ) -> FreshAuditResult:
     codex = shutil.which("codex")
     if not codex:
@@ -628,20 +632,24 @@ def run_fresh_audit(
 
     with tempfile.TemporaryDirectory(prefix=temp_prefix) as temp_dir:
         last_message_path = Path(temp_dir) / "last_message.txt"
+        command = [
+            codex,
+            "exec",
+            "--ephemeral",
+            "--disable",
+            "codex_hooks",
+            "--cd",
+            str(cwd),
+            "--dangerously-bypass-approvals-and-sandbox",
+        ]
+        if model:
+            command.extend(["--model", model])
+        if model_reasoning_effort:
+            command.extend(["-c", f'model_reasoning_effort="{model_reasoning_effort}"'])
+        command.extend(["-o", str(last_message_path), prompt])
+
         process = subprocess.run(
-            [
-                codex,
-                "exec",
-                "--ephemeral",
-                "--disable",
-                "codex_hooks",
-                "--cd",
-                str(cwd),
-                "--dangerously-bypass-approvals-and-sandbox",
-                "-o",
-                str(last_message_path),
-                prompt,
-            ],
+            command,
             cwd=str(cwd),
             capture_output=True,
             text=True,
@@ -1557,7 +1565,6 @@ def miniarch_step_auto_plan_stage_name(stage: str) -> str:
         "research": "research",
         "deep-dive": "deep-dive",
         "phase-plan": "phase-plan",
-        "consistency-pass": "consistency-pass",
     }[stage]
 
 
@@ -1574,8 +1581,6 @@ def miniarch_step_auto_plan_stage_complete(doc_text: str, stage: str) -> bool:
         )
     if stage == "phase-plan":
         return BLOCK_MARKERS["phase_plan"] in doc_text
-    if stage == "consistency-pass":
-        return consistency_pass_decision(doc_text) == "yes"
     raise RuntimeError(f"unexpected miniarch-step auto-plan stage: {stage}")
 
 
@@ -1584,12 +1589,6 @@ def next_incomplete_miniarch_step_auto_plan_stage(doc_text: str) -> str | None:
         if not miniarch_step_auto_plan_stage_complete(doc_text, stage):
             return stage
     return None
-
-
-def miniarch_step_auto_plan_stage_blocked(doc_text: str, stage: str) -> bool:
-    if stage != "consistency-pass":
-        return False
-    return consistency_pass_decision(doc_text) == "no"
 
 
 def miniarch_step_auto_plan_continue_reason(
@@ -1609,13 +1608,6 @@ def miniarch_step_auto_plan_continue_reason(
             f"miniarch-step auto-plan is armed for {doc_path_value}. The first incomplete planning stage in the doc is phase-plan. "
             "Continue now with the next required command: "
             f"Use $miniarch-step phase-plan {doc_path_value}. "
-            f"Keep {state_path_value} armed and stop naturally when this command finishes."
-        )
-    if next_stage == "consistency-pass":
-        return (
-            f"miniarch-step auto-plan is armed for {doc_path_value}. The first incomplete planning stage in the doc is consistency-pass. "
-            "Continue now with the next required command: "
-            f"Use $miniarch-step consistency-pass {doc_path_value}. This is the required end-to-end consistency cold read. "
             f"Keep {state_path_value} armed and stop naturally when this command finishes."
         )
     raise RuntimeError(f"unexpected next miniarch-step auto-plan stage: {next_stage}")
@@ -1820,6 +1812,8 @@ def handle_miniarch_step_implement_loop(payload: dict) -> int:
             doc_path_value,
             skill_name="miniarch-step",
             temp_prefix="miniarch-step-implement-loop-",
+            model=MINIARCH_STEP_AUDIT_MODEL,
+            model_reasoning_effort=MINIARCH_STEP_AUDIT_MODEL_REASONING_EFFORT,
         )
     except RuntimeError as exc:
         clear_state(state_path)
@@ -1910,18 +1904,9 @@ def handle_miniarch_step_auto_plan(payload: dict) -> int:
     if next_stage is None:
         clear_state(state_path)
         stop_with_json(
-            f"miniarch-step auto-plan completed for {doc_path_value}. Research, deep-dive, phase-plan, and consistency-pass are in place. "
+            f"miniarch-step auto-plan completed for {doc_path_value}. Research, deep-dive, and phase-plan are in place. "
             f"The doc is ready for `Use $miniarch-step implement-loop {doc_path_value}`.",
             system_message="miniarch-step auto-plan completed; the doc is ready for implement-loop.",
-        )
-
-    if miniarch_step_auto_plan_stage_blocked(doc_text, next_stage):
-        clear_state(state_path)
-        stop_with_json(
-            f"miniarch-step auto-plan stopped after consistency-pass for {doc_path_value}. "
-            "The helper block does not currently approve implementation. Resolve the remaining inconsistencies in the main "
-            f"artifact, then rerun `Use $miniarch-step auto-plan {doc_path_value}` if you still want automatic planning continuation.",
-            system_message="miniarch-step auto-plan consistency-pass did not approve implementation.",
         )
 
     if next_stage == "research":

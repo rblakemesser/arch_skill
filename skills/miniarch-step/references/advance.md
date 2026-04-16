@@ -57,10 +57,9 @@ Emit every line in this order:
 3. Research grounding is present and credible
 4. Deep dive is complete enough to trust current architecture, target architecture, and call-site audit
 5. The authoritative phase plan is present and execution-grade
-6. `consistency-pass` is present when needed
-7. Implementation progress is grounded in code, `DOC_PATH`, and `WORKLOG_PATH`
-8. Implementation audit is present and honest
-9. Docs cleanup is either clearly next or already retired from the live surface
+6. Implementation progress is grounded in code, `DOC_PATH`, and `WORKLOG_PATH`
+7. Implementation audit is present and honest
+8. Docs cleanup is either clearly next or already retired from the live surface
 
 ## Evidence model
 
@@ -88,7 +87,6 @@ Choose exactly one next move using this precedence:
    - `research`
    - `deep-dive`
    - `phase-plan`
-   - `consistency-pass` when the artifact clearly needs an end-to-end cold-read repair or the user explicitly wants it
    - `implement` by default
    - `implement-loop` when the user explicitly wants the full-frontier delivery loop to a clean audit
    - `audit-implementation`

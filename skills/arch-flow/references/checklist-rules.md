@@ -61,9 +61,8 @@ Use this file when `arch-flow` needs to decide what is done vs pending from `DOC
 3. research grounding
 4. deep dive
 5. phase plan
-6. consistency pass
-7. implementation + worklog
-8. post-checks:
+6. implementation + worklog
+7. post-checks:
    - implementation audit
    - docs cleanup handoff
 

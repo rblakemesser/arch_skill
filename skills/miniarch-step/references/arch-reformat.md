@@ -80,7 +80,7 @@ The goal is not prettier markdown. The goal is to recover one plan artifact that
    - `Appendix A) Imported Notes` for unplaced source content
    - `Appendix B) Conversion Notes` for major moves and remaining gaps
 11. If any instruction-bearing content was intentionally condensed, record the exact rationale in Appendix B and make sure the original text remains recoverable.
-12. Make one final consistency pass across TL;DR, Section 0, and Section 7.
+12. Make one final alignment reread across TL;DR, Section 0, and Section 7.
 13. Write in place unless `OUT=...` is provided.
 
 ## Consistency duties before stopping

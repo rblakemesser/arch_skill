@@ -196,7 +196,6 @@ Choose the command that most improves artifact completeness or core-flow progres
    - `research`
    - `deep-dive`
    - `phase-plan`
-   - `consistency-pass` when the artifact clearly needs an end-to-end cold-read repair or the user explicitly wants it
    - `implement` by default
    - `implement-loop` when the user explicitly wants the full-frontier delivery loop to a clean audit
    - `audit-implementation`

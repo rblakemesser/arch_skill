@@ -141,7 +141,9 @@ If the required fresh child cannot start, stop blocked instead of letting the pa
 For the Codex Stop-hook child subprocess, launch the fresh auditor with
 `codex exec --dangerously-bypass-approvals-and-sandbox`, not `--full-auto`, so
 repo verification runs against the real host context instead of the child
-sandbox.
+sandbox. The miniarch fresh audit child is intentionally pinned to
+`--model gpt-5.4-mini` and `-c model_reasoning_effort="xhigh"` so the faster
+workflow still gets a high-effort independent audit.
 
 Fresh means the audit should not rely on remembered implementation intent from the parent run. It should rely on:
 
