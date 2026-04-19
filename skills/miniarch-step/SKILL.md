@@ -1,21 +1,21 @@
 ---
 name: miniarch-step
-description: "Operate a faster standalone full-arch workflow against one canonical plan artifact for smaller well-defined features: `new`, `reformat`, `research`, `deep-dive`, `phase-plan`, `auto-plan`, `implement`, `implement-loop`, `auto-implement`, `audit-implementation`, `status`, or `advance`. Use when the work still needs canonical architecture grounding, phased execution, and real auto controllers, but does not need the broader staged surface of `arch-step`. Not for one-pass mini planning, tiny 1-3 phase feature flow, broad or ambiguity-heavy full-arch work, bugs, or open-ended loops."
+description: "Operate the trimmed standalone full-arch workflow against one canonical plan artifact: `new`, `reformat`, `research`, `deep-dive`, `phase-plan`, `auto-plan`, `implement`, `implement-loop`, `auto-implement`, `audit-implementation`, `status`, or `advance`. Use when the work still needs canonical architecture grounding, phased execution, and real auto controllers, but does not need the broader staged surface of `arch-step`. Not for one-pass mini planning, 1-3 phase feature flow, broad or ambiguity-heavy full-arch work, bugs, or open-ended loops."
 metadata:
-  short-description: "Faster full-arch for smaller features"
+  short-description: "Trimmed full-arch workflow"
 ---
 
 # Miniarch Step
 
-Use this skill when the user wants the full arch shape and full auto support, but the work is small enough and well-defined enough to run a faster core arc.
+Use this skill when the user wants the full arch shape and full auto support, but does not need the broader helper surface of `arch-step`.
 
-The primary object is one canonical full-arch plan doc. `miniarch-step` keeps that artifact discipline, but trims the workflow to the faster core stages that still produce an honest plan, phased execution, and authoritative audit.
+The primary object is one canonical full-arch plan doc. `miniarch-step` keeps the same artifact discipline and full-work posture as `arch-step`, but with a trimmed public command surface. It is not a lower-effort workflow.
 
 ## When to use
 
-- The task is a smaller well-defined feature or refactor that still benefits from canonical architecture grounding.
+- The task still benefits from canonical architecture grounding, phased execution, and one governing full-arch doc.
 - The user wants phased planning, implementation, and audit against one full-arch doc.
-- The work should move faster than `arch-step` because it does not need external research, repeated architecture passes, or extra hardening helpers.
+- The user wants the trimmed command surface rather than `arch-step`'s broader helper surface.
 - The user wants real auto controllers rather than one-pass planning only.
 - The ask is command-shaped: `new`, `reformat`, `research`, `deep-dive`, `phase-plan`, `auto-plan`, `implement`, `implement-loop`, `auto-implement`, `audit-implementation`, `status`, or `advance`.
 
@@ -35,10 +35,11 @@ The primary object is one canonical full-arch plan doc. `miniarch-step` keeps th
 - No command may leave the doc less canonical, less honest, or more contradictory than it found it.
 - Present-but-weak sections are not done.
 - A plan is not ready, complete, or implementation-ready while any unresolved decision remains about requested behavior, adjacent surfaces that must stay in sync, compatibility posture, architecture, canonical owner path, required deletes, fallback policy, acceptance evidence, or implementation scope.
-- Correctness and approved intent outrank speed or scope trimming.
+- Correctness and approved intent outrank convenience or scope trimming.
 - The agent has no authority to cut requested behavior, acceptance criteria, or required implementation work unless the user or the governing plan already marked that item out of scope.
+- `miniarch-step` is a trimmed command surface, not a lower-effort workflow.
 - Section 7 phases should split work into coherent self-contained units, with the most fundamental units first and later phases clearly building on earlier ones.
-- If two valid decompositions exist, bias toward more, smaller coherent phases rather than fewer blended phases.
+- If two valid decompositions exist, bias toward more distinct coherent phases rather than fewer blended phases.
 - A phase is not complete while any checklist item or exit criterion in that phase remains unmet.
 - For modern Section 7 docs, `Work` is explanatory only. Every required phase obligation must live in `Checklist (must all be done)` or `Exit criteria (all required)`, and fresh audit must validate both before a phase can stay complete.
 - During `implement` and `implement-loop`, the approved plan stays authoritative for requirements, scope, acceptance criteria, and phase obligations. Execution may record progress truth, but it may not rewrite the plan to make unfinished work disappear.
@@ -60,7 +61,7 @@ The primary object is one canonical full-arch plan doc. `miniarch-step` keeps th
 - For agent-backed systems, prefer prompt engineering, grounding/context shaping, and better use of native capabilities before custom harnesses, wrappers, parsers, OCR stacks, fuzzy matchers, or deterministic sidecars.
 - If the real lever is prompt repair, say so plainly and recommend `prompt-authoring` instead of inventing deterministic scaffolding.
 - Default to fail-loud boundaries, hard cutover, and explicit deletes. Runtime shims are forbidden unless the plan explicitly approves them.
-- `auto-plan` is one command. It either runs a real bounded planning sequence or fails loud.
+- `auto-plan` is one command. It either runs the real planning sequence or fails loud.
 - `implement-loop` is one command. It either runs a real full-frontier implement-then-audit controller or fails loud.
 - Git is the history for retired live truth surfaces. Delete dead competing code paths, stale live docs, and stale comments instead of keeping them for archaeology.
 - Broader docs audit, consolidation, and final plan/worklog retirement after a clean code audit belong to `arch-docs`, not to hidden `miniarch-step` commands.
@@ -127,7 +128,7 @@ Choose exactly one next command using this precedence:
 4. After North Star confirmation, stop and wait for the user's explicit next command; do not auto-advance into `research` or any later stage.
 5. Earliest required structure or owned block is missing: run the command that repairs it.
 6. Required structure exists but the next critical sections are still weak or still contain unresolved decisions: run the command that strengthens them or stop and ask the exact blocker question.
-7. Otherwise follow the mini core arc:
+7. Otherwise follow the core arc:
    - `new` or `reformat`
    - North Star confirmation
    - `research`
@@ -147,7 +148,7 @@ These stay explicit unless the user directly asks for them:
 - `implement-loop`
 - `auto-implement`
 
-`auto-plan` is a bounded planning controller. In Codex, `DOC_PATH` is the planning ledger and `.codex/miniarch-step-auto-plan-state.<SESSION_ID>.json` is only the armed controller state for that doc/session. On a fresh doc, the initial `auto-plan` pass arms state, runs only `research` against the same `DOC_PATH`, then ends its turn naturally. On reruns, the parent pass re-arms state against the same `DOC_PATH` and lets the installed Stop hook continue from the first incomplete stage already visible in the doc. It must not self-run `deep-dive` or `phase-plan` in that same turn. After that first turn, the installed Stop hook owns stage-to-stage continuation: it reads doc truth, feeds exactly one literal next command per later turn, and after `phase-plan` clears state and says the doc is decision-complete and ready for `implement-loop`.
+`auto-plan` is the planning controller for this trimmed full-arch surface. In Codex, `DOC_PATH` is the planning ledger and `.codex/miniarch-step-auto-plan-state.<SESSION_ID>.json` is only the armed controller state for that doc/session. On a fresh doc, the initial `auto-plan` pass arms state, runs only `research` against the same `DOC_PATH`, then ends its turn naturally. On reruns, the parent pass re-arms state against the same `DOC_PATH` and lets the installed Stop hook continue from the first incomplete stage already visible in the doc. It must not self-run `deep-dive` or `phase-plan` in that same turn. After that first turn, the installed Stop hook owns stage-to-stage continuation: it reads doc truth, feeds exactly one literal next command per later turn, and after `phase-plan` clears state and says the doc is decision-complete and ready for `implement-loop`.
 
 User-facing invocation stays simple:
 
@@ -209,7 +210,7 @@ For any Codex controller state in this skill, derive `<SESSION_ID>` from `CODEX_
 - `references/arch-research.md` - research grounding contract
 - `references/arch-deep-dive.md` - current architecture, target architecture, call-site audit, and single-pass planning rules
 - `references/arch-phase-plan.md` - authoritative phase-plan contract
-- `references/arch-auto-plan.md` - bounded planning controller over research, one deep-dive pass, and phase-plan
+- `references/arch-auto-plan.md` - planning controller over research, one deep-dive pass, and phase-plan
 - `references/arch-implement.md` - implementation, worklog, and completion discipline
 - `references/arch-implement-loop.md` - full-frontier implement/audit loop, required runtime preflight, and loop-state contract
 - `references/arch-audit-implementation.md` - code-completeness audit and phase reopening

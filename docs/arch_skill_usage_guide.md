@@ -18,7 +18,7 @@ The current skill suite is:
 - `arch-flow`
 - `arch-skills-guide`
 
-Use `miniarch-step` for smaller well-defined full-arch work. Use `arch-step` for broader, more ambiguous, or helper-heavy full-arch work.
+Use `miniarch-step` for full-arch work when you want the trimmed command surface. Use `arch-step` when you need the broader or helper-heavy full-arch surface.
 
 Other shipped skills:
 
@@ -212,11 +212,11 @@ Practical rule:
 
 ### `miniarch-step`
 
-Use for smaller well-defined features that still need a canonical full-arch doc, phased execution, and real Codex auto controllers, but do not need the broader `arch-step` helper surface.
+Use when the work still needs a canonical full-arch doc, phased execution, and real Codex auto controllers, but does not need the broader `arch-step` helper surface. This is a trimmed command surface, not a lower-effort workflow.
 
 Examples:
 
-- `Use $miniarch-step "do the faster full arch flow for this feature"`
+- `Use $miniarch-step for this feature`
 - `Use $miniarch-step auto-plan`
 - `Use $miniarch-step implement docs/MY_PLAN.md`
 - `Use $miniarch-step implement-loop docs/MY_PLAN.md`
@@ -225,8 +225,8 @@ Examples:
 
 Practical rule:
 
-- If the task is bigger than `lilarch`, but still small and crisp enough that one research pass plus one deep-dive pass is the right shape, use `miniarch-step`.
-- `miniarch-step auto-plan` is the shorter bounded planning controller. In Codex, `DOC_PATH` is the planning ledger and `.codex/miniarch-step-auto-plan-state.<SESSION_ID>.json` is only armed controller state. On a fresh doc, the parent pass runs only `research`, then ends its turn. On reruns, the installed Stop hook reads the doc and feeds `deep-dive` or `phase-plan` from the first incomplete stage it finds, then stops and says the doc is decision-complete and ready for `implement-loop`.
+- If the task no longer fits `lilarch`, but does not need `arch-step`'s broader helper surface, use `miniarch-step`.
+- `miniarch-step auto-plan` is the planning controller for the trimmed surface. In Codex, `DOC_PATH` is the planning ledger and `.codex/miniarch-step-auto-plan-state.<SESSION_ID>.json` is only armed controller state. On a fresh doc, the parent pass runs only `research`, then ends its turn. On reruns, the installed Stop hook reads the doc and feeds `deep-dive` or `phase-plan` from the first incomplete stage it finds, then stops and says the doc is decision-complete and ready for `implement-loop`.
 - `miniarch-step implement-loop` is the explicit full-frontier controller when the user wants repeated implement then audit passes until the audit is clean or a real blocker stops the run.
 - `miniarch-step auto-implement` is an exact user-facing synonym for `implement-loop`.
 - In that controller, implementation scope is the full approved Section 7 frontier in order. It must arm `.codex/miniarch-step-implement-loop-state.<SESSION_ID>.json` before implementation work, resume from the earliest incomplete or reopened phase, continue through later reachable phases, and only then hand control to fresh audit unless a real blocker stops progress. In Codex, that fresh miniarch audit child runs with `gpt-5.4-mini` at `xhigh` reasoning effort.
@@ -279,7 +279,7 @@ Examples:
 - `Use $lilarch for this small feature`
 - "Use little arch for this improvement"
 
-If lilarch stops fitting, escalate to `miniarch-step reformat` first, and to `arch-step reformat` when the work is broader or more ambiguous than the faster full-arch tier.
+If lilarch stops fitting, escalate to `miniarch-step reformat` first, and to `arch-step reformat` when the work needs the broader full-arch helper surface.
 
 ### `bugs-flow`
 

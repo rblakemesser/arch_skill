@@ -2,7 +2,7 @@
 
 ## What this command does
 
-- take one approved canonical mini full-arch doc through the faster planning arc automatically
+- take one approved canonical mini full-arch doc through the planning arc automatically
 - arm one hook-backed multi-turn planning controller over `research`, `deep-dive`, and `phase-plan`
 - run only the first stage from the parent `auto-plan` pass, then rely on the installed Stop hook to feed one literal next command per later turn
 - use the installed Codex runtime continuation support to move stage to stage
