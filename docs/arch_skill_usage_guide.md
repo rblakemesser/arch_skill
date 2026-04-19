@@ -29,8 +29,6 @@ Other shipped skills:
 - `agents-md-authoring`
 - `prompt-authoring`
 - `skill-authoring`
-- `codemagic-builds`
-- `amir-publish`
 - `codex-review-yolo`
 - `code-review`
 
@@ -76,8 +74,6 @@ Default local path:
 - `~/.agents/skills/agents-md-authoring/`
 - `~/.agents/skills/prompt-authoring/`
 - `~/.agents/skills/skill-authoring/`
-- `~/.agents/skills/codemagic-builds/`
-- `~/.agents/skills/amir-publish/`
 - `~/.agents/skills/codex-review-yolo/`
 - `~/.agents/skills/code-review/`
 
@@ -106,8 +102,6 @@ Installed skills:
   - `agents-md-authoring`
   - `prompt-authoring`
   - `skill-authoring`
-  - `codemagic-builds`
-  - `amir-publish`
   - `codex-review-yolo`
   - `code-review`
 - Claude Code:
@@ -153,9 +147,9 @@ Installed skills:
   - `skill-authoring`
   - `codex-review-yolo`
 
-Install removes stale pre-skill command surfaces, removed competing skill packages, and older Codex skill mirrors. It installs one repo-managed Codex `Stop` hook in `~/.codex/hooks.json` pointing at `~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py --runtime codex` and one repo-managed Claude Code `Stop` hook in `~/.claude/settings.json` pointing at the same installed runner with `--runtime claude`. Those entries back `arch-step` automatic controllers, `arch-docs auto`, `audit-loop auto`, `comment-loop auto`, `audit-loop-sim auto`, `arch-loop`, and `delay-poll`.
+Install removes stale pre-skill command surfaces, removed skill packages, and older Codex skill mirrors. It installs one repo-managed Codex `Stop` hook in `~/.codex/hooks.json` pointing at `~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py --runtime codex` and one repo-managed Claude Code `Stop` hook in `~/.claude/settings.json` pointing at the same installed runner with `--runtime claude`. Those entries back `arch-step` automatic controllers, `arch-docs auto`, `audit-loop auto`, `comment-loop auto`, `audit-loop-sim auto`, `arch-loop`, and `delay-poll`.
 
-`codemagic-builds` and `amir-publish` are installed only on the agents/Codex surface. `arch-loop`, `delay-poll`, and `wait` are installed on Codex and Claude Code because both runtimes have a native `Stop` hook surface. Gemini still has no hook-backed auto-controller surface, so none of those three are installed there. `arch-loop` evaluator turns additionally always shell out to fresh unsandboxed Codex `gpt-5.4` `xhigh` for the external verdict, mirroring the `code-review` exception: the Claude host can arm and drive the loop, but the evaluator subprocess itself must always be Codex. `code-review` is installed on the agents/Codex and Claude Code surfaces only; Claude may host the Stop hook, but the review subprocess itself always shells out to fresh Codex.
+`arch-loop`, `delay-poll`, and `wait` are installed on Codex and Claude Code because both runtimes have a native `Stop` hook surface. Gemini still has no hook-backed auto-controller surface, so none of those three are installed there. `arch-loop` evaluator turns additionally always shell out to fresh unsandboxed Codex `gpt-5.4` `xhigh` for the external verdict, mirroring the `code-review` exception: the Claude host can arm and drive the loop, but the evaluator subprocess itself must always be Codex. `code-review` is installed on the agents/Codex and Claude Code surfaces only; Claude may host the Stop hook, but the review subprocess itself always shells out to fresh Codex.
 
 ## Shared conventions
 
@@ -431,14 +425,6 @@ Examples:
 
 - `Use $skill-authoring to audit this skill package`
 
-### `amir-publish`
-
-Use when Amir wants to publish this skills repo across his usual machines: commit and push the current local work, install locally, then SSH to the fixed host list, skip the current host, pull the same branch from the same directory, and install remotely.
-
-Examples:
-
-- `Use $amir-publish`
-
 ### `code-review`
 
 Use when the user wants a real, deterministic code review — on an uncommitted diff, a branch comparison, a commit range, an explicit path set, or a "is this approved plan phase actually complete?" completion-claim. `code-review` never makes the caller model the reviewer. It always shells out to a fresh unsandboxed Codex `gpt-5.4` `xhigh` synthesis subprocess, with parallel fresh Codex `gpt-5.4-mini` `xhigh` subprocesses for the required per-lens review coverage (`correctness`, `architecture`, `proof`, `docs-drift`, `security`, and a conditional `agent-linter` lens when the change touches agent-building or instruction-bearing surfaces).
@@ -480,5 +466,3 @@ Practical rule:
 Practical rule:
 
 - Do not delete or rename these markers once the doc is live.
-
-Historical pre-skill materials live under `archive/` and `docs/archive/`. They are not part of the runtime surface.

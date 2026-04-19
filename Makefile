@@ -1,12 +1,78 @@
 .PHONY: install install_skill agents_install_skill clean_codex_skill_mirror codex_install_hook claude_install_skill claude_install_hook gemini_install gemini_install_skill verify_install verify_agents_install verify_codex_install verify_claude_install verify_gemini_install remote_install clean_codex_stale_surfaces clean_claude_stale_surfaces clean_gemini_stale_surfaces
 
-REMOVED_SKILLS := arch-skill arch-plan
-SKILLS := arch-step miniarch-step arch-docs arch-mini-plan lilarch bugs-flow audit-loop comment-loop audit-loop-sim goal-loop north-star-investigation arch-flow arch-skills-guide arch-loop delay-poll wait agent-definition-auditor agents-md-authoring prompt-authoring skill-authoring codemagic-builds amir-publish codex-review-yolo code-review
+# Purge removed packages from installed skill dirs before copying the active set.
+REMOVED_SKILLS := arch-skill arch-plan codemagic-builds customerio amir-publish
+# `SKILLS` is the active agents/Codex surface. Claude mirrors it; Gemini omits
+# skills that require same-thread Stop-hook continuation or the code-review runner.
+SKILLS := arch-step miniarch-step arch-docs arch-mini-plan lilarch bugs-flow audit-loop comment-loop audit-loop-sim goal-loop north-star-investigation arch-flow arch-skills-guide arch-loop delay-poll wait agent-definition-auditor agents-md-authoring prompt-authoring skill-authoring codex-review-yolo code-review
 CLAUDE_SKILLS := arch-step miniarch-step arch-docs arch-mini-plan lilarch bugs-flow audit-loop comment-loop audit-loop-sim goal-loop north-star-investigation arch-flow arch-skills-guide arch-loop delay-poll wait agent-definition-auditor agents-md-authoring prompt-authoring skill-authoring codex-review-yolo code-review
 GEMINI_SKILLS := arch-step miniarch-step arch-docs arch-mini-plan lilarch bugs-flow audit-loop comment-loop audit-loop-sim goal-loop north-star-investigation arch-flow arch-skills-guide agent-definition-auditor agents-md-authoring prompt-authoring skill-authoring codex-review-yolo
 NON_CLAUDE_SKILLS := $(filter-out $(CLAUDE_SKILLS),$(SKILLS))
 NON_GEMINI_SKILLS := $(filter-out $(GEMINI_SKILLS),$(SKILLS))
-ARCHIVED_COMMAND_FILES := $(notdir $(wildcard archive/prompts/*.md))
+# Prompt-era command files are no longer runtime sources; these names drive
+# stale-install cleanup and verification for older Codex, Claude, and Gemini paths.
+ARCHIVED_COMMAND_FILES := \
+	arch-ascii.md \
+	arch-audit-agent.md \
+	arch-audit-implementation-agent.md \
+	arch-audit-implementation.md \
+	arch-audit.md \
+	arch-codereview.md \
+	arch-context-load.md \
+	arch-debug-brutal.md \
+	arch-debug.md \
+	arch-deep-dive-agent.md \
+	arch-deep-dive.md \
+	arch-devx-agent.md \
+	arch-devx.md \
+	arch-external-research-agent.md \
+	arch-flow.md \
+	arch-fold-in.md \
+	arch-html-full.md \
+	arch-implement-agent.md \
+	arch-implement.md \
+	arch-kickoff.md \
+	arch-mini-plan-agent.md \
+	arch-new.md \
+	arch-open-pr.md \
+	arch-overbuild-protector.md \
+	arch-phase-plan-agent.md \
+	arch-phase-plan-granularize-agent.md \
+	arch-phase-plan-granularize.md \
+	arch-phase-plan.md \
+	arch-plan-audit-agent.md \
+	arch-plan-audit.md \
+	arch-plan-enhance.md \
+	arch-progress.md \
+	arch-qa-autotest.md \
+	arch-ralph-enhance.md \
+	arch-ralph-retarget.md \
+	arch-ramp-up-agent.md \
+	arch-ramp-up.md \
+	arch-reformat.md \
+	arch-research-agent.md \
+	arch-research.md \
+	arch-review-gate.md \
+	arch-ui-ascii.md \
+	bugs-analyze.md \
+	bugs-fix.md \
+	bugs-review.md \
+	cio-campaign-evaluate.md \
+	goal-loop-context-load.md \
+	goal-loop-flow.md \
+	goal-loop-iterate.md \
+	goal-loop-new.md \
+	lilarch-finish.md \
+	lilarch-plan.md \
+	lilarch-start.md \
+	maestro-autopilot.md \
+	maestro-kill.md \
+	maestro-rerun-last.md \
+	new-arch-from-docs.md \
+	north-star-investigation-bootstrap.md \
+	north-star-investigation-loop.md \
+	qa-autopilot.md \
+	sentry-triage.md
 AGENTS_SKILLS_DIR ?= $(HOME)/.agents/skills
 CODEX_SKILLS_DIR ?= $(HOME)/.codex/skills
 CODEX_HOOKS_FILE ?= $(HOME)/.codex/hooks.json
@@ -121,8 +187,9 @@ verify_agents_install:
 	@for skill in $(SKILLS); do \
 		test -f $(AGENTS_SKILLS_DIR)/$$skill/SKILL.md; \
 	done
-	@test ! -d $(AGENTS_SKILLS_DIR)/arch-plan
-	@test ! -d $(AGENTS_SKILLS_DIR)/arch-skill
+	@for skill in $(REMOVED_SKILLS); do \
+		test ! -d $(AGENTS_SKILLS_DIR)/$$skill; \
+	done
 	@echo "OK: agents skills installed"
 
 verify_codex_install:
@@ -145,8 +212,9 @@ verify_claude_install:
 	@for file in $(ARCHIVED_COMMAND_FILES); do \
 		test ! -f ~/.claude/commands/prompts/$$file; \
 	done
-	@test ! -d $(CLAUDE_SKILLS_DIR)/arch-plan
-	@test ! -d $(CLAUDE_SKILLS_DIR)/arch-skill
+	@for skill in $(REMOVED_SKILLS); do \
+		test ! -d $(CLAUDE_SKILLS_DIR)/$$skill; \
+	done
 	@python3 skills/arch-step/scripts/upsert_claude_stop_hook.py --verify --settings-file "$(CLAUDE_SETTINGS_FILE)" --skills-dir "$(AGENTS_SKILLS_DIR)"
 	@echo "OK: Claude Code active skills installed; one arch_skill Claude Stop hook installed from ~/.agents/skills; stale command surfaces removed"
 
@@ -163,8 +231,9 @@ verify_gemini_install:
 		test ! -f ~/.gemini/commands/prompts/$$command_file; \
 	done
 	@test ! -f ~/.gemini/commands/prompts.toml
-	@test ! -d $(GEMINI_SKILLS_DIR)/arch-plan
-	@test ! -d $(GEMINI_SKILLS_DIR)/arch-skill
+	@for skill in $(REMOVED_SKILLS); do \
+		test ! -d $(GEMINI_SKILLS_DIR)/$$skill; \
+	done
 	@echo "OK: Gemini active skills installed; stale command surfaces removed"
 
 remote_install:

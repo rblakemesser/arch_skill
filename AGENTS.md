@@ -1,9 +1,8 @@
 # AGENTS.md
 
 This repo ships installable agent skills. `skills/` is the live runtime
-surface, `archive/` and `docs/archive/` hold historical material, and
-`Makefile` plus `README.md` own the install surface for Codex, Claude Code,
-and Gemini.
+surface. `Makefile` plus `README.md` own the install surface for Codex,
+Claude Code, and Gemini.
 
 ## Build And Verify
 
@@ -11,7 +10,7 @@ and Gemini.
 - Use `make verify_install` only when you intentionally changed or want to
   validate the installed skill surface.
 - If you change install behavior, also verify the affected paths and commands
-  in `README.md`, `Makefile`, and any touched archive-cleanup paths.
+  in `README.md` and `Makefile`.
 - If you change only doctrine or docs, re-read the edited files and verify any
   commands or paths you added with `rg`. Do not imply that code verification
   ran when it did not.
@@ -40,8 +39,7 @@ and Gemini.
   coordinator skill whose job is to explain how other skills fit together.
 - Keep changes in the smallest owning surface: reusable workflow doctrine in
   `skills/`, install behavior and stale-surface cleanup in `Makefile`, and
-  deeper reference material in `docs/`. Historical material belongs under
-  `archive/` or `docs/archive/`.
+  deeper reference material in `docs/`.
 
 ## Skill Routing
 
@@ -76,8 +74,8 @@ and Gemini.
 
 - `README.md` for install targets, supported tools, and the current skill
   inventory.
+- `CLAUDE.md` as a thin Claude Code shim that imports `AGENTS.md`; do not
+  duplicate repo rules there.
 - `docs/arch_skill_usage_guide.md` for workflow selection and intended usage.
 - `skills/<slug>/SKILL.md` for the runtime contract of a specific shipped
   skill.
-- `archive/` and `docs/archive/` for historical material that is not part of
-  the live runtime surface.

@@ -32,7 +32,7 @@ REQUIRED_HOOKS_FILE_TEXT = "~/.codex/hooks.json"
 REQUIRED_RUNNER_PATH_TEXT = "~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py"
 FORBIDDEN_HOOK_PATH_TEXTS = (
     "~/.codex/hooks/arch_controller_stop_hook.py",
-    "/Users/aelaguiz/.codex/hooks/arch_controller_stop_hook.py",
+    "/Users/example/.codex/hooks/arch_controller_stop_hook.py",
 )
 
 

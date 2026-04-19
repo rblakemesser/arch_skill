@@ -2,6 +2,14 @@
 
 This repo ships installable agent skills centered on the arch suite for Codex CLI, Claude Code, and Gemini CLI.
 
+## Community
+
+- License: [MIT](LICENSE)
+- Contributing: [CONTRIBUTING.md](CONTRIBUTING.md)
+- Security: [SECURITY.md](SECURITY.md)
+- Code of conduct: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+- Support: [SUPPORT.md](SUPPORT.md)
+
 The live arch suite is:
 
 - `arch-step` — the broad full-arch execution surface; owns the full staged workflow, extended helper passes, bounded `auto-plan`, full-frontier `implement-loop`, compact `status`, and guided `advance`
@@ -29,12 +37,8 @@ Other shipped skills are:
 - `agents-md-authoring` — writes, edits, refactors, and audits concise repo-present `AGENTS.md` files
 - `prompt-authoring` — writes, edits, refactors, and audits reusable prompt contracts
 - `skill-authoring` — writes, edits, refactors, and audits reusable agent skill packages
-- `codemagic-builds` — Codemagic CI/CD build monitoring and build control via the Codemagic REST API
-- `amir-publish` — prompt-only shortcut for committing, pushing, installing locally, then pulling and installing this repo across Amir's usual machines
 - `codex-review-yolo` — external Codex `-p yolo` reviewer for substantial diffs, plans, docs, and completion claims
 - `code-review` — deterministic general code-review skill that always shells out to fresh unsandboxed Codex `gpt-5.4` `xhigh` (with parallel `gpt-5.4-mini` `xhigh` review lenses) for diffs, branches, paths, or completion-claim audits; supports direct and hook-backed invocation, and keeps Codex as the reviewer even when Claude hosts the Stop hook
-
-Historical pre-skill materials are archived under `archive/` and `docs/archive/`. They are repo history, not part of the runtime surface.
 
 Examples in this repo use Codex `$skill` notation. In Claude Code, invoke the same skill as `/skill`.
 
@@ -94,8 +98,6 @@ Installed skills:
   - `~/.agents/skills/agents-md-authoring/`
   - `~/.agents/skills/prompt-authoring/`
   - `~/.agents/skills/skill-authoring/`
-  - `~/.agents/skills/codemagic-builds/`
-  - `~/.agents/skills/amir-publish/`
   - `~/.agents/skills/codex-review-yolo/`
   - `~/.agents/skills/code-review/`
 - Claude Code:
@@ -141,9 +143,9 @@ Installed skills:
   - `~/.gemini/skills/skill-authoring/`
   - `~/.gemini/skills/codex-review-yolo/`
 
-Codex reads the same installed skill surface from `~/.agents/skills/`. `make install` also removes stale pre-skill command surfaces, removed competing skill packages, and older `~/.codex/skills/<skill>` mirrors so runtime routing stays unambiguous.
+Codex reads the same installed skill surface from `~/.agents/skills/`. `make install` also removes stale pre-skill command surfaces, removed skill packages, and older `~/.codex/skills/<skill>` mirrors so runtime routing stays unambiguous.
 
-`codemagic-builds` and `amir-publish` are installed only on the agents/Codex surface. `arch-loop`, `delay-poll`, and `wait` are installed on Codex and Claude Code because both runtimes have a native `Stop` hook surface; all three are omitted from Gemini because Gemini still has no hook-backed auto-controller surface and there is no way for the parsed duration, condition re-check, or evaluator-backed verdict to resume the same thread there. `arch-loop` evaluator turns additionally always shell out to fresh unsandboxed Codex `gpt-5.4` `xhigh` for the external verdict; the Claude host can arm and drive the loop, but the evaluator subprocess itself is always Codex, mirroring the `code-review` exception below. `code-review` is installed on the agents/Codex and Claude Code surfaces only; the Claude host can trigger the skill, but the actual review subprocess always shells out to fresh Codex.
+`arch-loop`, `delay-poll`, and `wait` are installed on Codex and Claude Code because both runtimes have a native `Stop` hook surface; all three are omitted from Gemini because Gemini still has no hook-backed auto-controller surface and there is no way for the parsed duration, condition re-check, or evaluator-backed verdict to resume the same thread there. `arch-loop` evaluator turns additionally always shell out to fresh unsandboxed Codex `gpt-5.4` `xhigh` for the external verdict; the Claude host can arm and drive the loop, but the evaluator subprocess itself is always Codex, mirroring the `code-review` exception below. `code-review` is installed on the agents/Codex and Claude Code surfaces only; the Claude host can trigger the skill, but the actual review subprocess always shells out to fresh Codex.
 
 ### Remote install
 
@@ -157,7 +159,7 @@ make remote_install HOST=user@host
 make verify_install
 ```
 
-This validates the installed active skill surface in `~/.agents/skills/`, checks that exactly one arch_skill-managed Codex `Stop` hook exists in `~/.codex/hooks.json` and points at `~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py --runtime codex`, checks that exactly one arch_skill-managed Claude Code `Stop` hook exists in `~/.claude/settings.json` and points at the same installed runner with `--runtime claude`, confirms the old `~/.codex/skills/<skill>` mirrors are absent, and confirms removed competing skill packages are absent for the supported runtimes.
+This validates the installed active skill surface in `~/.agents/skills/`, checks that exactly one arch_skill-managed Codex `Stop` hook exists in `~/.codex/hooks.json` and points at `~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py --runtime codex`, checks that exactly one arch_skill-managed Claude Code `Stop` hook exists in `~/.claude/settings.json` and points at the same installed runner with `--runtime claude`, confirms the old `~/.codex/skills/<skill>` mirrors are absent, and confirms removed skill packages are absent for the supported runtimes.
 
 To confirm the Codex feature gate is enabled:
 
@@ -311,10 +313,6 @@ Use when the user wants to write, edit, refactor, or audit a reusable prompt con
 
 Use when the user wants to write, edit, refactor, or audit a reusable agent skill package with precise triggers, lean packaging, and self-contained references.
 
-### `amir-publish`
-
-Use when Amir wants to publish this skills repo across his usual machines: commit and push the current local work, run `make install` locally, then SSH to the fixed host list, skip the current host, pull the same branch from the same directory, and run `make install` remotely.
-
 ### `code-review`
 
 Use when the user wants a real, deterministic code review against a diff, branch, path set, or "is this plan phase actually complete?" completion-claim. The skill does not review with the caller model. Every review subprocess is a fresh unsandboxed Codex process at `gpt-5.4` `xhigh` for the final synthesis, with parallel `gpt-5.4-mini` `xhigh` Codex subprocesses for per-lens review coverage (`correctness`, `architecture`, `proof`, `docs-drift`, `security`, and a conditional `agent-linter` lens when the change touches agent-building or instruction-bearing surfaces). The runner writes a namespaced artifact tree under `/tmp/code-review/...` (or a caller-supplied `--output-root`) that includes per-lens prompts, stream logs, final outputs, and a single synthesized `ReviewVerdict`.
@@ -325,7 +323,7 @@ Use `code-review` when the user wants an automated finding-set with explicit cov
 
 ## Usage
 
-- Primary surface: ask the agent to use `arch-step`, `arch-docs`, `arch-mini-plan`, `lilarch`, `bugs-flow`, `audit-loop`, `comment-loop`, `audit-loop-sim`, `arch-loop`, `delay-poll`, `wait`, `goal-loop`, `north-star-investigation`, `arch-flow`, `arch-skills-guide`, `agent-definition-auditor`, `agents-md-authoring`, `prompt-authoring`, `skill-authoring`, `code-review`, `codex-review-yolo`, or `amir-publish`.
+- Primary surface: ask the agent to use `arch-step`, `arch-docs`, `arch-mini-plan`, `lilarch`, `bugs-flow`, `audit-loop`, `comment-loop`, `audit-loop-sim`, `arch-loop`, `delay-poll`, `wait`, `goal-loop`, `north-star-investigation`, `arch-flow`, `arch-skills-guide`, `agent-definition-auditor`, `agents-md-authoring`, `prompt-authoring`, `skill-authoring`, `code-review`, or `codex-review-yolo`.
 - Full-arch execution defaults to `miniarch-step` when the trimmed command surface is enough and `arch-step` when the broader or helper-heavy surface is needed.
 - Docs cleanup loops default to `arch-docs`.
 - Read-only checklist and next-step inspection uses `arch-flow`.
@@ -371,7 +369,6 @@ Examples:
 - `Use $agents-md-authoring to tighten this AGENTS.md`
 - `Use $prompt-authoring to refactor this prompt`
 - `Use $skill-authoring to audit this skill package`
-- `Use $amir-publish`
 - `Use $code-review on the uncommitted diff`
 - `Use $code-review branch-diff --base main --head feature/ingest-fix`
 - `Use $code-review paths src/ingest/pipeline.py src/ingest/schema.py`

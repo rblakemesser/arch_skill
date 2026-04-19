@@ -79,6 +79,7 @@ Example pattern, adjust the repo root, review slug, and paths:
 
 ```bash
 REVIEW_SLUG="phase-b-completion"
+REPO_ROOT="$(pwd)"
 RUN_TS="$(date -u +%Y%m%dT%H%M%SZ)"
 RUN_DIR="$(mktemp -d "/tmp/codex-review-${REVIEW_SLUG}-${RUN_TS}-XXXXXX")"
 PROMPT_PATH="$RUN_DIR/prompt.md"
@@ -86,10 +87,10 @@ FINAL_PATH="$RUN_DIR/final.txt"
 STREAM_PATH="$RUN_DIR/stream.log"
 
 # If the audit needs API tokens, source them into the codex environment.
-set -a; source /Users/aelaguiz/workspace/cjdev/.env; set +a
+if [ -f "$REPO_ROOT/.env" ]; then set -a; source "$REPO_ROOT/.env"; set +a; fi
 
 codex exec -p yolo \
-  -C /Users/aelaguiz/workspace/cjdev \
+  -C "$REPO_ROOT" \
   -o "$FINAL_PATH" \
   < "$PROMPT_PATH" \
   > "$STREAM_PATH" 2>&1

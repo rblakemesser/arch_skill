@@ -11,6 +11,8 @@ from pathlib import Path
 HOOK_SCRIPT_NAME = "arch_controller_stop_hook.py"
 HOOK_TIMEOUT_SEC = 90000
 HOOK_RUNTIME = "claude"
+# Legacy script names are repair handles only: install collapses matching
+# arch_skill-managed Stop entries, and verify requires one current runner.
 LEGACY_HOOK_SCRIPT_NAMES = {
     "implement_loop_stop_hook.py",
     "audit_loop_stop_hook.py",

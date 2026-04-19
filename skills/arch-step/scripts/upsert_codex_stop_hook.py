@@ -12,6 +12,9 @@ from pathlib import Path
 STATUS_MESSAGE = (
     "arch_skill automatic controllers are running; planning continuations are quick, fresh reviews or docs evaluations can take a few minutes, and delay polls can wait much longer"
 )
+# Legacy signatures are repair handles only: install collapses any matching
+# arch_skill-managed Stop entries to one current runner, and verify rejects a
+# managed entry unless it exactly matches expected_group().
 LEGACY_STATUS_MESSAGES = {
     "arch_skill automatic controllers are running; planning continuations are quick, fresh audits or docs evaluations can take a few minutes, and delay polls can wait much longer",
     "arch_skill automatic controllers are running; planning continuations are quick, and fresh audits or docs evaluations can take a few minutes",
