@@ -316,15 +316,27 @@ class ArchLoopStateValidationTests(unittest.TestCase):
         with self.assertRaises(SystemExit):
             self._run(self._valid_state(next_due_at=9999))
 
-    def test_rejects_unknown_audit_status(self) -> None:
-        with self.assertRaises(SystemExit):
-            self._run(
-                self._valid_state(
-                    required_skill_audits=[
-                        {"skill": "agent-linter", "status": "bogus"}
-                    ]
-                )
-            )
+    def test_rejects_unknown_audit_status_with_allowed_values(self) -> None:
+        for bad_status in ("completed", "fixing_in_progress"):
+            stderr = io.StringIO()
+            saved_stderr = sys.stderr
+            sys.stderr = stderr
+            try:
+                with self.assertRaises(SystemExit) as ctx:
+                    self._run(
+                        self._valid_state(
+                            required_skill_audits=[
+                                {"skill": "agent-linter", "status": bad_status}
+                            ]
+                        )
+                    )
+            finally:
+                sys.stderr = saved_stderr
+
+            self.assertEqual(ctx.exception.code, 2)
+            message = stderr.getvalue()
+            self.assertIn(repr(bad_status), message)
+            self.assertIn("pending, pass, fail, missing, inapplicable", message)
 
     def test_rejects_invalid_last_continue_mode(self) -> None:
         with self.assertRaises(SystemExit):

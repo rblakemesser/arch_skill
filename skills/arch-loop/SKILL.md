@@ -34,6 +34,7 @@ Use this skill when the user wants the same visible Codex or Claude Code thread 
 - Cap and cadence enforcement is deterministic. Only unambiguous duration/window, iteration, and cadence phrases parse into machine constraints; ambiguous cap/cadence text fails loud before the loop arms (see `references/cap-extraction.md`).
 - Cadence windows that cannot fit inside the installed Stop-hook timeout fail loud. Do not turn an interval request into a manual reminder.
 - Named skill audits such as `$agent-linter` are real audit obligations. The parent runs the named skill during work passes; the external evaluator verifies passing evidence before allowing `clean`.
+- `required_skill_audits[].status` must be exactly `pending`, `pass`, `fail`, `missing`, or `inapplicable`. Use `pending` while work or audit proof is still in progress; put words like `completed` or `fixing_in_progress` in `latest_summary`, not `status`.
 - One session may arm multiple arch_skill auto controllers; the installed Stop hook drives one per turn. `arch-loop` is one of them and shares the duplicate-controller registry.
 - Do not run the Stop hook yourself. After the controller is armed, end the turn naturally and let the installed Stop hook own continuation.
 - Do not introduce a separate `arch_loop_controller.py` runner. `arch-loop` is owned by the shared suite hook.

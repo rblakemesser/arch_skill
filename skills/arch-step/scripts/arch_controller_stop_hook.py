@@ -2318,7 +2318,8 @@ def extract_arch_loop_constraints(
     }
 
 
-_ARCH_LOOP_VALID_AUDIT_STATUSES = {"pending", "pass", "fail", "missing", "inapplicable"}
+_ARCH_LOOP_AUDIT_STATUS_DISPLAY = ("pending", "pass", "fail", "missing", "inapplicable")
+_ARCH_LOOP_VALID_AUDIT_STATUSES = set(_ARCH_LOOP_AUDIT_STATUS_DISPLAY)
 _ARCH_LOOP_VALID_CONTINUE_MODES = {"", "parent_work", "wait_recheck", "none"}
 _ARCH_LOOP_EVAL_AUDIT_STATUSES = {
     "pass",
@@ -2508,6 +2509,7 @@ def validate_arch_loop_state(
                 clear_state(state_path)
                 block_with_message(
                     f"arch-loop required_skill_audits entry had an unknown status ({status!r}); "
+                    f"expected one of: {', '.join(_ARCH_LOOP_AUDIT_STATUS_DISPLAY)}. "
                     "the controller was disarmed. Re-arm arch-loop truthfully."
                 )
             skill_name = audit.get("skill")
