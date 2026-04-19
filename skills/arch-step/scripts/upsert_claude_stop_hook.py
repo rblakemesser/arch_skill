@@ -43,7 +43,7 @@ def command_mentions_repo_runner(command: str) -> bool:
 
 def load_settings_file(settings_file: Path) -> dict:
     if not settings_file.exists():
-        return {}
+        return {"hooks": {}}
     try:
         data = json.loads(settings_file.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
