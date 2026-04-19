@@ -1,39 +1,51 @@
-# Audit Prompt Template
+# Review Prompt Template
 
-Use this skeleton when drafting `/tmp/codex_audit_prompt.md`. Fill every `<...>` placeholder; delete any section that genuinely doesn't apply (but default to keeping them).
+Use this skeleton when drafting a namespaced prompt file such as `$PROMPT_PATH`. Fill every `<...>` placeholder; delete any section that genuinely doesn't apply (but default to keeping them).
 
 ## Skeleton
 
 ```markdown
-You are auditing <what — one phrase, e.g. "Phase A of the Seller Portal Figma Code Connect rollout">. Another Claude agent (me) just completed the work and wants an independent review before <push | merge | ship>. Be skeptical. If the work is wrong, say so plainly.
+You are performing an independent review of <what — one phrase, e.g. "Phase B completion of the Seller Portal rollout">. The requester wants a skeptical external audit before <merge | ship | execute | share | mark-complete>. Be skeptical. Read the artifacts directly. If the work is not approved, say so plainly.
+
+# Review goal
+
+- Requested decision: <what approval means here>
+- Standard for approval: <the bar codex should apply>
 
 # What to audit
 
 Working directory: <absolute path>
 
-## <repo or artifact heading>
-- HEAD commit: <sha> ("<subject>")
-- Relevant docs:
-  - <path>  (one line on why it matters)
-  - <path>
+## Primary artifacts
+- <path | commit | branch | checklist | doc> — <why it matters>
+- <path | commit | branch | checklist | doc> — <why it matters>
 
-## <submodule / other component heading, if applicable>
-- <sha> <subject>   (one line of context)
-- <sha> <subject>
+## Supporting artifacts (if applicable)
+- <path | commit | branch | checklist | doc> — <why it matters>
+- <path | commit | branch | checklist | doc> — <why it matters>
 
-All commits are LOCAL ONLY — nothing has been pushed.
+## Scope notes (if applicable)
+- <local-only note, repo relationship, or boundary>
 
-# Context — what was claimed
+# Claims / expected outcomes / completion targets
 
-The executing agent says it:
+## Explicit claims (if provided)
 
 1. <claim 1, specific, verifiable>
 2. <claim 2>
 3. ...
 
+## Expected outcomes or checklist items (if provided)
+
+1. <outcome 1 or completion item>
+2. <outcome 2>
+3. ...
+
+If neither subsection applies, say: "No explicit claims or checklist were provided; inspect the artifact directly."
+
 # What I want you to check
 
-Please do ALL of the following. Read files directly from the filesystem — don't trust my claims.
+Please do ALL of the following. Read files directly from the filesystem — don't trust the supplied claims or summaries.
 
 1. **<concern 1>.** <what to look at, where to look>
 2. **<concern 2>.** <...>
@@ -50,33 +62,42 @@ N. **Anything else you notice.** Unused imports, broken contract, security conce
 
 End with a final verdict block:
 
-    VERDICT: ship / ship-with-notes / do-not-ship
+    VERDICT: approve / approve-with-notes / not-approved
     BLOCKING: <list blocking issues, or "none">
     NON-BLOCKING: <list notable issues that can wait>
-    ACCURACY OF EXECUTING AGENT'S CLAIMS: <concise assessment>
+    ACCURACY OF CLAIMS / COMPLETION: <concise assessment>
 
 Be direct. I want the real assessment, not reassurance.
 ```
 
-## Variants
+## Example adaptations
 
-### Diff-only review
+These are examples, not a mandatory menu. Adapt the skeleton to the actual review goal.
+
+### Example: diff-only review
 
 If the artifact is a single uncommitted diff rather than commits:
 
-- Replace "HEAD commit" with "Uncommitted diff in <branch>; see `git diff HEAD`".
+- In "Primary artifacts", list "Uncommitted diff in <branch>; see `git diff HEAD`".
 - In "what to check", tell codex: "Run `git diff HEAD` to see the diff".
 
-### Plan / design doc review
+### Example: implementation completion audit
+
+If the user wants an external audit of whether a plan phase or implementation checklist was actually completed:
+
+- In "Review goal", define the approval bar in terms of completion, not shipping.
+- In "Expected outcomes or checklist items", list the phase goals or acceptance items you want audited.
+- In "what to check", ask codex to compare the implemented artifacts against those outcomes and call out any claimed-but-missing work.
+
+### Example: plan / design doc review
 
 If the artifact is a plan doc (not code):
 
-- Drop the commit section entirely.
 - In "What to audit", list the doc paths and the specific sections in scope.
-- In "What I want you to check", focus on: logical consistency, hidden dependencies, missing preconditions, blast radius of each step, reversibility.
-- Keep the verdict block — but rename `BLOCKING` → `BLOCKING BEFORE EXECUTION`.
+- In "What I want you to check", focus on: logical consistency, hidden dependencies, missing preconditions, blast radius of each step, reversibility, and whether the plan actually earns approval for execution.
+- Keep the generic verdict block unchanged.
 
-### Cross-repo / submodule review
+### Example: cross-repo / submodule review
 
 When both a super-repo commit and a submodule commit need to be audited together:
 
@@ -89,7 +110,8 @@ Don't:
 
 - Send a terse prompt like "review my work" — codex has no context and will hallucinate.
 - Omit the verdict block — you'll get a narrative that's hard to act on.
-- Paste the diff inline instead of pointing at commits — it inflates the prompt and codex can't cross-reference with the rest of the tree.
+- Treat one example above like a hardcoded prompt shape — adapt the sections to the real review objective.
+- Paste the diff inline instead of pointing at commits or files — it inflates the prompt and codex can't cross-reference with the rest of the tree.
 - List secrets inline. Point at `.env` and source it into the codex env before invocation.
 - Ask codex to "also fix the issues it finds". This skill is review-only; fixing is a separate turn after you've read the verdict.
 
