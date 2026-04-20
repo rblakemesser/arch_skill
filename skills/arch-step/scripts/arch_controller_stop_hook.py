@@ -1384,7 +1384,7 @@ def run_delay_poll_check(cwd: Path, check_prompt: str) -> FreshStructuredResult:
 def validate_implement_loop_state(
     payload: dict,
     resolved_state: ResolvedControllerState | None,
-) -> tuple[Path, str, Path] | None:
+) -> tuple[Path, str, dict, Path] | None:
     cwd = Path(payload["cwd"]).resolve()
     loaded = load_controller_state(
         cwd,
@@ -1412,8 +1412,15 @@ def validate_implement_loop_state(
             "implement-loop controller state was missing doc_path; "
             "the loop was disarmed. Update the plan and worklog truthfully, then stop."
         )
+    requested_yield = state.get("requested_yield")
+    if requested_yield is not None and not isinstance(requested_yield, dict):
+        clear_state(state_path)
+        block_with_message(
+            "implement-loop controller state had a non-object requested_yield; "
+            "the loop was disarmed. Re-arm implement-loop truthfully."
+        )
     doc_path = resolve_path(cwd, doc_path_value)
-    return doc_path, doc_path_value, state_path
+    return doc_path, doc_path_value, state, state_path
 
 
 def validate_auto_plan_state(
@@ -1449,6 +1456,14 @@ def validate_auto_plan_state(
             "the controller was disarmed. Update the plan truthfully and stop."
         )
 
+    requested_yield = state.get("requested_yield")
+    if requested_yield is not None and not isinstance(requested_yield, dict):
+        clear_state(state_path)
+        block_with_message(
+            "auto-plan controller state had a non-object requested_yield; "
+            "the controller was disarmed. Re-arm auto-plan truthfully."
+        )
+
     doc_path = resolve_path(cwd, doc_path_value)
     return doc_path, doc_path_value, state, state_path
 
@@ -1456,7 +1471,7 @@ def validate_auto_plan_state(
 def validate_miniarch_step_implement_loop_state(
     payload: dict,
     resolved_state: ResolvedControllerState | None,
-) -> tuple[Path, str, Path] | None:
+) -> tuple[Path, str, dict, Path] | None:
     cwd = Path(payload["cwd"]).resolve()
     loaded = load_controller_state(
         cwd,
@@ -1484,8 +1499,15 @@ def validate_miniarch_step_implement_loop_state(
             "miniarch-step implement-loop controller state was missing doc_path; "
             "the loop was disarmed. Update the plan and worklog truthfully, then stop."
         )
+    requested_yield = state.get("requested_yield")
+    if requested_yield is not None and not isinstance(requested_yield, dict):
+        clear_state(state_path)
+        block_with_message(
+            "miniarch-step implement-loop controller state had a non-object "
+            "requested_yield; the loop was disarmed. Re-arm implement-loop truthfully."
+        )
     doc_path = resolve_path(cwd, doc_path_value)
-    return doc_path, doc_path_value, state_path
+    return doc_path, doc_path_value, state, state_path
 
 
 def validate_miniarch_step_auto_plan_state(
@@ -1519,6 +1541,14 @@ def validate_miniarch_step_auto_plan_state(
         block_with_message(
             "miniarch-step auto-plan controller state was missing doc_path; "
             "the controller was disarmed. Update the plan truthfully and stop."
+        )
+
+    requested_yield = state.get("requested_yield")
+    if requested_yield is not None and not isinstance(requested_yield, dict):
+        clear_state(state_path)
+        block_with_message(
+            "miniarch-step auto-plan controller state had a non-object "
+            "requested_yield; the controller was disarmed. Re-arm auto-plan truthfully."
         )
 
     doc_path = resolve_path(cwd, doc_path_value)
@@ -1769,10 +1799,15 @@ def validate_delay_poll_state(
     write_required = False
 
     version = state.get("version")
-    if version is None:
-        state["version"] = 1
-        write_required = True
-    elif version != 1:
+    if version is None or version == 1:
+        clear_state(state_path)
+        block_with_message(
+            "delay-poll controller state is from an older schema (version<2); "
+            "the controller was disarmed. Re-arm delay-poll with the current "
+            "controller, which pins sha256(check_prompt)/sha256(resume_prompt) "
+            "and enforces hook-timeout fit."
+        )
+    elif version != 2:
         clear_state(state_path)
         block_with_message(
             "delay-poll controller state had an unsupported version; "
@@ -1785,6 +1820,14 @@ def validate_delay_poll_state(
         block_with_message(
             "delay-poll controller state was missing a positive interval_seconds; "
             "the controller was disarmed. Update the wait state truthfully and stop."
+        )
+    if interval_seconds >= ARCH_LOOP_INSTALLED_HOOK_TIMEOUT_SECONDS:
+        clear_state(state_path)
+        block_with_message(
+            f"delay-poll interval_seconds={interval_seconds} exceeds the installed "
+            f"Stop-hook timeout ({ARCH_LOOP_INSTALLED_HOOK_TIMEOUT_SECONDS}s); "
+            "the controller was disarmed. Shorten the interval or use a "
+            "different workflow."
         )
 
     armed_at = state.get("armed_at")
@@ -1801,6 +1844,14 @@ def validate_delay_poll_state(
         block_with_message(
             "delay-poll controller state was missing a valid deadline_at timestamp; "
             "the controller was disarmed. Update the wait state truthfully and stop."
+        )
+    if (deadline_at - armed_at) >= ARCH_LOOP_INSTALLED_HOOK_TIMEOUT_SECONDS:
+        clear_state(state_path)
+        block_with_message(
+            f"delay-poll wait window ({deadline_at - armed_at}s) exceeds the "
+            f"installed Stop-hook timeout ({ARCH_LOOP_INSTALLED_HOOK_TIMEOUT_SECONDS}s); "
+            "the controller was disarmed. Shorten the wait cap or use a "
+            "different workflow."
         )
 
     check_prompt = state.get("check_prompt")
@@ -1820,6 +1871,82 @@ def validate_delay_poll_state(
             "the controller was disarmed. Update the wait state truthfully and stop."
         )
     state["resume_prompt"] = resume_prompt.strip()
+
+    # Mutation guards. The parent captured check_prompt/resume_prompt literally
+    # at arm time; any later edit produces a different digest and clears state.
+    stored_check_hash = state.get("check_prompt_hash")
+    if not isinstance(stored_check_hash, str) or not stored_check_hash.strip():
+        clear_state(state_path)
+        block_with_message(
+            "delay-poll controller state is missing check_prompt_hash. "
+            "Re-arm required due to delay-poll schema upgrade; the parent arm "
+            "pass must now store sha256(check_prompt) to pin the waited-on "
+            "condition."
+        )
+    if stored_check_hash != _compute_sha256(state["check_prompt"]):
+        clear_state(state_path)
+        block_with_message(
+            "delay-poll check_prompt mutation detected: the stored "
+            "check_prompt_hash does not match sha256(check_prompt). "
+            "The controller was disarmed. Re-arm with the user's original "
+            "wait condition literally; do not narrow or rewrite it."
+        )
+
+    stored_resume_hash = state.get("resume_prompt_hash")
+    if not isinstance(stored_resume_hash, str) or not stored_resume_hash.strip():
+        clear_state(state_path)
+        block_with_message(
+            "delay-poll controller state is missing resume_prompt_hash. "
+            "Re-arm required due to delay-poll schema upgrade; the parent arm "
+            "pass must now store sha256(resume_prompt) to pin the resume "
+            "instructions."
+        )
+    if stored_resume_hash != _compute_sha256(state["resume_prompt"]):
+        clear_state(state_path)
+        block_with_message(
+            "delay-poll resume_prompt mutation detected: the stored "
+            "resume_prompt_hash does not match sha256(resume_prompt). "
+            "The controller was disarmed. Re-arm with the user's original "
+            "resume instructions literally; do not edit them across turns."
+        )
+
+    cap_evidence = state.get("cap_evidence")
+    if cap_evidence is None:
+        state["cap_evidence"] = []
+        write_required = True
+    elif not isinstance(cap_evidence, list):
+        clear_state(state_path)
+        block_with_message(
+            "delay-poll controller state had a non-list cap_evidence; "
+            "the controller was disarmed. Update the wait state truthfully and stop."
+        )
+    else:
+        for item in cap_evidence:
+            if not isinstance(item, dict):
+                clear_state(state_path)
+                block_with_message(
+                    "delay-poll controller state had a non-object cap_evidence entry; "
+                    "the controller was disarmed. Update the wait state truthfully and stop."
+                )
+            for required_key in ("type", "source_text", "normalized"):
+                val = item.get(required_key)
+                if not isinstance(val, str) or not val.strip():
+                    clear_state(state_path)
+                    block_with_message(
+                        f"delay-poll controller state cap_evidence entry was missing "
+                        f"a non-empty {required_key}; the controller was disarmed."
+                    )
+
+    # delay-poll has no parent work pass; `requested_yield` has no meaning
+    # here. Hard-reject rather than silently ignore so the writes matrix stays
+    # tight and the user gets a loud diagnostic.
+    if "requested_yield" in state:
+        clear_state(state_path)
+        block_with_message(
+            "delay-poll controller state contained requested_yield, which is "
+            "only valid for controllers with a parent work pass (arch-loop, "
+            "arch-step, miniarch-step). The controller was disarmed."
+        )
 
     attempt_count = state.get("attempt_count")
     if attempt_count is None:
@@ -2401,6 +2528,16 @@ _ARCH_LOOP_VALID_AUDIT_STATUSES = set(_ARCH_LOOP_AUDIT_STATUS_DISPLAY)
 _ARCH_LOOP_VALID_CONTINUE_MODES = {"", "parent_work", "wait_recheck", "none"}
 
 
+def _compute_sha256(value: str) -> str:
+    """Return the canonical SHA-256 hex digest of a UTF-8 string.
+
+    Shared by every controller mutation guard so the pattern lives in one
+    place. Any edit to the hashed string — re-wording, re-indenting,
+    shortening — produces a different digest and trips the owning validator.
+    """
+    return hashlib.sha256(value.encode("utf-8")).hexdigest()
+
+
 def _arch_loop_raw_requirements_hash(raw_requirements: str) -> str:
     """Return the canonical SHA-256 of raw_requirements as stored in state.
 
@@ -2409,7 +2546,7 @@ def _arch_loop_raw_requirements_hash(raw_requirements: str) -> str:
     produce a different digest and trip the mutation guard in
     validate_arch_loop_state.
     """
-    return hashlib.sha256(raw_requirements.encode("utf-8")).hexdigest()
+    return _compute_sha256(raw_requirements)
 
 
 def _arch_loop_audits_fingerprint(audits: list | None) -> str:
@@ -2646,6 +2783,14 @@ def validate_arch_loop_state(
                 "Re-arm arch-loop truthfully."
             )
 
+    requested_yield = state.get("requested_yield")
+    if requested_yield is not None and not isinstance(requested_yield, dict):
+        clear_state(state_path)
+        block_with_message(
+            "arch-loop controller state had a non-object requested_yield; "
+            "the controller was disarmed. Re-arm arch-loop truthfully."
+        )
+
     # raw_requirements immutability guard. The stored hash is pinned at arm
     # time; any parent-side edit to raw_requirements (narrowing, rewording,
     # dropping a clause) will produce a different recomputed digest and clear
@@ -2721,6 +2866,117 @@ def arch_loop_sleep_reason(next_due_at: int, deadline_at: int | None) -> int:
     if deadline_at is not None:
         wait_until = min(wait_until, deadline_at)
     return max(wait_until - now, 0)
+
+
+# ---------------------------------------------------------------------------
+# Shared child-yield vocabulary.
+#
+# A controller's parent work pass has exactly one verb by default: "end turn",
+# which the Stop hook immediately re-fires. That design forces tight loops
+# whenever the parent has nothing useful to do right now (waiting on CI, just
+# asked the user a question, etc.). `apply_child_yield` gives the parent a
+# structured escape hatch via a single `requested_yield` object the parent may
+# write into the controller state before ending its turn. The field is
+# parent-writable, hook-honored-then-cleared, and orthogonal to evaluator-owned
+# continuation modes.
+#
+# Supported kinds:
+#   - sleep_for: hook sleeps the requested seconds (bounded by deadline_at and
+#     the installed hook timeout), clears the field, and falls through to the
+#     caller's normal dispatch (evaluator, audit, etc.).
+#   - await_user: hook clears the field, persists state (controller stays
+#     armed), and emits stop_with_json(continue=False). The next user turn
+#     arrives with the user's reply; the Stop hook re-dispatches normally.
+# ---------------------------------------------------------------------------
+
+_VALID_CHILD_YIELD_KINDS = ("sleep_for", "await_user")
+_CHILD_YIELD_SAFETY_MARGIN_SECONDS = 30
+
+
+def apply_child_yield(
+    state: dict,
+    state_path: Path,
+    *,
+    controller_display: str,
+    state_path_value: str,
+) -> None:
+    """Honor and clear `state.requested_yield` if present.
+
+    If absent: silent no-op. If present and valid: honor the requested yield
+    kind, then clear the field and persist before returning control. If the
+    field is malformed, clear state and block loudly — the controller is too
+    damaged to continue.
+
+    The hook always clears the field *before* performing the requested action
+    so a crash mid-sleep cannot cause the same yield to replay on the next
+    hook entry.
+    """
+    yield_obj = state.get("requested_yield")
+    if yield_obj is None:
+        return
+    if not isinstance(yield_obj, dict):
+        clear_state(state_path)
+        block_with_message(
+            f"{controller_display} controller state had a non-object "
+            "requested_yield; the controller was disarmed. Re-arm truthfully."
+        )
+
+    kind = yield_obj.get("kind")
+    if kind not in _VALID_CHILD_YIELD_KINDS:
+        clear_state(state_path)
+        block_with_message(
+            f"{controller_display} controller state had an unknown "
+            f"requested_yield kind ({kind!r}); expected one of: "
+            f"{', '.join(_VALID_CHILD_YIELD_KINDS)}. The controller was disarmed."
+        )
+
+    reason = yield_obj.get("reason")
+    if not isinstance(reason, str) or not reason.strip():
+        clear_state(state_path)
+        block_with_message(
+            f"{controller_display} controller state requested_yield requires a "
+            "non-empty reason string. The controller was disarmed."
+        )
+    reason_clean = reason.strip()
+
+    if kind == "sleep_for":
+        seconds = yield_obj.get("seconds")
+        if not isinstance(seconds, int) or seconds <= 0:
+            clear_state(state_path)
+            block_with_message(
+                f"{controller_display} controller state requested_yield "
+                "kind=sleep_for requires a positive integer seconds; "
+                "the controller was disarmed."
+            )
+
+    # Clear-and-persist before honoring. A crash mid-sleep or mid-stop must
+    # not replay the same yield on restart.
+    state.pop("requested_yield", None)
+    write_state(state_path, state)
+
+    if kind == "await_user":
+        stop_with_json(
+            f"{controller_display} parent pass requested a graceful yield back "
+            f"to the user: {reason_clean}. The controller remains armed at "
+            f"{state_path_value}; the Stop hook will re-dispatch after the "
+            "next user turn.",
+            system_message=f"{controller_display} yielding to user: {reason_clean}.",
+        )
+
+    # kind == "sleep_for"
+    now = current_epoch_seconds()
+    requested_seconds = int(yield_obj["seconds"])
+    target_at = now + requested_seconds
+    deadline_at = state.get("deadline_at")
+    if isinstance(deadline_at, int) and deadline_at > 0:
+        target_at = min(target_at, deadline_at)
+    ceiling = max(
+        ARCH_LOOP_INSTALLED_HOOK_TIMEOUT_SECONDS
+        - _CHILD_YIELD_SAFETY_MARGIN_SECONDS,
+        0,
+    )
+    bounded = max(min(target_at - now, ceiling), 0)
+    sleep_for_seconds(bounded)
 
 
 def read_audit_loop_controller_fields(ledger_path: Path) -> dict[str, str] | None:
@@ -3019,7 +3275,13 @@ def handle_implement_loop(payload: dict) -> int:
     if validated is None:
         return 0
 
-    doc_path, doc_path_value, state_path = validated
+    doc_path, doc_path_value, state, state_path = validated
+    apply_child_yield(
+        state,
+        state_path,
+        controller_display=IMPLEMENT_LOOP_DISPLAY_NAME,
+        state_path_value=display_path(state_path, cwd),
+    )
     if not doc_path.exists():
         clear_state(state_path)
         block_with_message(
@@ -3103,6 +3365,12 @@ def handle_auto_plan(payload: dict) -> int:
 
     doc_path, doc_path_value, state, state_path = validated
     state_path_value = display_path(state_path, cwd)
+    apply_child_yield(
+        state,
+        state_path,
+        controller_display=AUTO_PLAN_DISPLAY_NAME,
+        state_path_value=state_path_value,
+    )
     if not doc_path.exists():
         clear_state(state_path)
         block_with_message(
@@ -3164,7 +3432,13 @@ def handle_miniarch_step_implement_loop(payload: dict) -> int:
     if validated is None:
         return 0
 
-    doc_path, doc_path_value, state_path = validated
+    doc_path, doc_path_value, state, state_path = validated
+    apply_child_yield(
+        state,
+        state_path,
+        controller_display=MINIARCH_STEP_IMPLEMENT_LOOP_DISPLAY_NAME,
+        state_path_value=display_path(state_path, cwd),
+    )
     if not doc_path.exists():
         clear_state(state_path)
         block_with_message(
@@ -3258,6 +3532,12 @@ def handle_miniarch_step_auto_plan(payload: dict) -> int:
 
     doc_path, doc_path_value, state, state_path = validated
     state_path_value = display_path(state_path, cwd)
+    apply_child_yield(
+        state,
+        state_path,
+        controller_display=MINIARCH_STEP_AUTO_PLAN_DISPLAY_NAME,
+        state_path_value=state_path_value,
+    )
     if not doc_path.exists():
         clear_state(state_path)
         block_with_message(
@@ -3941,6 +4221,16 @@ def handle_arch_loop(payload: dict) -> int:
     # cannot silently rewind the iteration cap.
     state["iteration_count"] = int(state.get("iteration_count") or 0) + 1
     write_state(state_path, state)
+
+    # If the parent requested a graceful yield (sleep or await-user), honor it
+    # before spending evaluator budget. await_user exits cleanly with state
+    # armed; sleep_for sleeps in-process then falls through to the evaluator.
+    apply_child_yield(
+        state,
+        state_path,
+        controller_display=ARCH_LOOP_DISPLAY_NAME,
+        state_path_value=state_path_value,
+    )
 
     prompt_path = resolve_arch_loop_evaluator_prompt_path()
     if prompt_path is None:

@@ -37,6 +37,7 @@ Hook-backed loop that keeps the parent agent working against the user's literal 
 - **One controller per session.** `arch-loop` shares the duplicate-controller registry, so any other armed controller state for the same session is a conflict.
 - **Do not run the Stop hook yourself.** After arming, end the turn naturally and let the hook own continuation.
 - **No separate runner.** `arch-loop` is owned by the shared suite hook; do not fork a dedicated controller binary.
+- **Child-requested yield is the only graceful pause lever.** When a parent work pass has nothing useful to do right now (waiting on a long async job), it may write a single `requested_yield` object into state before ending the turn. The Stop hook honors and clears it. `requested_yield` does not replace the evaluator-driven `continue_mode=wait_recheck` cadence path; cadence is still the right tool when the user pre-armed an interval.
 
 ## First move
 

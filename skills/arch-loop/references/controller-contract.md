@@ -104,6 +104,7 @@ One session may arm only one arch_skill controller kind at a time. The shared ru
 - `check_count` (starts at `0`, incremented by the Stop hook after each cadence-owned evaluator/check pass)
 - `cap_evidence` (list of `{type, source_text, normalized}` entries; `type` is `runtime`, `cadence`, or `iterations`)
 - `required_skill_audits` (list of named-audit evidence entries; see below)
+- `requested_yield` (parent-writable child-yield request; hook-honored-then-cleared; see **Child-requested yield** below)
 - `last_work_summary`, `last_verification_summary`, `last_evaluator_verdict`, `last_evaluator_summary`, `last_next_task`, `last_continue_mode`
 
 ### Named-audit evidence entry
@@ -130,6 +131,7 @@ The parent seeds each entry with `status: pending` at arm and may refresh `lates
 - detects named audits and seeds `required_skill_audits` entries with `status: pending` at arm only; after the first Stop-hook dispatch, `status` is hook-owned and any parent-side edit is rejected at the next read
 - runs named audits during the work pass and refreshes each entry's `latest_summary` and optional `evidence_path` (never `status`)
 - writes `last_work_summary` and `last_verification_summary`
+- may write `requested_yield` exactly once per turn to request a graceful pause (see **Child-requested yield** below); the Stop hook always clears it before honoring
 - never writes `last_evaluator_verdict`, `last_evaluator_summary`, `last_next_task`, `last_continue_mode`, `iteration_count`, `check_count`, `next_due_at`, `audits_authoritative_fingerprint`, or `required_skill_audits[].status` after the initial arm seed; the Stop hook owns those fields
 - never clears the state file; only the Stop hook may delete state
 
@@ -155,6 +157,7 @@ The parent seeds each entry with `status: pending` at arm and may refresh `lates
 ### 2) Stop hook evaluation
 
 - validates the state file and session id (if either fails, the hook clears state and stops loudly)
+- honors any `requested_yield` written by the parent (see **Child-requested yield** below); clears the field before performing the action so a crash mid-honor cannot replay the same yield
 - if `deadline_at` is already past, the hook clears state and stops with a timeout summary (no further evaluator run)
 - if `iteration_count >= max_iterations` and the last verdict was `continue` with `parent_work`, the hook clears state and stops with a max-iterations summary
 - if `next_due_at` is present and in the future, the hook sleeps until `min(next_due_at, deadline_at)` before launching the evaluator
@@ -212,3 +215,27 @@ The shared runner reports the specific broken field so the user can repair and r
 - `wait_recheck` means no parent work is useful until the next interval. The hook owns sleeping and rechecking; the parent thread is not woken. This mode is only legal when `interval_seconds` is armed.
 
 The evaluator chooses the mode per verdict. Deterministic code never tries to infer mode from requirement text.
+
+## Child-requested yield
+
+Orthogonal to evaluator-owned `continue_mode`. A parent work pass may decide on its own that there is nothing useful to do right now — a long async job is in flight, or it asked the user a clarifying question and needs to yield cleanly instead of sitting in a tight loop. In that case the parent may write a single `requested_yield` object into state before ending its turn:
+
+```jsonc
+"requested_yield": {
+  "kind": "sleep_for" | "await_user",
+  "seconds": 1200,              // sleep_for only; positive integer
+  "reason": "kicked off CI; nothing to do until it lands"
+}
+```
+
+The Stop hook honors the request at the top of its dispatch (right after state validation), clears the field, and persists state before taking any action.
+
+- `sleep_for`: the hook sleeps `min(seconds, deadline_at - now, installed_hook_timeout - safety_margin)` in-process, then falls through to the normal evaluator launch. The parent is not re-invoked between the yield and the next evaluator pass.
+- `await_user`: the hook emits `stop_with_json(continue=False)` with the reason. The controller stays armed; the state file is not cleared. The next user turn triggers the Stop hook again and dispatch resumes normally.
+
+Rules:
+
+- `requested_yield` is child-writable only. The Stop hook always clears it before honoring; the parent must not re-read it.
+- The hook clears-and-persists the field *before* performing the action, so a crash mid-sleep cannot replay the same yield on restart.
+- Unknown `kind`, missing `reason`, or invalid `seconds` clears state loudly — the request was malformed.
+- `requested_yield` does not replace cadence-driven `wait_recheck`; cadence is still the right tool when the user pre-armed an interval in `raw_requirements`.

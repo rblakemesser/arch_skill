@@ -26,12 +26,17 @@ Use this skill when the user wants the same visible Codex or Claude Code thread 
 
 - `delay-poll` must be real hook-backed behavior in Codex and Claude Code. The installed runner is the shared suite hook at `~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py`. If that runner or the active host runtime's repo-managed `Stop` entry is missing, fail loud. In Codex that means `~/.codex/hooks.json` pointing at `~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py --runtime codex` plus the `codex_hooks` feature gate. In Claude Code that means `~/.claude/settings.json` pointing at `~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py --runtime claude`.
 - Keep the waited-on condition as a literal `check_prompt` and the continuation as a literal `resume_prompt`. Do not invent git-specific, CI-specific, or service-specific heuristics.
+- `check_prompt` and `resume_prompt` are pinned at arm time. The arming parent pass stores `check_prompt_hash = sha256(check_prompt)` and `resume_prompt_hash = sha256(resume_prompt)` in state. The Stop hook recomputes both on every read; mismatch clears state with `check_prompt mutation detected` or `resume_prompt mutation detected`. Do not edit either string after arming.
+- State is at schema `version: 2`. The hook refuses to honor older states and clears them with a re-arm message — this is load-bearing: pre-version-2 states lack the hash pins and hook-timeout-fit checks.
+- `interval_seconds` must be smaller than the installed Stop-hook timeout. `deadline_at - armed_at` must also fit under that same ceiling, because the hook does all waiting inside one process. The validator rejects overruns loudly rather than silently clamping.
+- Record `cap_evidence` at arm time for both `interval_seconds` and `deadline_at` (a list of `{type, source_text, normalized}` entries) so the origin of each cap survives into state.
 - Do one immediate grounded check before arming the wait state. If the condition is already true, do not arm the controller.
 - Default maximum wait window is 24 hours unless the user explicitly sets a different cap.
 - Later polling checks stay read-only. Mutation belongs only to the resumed main thread after the condition becomes true.
 - One session may arm only one arch_skill controller kind at a time. If another controller state is already armed for the same session, the installed Stop hook stops with a conflict message naming the files.
 - Do not look for or require a dedicated delay-specific runner file such as `delay_poll_controller.py`. `delay-poll` is owned by the shared suite hook, not a separate controller binary.
 - Do not run the Stop hook yourself. After the controller is armed, just end the turn and let the installed Stop hook run.
+- `requested_yield` is not valid on delay-poll state — delay-poll has no parent work pass, only the hook's poll loop. The hook hard-rejects and clears state if it sees one. Graceful child-yield belongs to `arch-loop`, `arch-step`, and `miniarch-step`.
 - Internal `check` mode is suite-only. Do not advertise it as a public user workflow.
 
 ## First move
@@ -51,7 +56,7 @@ Use this skill when the user wants the same visible Codex or Claude Code thread 
 
 ### 1) Default arm mode
 
-1. **Arm**: ensure-install the Stop hook (`arch_controller_stop_hook.py --ensure-installed --runtime <codex|claude>`; fails loud on drift) → resolve the session id (on Claude Code via `arch_controller_stop_hook.py --current-session`; abort with its error if it fails) → resolve literal `check_prompt`, polling interval, maximum wait window, and `resume_prompt` (default resume prompt when the user did not supply one: `The waited-on condition is now satisfied. Continue the same task using this new truth and the latest check summary below.`) → run one immediate grounded read-only check against the literal `check_prompt`. If the condition is already true, continue from the same turn with the `resume_prompt` plus the latest summary and do not arm state. If the condition is not yet true, write the session-scoped state file and end the turn.
+1. **Arm**: ensure-install the Stop hook (`arch_controller_stop_hook.py --ensure-installed --runtime <codex|claude>`; fails loud on drift) → resolve the session id (on Claude Code via `arch_controller_stop_hook.py --current-session`; abort with its error if it fails) → resolve literal `check_prompt`, polling interval, maximum wait window, and `resume_prompt` (default resume prompt when the user did not supply one: `The waited-on condition is now satisfied. Continue the same task using this new truth and the latest check summary below.`) → run one immediate grounded read-only check against the literal `check_prompt`. If the condition is already true, continue from the same turn with the `resume_prompt` plus the latest summary and do not arm state. If the condition is not yet true, compute `check_prompt_hash = sha256(check_prompt)` and `resume_prompt_hash = sha256(resume_prompt)`, record `cap_evidence` for the interval and deadline, write the session-scoped state file at `version: 2`, and end the turn.
 2. **Body** (hook-owned): the installed Stop hook sleeps, launches a fresh read-only `check` child on the configured interval (Codex: `codex exec --ephemeral`; Claude Code: `claude -p --settings '{"disableAllHooks":true}'`), parses `ready`/`summary`/`evidence`, and resumes the parent thread with `resume_prompt` and the latest summary when `ready` is true.
 3. **Disarm** (hook-owned): the Stop hook clears state when the condition becomes true, the deadline elapses, or a fresh evaluator blocks.
 
@@ -77,5 +82,6 @@ Use this skill when the user wants the same visible Codex or Claude Code thread 
 
 ## Reference map
 
-- `references/delay-poll-controller.md` - state schema, conditional-arm deviation, and arm-mode behavior (core doctrine and recovery live in `skills/_shared/controller-contract.md`)
+- `references/delay-poll-controller.md` - state schema (version 2), mutation guards on `check_prompt_hash` / `resume_prompt_hash`, hook-timeout-fit validation, `cap_evidence` shape, and conditional-arm deviation (core doctrine and recovery live in `skills/_shared/controller-contract.md`)
+- `references/examples.md` - canonical asks with parsed caps and full state snapshots, including arm-reject cases
 - `references/check.md` - suite-only read-only checker contract and JSON output rules

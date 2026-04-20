@@ -549,7 +549,25 @@ class CodexStopHookTests(unittest.TestCase):
             self.stop_module.DELAY_POLL_STATE_RELATIVE_PATH,
             session_id,
         )
-        self.write_json(state_path, state_payload)
+        payload = dict(state_payload)
+        auto_seed = payload.pop("_auto_seed_hashes", True)
+        if auto_seed:
+            # Convenience for happy-path tests: upgrade a v1 sentinel to v2 and
+            # compute the missing hashes so every test does not have to spell
+            # them out. Tests that want to exercise the hash-mutation or
+            # old-version guards set `_auto_seed_hashes=False` and provide the
+            # fields themselves.
+            if payload.get("version", 2) == 1 and "check_prompt" in payload:
+                payload["version"] = 2
+            if "check_prompt" in payload and "check_prompt_hash" not in payload:
+                payload["check_prompt_hash"] = self.stop_module._compute_sha256(
+                    payload["check_prompt"]
+                )
+            if "resume_prompt" in payload and "resume_prompt_hash" not in payload:
+                payload["resume_prompt_hash"] = self.stop_module._compute_sha256(
+                    payload["resume_prompt"]
+                )
+        self.write_json(state_path, payload)
 
         result_iter = iter(check_results)
         sleeps: list[int] = []
@@ -591,9 +609,11 @@ class CodexStopHookTests(unittest.TestCase):
             self.stop_module.sleep_for_seconds = original_sleep
             sys.stdout = saved_stdout
             sys.stderr = saved_stderr
+        raw_stdout = stdout.getvalue()
+        parsed = json.loads(raw_stdout) if raw_stdout.strip() else {}
         return (
             raised.exception.code,
-            json.loads(stdout.getvalue()),
+            parsed,
             stderr.getvalue(),
             state_path,
             sleeps,
@@ -1874,6 +1894,293 @@ class CodexStopHookTests(unittest.TestCase):
             self.assertFalse(state_path.exists())
             self.assertEqual(sleeps, [])
             self.assertEqual(final_time, 100)
+
+    def test_delay_poll_rejects_old_version_state(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo_root = Path(temp_dir)
+            exit_code, payload, stderr, state_path, sleeps, final_time = self.run_delay_poll_handler(
+                repo_root,
+                "session-1",
+                state_payload={
+                    "_auto_seed_hashes": False,
+                    "version": 1,
+                    "command": "delay-poll",
+                    "session_id": "session-1",
+                    "interval_seconds": 1800,
+                    "armed_at": 100,
+                    "deadline_at": 5000,
+                    "check_prompt": "Check whether branch blah is pushed.",
+                    "resume_prompt": "Pull branch blah.",
+                    "attempt_count": 0,
+                    "last_check_at": None,
+                    "last_summary": "",
+                },
+                check_results=[],
+                start_time=100,
+            )
+
+            self.assertEqual(exit_code, 2)
+            self.assertEqual(payload, {})
+            self.assertIn("older schema", stderr)
+            self.assertFalse(state_path.exists())
+            self.assertEqual(sleeps, [])
+
+    def test_delay_poll_detects_check_prompt_mutation(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo_root = Path(temp_dir)
+            exit_code, payload, stderr, state_path, sleeps, final_time = self.run_delay_poll_handler(
+                repo_root,
+                "session-1",
+                state_payload={
+                    "_auto_seed_hashes": False,
+                    "version": 2,
+                    "command": "delay-poll",
+                    "session_id": "session-1",
+                    "interval_seconds": 1800,
+                    "armed_at": 100,
+                    "deadline_at": 5000,
+                    "check_prompt": "Check whether branch blah is pushed (edited).",
+                    "check_prompt_hash": self.stop_module._compute_sha256(
+                        "Check whether branch blah is pushed."
+                    ),
+                    "resume_prompt": "Pull branch blah.",
+                    "resume_prompt_hash": self.stop_module._compute_sha256(
+                        "Pull branch blah."
+                    ),
+                    "attempt_count": 0,
+                    "last_check_at": None,
+                    "last_summary": "",
+                },
+                check_results=[],
+                start_time=100,
+            )
+
+            self.assertEqual(exit_code, 2)
+            self.assertEqual(payload, {})
+            self.assertIn("check_prompt mutation detected", stderr)
+            self.assertFalse(state_path.exists())
+            self.assertEqual(sleeps, [])
+
+    def test_delay_poll_detects_resume_prompt_mutation(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo_root = Path(temp_dir)
+            exit_code, payload, stderr, state_path, sleeps, final_time = self.run_delay_poll_handler(
+                repo_root,
+                "session-1",
+                state_payload={
+                    "_auto_seed_hashes": False,
+                    "version": 2,
+                    "command": "delay-poll",
+                    "session_id": "session-1",
+                    "interval_seconds": 1800,
+                    "armed_at": 100,
+                    "deadline_at": 5000,
+                    "check_prompt": "Check whether branch blah is pushed.",
+                    "check_prompt_hash": self.stop_module._compute_sha256(
+                        "Check whether branch blah is pushed."
+                    ),
+                    "resume_prompt": "Pull branch blah (edited).",
+                    "resume_prompt_hash": self.stop_module._compute_sha256(
+                        "Pull branch blah."
+                    ),
+                    "attempt_count": 0,
+                    "last_check_at": None,
+                    "last_summary": "",
+                },
+                check_results=[],
+                start_time=100,
+            )
+
+            self.assertEqual(exit_code, 2)
+            self.assertEqual(payload, {})
+            self.assertIn("resume_prompt mutation detected", stderr)
+            self.assertFalse(state_path.exists())
+            self.assertEqual(sleeps, [])
+
+    def test_delay_poll_rejects_oversize_interval(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo_root = Path(temp_dir)
+            oversize = self.stop_module.ARCH_LOOP_INSTALLED_HOOK_TIMEOUT_SECONDS + 10
+            exit_code, payload, stderr, state_path, sleeps, final_time = self.run_delay_poll_handler(
+                repo_root,
+                "session-1",
+                state_payload={
+                    "version": 2,
+                    "command": "delay-poll",
+                    "session_id": "session-1",
+                    "interval_seconds": oversize,
+                    "armed_at": 100,
+                    "deadline_at": 100 + oversize + 100,
+                    "check_prompt": "Check whether branch blah is pushed.",
+                    "resume_prompt": "Pull branch blah.",
+                    "attempt_count": 0,
+                    "last_check_at": None,
+                    "last_summary": "",
+                },
+                check_results=[],
+                start_time=100,
+            )
+
+            self.assertEqual(exit_code, 2)
+            self.assertEqual(payload, {})
+            self.assertIn("interval_seconds", stderr)
+            self.assertIn("installed Stop-hook timeout", stderr)
+            self.assertFalse(state_path.exists())
+
+    def test_delay_poll_rejects_oversize_wait_window(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo_root = Path(temp_dir)
+            oversize_window = self.stop_module.ARCH_LOOP_INSTALLED_HOOK_TIMEOUT_SECONDS + 10
+            exit_code, payload, stderr, state_path, sleeps, final_time = self.run_delay_poll_handler(
+                repo_root,
+                "session-1",
+                state_payload={
+                    "version": 2,
+                    "command": "delay-poll",
+                    "session_id": "session-1",
+                    "interval_seconds": 1800,
+                    "armed_at": 100,
+                    "deadline_at": 100 + oversize_window,
+                    "check_prompt": "Check whether branch blah is pushed.",
+                    "resume_prompt": "Pull branch blah.",
+                    "attempt_count": 0,
+                    "last_check_at": None,
+                    "last_summary": "",
+                },
+                check_results=[],
+                start_time=100,
+            )
+
+            self.assertEqual(exit_code, 2)
+            self.assertEqual(payload, {})
+            self.assertIn("wait window", stderr)
+            self.assertFalse(state_path.exists())
+
+    def test_delay_poll_rejects_requested_yield(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo_root = Path(temp_dir)
+            exit_code, payload, stderr, state_path, sleeps, final_time = self.run_delay_poll_handler(
+                repo_root,
+                "session-1",
+                state_payload={
+                    "version": 2,
+                    "command": "delay-poll",
+                    "session_id": "session-1",
+                    "interval_seconds": 1800,
+                    "armed_at": 100,
+                    "deadline_at": 5000,
+                    "check_prompt": "Check whether branch blah is pushed.",
+                    "resume_prompt": "Pull branch blah.",
+                    "attempt_count": 0,
+                    "last_check_at": None,
+                    "last_summary": "",
+                    "requested_yield": {
+                        "kind": "sleep_for",
+                        "seconds": 60,
+                        "reason": "smoke",
+                    },
+                },
+                check_results=[],
+                start_time=100,
+            )
+
+            self.assertEqual(exit_code, 2)
+            self.assertEqual(payload, {})
+            self.assertIn("requested_yield", stderr)
+            self.assertIn("delay-poll", stderr)
+            self.assertFalse(state_path.exists())
+
+    def test_delay_poll_keeps_cap_evidence_on_intermediate_write(self) -> None:
+        # Drive the handler with a never-ready result so the hook eventually
+        # clears state on timeout, but we can verify the intermediate
+        # state.json still holds cap_evidence by intercepting `write_state`.
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo_root = Path(temp_dir)
+            cap_evidence = [
+                {"type": "interval", "source_text": "every 30 minutes", "normalized": "1800s"},
+                {"type": "deadline", "source_text": "for up to 24h", "normalized": "86400s"},
+            ]
+            state_path = self.controller_state_path(
+                repo_root,
+                self.stop_module.DELAY_POLL_STATE_RELATIVE_PATH,
+                "session-1",
+            )
+            payload = {
+                "version": 2,
+                "command": "delay-poll",
+                "session_id": "session-1",
+                "interval_seconds": 1800,
+                "armed_at": 100,
+                "deadline_at": 2000,
+                "check_prompt": "Check whether branch blah is pushed.",
+                "check_prompt_hash": self.stop_module._compute_sha256(
+                    "Check whether branch blah is pushed."
+                ),
+                "resume_prompt": "Pull branch blah.",
+                "resume_prompt_hash": self.stop_module._compute_sha256(
+                    "Pull branch blah."
+                ),
+                "attempt_count": 0,
+                "last_check_at": None,
+                "last_summary": "",
+                "cap_evidence": cap_evidence,
+            }
+            self.write_json(state_path, payload)
+
+            writes: list[dict] = []
+            original_write = self.stop_module.write_state
+
+            def capture_write(path, data):
+                writes.append(dict(data))
+                original_write(path, data)
+
+            fake_now = {"value": 100}
+
+            def fake_time():
+                return fake_now["value"]
+
+            def fake_sleep(seconds: int):
+                fake_now["value"] += seconds
+
+            original_run = self.stop_module.run_delay_poll_check
+            original_time = self.stop_module.current_epoch_seconds
+            original_sleep = self.stop_module.sleep_for_seconds
+
+            def fake_run(*args, **kwargs):
+                return self.structured_result(
+                    {
+                        "ready": False,
+                        "summary": "still waiting",
+                        "evidence": ["origin/blah unchanged"],
+                    }
+                )
+
+            self.stop_module.write_state = capture_write
+            self.stop_module.run_delay_poll_check = fake_run
+            self.stop_module.current_epoch_seconds = fake_time
+            self.stop_module.sleep_for_seconds = fake_sleep
+            stdout = io.StringIO()
+            stderr = io.StringIO()
+            saved_stdout = sys.stdout
+            saved_stderr = sys.stderr
+            try:
+                sys.stdout = stdout
+                sys.stderr = stderr
+                with self.assertRaises(SystemExit):
+                    self.stop_module.handle_delay_poll(
+                        {"cwd": str(repo_root), "session_id": "session-1"}
+                    )
+            finally:
+                self.stop_module.write_state = original_write
+                self.stop_module.run_delay_poll_check = original_run
+                self.stop_module.current_epoch_seconds = original_time
+                self.stop_module.sleep_for_seconds = original_sleep
+                sys.stdout = saved_stdout
+                sys.stderr = saved_stderr
+
+            self.assertTrue(writes, "hook should have persisted at least one intermediate state")
+            for snapshot in writes:
+                self.assertEqual(snapshot.get("cap_evidence"), cap_evidence)
 
 
 class WaitDurationParserTests(unittest.TestCase):

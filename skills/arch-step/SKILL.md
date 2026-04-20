@@ -210,6 +210,22 @@ Workflow:
 - Execution does not rewrite requirements, scope, acceptance criteria, or phase obligations mid-coding. If the plan itself needs to change, stop and repair the plan instead of continuing on a rewritten story.
 - The parent implementation pass may ship code and sync plan/worklog truth, but only the fresh `audit-implementation` child may author the authoritative audit outcome, emit the `arch-docs` handoff, or clear loop state.
 
+#### Graceful yield (auto-plan / implement-loop / auto-implement)
+
+Prefer not to need user feedback — approved plan intent and repo evidence should settle most decisions. When that fails and the parent must genuinely ask the user a question, or the parent has nothing useful to do until an async signal lands, write a single `requested_yield` object into the controller state before ending the turn. The Stop hook honors and clears it before the next audit:
+
+```jsonc
+"requested_yield": {
+  "kind": "sleep_for" | "await_user",
+  "seconds": 1200,   // sleep_for only; positive integer
+  "reason": "asked the user to choose between canonical owner paths"
+}
+```
+
+- `await_user`: the hook stops cleanly (`continue=False`) with the reason and leaves the controller armed. The next user turn resumes dispatch normally. This is the graceful exit when you asked the user a question; do not end the turn without writing the yield, or the Stop hook will tight-loop.
+- `sleep_for`: the hook sleeps the requested seconds (bounded by the installed hook timeout) and then continues to the next audit/planning pass. Rare — typically only useful when a long external job is in flight.
+- The field is single-shot. Write it once per turn; the hook clears it before taking action. Do not re-read it.
+
 ### Output expectations
 
 - Keep console output high-signal and natural.

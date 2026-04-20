@@ -488,6 +488,210 @@ class ArchLoopStateValidationTests(unittest.TestCase):
             # isn't armed either).
             self.assertIsNone(resolved)
 
+    def test_accepts_requested_yield_object(self) -> None:
+        state = self._valid_state(
+            requested_yield={
+                "kind": "sleep_for",
+                "seconds": 60,
+                "reason": "smoke",
+            }
+        )
+        # Validator must not strip or reject a well-formed `requested_yield`
+        # — it is honored later by `apply_child_yield`.
+        result, _ = self._run(state)
+        self.assertIsNotNone(result)
+        loaded_state, _ = result
+        self.assertEqual(
+            loaded_state.get("requested_yield"),
+            {"kind": "sleep_for", "seconds": 60, "reason": "smoke"},
+        )
+
+    def test_rejects_non_object_requested_yield(self) -> None:
+        stderr = io.StringIO()
+        saved_stderr = sys.stderr
+        sys.stderr = stderr
+        try:
+            with self.assertRaises(SystemExit):
+                self._run(self._valid_state(requested_yield="sleep please"))
+        finally:
+            sys.stderr = saved_stderr
+        self.assertIn("requested_yield", stderr.getvalue())
+
+
+_SENTINEL_NO_YIELD = object()
+
+
+class ArchLoopChildYieldTests(unittest.TestCase):
+    """Exercise `apply_child_yield` directly for both kinds + validation."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.stop = load_module(STOP_HOOK_PATH, "arch_skill_arch_controller_stop_hook")
+
+    def setUp(self) -> None:
+        self.stop.ACTIVE_RUNTIME = self.stop.HOOK_RUNTIME_SPECS[self.stop.RUNTIME_CODEX]
+
+    def _run_apply(
+        self,
+        yield_obj: object,
+        *,
+        deadline_at: int | None = 2000,
+        now: int = 100,
+    ):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo_root = Path(temp_dir)
+            state_path = repo_root / "state.json"
+            state: dict = {"deadline_at": deadline_at} if deadline_at is not None else {}
+            if yield_obj is not _SENTINEL_NO_YIELD:
+                state["requested_yield"] = yield_obj
+            state_path.write_text(json.dumps(state) + "\n", encoding="utf-8")
+
+            sleeps: list[int] = []
+            fake_now = {"value": now}
+
+            def fake_time():
+                return fake_now["value"]
+
+            def fake_sleep(seconds: int):
+                sleeps.append(seconds)
+                fake_now["value"] += seconds
+
+            original_time = self.stop.current_epoch_seconds
+            original_sleep = self.stop.sleep_for_seconds
+            self.stop.current_epoch_seconds = fake_time
+            self.stop.sleep_for_seconds = fake_sleep
+            stdout = io.StringIO()
+            stderr = io.StringIO()
+            saved_stdout = sys.stdout
+            saved_stderr = sys.stderr
+            raised: SystemExit | None = None
+            try:
+                sys.stdout = stdout
+                sys.stderr = stderr
+                try:
+                    self.stop.apply_child_yield(
+                        state,
+                        state_path,
+                        controller_display="arch-loop",
+                        state_path_value=str(state_path),
+                    )
+                except SystemExit as exc:
+                    raised = exc
+            finally:
+                self.stop.current_epoch_seconds = original_time
+                self.stop.sleep_for_seconds = original_sleep
+                sys.stdout = saved_stdout
+                sys.stderr = saved_stderr
+
+            if state_path.exists():
+                persisted = json.loads(state_path.read_text(encoding="utf-8"))
+            else:
+                persisted = None
+            return {
+                "exit": raised.code if raised else None,
+                "stdout": stdout.getvalue(),
+                "stderr": stderr.getvalue(),
+                "sleeps": sleeps,
+                "persisted": persisted,
+                "now": fake_now["value"],
+            }
+
+    def test_absent_yield_is_silent_noop(self) -> None:
+        result = self._run_apply(_SENTINEL_NO_YIELD)
+        self.assertIsNone(result["exit"])
+        self.assertEqual(result["sleeps"], [])
+        self.assertEqual(result["stdout"], "")
+        self.assertEqual(result["stderr"], "")
+
+    def test_sleep_for_honored_and_clamped_by_deadline(self) -> None:
+        # Requested 5000s, deadline is at 2000, now=100 → bounded to 1900.
+        result = self._run_apply(
+            {"kind": "sleep_for", "seconds": 5000, "reason": "smoke"},
+            deadline_at=2000,
+            now=100,
+        )
+        self.assertIsNone(result["exit"])
+        self.assertEqual(result["sleeps"], [1900])
+        # Field cleared and persisted before sleep.
+        self.assertNotIn("requested_yield", result["persisted"] or {})
+
+    def test_sleep_for_honored_without_deadline(self) -> None:
+        result = self._run_apply(
+            {"kind": "sleep_for", "seconds": 120, "reason": "wait CI"},
+            deadline_at=None,
+            now=100,
+        )
+        self.assertIsNone(result["exit"])
+        self.assertEqual(result["sleeps"], [120])
+        self.assertNotIn("requested_yield", result["persisted"] or {})
+
+    def test_sleep_for_bounded_by_installed_hook_timeout(self) -> None:
+        ceiling = self.stop.ARCH_LOOP_INSTALLED_HOOK_TIMEOUT_SECONDS - 30
+        result = self._run_apply(
+            {
+                "kind": "sleep_for",
+                "seconds": self.stop.ARCH_LOOP_INSTALLED_HOOK_TIMEOUT_SECONDS * 2,
+                "reason": "very long",
+            },
+            deadline_at=None,
+            now=100,
+        )
+        self.assertIsNone(result["exit"])
+        self.assertEqual(result["sleeps"], [ceiling])
+
+    def test_await_user_stops_and_leaves_state_armed(self) -> None:
+        result = self._run_apply(
+            {"kind": "await_user", "reason": "need scope clarification"},
+            deadline_at=2000,
+            now=100,
+        )
+        self.assertEqual(result["exit"], 0)
+        payload = json.loads(result["stdout"])
+        self.assertFalse(payload["continue"])
+        self.assertIn("need scope clarification", payload["stopReason"])
+        # State file remains, with the yield field cleared.
+        self.assertIsNotNone(result["persisted"])
+        self.assertNotIn("requested_yield", result["persisted"])
+        self.assertIn("deadline_at", result["persisted"])
+
+    def test_unknown_kind_clears_state_and_blocks(self) -> None:
+        result = self._run_apply(
+            {"kind": "explode", "reason": "what is this"},
+            deadline_at=2000,
+            now=100,
+        )
+        self.assertEqual(result["exit"], 2)
+        self.assertIn("requested_yield", result["stderr"])
+        self.assertIsNone(result["persisted"])  # state file removed
+
+    def test_non_object_yield_clears_state_and_blocks(self) -> None:
+        result = self._run_apply(
+            "sleep please",
+            deadline_at=2000,
+            now=100,
+        )
+        self.assertEqual(result["exit"], 2)
+        self.assertIn("requested_yield", result["stderr"])
+        self.assertIsNone(result["persisted"])
+
+    def test_sleep_for_requires_positive_seconds(self) -> None:
+        result = self._run_apply(
+            {"kind": "sleep_for", "seconds": 0, "reason": "nope"},
+            deadline_at=2000,
+            now=100,
+        )
+        self.assertEqual(result["exit"], 2)
+        self.assertIn("seconds", result["stderr"])
+
+    def test_yield_requires_non_empty_reason(self) -> None:
+        result = self._run_apply(
+            {"kind": "await_user", "reason": "   "},
+            deadline_at=2000,
+            now=100,
+        )
+        self.assertEqual(result["exit"], 2)
+        self.assertIn("reason", result["stderr"])
+
 
 class ArchLoopRuntimeStatePathTests(unittest.TestCase):
     """Assert that arch-loop state paths resolve under the runtime-local root."""
