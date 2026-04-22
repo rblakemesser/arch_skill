@@ -4865,7 +4865,14 @@ def cmd_session_start_cache() -> int:
     if not isinstance(session_id, str) or not session_id:
         sys.stderr.write("SessionStart payload missing session_id\n")
         return 2
-    cli_pid = os.getppid()
+    cli_pid, chain = _walk_up_to_claude_cli(os.getppid())
+    if cli_pid is None:
+        chain_text = ",".join(str(p) for p in chain) if chain else "<unknown>"
+        sys.stderr.write(
+            "SessionStart hook could not locate the Claude CLI in the ancestor "
+            f"chain (visited: {chain_text}); cache not written\n"
+        )
+        return 2
     cache_path = _session_cache_path(cli_pid)
     cache_path.parent.mkdir(parents=True, exist_ok=True)
     record = {
