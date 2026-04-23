@@ -65,6 +65,17 @@ step is spawned, critiqued, resumed if needed, and advanced when passing.
   on fail are all forbidden. Apply the user's `stop_discipline`.
 - Fabricated step completion (claim without artifact) fails the step
   regardless of profile.
+- Do NOT reach for `/loop`, `ScheduleWakeup`, `delay-poll`, or any other
+  wait-helper to bridge step or critic subprocess runs. This skill's
+  execution model is foreground `Bash` calls to `run_stepwise.py`'s
+  `step-spawn` / `critic-spawn` / `step-resume`. `Bash` tolerates up to
+  a 10-minute timeout, which covers almost every step on a reasonable
+  model. If a subprocess genuinely outlasts that, use Bash's
+  `run_in_background` and wait for the harness's automatic
+  task-notification — do not wake yourself with `/loop` or
+  `ScheduleWakeup` every minute; every wake-up re-injects unrelated
+  skill bodies and burns tokens. The orchestrator's waiting mechanism
+  is whatever `Bash` already provides.
 - When the critic sets `route_to_step_n` on a fail and
   `stop_discipline = autonomous_repair`, the orchestrator reopens the
   named target. The orchestrator does not pick which step to reopen —
