@@ -30,6 +30,14 @@ is locked at Phase 3 confirmation — it does not change during execution.
 }
 ```
 
+`stop_discipline` is one of `halt_and_ask`, `skip_and_continue`,
+`escalate_to_user`, or `autonomous_repair`. The first three govern
+behavior when a step's self-retries are exhausted. `autonomous_repair`
+additionally lets the orchestrator reopen an earlier step when a
+critic sets `route_to_step_n` on a fail — containment stays the
+target step's own `per_step_retry_cap`. See `strictness-profiles.md`
+for when to pick each.
+
 ## StepDescriptor
 
 ```json
@@ -211,3 +219,10 @@ After reading the target repo's `CLAUDE.md` and
 
 The example above is illustrative. Real manifests follow whatever the
 target repo's doctrine actually says, not this shape.
+
+For an autonomous_repair run (e.g., the user says "don't wake me up,
+fix it and keep going"), the only difference at the manifest level is
+`"stop_discipline": "autonomous_repair"`. `per_step_retry_cap` is
+unchanged — it still caps every reopening of a target step, so a
+step whose retries are exhausted halts the run regardless of
+discipline.

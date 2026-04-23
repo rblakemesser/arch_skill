@@ -65,12 +65,24 @@ step is spawned, critiqued, resumed if needed, and advanced when passing.
   on fail are all forbidden. Apply the user's `stop_discipline`.
 - Fabricated step completion (claim without artifact) fails the step
   regardless of profile.
+- When the critic sets `route_to_step_n` on a fail and
+  `stop_discipline = autonomous_repair`, the orchestrator reopens the
+  named target. The orchestrator does not pick which step to reopen —
+  that is the critic's authority.
+- Downstream re-runs after an upstream repair are fresh `step-spawn`s,
+  not resumes. Their prior context was built on the broken upstream
+  artifact; resuming would compound the error.
+- Containment on `autonomous_repair` is the target step's own
+  `max_retries`. Every reopening is another try on the target; when
+  the target's retries exhaust, halt with its last verdict.
 
 ## First move
 
 1. Capture the user's prompt verbatim. Compute `sha256`.
 2. Read `references/strictness-profiles.md`. Interpret the prompt:
-   pick profile, forced checks, stop discipline, retry cap.
+   pick profile, forced checks, stop discipline (`halt_and_ask |
+   skip_and_continue | escalate_to_user | autonomous_repair`), retry
+   cap.
 3. Read `references/model-and-effort.md`. Parse model/effort from the
    prompt. Ask one consolidated question if missing.
 4. Resolve `target_repo_path` (absolute). Fail loud if unresolvable.

@@ -21,7 +21,9 @@ which is which at every step.
   `strictness-profiles.md`.
 - `forced_checks` — list of check names forced on regardless of profile.
 - `stop_discipline` — `halt_and_ask` | `skip_and_continue` |
-  `escalate_to_user`.
+  `escalate_to_user` | `autonomous_repair`. `autonomous_repair` reopens
+  an earlier step when a critic routes a fail upstream via
+  `route_to_step_n`; see Phase 4c.
 - `per_step_retry_cap` — integer derived from the profile.
 - `sub_session_runtime_default` — `claude` or `codex`.
 - `models` — step_model, step_effort, critic_model, critic_effort.
@@ -149,10 +151,34 @@ For each step `n` from 1 to N:
 
 - `verdict=pass` → mark step `pass` (or `pass-after-retry` if `k>1`).
   Advance to step `n+1`.
-- `verdict=fail` + retries remaining → compose the resume prompt per
-  `step-prompt-contract.md`. Build the resume invocation per
-  `session-resume.md` (`claude -r <id>` or `codex exec resume <id>`).
-  Run. Repeat 4b on the new attempt.
+- `verdict=fail` + `route_to_step_n = M` + `stop_discipline =
+  autonomous_repair` → reopen step M:
+  - If step M's retries are exhausted, halt with M's last verdict.
+    Containment on `autonomous_repair` is M's own `max_retries`; a
+    target that has been reopened up to its cap is treated like any
+    other exhausted step.
+  - Otherwise, `step-resume` step M with the critic's `resume_hint`
+    (addressed to M, not to the current step). The critic's phrasing
+    is what M reads. This counts as another try on M.
+  - Run M's critic against the new try. On M fail, fall back into the
+    normal fail handling for M (including another upstream route if
+    the critic emits one).
+  - On M pass, mark M `repaired`. Then fresh `step-spawn` for each
+    step from M+1 through the current step n (downstream sessions
+    were built on the broken M artifact; resume would compound). Run
+    each critic as usual. A fresh pass on a re-run step is
+    `pass-after-repair`; a fresh fail re-enters the normal fail
+    handling for that step.
+- `verdict=fail` + `route_to_step_n` present but `stop_discipline` is
+  anything other than `autonomous_repair` → treat like a retries-
+  remaining fail (resume the current step with the same
+  `resume_hint`) or, if retries are exhausted, apply `stop_discipline`
+  as below. The routing field is a hint only; the orchestrator does
+  not reopen upstream unless the discipline says so.
+- `verdict=fail` + no `route_to_step_n` + retries remaining → compose
+  the resume prompt per `step-prompt-contract.md`. Build the resume
+  invocation per `session-resume.md` (`claude -r <id>` or `codex exec
+  resume <id>`). Run. Repeat 4b on the new attempt.
 - `verdict=fail` + retries exhausted → apply `stop_discipline`:
   - `halt_and_ask`: mark step `blocked`. Stop the loop. Jump to
     Phase 5 with remaining steps marked `pending`.
@@ -160,6 +186,9 @@ For each step `n` from 1 to N:
   - `escalate_to_user`: print the verdict, ask the user how to
     proceed. Their decision selects `halt_and_ask` or
     `skip_and_continue` semantics for this step only.
+  - `autonomous_repair`: with no routing hint and retries exhausted,
+    fall back to `halt_and_ask` semantics — autonomous repair has
+    nothing to repair with.
 - `verdict=abstain` → fail loud. Ask the user what to do.
 
 **Where judgment lives:** step 4c's decision is mechanical (cap

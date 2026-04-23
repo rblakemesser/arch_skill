@@ -103,6 +103,7 @@ level).
         "do_not_redo": {"type": "array", "items": {"type": "string"}}
       }
     },
+    "route_to_step_n": {"type": "integer", "minimum": 1},
     "abstain_reason": {"type": "string"},
     "summary": {"type": "string"}
   }
@@ -130,6 +131,12 @@ Field semantics:
   - `required_fixes`: imperative-form items. The step should execute these.
   - `do_not_redo`: things the step already did correctly. The step should
     not tear down good work to rebuild it.
+- `route_to_step_n`: optional. Set on `verdict=fail` when the fix lives in
+  an earlier step's artifact and the current step cannot repair it from
+  its own scope. Must be `< step_n`. When set, `resume_hint` is addressed
+  to that earlier step — its `headline` and `required_fixes` will be read
+  by the target step's session when the orchestrator reopens it. Omit for
+  self-routed fails.
 - `abstain_reason`: required when `verdict=abstain`. Plain English.
 - `summary`: 1–3 sentences the orchestrator shows in the Phase 5 report.
 
@@ -149,6 +156,38 @@ Forced checks from intake are unioned into the default set. `no_fabrication`
 is always present regardless of profile — lenient means "don't care about
 form", not "don't care about truth".
 
+## Routing a fail
+
+A fail must be actionable. The critic decides where the actual repair
+lives and expresses that via `route_to_step_n`.
+
+Self-routed (omit `route_to_step_n`): the current step can repair this
+from within its declared scope. A resume with `required_fixes` would be
+enough.
+
+Upstream-routed (set `route_to_step_n = M`, with `M < step_n`): the
+repair lives in step M's artifact, and the current step cannot reach
+it from within its declared scope. Address `resume_hint` to step M — its
+`headline` and `required_fixes` are what step M's session will read
+when it reopens.
+
+Use upstream routing only when the fix is impossible from the current
+step's scope, not when it's merely preferable upstream. "An earlier
+step could have done this better" is not a routing reason. When in
+doubt, route self.
+
+Example — route self: step 4 produced an artifact missing a field the
+step was supposed to produce. The field is derivable from what step 4
+was doing. Omit `route_to_step_n`; set `required_fixes` naming the
+missing field.
+
+Example — route upstream: step 4 produced per-surface copy correctly,
+but that copy references step 3's walkthrough stage. Step 3 used the
+wrong stage for the pinned Brief. Step 4 cannot rewire step 3's stage
+from within copy authoring. Set `route_to_step_n = 3`; address
+`resume_hint` to step 3 with a rationale in the headline that cites
+the specific structural mismatch.
+
 ## What the critic never does
 
 - Edit files. The critic is read-only by discipline, not by sandbox flag.
@@ -162,3 +201,5 @@ form", not "don't care about truth".
 - Invent checks not in the descriptor. If the critic wants to report a
   concern outside the contracted checks, it goes in `summary` — not as a
   new `checks` entry.
+- Invent a routing target. `route_to_step_n` must name an earlier step
+  whose artifact the evidence implicates, not a guess.

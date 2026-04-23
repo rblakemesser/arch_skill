@@ -73,7 +73,7 @@ if not already present.
   "progress": [
     {
       "n": 1,
-      "status": "pass" | "pass-after-retry" | "blocked" | "skipped" | "pending",
+      "status": "pass" | "pass-after-retry" | "repaired" | "pass-after-repair" | "blocked" | "skipped" | "pending",
       "attempts": 1,
       "final_verdict_path":
         "steps/1/try-1/critic/verdict.json"
@@ -134,6 +134,22 @@ completed
 
 If `halted`, the report names the halted step, the final verdict, and
 what the user would need to decide to unblock.
+
+When at least one upstream repair happened during the run (i.e., a
+critic set `route_to_step_n` on a fail and `stop_discipline` was
+`autonomous_repair`), include a `## Repairs` section naming each
+reopening:
+
+```
+## Repairs
+
+- Step 3 reopened from step 4's finding: <headline from step 4's
+  critic rationale>
+  Step 3 repaired; steps 4+ re-ran fresh and passed.
+```
+
+Repaired and re-run steps carry `repaired` and `pass-after-repair`
+statuses in the Steps table respectively.
 
 ## Cleanup
 

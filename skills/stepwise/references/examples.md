@@ -212,6 +212,139 @@ never matched '^# Lesson 2' after 6 tries." The user can decide to
 re-invoke the skill with strict profile targeting just Step 2, or to
 edit the outline by hand, or to accept the gap.
 
+## Example 4 — Autonomous upstream repair, leave-me-alone run
+
+**User prompt**
+
+> "Work in ../lessons_studio. Ramp up on track 3 section 3 and
+> implement lesson 2 strictly according to the skill order, no
+> fabrication. I'm going to sleep — don't wake me up, fix it and
+> keep going. Steps on opus-4-7 xhigh, critic on sonnet-4-6 xhigh."
+
+**Phase 1 announcement**
+
+```
+Interpreting:
+- Target repo: /Users/aelaguiz/workspace/lessons_studio
+- Target process: Track 3 / Section 3 / Lesson 2
+- Profile: strict (from "strictly")
+- Forced checks: skill_order_adherence (from "strictly according to
+  the skill order"), no_fabrication (from "no fabrication")
+- Retry cap: 1
+- On exhaustion: autonomous_repair (from "don't wake me up, fix it
+  and keep going") — reopen an earlier step when a downstream critic
+  routes the fix there; per-step retry cap still governs runaway
+  loops
+- Models: step_model=opus-4-7, step_effort=xhigh,
+  critic_model=sonnet-4-6, critic_effort=xhigh
+```
+
+**Phase 4 execution**
+
+- Step 1 (ramp-up) runs. Critic PASS.
+- Step 2 (outline) runs. Critic PASS.
+- Step 3 (draft playable manifest) runs on Claude with opus-4-7
+  xhigh. Writes `playable-manifest.json`. Its descriptor verifies
+  `solver sequence present AND role partition consistent AND
+  taxonomy refs present` — the artifact satisfies all three.
+  Critic PASS (narrow predicate; the descriptor did not include
+  Brief-fidelity as an evidence requirement).
+- Step 4 (per-surface copy) runs. The step's skill contract forbids
+  rewriting upstream structure; it produces copy and ends. The
+  step's final message flags: "step 3's playable-manifest has the
+  wrong walkthrough stage (flop-c-bet where the Brief pins
+  preflop-BTN-open) and cloned `context.hero` from LESSON_03-03-01
+  — I cannot rewire step 3's artifact from within copy authoring."
+- Step 4's critic inspects: the copy artifact exists but references
+  a stage the Brief contradicts; the `context.hero` in the manifest
+  does not match Situations' Kept Reps. The critic returns:
+
+```json
+{
+  "step_n": 4,
+  "verdict": "fail",
+  "checks": [
+    {"name": "artifact_exists", "status": "pass",
+     "evidence": "copy.json exists"},
+    {"name": "no_fabrication", "status": "pass",
+     "evidence": "all claims back-verified"},
+    {"name": "skill_order_adherence", "status": "pass",
+     "evidence": "invoked copy-authoring skill per descriptor"}
+  ],
+  "route_to_step_n": 3,
+  "resume_hint": {
+    "headline": "playable-manifest walkthrough stage is flop-c-bet; the Brief pins preflop-BTN-open, and context.hero was cloned from LESSON_03-03-01 instead of rewired from Situations.",
+    "required_fixes": [
+      "Rewire steps[0].config.script[0].childConfig to a preflop walkthrough with the opener-range parallax table",
+      "Rewire steps[1..9].context.{hero,parallaxTable} from Situations Kept Reps",
+      "Leave role partition, stepIds, option ids, correctness booleans, taxonomyRefs, and concept partition untouched"
+    ],
+    "do_not_redo": [
+      "Solver-stamped correctness sequence is correct; preserve it",
+      "Role partition and taxonomyRefs passed their checks; preserve them"
+    ]
+  },
+  "summary": "Step 4 could not produce valid copy against step 3's manifest because the manifest's stage and cloned contexts contradict the pinned Brief. Route to step 3."
+}
+```
+
+**Upstream repair**
+
+- Orchestrator sees `route_to_step_n: 3` + `stop_discipline:
+  autonomous_repair`. Step 3's retries are not exhausted (1 cap, 1
+  try so far). Orchestrator `step-resume`s step 3's session with
+  the critic's `resume_hint` (addressed to step 3).
+- Step 3 rewires the walkthrough stage and the per-step contexts.
+  Its session preserves the role partition, stepIds, option ids,
+  correctness booleans, and taxonomyRefs. Writes the updated
+  manifest. Ends turn.
+- Step 3's critic re-runs against the new try. All checks PASS.
+  Step 3's status becomes `repaired`.
+
+**Downstream re-run**
+
+- Orchestrator fresh `step-spawn`s step 4. Step 4 reads the
+  now-corrected playable-manifest, produces copy that references
+  the preflop-BTN-open walkthrough and the rewired contexts. Ends
+  turn.
+- Step 4's critic PASSES. Step 4's status becomes
+  `pass-after-repair`.
+- Execution continues with steps 5 through N as usual.
+
+**Phase 5 report**
+
+```
+| # | Label                        | Status              | Tries |
+|---|------------------------------|---------------------|-------|
+| 1 | Ramp-up                      | pass                | 1     |
+| 2 | Outline                      | pass                | 1     |
+| 3 | Playable manifest            | repaired            | 2     |
+| 4 | Per-surface copy             | pass-after-repair   | 2     |
+| … | …                            | …                   | …     |
+
+## Repairs
+
+- Step 3 reopened from step 4's finding: "playable-manifest
+  walkthrough stage is flop-c-bet; the Brief pins preflop-BTN-open,
+  and context.hero was cloned from LESSON_03-03-01 instead of
+  rewired from Situations."
+  Step 3 repaired; step 4 re-ran fresh and passed.
+
+## Status
+
+completed
+```
+
+The user wakes up to a finished run, not a menu.
+
+**What would have halted the run**
+
+If step 3's retries had been exhausted (cap 1 + already consumed
+by the repair), the run would have halted with step 3's last
+verdict — no extra budget beyond the target's own `max_retries`.
+Ping-pong is impossible in practice: either step 3 converges within
+its cap, or the run halts.
+
 ## Takeaways
 
 - The intake announces a concrete interpretation before anything runs.
@@ -225,3 +358,7 @@ edit the outline by hand, or to accept the gap.
 - `pass-after-retry (k)` is a normal outcome, not a warning. The
   report uses it to help the user understand where the process
   stumbled.
+- `autonomous_repair` adds one new move to the orchestrator: when a
+  critic sets `route_to_step_n`, reopen that step with its critic's
+  `resume_hint`. Containment is the target's own retry cap — no new
+  budgets, no new tripwires.

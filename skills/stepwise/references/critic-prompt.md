@@ -64,6 +64,15 @@ If `verdict=fail`, fill `resume_hint` carefully:
 - `do_not_redo`: call out work the step did correctly so the step does
   not tear it down on the retry.
 
+If the root cause of the fail lives in an earlier step's artifact —
+something the current step cannot fix by retrying from its own scope —
+set `route_to_step_n` to that earlier step (must be < step_n). Address
+`resume_hint` to that earlier step: its `headline` and `required_fixes`
+will be read by the target step's session when it reopens. Use this
+only when the fix is impossible from the current step's scope, not when
+it's merely preferable upstream. When in doubt, omit `route_to_step_n`
+and let the current step retry.
+
 If `verdict=pass`, omit `resume_hint`. If `verdict=abstain`, set
 `abstain_reason` and omit `resume_hint`.
 
@@ -112,6 +121,10 @@ need shell commands are stated literally; the critic runs them.
 Short like "cap 3 retries, halt_and_ask on exhaustion" — the critic is
 not the decider on retry policy, but knowing the profile helps calibrate
 how strict to be on edge cases.
+
+### `route_to_step_n`
+Optional integer on a `fail` verdict naming an earlier step (`< step_n`)
+whose artifact holds the root cause. Omit for self-routed fails.
 
 ## What is NOT in the prompt
 

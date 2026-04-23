@@ -67,6 +67,28 @@ will be cut and are accepting that — but still not hallucination.
 Signals: "just get it done", "I don't care", "whatever works", "best
 effort", "lazy pass", "quick and dirty".
 
+## Stop discipline signals
+
+Stop discipline is usually inferred from profile (strict →
+`halt_and_ask`, balanced → `halt_and_ask`, lenient →
+`skip_and_continue`). When the user signals they want to be left alone
+— "don't wake me", "I'm going to sleep", "fix it and keep going", "run
+through the night" — set `stop_discipline = autonomous_repair`. This
+is compatible with any profile: a strict + autonomous_repair run still
+has a tight `per_step_retry_cap`, it just reopens an earlier step when
+a downstream critic routes the fix there, instead of halting.
+
+Containment is the same `per_step_retry_cap` strict or not. Every
+reopening of a target step counts as another try on that step. When
+the target's retries exhaust, the run halts with the target's last
+verdict regardless of the chosen discipline.
+
+Interpret the user's prompt the same way you interpret profile
+signals: read the intent, do not keyword-match. A user who says "just
+get it done, I'll check in the morning" has signaled leave-me-alone;
+a user who says "stop on any structural problem" has signaled
+halt-and-ask regardless of their other profile cues.
+
 ## Forced checks
 
 Some phrases in the prompt are not about profile — they are about a specific
@@ -150,6 +172,15 @@ Interpreting:
   skill order"), no_fabrication (from "no fabrication of any steps")
 - Retry cap: 1
 - On exhaustion: halt_and_ask
+```
+
+When the user has signalled leave-me-alone, the stop line names
+`autonomous_repair` instead and explains the containment rule:
+
+```
+- On exhaustion: autonomous_repair (reopen an earlier step when a
+  downstream critic routes the fix there; per-step retry cap still
+  governs runaway loops)
 ```
 
 If the user disagrees, they correct it in one line before the Phase 3 gate

@@ -475,7 +475,7 @@ def _build_parser() -> argparse.ArgumentParser:
     init.add_argument("--forced-checks-json", default="[]")
     init.add_argument("--stop-discipline", required=True,
                       choices=["halt_and_ask", "skip_and_continue",
-                               "escalate_to_user"])
+                               "escalate_to_user", "autonomous_repair"])
     init.add_argument("--per-step-retry-cap", type=int, required=True)
     init.add_argument("--models-json", required=True,
                       help='JSON object with step_model, step_effort, critic_model, critic_effort')
