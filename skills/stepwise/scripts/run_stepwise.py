@@ -172,23 +172,51 @@ def _run_subprocess(
     return proc.returncode, proc.stdout.decode("utf-8", errors="replace")
 
 
+def _extract_claude_result_event(payload) -> dict | None:
+    """Return the result event. Claude -p --output-format json emits either a
+    single result dict OR a list of events (when --json-schema is set alongside
+    tool use); in the list case the result event is the last item with
+    type=result."""
+    if isinstance(payload, dict):
+        return payload
+    if isinstance(payload, list):
+        for ev in reversed(payload):
+            if isinstance(ev, dict) and ev.get("type") == "result":
+                return ev
+    return None
+
+
+def _extract_verdict_from_final(final) -> dict | None:
+    """Pull the critic's structured verdict from a final payload of either
+    shape (dict or event-stream list)."""
+    ev = _extract_claude_result_event(final)
+    if ev is None:
+        return None
+    v = ev.get("structured_output")
+    return v if isinstance(v, dict) else None
+
+
 def _parse_claude_session_id(stdout_text: str) -> str | None:
-    """Claude -p --output-format json prints one JSON object to stdout."""
+    """Claude -p --output-format json prints one JSON document to stdout."""
     try:
         payload = json.loads(stdout_text.strip().splitlines()[-1])
-        sid = payload.get("session_id")
-        if isinstance(sid, str) and sid:
-            return sid
     except (json.JSONDecodeError, IndexError):
-        pass
+        return None
+    ev = _extract_claude_result_event(payload)
+    if ev is None:
+        return None
+    sid = ev.get("session_id")
+    if isinstance(sid, str) and sid:
+        return sid
     return None
 
 
 def _parse_claude_final_json(stdout_text: str) -> dict | None:
     try:
-        return json.loads(stdout_text.strip().splitlines()[-1])
+        payload = json.loads(stdout_text.strip().splitlines()[-1])
     except (json.JSONDecodeError, IndexError):
         return None
+    return _extract_claude_result_event(payload)
 
 
 def _parse_codex_thread_id(stdout_text: str) -> str | None:
@@ -435,7 +463,7 @@ def cmd_critic_spawn(args: argparse.Namespace) -> int:
                 code=3,
             )
         _write_json(final_path, final)
-        verdict = final.get("structured_output")
+        verdict = _extract_verdict_from_final(final)
         if not isinstance(verdict, dict):
             _die(
                 "claude critic returned no structured_output; see stdout.final.json",

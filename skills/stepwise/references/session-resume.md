@@ -35,15 +35,31 @@ claude \
   <step_prompt>
 ```
 
-Session id is returned at `.session_id` in the top-level JSON printed to stdout.
-Example observed payload (elided):
+Claude's stdout has two observed top-level shapes depending on whether the
+turn used tools:
 
-```json
-{"type":"result","subtype":"success","result":"PING",
- "session_id":"5f303873-ac01-44a6-903a-3a62e3a699f0", ...}
-```
+- **Single result object** (no tool use). Session id at `.session_id`:
 
-Capture `.session_id` and `.result`. Store both in the run directory.
+  ```json
+  {"type":"result","subtype":"success","result":"PING",
+   "session_id":"5f303873-ac01-44a6-903a-3a62e3a699f0", ...}
+  ```
+
+- **Event-stream array** (tool use occurred, or `--json-schema` is set).
+  The result event is one entry with `type=result`. Session id lives on
+  that event, not at the top level:
+
+  ```json
+  [{"type":"system",...},
+   {"type":"assistant",...},
+   {"type":"user","message":{"content":[{"type":"tool_result",...}]}},
+   {"type":"result","session_id":"5f303873-...","structured_output":{...}, ...}]
+  ```
+
+`scripts/run_stepwise.py`'s `_extract_claude_result_event(payload)` is the
+canonical shape-normalizer: pass either a dict or a list, get back the
+result event dict (or None if absent). Use it at every parse boundary —
+never `payload.get(...)` directly on stdout JSON.
 
 ## Claude — step resume
 
@@ -84,9 +100,15 @@ claude \
   <critic_prompt>
 ```
 
-Structured output is returned at `.structured_output` in the top-level JSON.
-The schema is passed as a JSON string argument (no file reference). `.result`
-carries a short text summary; `.structured_output` is the authoritative verdict.
+The critic's structured output is returned at `.structured_output` on the
+result event. When the critic uses tools to verify artifacts (the common
+case), Claude's top-level shape is the event-stream array rather than a
+single dict — walk the array for `type=result` and read `.structured_output`
+from it. `scripts/run_stepwise.py` handles both shapes via
+`_extract_verdict_from_final(final)`; do not reimplement the walk at
+new callsites. The schema is passed as a JSON string argument (no file
+reference). `.result` carries a short text summary; `.structured_output`
+on the result event is the authoritative verdict.
 
 ## Codex — step session (resumable)
 

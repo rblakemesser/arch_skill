@@ -45,6 +45,9 @@ before acting, then execute it.
 - Do not claim work you did not do. If a sub-step is infeasible,
   say so explicitly and stop.
 - Do not invoke any step other than the one declared above.
+- Do not invoke other skills or slash commands. The doctrine path
+  above carries everything you need; picking up a second skill
+  (e.g. `/loop`, `/goal-loop`) takes you outside this step's scope.
 
 When done, end your turn. A critic will inspect your work.
 ```
