@@ -58,6 +58,43 @@ def _write_json(path: Path, payload: Any) -> None:
 # ---- init-run -------------------------------------------------------------
 
 
+def _execution_from_init_args(args: argparse.Namespace) -> dict[str, Any]:
+    if args.execution_json:
+        try:
+            execution = json.loads(args.execution_json)
+        except json.JSONDecodeError as e:
+            _die(f"execution json is not valid JSON: {e}")
+        if not isinstance(execution, dict):
+            _die("execution json must be an object")
+        return execution
+
+    if args.models_json:
+        try:
+            models = json.loads(args.models_json)
+        except json.JSONDecodeError as e:
+            _die(f"models json is not valid JSON: {e}")
+        if not isinstance(models, dict):
+            _die("models json must be an object")
+        return {
+            "schema_version": 1,
+            "execution_defaults": {
+                "step": {
+                    "model": models.get("step_model"),
+                    "effort": models.get("step_effort"),
+                    "source": "legacy --models-json",
+                },
+                "critic": {
+                    "model": models.get("critic_model"),
+                    "effort": models.get("critic_effort"),
+                    "source": "legacy --models-json",
+                },
+            },
+            "execution_preferences": [],
+        }
+
+    _die("one of --execution-json or --models-json is required")
+
+
 def cmd_init_run(args: argparse.Namespace) -> int:
     orch_root = Path(args.orchestrator_root).resolve()
     if not orch_root.is_dir():
@@ -79,8 +116,8 @@ def cmd_init_run(args: argparse.Namespace) -> int:
 
     _write_text(run_dir / "raw_instructions.txt", raw)
 
-    models = json.loads(args.models_json) if args.models_json else {}
-    models_hash = _sha256_hex(json.dumps(models, sort_keys=True))
+    execution = _execution_from_init_args(args)
+    execution_hash = _sha256_hex(json.dumps(execution, sort_keys=True))
 
     state = {
         "schema_version": 1,
@@ -97,8 +134,8 @@ def cmd_init_run(args: argparse.Namespace) -> int:
         else [],
         "stop_discipline": args.stop_discipline,
         "per_step_retry_cap": args.per_step_retry_cap,
-        "models": models,
-        "models_sha256": models_hash,
+        "execution": execution,
+        "execution_sha256": execution_hash,
         "progress": [],
     }
     _write_json(run_dir / "state.json", state)
@@ -505,8 +542,16 @@ def _build_parser() -> argparse.ArgumentParser:
                       choices=["halt_and_ask", "skip_and_continue",
                                "escalate_to_user", "autonomous_repair"])
     init.add_argument("--per-step-retry-cap", type=int, required=True)
-    init.add_argument("--models-json", required=True,
-                      help='JSON object with step_model, step_effort, critic_model, critic_effort')
+    init.add_argument("--execution-json", default=None,
+                      help="JSON object with execution defaults and preferences")
+    init.add_argument(
+        "--models-json",
+        default=None,
+        help=(
+            "Deprecated compatibility input for step_model, step_effort, "
+            "critic_model, critic_effort"
+        ),
+    )
     init.set_defaults(func=cmd_init_run)
 
     step = sub.add_parser("step-spawn", help="Spawn a fresh step sub-session")

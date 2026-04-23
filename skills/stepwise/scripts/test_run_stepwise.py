@@ -10,6 +10,7 @@ Run: `python3 skills/stepwise/scripts/test_run_stepwise.py`
 
 import json
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -139,6 +140,84 @@ class ExtractVerdictFromFinal(unittest.TestCase):
 
     def test_no_result_event(self):
         self.assertIsNone(rs._extract_verdict_from_final([{"type": "system"}]))
+
+
+class InitRunExecutionPolicy(unittest.TestCase):
+    def test_init_run_stores_execution_policy_and_hash(self):
+        execution = {
+            "schema_version": 2,
+            "execution_defaults": {
+                "step": {
+                    "runtime": "codex",
+                    "model": "gpt-5.4",
+                    "effort": "high",
+                    "source": "user prompt",
+                },
+                "critic": {
+                    "runtime": "codex",
+                    "model": "gpt-5.4-mini",
+                    "effort": "xhigh",
+                    "source": "user prompt",
+                },
+            },
+            "execution_preferences": [
+                {
+                    "source_quote": "copywriting steps using Claude Opus 4.7",
+                    "applies_to": "steps whose outcome is learner-facing copy",
+                    "step_execution": {
+                        "runtime": "claude",
+                        "model": "opus-4-7",
+                    },
+                    "resolution_rationale": (
+                        "The user named a semantic class; resolve it after "
+                        "manifest drafting."
+                    ),
+                }
+            ],
+        }
+
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td) / "orchestrator"
+            target = Path(td) / "target"
+            root.mkdir()
+            target.mkdir()
+            raw = Path(td) / "raw.txt"
+            raw.write_text("run process with copywriting on Claude\n", encoding="utf-8")
+
+            parser = rs._build_parser()
+            args = parser.parse_args(
+                [
+                    "init-run",
+                    "--orchestrator-root",
+                    str(root),
+                    "--target-repo",
+                    str(target),
+                    "--raw-instructions-file",
+                    str(raw),
+                    "--profile",
+                    "balanced",
+                    "--stop-discipline",
+                    "halt_and_ask",
+                    "--per-step-retry-cap",
+                    "2",
+                    "--execution-json",
+                    json.dumps(execution),
+                ]
+            )
+
+            self.assertEqual(args.func(args), 0)
+            runs_dir = root / ".arch_skill" / "stepwise" / "runs"
+            run_dirs = list(runs_dir.iterdir())
+            self.assertEqual(len(run_dirs), 1)
+            state = json.loads((run_dirs[0] / "state.json").read_text(encoding="utf-8"))
+
+        self.assertEqual(state["execution"], execution)
+        self.assertEqual(
+            state["execution_sha256"],
+            rs._sha256_hex(json.dumps(execution, sort_keys=True)),
+        )
+        self.assertNotIn("models", state)
+        self.assertNotIn("models_sha256", state)
 
 
 if __name__ == "__main__":

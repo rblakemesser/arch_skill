@@ -1,6 +1,6 @@
 # Worked examples
 
-Three worked examples. Each shows the intake, the manifest, and a notable
+Five worked examples. Each shows the intake, the manifest, and a notable
 event during execution. These are teaching examples — they illustrate the
 thinking, not a script the agent should imitate verbatim.
 
@@ -10,7 +10,7 @@ thinking, not a script the agent should imitate verbatim.
 
 > "Work in ../lessons_studio. Ramp up on track 3 section 3 and implement
 > lesson 2 strictly according to the skill order, no fabrication. Steps
-> on opus-4-7 xhigh, critic on sonnet-4-6 xhigh."
+> on Claude Opus 4.7 xhigh, critic on Claude Sonnet 4.6 xhigh."
 
 **Phase 1 announcement**
 
@@ -23,8 +23,10 @@ Interpreting:
   skill order"), no_fabrication (from "no fabrication")
 - Retry cap: 1
 - On exhaustion: halt_and_ask
-- Models: step_model=opus-4-7, step_effort=xhigh,
-  critic_model=sonnet-4-6, critic_effort=xhigh
+- Execution defaults:
+  - step: Claude / opus-4-7 / xhigh
+  - critic: Claude / sonnet-4-6 / xhigh
+- Execution preferences: none
 ```
 
 **Phase 2 manifest (abbreviated)**
@@ -34,7 +36,8 @@ Three steps, derived from reading
 outline → body. Each step's `expected_artifact` names the real file
 the target doctrine says that step produces.
 
-**Phase 3** — strict profile pauses for confirmation. User: "go".
+**Phase 3** — strict profile prints the manifest plus execution table,
+then pauses for confirmation. User: "go".
 
 **Phase 4 execution**
 
@@ -53,7 +56,45 @@ the target doctrine says that step produces.
 | 3 | Body        | pass   | 1     |
 ```
 
-## Example 2 — Fabrication catch and resume
+## Example 2 — Routed copywriting preference
+
+**User prompt**
+
+> "Work in ../lessons_studio. Run the lesson 2 flow. Default steps on Codex
+> gpt-5.4 high, critic on Codex gpt-5.4-mini xhigh. Use Claude Opus 4.7 for
+> all copywriting steps."
+
+**Phase 1 announcement**
+
+```
+Interpreting:
+- Execution defaults:
+  - step: Codex / gpt-5.4 / high
+  - critic: Codex / gpt-5.4-mini / xhigh
+- Execution preferences:
+  - "Use Claude Opus 4.7 for all copywriting steps" applies to worker steps
+    whose primary artifact is learner-facing copy. Effort inherits from the
+    step default unless the user specifies a different effort.
+```
+
+**Phase 2 execution resolution**
+
+The orchestrator first drafts real steps from doctrine. Then it resolves the
+preference:
+
+```
+| # | Label                       | Worker                  | Critic                    | Source |
+|---|-----------------------------|-------------------------|---------------------------|--------|
+| 1 | Ramp up                     | Codex gpt-5.4 high      | Codex gpt-5.4-mini xhigh  | defaults |
+| 2 | Build playable manifest     | Codex gpt-5.4 high      | Codex gpt-5.4-mini xhigh  | defaults |
+| 3 | Write learner-facing copy   | Claude opus-4-7 high    | Codex gpt-5.4-mini xhigh  | copywriting preference |
+```
+
+The preference does not apply to critics because the user did not say that
+critics should switch. It does not apply to the playable manifest step because
+that artifact is structural JSON, even though it may contain some strings.
+
+## Example 3 — Fabrication catch and resume
 
 Same prompt as Example 1. The interesting event is Step 2.
 
@@ -159,13 +200,13 @@ the five sections exist. All checks pass.
 **Report** — Step 2 shows `pass-after-retry (2)`. The run continues
 to Step 3.
 
-## Example 3 — Lenient profile, one step skipped
+## Example 4 — Lenient profile, one step skipped
 
 **User prompt**
 
 > "Run the lesson thing on ../lessons_studio for track 3 section 3
 > lesson 2. I don't care just get it done but don't make stuff up.
-> Haiku for everything."
+> Claude Haiku for everything."
 
 **Phase 1 announcement**
 
@@ -177,14 +218,15 @@ Interpreting:
 - Forced checks: no_fabrication (from "don't make stuff up")
 - Retry cap: 6
 - On exhaustion: skip_and_continue
-- Models: step_model=haiku, step_effort=medium (haiku's default-ish),
-  critic_model=haiku, critic_effort=medium
+- Execution defaults:
+  - step: Claude / haiku / medium
+  - critic: Claude / haiku / medium
+- Execution preferences: none
 ```
 
-Note: the user said "haiku for everything" without specifying effort.
-The intake asks: "You said haiku but not the effort — should I use
-medium for steps and critic, or something else?" The user says
-"medium is fine." The intake records both.
+Note: the user said "Claude Haiku for everything" without specifying effort.
+The intake asks for the missing effort in one consolidated question. The user
+says "medium is fine." The intake records both step and critic defaults.
 
 **Phase 3** — lenient profile prints and proceeds; user can interrupt.
 
@@ -212,14 +254,15 @@ never matched '^# Lesson 2' after 6 tries." The user can decide to
 re-invoke the skill with strict profile targeting just Step 2, or to
 edit the outline by hand, or to accept the gap.
 
-## Example 4 — Autonomous upstream repair, leave-me-alone run
+## Example 5 — Autonomous upstream repair, leave-me-alone run
 
 **User prompt**
 
 > "Work in ../lessons_studio. Ramp up on track 3 section 3 and
 > implement lesson 2 strictly according to the skill order, no
 > fabrication. I'm going to sleep — don't wake me up, fix it and
-> keep going. Steps on opus-4-7 xhigh, critic on sonnet-4-6 xhigh."
+> keep going. Steps on Claude Opus 4.7 xhigh, critic on Claude Sonnet
+> 4.6 xhigh."
 
 **Phase 1 announcement**
 
@@ -235,8 +278,10 @@ Interpreting:
   and keep going") — reopen an earlier step when a downstream critic
   routes the fix there; per-step retry cap still governs runaway
   loops
-- Models: step_model=opus-4-7, step_effort=xhigh,
-  critic_model=sonnet-4-6, critic_effort=xhigh
+- Execution defaults:
+  - step: Claude / opus-4-7 / xhigh
+  - critic: Claude / sonnet-4-6 / xhigh
+- Execution preferences: none
 ```
 
 **Phase 4 execution**

@@ -1,81 +1,92 @@
-# Model and reasoning effort: user-supplied, asked if missing
+# Execution defaults: user-supplied, asked if missing
 
-Four values must be known before Phase 2 can start:
+Six base values must be known before Phase 2 can draft a runnable manifest:
 
-- `step_model` — model used for each step sub-session
-- `step_effort` — reasoning effort for each step sub-session
-- `critic_model` — model used for each critic sub-session
-- `critic_effort` — reasoning effort for each critic sub-session
+- `execution_defaults.step.runtime` - `claude` or `codex` for worker steps
+- `execution_defaults.step.model` - model for worker steps
+- `execution_defaults.step.effort` - reasoning effort for worker steps
+- `execution_defaults.critic.runtime` - `claude` or `codex` for critics
+- `execution_defaults.critic.model` - model for critics
+- `execution_defaults.critic.effort` - reasoning effort for critics
 
-They come from the user. The skill does not silently default. The skill picks
-only when it genuinely has no choice (see "Asking" below).
+These are defaults, not a promise that every step uses the same runtime. The
+manifest may contain per-step overrides resolved from explicit user
+preferences or hard target-repo doctrine. See `execution-routing.md`.
 
-## Why the user supplies these
+## Why the user supplies defaults
 
-Different work deserves different price points. A lesson-authoring step in a
-lesson-studio repo may want a strong step model and a strong critic. A drill
-of many small steps may want cheap step + strong critic. The right choice is a
-user judgment, not a skill heuristic.
+Different work deserves different price points. A lesson-authoring run may
+want strong worker steps and a strong critic. A many-step drill may want cheap
+workers and a stronger critic. The right baseline is a user judgment, not a
+skill heuristic.
 
-Asking once at the start is cheap. Guessing wrong is expensive: wrong model
-wastes money or quality; wrong effort blows budget on trivial work or
+Asking once at the start is cheap. Guessing wrong is expensive: wrong runtime
+or model wastes money or quality; wrong effort blows budget on trivial work or
 under-powers hard work.
 
 ## Acceptable shapes in the user's prompt
 
 The intake phase parses whatever the user wrote. Any of these is clear:
 
-- "use opus 4.7 xhigh for steps and sonnet 4.6 xhigh for critic"
-- "haiku medium everywhere" (one value reused for all four)
+- "use Claude Opus 4.7 xhigh for steps and Codex gpt-5.4 xhigh for critic"
+- "Codex gpt-5.4 high everywhere" (one value reused for all defaults)
 - "steps on gpt-5.4 high, critic on gpt-5.4-mini xhigh"
+- "default to Codex gpt-5.4 high, but use Claude Opus 4.7 for copywriting"
 
-None of these is magic. The intake reads the phrase, maps it to the four
-values, and prints back the interpretation before executing.
+None of these is magic. The intake reads the phrase, maps the baseline into
+execution defaults, records routing preferences separately, and prints back
+the interpretation before executing.
 
 ## Asking when missing
 
-If one or more of the four values is unspecified and cannot be inferred
-unambiguously, the skill asks ONE consolidated question listing each missing
-value with the runtime it applies to and what it controls:
+If one or more required defaults is unspecified and cannot be inferred
+unambiguously, ask ONE consolidated question listing what is missing and what
+it controls:
 
 ```
-I need model/effort choices before planning steps.
+I need base execution choices before planning steps.
 
-- step_model + step_effort: runs each step of the process. Needs to be
-  strong enough to do the actual work.
-- critic_model + critic_effort: independently checks each step. Needs to
-  be strong enough to catch fabrication and skipped sub-steps.
+- step runtime/model/effort: runs each step unless a confirmed per-step
+  preference overrides it.
+- critic runtime/model/effort: independently checks each step. Worker routing
+  preferences do not apply to critics unless you say so.
 
 What should I use?
 ```
 
-The skill does not ask four separate questions. It does not default to
-gpt-5.4 xhigh "just this once". It asks and waits.
+Do not ask six separate questions. Do not default to a favorite model "just
+this once". Ask and wait.
 
-If the user answers with one value ("haiku medium"), apply to all four and
-announce that before executing.
+If the user answers with one complete value ("Codex gpt-5.4 medium
+everywhere"), apply it to both worker and critic defaults and announce that
+before executing. If they answer with a worker-only override ("copywriting on
+Claude Opus 4.7") but no baseline, still ask for the missing defaults.
+
+## Runtime inference
+
+Runtime is separate from model and effort.
+
+Infer runtime only when the evidence is unambiguous:
+
+- a target repo says "run with Codex"
+- the user says "Claude Opus 4.7" or "Codex gpt-5.4"
+- an installed CLI supports only the named model family and the user clearly
+  intended that family
+
+When inference is ambiguous, ask. Do not build a hidden model-name lookup
+table. The runtime choice must be explainable in the Phase 1 announcement.
+
+Critic runtime defaults to the critic default from intake. If the user gives
+only one "everywhere" choice, critic and step defaults match. If the user gives
+worker-specific preferences, critics keep critic defaults unless explicitly
+overridden.
 
 ## Pinning
 
-Once set, the four values are written into `state.json` and pinned with a
-hash (same discipline as `raw_instructions`). Changing them mid-run clears
-run state. This prevents the orchestrator from "upgrading" or "downgrading"
-the step runtime on fail — retries use the same model and effort as the
-original try, because the failure is almost always about the step's
-instructions or the sub-session's attention, not the model.
+Once set, the full execution policy is written into `state.json` and pinned
+with `execution_sha256`. The policy includes defaults and unresolved routing
+preferences. Changing it mid-run clears run state.
 
-A user who wants a different model for retries should re-invoke the skill
-with the new choice; this skill does not change horses mid-stream.
-
-## Runtime choice (claude vs codex)
-
-Separate from model/effort, the step manifest declares the runtime per step
-(`claude` or `codex`). The default is inferred from the target repo's
-doctrine when possible (e.g., a target that says "run with codex" points the
-default at codex). When inference is ambiguous, the skill asks — same rule
-as above.
-
-Critic runtime defaults to the same runtime family as the step it is
-checking unless the user specified otherwise. This keeps the transcript
-interpretation within one family and avoids cross-runtime format mismatches
-on the critic's input.
+Per-step retries reuse the same resolved execution block as the original try.
+A user who wants a different model for retries should re-invoke the skill with
+new execution choices; this skill does not change horses mid-stream.

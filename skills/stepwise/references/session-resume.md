@@ -30,8 +30,8 @@ claude \
   --output-format json \
   --dangerously-skip-permissions \
   --settings '{"disableAllHooks":true}' \
-  --model <step_model> \
-  --effort <step_effort> \
+  --model <resolved_step_model> \
+  --effort <resolved_step_effort> \
   <step_prompt>
 ```
 
@@ -69,8 +69,8 @@ claude \
   --output-format json \
   --dangerously-skip-permissions \
   --settings '{"disableAllHooks":true}' \
-  --model <step_model> \
-  --effort <step_effort> \
+  --model <resolved_step_model> \
+  --effort <resolved_step_effort> \
   -r <session_id> \
   <resume_prompt>
 ```
@@ -94,8 +94,8 @@ claude \
   --output-format json \
   --dangerously-skip-permissions \
   --settings '{"disableAllHooks":true}' \
-  --model <critic_model> \
-  --effort <critic_effort> \
+  --model <resolved_critic_model> \
+  --effort <resolved_critic_effort> \
   --json-schema '<StepVerdict schema>' \
   <critic_prompt>
 ```
@@ -117,8 +117,8 @@ codex exec \
   --cd <target_repo> \
   --dangerously-bypass-approvals-and-sandbox \
   --skip-git-repo-check \
-  --model <step_model> \
-  -c model_reasoning_effort='"<step_effort>"' \
+  --model <resolved_step_model> \
+  -c model_reasoning_effort='"<resolved_step_effort>"' \
   --json \
   -o <final_message_file> \
   <step_prompt>
@@ -163,8 +163,8 @@ codex exec \
   --ephemeral \
   --dangerously-bypass-approvals-and-sandbox \
   --skip-git-repo-check \
-  --model <critic_model> \
-  -c model_reasoning_effort='"<critic_effort>"' \
+  --model <resolved_critic_model> \
+  -c model_reasoning_effort='"<resolved_critic_effort>"' \
   --output-schema <schema_file> \
   --json \
   -o <verdict_json_file> \

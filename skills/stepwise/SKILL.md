@@ -8,11 +8,12 @@ metadata:
 # stepwise
 
 Execute an ordered multi-step process in a target repo. Each step runs in a
-fresh Claude or Codex sub-session. After each step, an independent critic
-sub-session judges whether the step honored its declared contract. On fail,
-the same step session resumes with the critic's findings — the orchestrator
-never redoes the step's work itself. The orchestrator's job is sequencing and
-judgment; the sub-sessions do the work.
+fresh Claude or Codex sub-session using the execution settings resolved for
+that specific step. After each step, an independent critic sub-session judges
+whether the step honored its declared contract. On fail, the same step session
+resumes with the critic's findings — the orchestrator never redoes the step's
+work itself. The orchestrator's job is sequencing, routing, and judgment; the
+sub-sessions do the work.
 
 This skill is a thoughtful interpreter, not a script runner. It reads the
 user's free-form prompt (often flippant), the target repo's doctrine, and
@@ -51,14 +52,19 @@ step is spawned, critiqued, resumed if needed, and advanced when passing.
 - Both step and critic subprocesses run dangerous / skip-permissions /
   no-sandbox. The critic's read-only discipline comes from its prompt and
   its schema, not a sandbox flag.
-- Model + effort are supplied by the user at invocation for step and
-  critic independently. Ask once if missing; never silently default.
+- Base runtime/model/effort are supplied by the user or target doctrine for
+  step and critic independently. Ask once if required defaults are missing;
+  never silently default.
+- Optional execution preferences are interpreted after the Step Manifest is
+  drafted. A phrase like "copywriting steps use Claude Opus 4.7" is a routing
+  preference to resolve against real steps, not a built-in category.
 - Orchestrator does NOT edit target-repo files. Only sub-sessions do.
 - Orchestrator does NOT persistently load the target repo's contents
   into its own context — it points sub-sessions at paths; sub-sessions
   read fresh.
-- No heuristic keyword→profile mapping. Interpretation is prose
-  reasoning, taught by `references/strictness-profiles.md`.
+- No heuristic keyword→profile or keyword→model mapping. Interpretation is
+  prose reasoning, taught by `references/strictness-profiles.md` and
+  `references/execution-routing.md`.
 - No `--ephemeral` on step subprocesses (ephemeral sessions cannot be
   resumed). Critic subprocesses DO use `--ephemeral`.
 - Silent retry past the computed cap, silent skipping, and silent advance
@@ -94,8 +100,10 @@ step is spawned, critiqued, resumed if needed, and advanced when passing.
    pick profile, forced checks, stop discipline (`halt_and_ask |
    skip_and_continue | escalate_to_user | autonomous_repair`), retry
    cap.
-3. Read `references/model-and-effort.md`. Parse model/effort from the
-   prompt. Ask one consolidated question if missing.
+3. Read `references/model-and-effort.md` and
+   `references/execution-routing.md`. Parse base execution defaults and any
+   routing preferences from the prompt. Ask one consolidated question if
+   required defaults are missing.
 4. Resolve `target_repo_path` (absolute). Fail loud if unresolvable.
 5. Read `references/workflow-contract.md` for phase-by-phase detail.
 6. Announce the interpretation before Phase 2.
@@ -105,13 +113,15 @@ step is spawned, critiqued, resumed if needed, and advanced when passing.
 Five phases. Detail in `references/workflow-contract.md`.
 
 1. **Intake & interpretation.** Parse the prompt; set profile, forced
-   checks, stop discipline, retry cap, models/efforts. Announce.
+   checks, stop discipline, retry cap, execution defaults, and unresolved
+   routing preferences. Announce.
 2. **Process grounding.** Read the target repo's CLAUDE.md and the
-   named process's SKILL.md. Draft `manifest.json` per
+   named process's SKILL.md. Draft steps, resolve execution preferences
+   against those steps, and write `manifest.json` per
    `references/manifest-schema.md`.
 3. **Plan confirmation.** Print manifest + interpretation. Gate per
    profile: strict always pauses, balanced pauses once, lenient
-   prints and proceeds.
+   prints and proceeds. Always include the resolved execution table.
 4. **Step execution loop.** For each step: spawn step sub-session
    (fresh, not ephemeral); spawn critic sub-session (ephemeral,
    structured verdict); on pass advance; on fail resume the same
@@ -137,8 +147,11 @@ Five phases. Detail in `references/workflow-contract.md`.
   determinism lives.
 - `references/strictness-profiles.md` — teach interpretation of
   flippant stop conditions. Prose reasoning, not a keyword table.
-- `references/model-and-effort.md` — how to elicit step/critic
-  model and effort from the user; ask once if missing.
+- `references/model-and-effort.md` — how to elicit base step/critic
+  runtime, model, and effort from the user; ask once if missing.
+- `references/execution-routing.md` — how to resolve optional
+  user-specified routing preferences against drafted steps without
+  hardcoded task taxonomies.
 - `references/manifest-schema.md` — StepDescriptor shape with a
   worked example manifest.
 - `references/critic-contract.md` — StepVerdict JSON schema, the
@@ -152,7 +165,8 @@ Five phases. Detail in `references/workflow-contract.md`.
   installed CLI versions.
 - `references/run-directory-layout.md` — on-disk artifact layout
   per run.
-- `references/examples.md` — three worked examples including a
+- `references/examples.md` — five worked examples including per-step
+  execution routing, autonomous repair, and a
   fabrication catch + resume round-trip.
 
 ## The orchestration script
@@ -167,7 +181,8 @@ sub-sessions.
 
 Subcommands:
 
-- `init-run` — create the run directory and initial `state.json`.
+- `init-run` — create the run directory and initial `state.json`,
+  including the pinned execution policy.
 - `step-spawn` — spawn a fresh step sub-session; capture session id.
 - `step-resume` — resume an existing step session with a resume prompt.
   **Requires the same `--target-repo` as step-spawn** (Claude

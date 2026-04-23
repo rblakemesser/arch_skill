@@ -25,13 +25,15 @@ which is which at every step.
   an earlier step when a critic routes a fail upstream via
   `route_to_step_n`; see Phase 4c.
 - `per_step_retry_cap` — integer derived from the profile.
-- `sub_session_runtime_default` — `claude` or `codex`.
-- `models` — step_model, step_effort, critic_model, critic_effort.
+- `execution_defaults` — base step and critic runtime/model/effort.
   Asked if missing, per `model-and-effort.md`.
+- `execution_preferences` — optional user-specified routing preferences,
+  unresolved until Phase 2 drafts real steps.
 
 **Where judgment lives:** the agent's prose reasoning. Read the prompt,
-decide profile and forced checks, resolve target repo, fill in model
-choices (ask if missing). Announce the interpretation before Phase 2.
+decide profile and forced checks, resolve target repo, parse execution
+defaults and routing preferences (ask if required defaults are missing).
+Announce the interpretation before Phase 2.
 
 **Where determinism lives:** the run-directory creation and the hash
 computation. Both are script concerns.
@@ -40,7 +42,7 @@ computation. Both are script concerns.
 - Target repo cannot be resolved → ask.
 - Genuinely contradictory signals (strict + lenient in the same prompt
   with no tie-breaker) → ask.
-- Missing model/effort values → ask (one consolidated question).
+- Missing execution default values → ask (one consolidated question).
 - User's prompt names no process and no default is inferable → ask.
 
 Do not proceed to Phase 2 with unresolved gaps. "I'll figure it out in
@@ -55,13 +57,16 @@ the next phase" is how heuristic drift starts.
 - `doctrine_paths` — the specific files the step sub-sessions should
   read. Usually `<target>/CLAUDE.md`, `<target>/AGENTS.md` (if present),
   and the SKILL.md for the named process.
-- `manifest.json` — the full step manifest per `manifest-schema.md`.
+- `manifest.json` — the full step manifest per `manifest-schema.md`,
+  including resolved `step_execution` and `critic_execution` blocks.
 
 **Where judgment lives:** the agent reads the doctrine and drafts the
 manifest. This is the most load-bearing piece of prose in the skill.
 The manifest must name real artifacts (no invented files) and real
 skills (no hallucinated commands). If the doctrine is ambiguous, the
-agent asks rather than guesses.
+agent asks rather than guesses. After drafting the steps, resolve execution
+preferences using `execution-routing.md`: feasibility, hard doctrine,
+explicit step preference, semantic preference, then defaults.
 
 **Where determinism lives:** reading the doctrine files (Read tool) and
 writing `manifest.json` to the run directory (script-backed I/O).
@@ -70,6 +75,8 @@ writing `manifest.json` to the run directory (script-backed I/O).
 - Named process does not exist in the target repo's doctrine → ask.
 - A sub-step in the doctrine has no verifiable artifact → ask.
 - Doctrine contradicts itself across files → surface the contradiction.
+- A routing preference matches no steps, conflicts with hard doctrine, or is
+  too ambiguous to apply responsibly → surface it before execution.
 
 ## Phase 3 — Plan confirmation
 
@@ -81,7 +88,9 @@ writing `manifest.json` to the run directory (script-backed I/O).
 - User confirmation (`confirmed: true`) or adjustments.
 
 **Where judgment lives:** nowhere new. This phase just prints and waits
-(or prints and proceeds, by profile).
+(or prints and proceeds, by profile). The printed plan always includes a
+step-by-step execution table with worker and critic runtime/model/effort plus
+the source of any override.
 
 **Gate behavior by profile**
 - `strict`: always pause. Wait for explicit "go".
@@ -103,7 +112,7 @@ For each step `n` from 1 to N:
 
 **Inputs**
 - StepDescriptor for step `n`.
-- `models.step_model`, `models.step_effort`.
+- `step_execution.runtime`, `step_execution.model`, `step_execution.effort`.
 - `target_repo_path`.
 
 **Actions (script-backed)**
@@ -126,6 +135,8 @@ For each step `n` from 1 to N:
 **Inputs**
 - The descriptor, the per-step doctrine paths, the try's artifacts
   and transcript, the `critic_contract_ref`, the profile.
+- `critic_execution.runtime`, `critic_execution.model`,
+  `critic_execution.effort`.
 
 **Actions (script-backed)**
 - Render the critic prompt per `critic-prompt.md`.
@@ -163,12 +174,12 @@ For each step `n` from 1 to N:
   - Run M's critic against the new try. On M fail, fall back into the
     normal fail handling for M (including another upstream route if
     the critic emits one).
-  - On M pass, mark M `repaired`. Then fresh `step-spawn` for each
+- On M pass, mark M `repaired`. Then fresh `step-spawn` for each
     step from M+1 through the current step n (downstream sessions
     were built on the broken M artifact; resume would compound). Run
-    each critic as usual. A fresh pass on a re-run step is
-    `pass-after-repair`; a fresh fail re-enters the normal fail
-    handling for that step.
+    each critic as usual using the confirmed manifest's resolved execution
+    blocks. A fresh pass on a re-run step is `pass-after-repair`; a fresh
+    fail re-enters the normal fail handling for that step.
 - `verdict=fail` + `route_to_step_n` present but `stop_discipline` is
   anything other than `autonomous_repair` → treat like a retries-
   remaining fail (resume the current step with the same
@@ -219,7 +230,7 @@ user to decide after reading it.
 
 - The run directory is created at the start of Phase 1 and appended to
   throughout.
-- `raw_instructions_sha256` and `models_sha256` are checked at the start
+- `raw_instructions_sha256` and `execution_sha256` are checked at the start
   of each subprocess. A mismatch means the user mutated critical state
   mid-run; abort with a loud error and let them re-invoke.
 - The orchestrator never edits target-repo files directly. If it finds

@@ -28,7 +28,7 @@ if not already present.
 ```
 .arch_skill/stepwise/runs/<run-id>/
 ├── state.json                    # run state; machine-readable
-├── manifest.json                 # confirmed step manifest (see manifest-schema.md)
+├── manifest.json                 # confirmed schema v2 step manifest
 ├── raw_instructions.txt          # verbatim user prompt
 ├── interpretation.md             # Phase 1 announcement text
 ├── steps/
@@ -67,9 +67,25 @@ if not already present.
   "profile": "strict",
   "forced_checks": ["no_fabrication"],
   "stop_discipline": "halt_and_ask",
-  "models": { "step_model": "...", "step_effort": "...",
-              "critic_model": "...", "critic_effort": "..." },
-  "models_sha256": "...",
+  "execution": {
+    "schema_version": 2,
+    "execution_defaults": {
+      "step": {
+        "runtime": "codex",
+        "model": "gpt-5.4",
+        "effort": "high",
+        "source": "user prompt"
+      },
+      "critic": {
+        "runtime": "codex",
+        "model": "gpt-5.4-mini",
+        "effort": "xhigh",
+        "source": "user prompt"
+      }
+    },
+    "execution_preferences": []
+  },
+  "execution_sha256": "...",
   "progress": [
     {
       "n": 1,
@@ -82,10 +98,14 @@ if not already present.
 }
 ```
 
-`raw_instructions_sha256` and `models_sha256` pin the orchestrator's
+`raw_instructions_sha256` and `execution_sha256` pin the orchestrator's
 interpretation. If either changes during the run, the run is aborted and
 restarted — no silent rewriting mid-flight. (Same discipline as arch-loop's
 `raw_requirements_hash`.)
+
+Older local invocations may still pass `--models-json` to `init-run`; the
+script converts that legacy input into `execution` before writing state.
+New run directories should not contain top-level `models` or `models_sha256`.
 
 ## Per-step try directory
 
@@ -120,6 +140,13 @@ Profile: strict (forced: skill_order_adherence, no_fabrication)
 | 1 | Ramp up on track 3 / section 3 context   | pass               | 1     |
 | 2 | Draft lesson 2 outline                   | pass-after-retry   | 2     |
 | 3 | Fill lesson 2 body                       | pass               | 1     |
+
+## Execution
+
+| # | Step runtime | Step model | Step effort | Critic runtime | Critic model | Critic effort |
+|---|--------------|------------|-------------|----------------|--------------|---------------|
+| 1 | codex        | gpt-5.4    | high        | codex          | gpt-5.4-mini | xhigh         |
+| 2 | claude       | opus-4-7   | high        | codex          | gpt-5.4-mini | xhigh         |
 
 ## Notable critic findings
 
