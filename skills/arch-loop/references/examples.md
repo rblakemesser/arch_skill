@@ -99,6 +99,59 @@ These examples illustrate how `arch-loop` preserves free-form requirements, pars
 
 **Stop condition:** `clean` only when the evaluator — running its own repo check — returns `status: pass` with a reproducible `evidence` pointer. A parent-written `pass` never reaches `clean`.
 
+## 5) Long-running background job — parent yields with `sleep_for`
+
+**Ask:** "Optimize the handset-eval sampler. Run the `trials=4` benchmark at `/tmp/he_sampleropt_3p_t4` against the 3p serial-toggle baseline, copy logs/time/metrics into `diagnostics/handset_eval_opt_<DATE>/`, run semantic parity, and either commit the sampler change if both 2p and 3p are faster with parity or revert it and profile the next hotspot. Max runtime 4h."
+
+**What `arch-loop` does on the initial invocation:**
+
+- captures the full ask literally in `raw_requirements`
+- parses `Max runtime 4h` → `deadline_at = created_at + 14400`; `cap_evidence` records the phrase
+- `required_skill_audits` is empty (no `$`-named audit in this ask)
+- runs arm-time ensure-install and writes the runtime-specific state file
+- kicks the benchmark off as a detached background process writing its finish marker to `/tmp/he_sampleropt_3p_t4.time`; logs go to `/tmp/he_sampleropt_3p_t4.log`
+- writes `last_work_summary` naming the marker path and expected wall-clock (e.g. "benchmark launched; marker `/tmp/he_sampleropt_3p_t4.time` appears when trials=4 finish, typically ~10 min")
+- ends the turn naturally
+
+**First Stop-hook pass:**
+
+- the fresh external evaluator inspects the repo, sees the marker is still empty and no diagnostics were copied yet, and returns `continue` + `parent_work` with `next_task` shaped roughly as: *"Let the active /tmp/he_sampleropt_3p_t4 trials=4 process finish, then copy `/tmp/he_sampleropt_3p_t4.{log,time}` and its `metrics.json` into `diagnostics/handset_eval_opt_<DATE>`, run semantic parity, update INVESTIGATION.md, and commit-or-revert."*
+- the hook blocks with the continuation prompt naming `$arch-loop` and the full `next_task`
+
+**What the next parent pass does (the lesson):**
+
+- reads `last_next_task`, recognizes the *"Let the active X finish, then …"* shape
+- runs the marker check once (for example `ls -la /tmp/he_sampleropt_3p_t4.time`); sees the file is still 0 bytes
+- writes the minimal child-yield request into state and ends the turn:
+
+  ```jsonc
+  "requested_yield": {
+    "kind": "sleep_for",
+    "seconds": 600,
+    "reason": "waiting on /tmp/he_sampleropt_3p_t4.time marker; nothing for parent to do until the benchmark lands"
+  }
+  ```
+
+- refreshes `last_work_summary` with the one-line marker status so the next evaluator pass has grounded context ("benchmark still running; yielded sleep_for 600s on marker")
+- ends the turn
+
+**What the Stop hook does with the yield:**
+
+- honors `requested_yield` at the top of dispatch per `skills/arch-loop/references/controller-contract.md` §Child-requested yield — clears the field and persists state before sleeping, so a crash mid-sleep cannot replay the same yield
+- sleeps in-process `min(seconds, deadline_at - now, installed_hook_timeout - safety_margin)`
+- falls through to the normal evaluator launch exactly once after the sleep — one Codex `gpt-5.4` `xhigh` pass at the end of the wait instead of one per short poll turn
+
+**What the parent does NOT do:**
+
+- does not poll `date` / `ls` / `tail` in a tight loop and end the turn naturally between each poll — every natural turn-end pays a fresh evaluator child
+- does not self-declare `blocked` because the wait feels expensive or the evaluator is costly; that is forbidden by SKILL.md's **No invented budgets** rule and `skills/_shared/controller-contract.md` §No invented budgets
+- does not invent a cadence — `continue_mode: wait_recheck` requires user-armed `interval_seconds` in `raw_requirements`, which this ask does not contain
+- does not edit `raw_requirements`, `required_skill_audits[].status`, or either hash field (the runner would clear state on mutation)
+
+**Sizing the `seconds:` value:** pick a window that beats the cost of an evaluator run for this wait. A good default is "expected wall-clock to the next meaningful marker change" (benchmark ETA ~10 min → `seconds: 600`). If the wait outlasts one window, arm another `sleep_for` on the next pass; per `skills/_shared/controller-contract.md` §Choosing the yield kind, detached jobs of any wall-clock length (hours, days) stay on the `sleep_for` track as long as the check is automatable. The hook clamps `seconds` into `min(seconds, deadline_at - now, installed_hook_timeout - safety_margin)`, so oversizing is safe.
+
+**Stop condition:** evaluator returns `clean` only when the marker landed, benchmarks were copied into `diagnostics/handset_eval_opt_<DATE>/`, semantic parity ran, INVESTIGATION.md was updated with measured 2p/3p results, and the commit-or-revert decision is in the repo with reproducible evidence pointers.
+
 ## Anti-case: pure wait-until-true (use `$delay-poll` instead)
 
 **Ask:** "Wait until the remote branch `feature/x` is pushed, then pull it and integrate."
@@ -129,3 +182,4 @@ This is the canonical full-arch plan flow. `$arch-step implement-loop` (also cal
 - State file shape and write ownership (see `controller-contract.md`).
 - Cap/cadence parser phrase families and ambiguity rules (see `cap-extraction.md`).
 - Specialized loops that already own narrower workflows (`$audit-loop`, `$comment-loop`, `$audit-loop-sim`, `$arch-docs auto`, `$goal-loop`).
+- Exact `seconds:` sizing math for `requested_yield: sleep_for`. Example 5 shows the shape and rubric; the actual value is a context judgment call by the parent, bounded by the hook's own clamp.
