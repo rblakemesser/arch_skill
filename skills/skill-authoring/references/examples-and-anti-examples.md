@@ -8,6 +8,7 @@ Use this file when you need concrete patterns for framing, packaging, or auditin
 - Example: strong `When not to use`
 - Example: lean entrypoint with deeper references
 - Example: description as trigger, not slogan
+- Example: coordinator versus specialist
 - Example: OpenClaw metadata is operational, not decorative
 - Example: preserve the principle, not the checklist
 - Example: script discipline
@@ -100,6 +101,36 @@ Why it fails:
 
 - pure positioning language
 - impossible to route reliably
+
+## Example: coordinator versus specialist
+
+Good coordinator shape:
+
+- "Recommend the right skill in this suite and explain the nearest boundary.
+  Not for running the underlying workflow."
+
+Good specialist shape:
+
+- "Write or review one learner-facing feedback object after the answer contract
+  is stable. Not for option labels, answer truth, or route selection."
+
+Why it works:
+
+- the coordinator owns selection and handoff
+- the specialist owns one artifact and one entry condition
+- both can share a domain without competing for the same user ask
+- the boundary is visible from compact trigger text before the full body loads
+
+Weaker:
+
+- "Use this skill for curriculum quality improvements."
+- "Use this skill for detailed curriculum quality improvements."
+
+Why it fails:
+
+- both descriptions claim the same domain
+- "detailed" is not an ownership boundary
+- the model has to guess whether to route, coordinate, write, review, or mutate
 
 ## Example: OpenClaw metadata is operational, not decorative
 

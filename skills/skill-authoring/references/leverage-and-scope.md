@@ -7,6 +7,7 @@ Use this file when you need to decide whether the skill should exist, what it sh
 - Start with the user problem, not the folder
 - Choose the right mechanism
 - Shape scope aggressively
+- Shape scope against visible peers
 - Massive impact comes from leverage, not volume
 - Degrees of freedom
 - Self-containment rule
@@ -78,6 +79,36 @@ One useful forcing function:
 
 - name one lookalike request that should not trigger the skill
 - put that boundary in `When not to use`
+
+## Shape scope against visible peers
+
+Scope is not only about the abstract size of the job. It is also about how the
+skill sits next to other skills the model can see.
+
+When sibling skills exist, ask:
+
+- Which nearby skill would a model choose by mistake?
+- Does the target skill own selection, the broad pass, a specialist field, a
+  primitive operation, a review verdict, or runtime mechanics?
+- What should happen when the broad owner and specialist both seem relevant?
+- Is the boundary clear in compact metadata, or only after reading the body?
+
+Good peer-aware scope:
+
+- a coordinator chooses or sequences work, then hands off
+- a broad workflow skill preserves the throughline and routes leaf work
+- a specialist owns one surface and reports upstream defects
+- a primitive wrapper owns exact operations and receipts, not broad intent
+
+Bad peer-aware scope:
+
+- every skill in a cluster claims the whole domain
+- the distinction is "use this for advanced work" with no ownership boundary
+- a specialist silently absorbs coordinator or broad workflow duties
+- a guide skill becomes an umbrella executor
+
+Use peer fit to clarify the skill, not to create bureaucracy. If one `When not
+to use` line or handoff rule fixes the confusion, stop there.
 
 ## Massive impact comes from leverage, not volume
 

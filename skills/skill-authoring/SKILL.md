@@ -1,6 +1,6 @@
 ---
 name: skill-authoring
-description: "Write, edit, refactor, or audit agent skills so they are leverage-first, self-contained, and anti-heuristic. Use when a Codex, OpenClaw, OpenAI, Anthropic, or repo-local skill needs stronger use-case selection, trigger boundaries, runtime-specific packaging, gating, references, or validation before shipping."
+description: "Write, edit, refactor, or audit agent skills so they are leverage-first, self-contained, anti-heuristic, and distinct from nearby peer skills. Use when a Codex, OpenClaw, OpenAI, Anthropic, or repo-local skill needs stronger use-case selection, peer-group boundaries, runtime-specific packaging, gating, references, or validation before shipping."
 metadata:
   short-description: "Author high-impact reusable skills"
 ---
@@ -24,6 +24,7 @@ make install
 - The user wants a new shared or local skill with a real `SKILL.md` contract.
 - An existing skill needs better triggers, scope boundaries, packaging, or references.
 - The user wants to decide whether a workflow should be a skill rather than a prompt, repo note, or ordinary doc.
+- A skill's role is blurry relative to sibling skills, a suite guide, or a nearby tool wrapper.
 - The user wants a findings-first audit of a skill's leverage, progressive disclosure, self-containment, or validation plan.
 - The user wants to refactor an overgrown or heuristic skill without losing useful workflow knowledge.
 - The target runtime is OpenClaw and the skill needs slash-command behavior, loader gating, metadata rules, or per-agent/shared installation guidance.
@@ -42,6 +43,7 @@ make install
 - Decide whether a skill is the right mechanism before writing one.
 - Teach reusable workflow, judgment, and invariants; do not replace reasoning with slogans, keyword rules, canned menus, or giant checklists.
 - Treat the `description` field as runtime trigger logic, not marketing copy.
+- Shape trigger boundaries against the visible peer group when related skills exist; do not judge a skill only in isolation.
 - Encode runtime-specific behavior in machine-readable fields when the host supports them; do not hide load, gating, or invocation rules only in prose.
 - Keep the shipped skill self-contained; do not depend on repo docs, hidden context, or local prompt packs at runtime.
 - Keep `SKILL.md` lean and move heavy detail into `references/`.
@@ -57,6 +59,7 @@ make install
 3. Read the smallest additional reference that matches the job:
    - `references/workflow-and-modes.md` for mode routing and output expectations
    - `references/leverage-and-scope.md` for deciding what the skill should own and whether it should exist at all
+   - `references/peer-groups-and-boundaries.md` when related sibling skills, suite routing, or overlap are in scope
    - `references/packaging-trigger-and-validation.md` for file layout, trigger quality, and shipping checks
    - `references/openclaw-skills.md` when the target runtime is OpenClaw or mirrors OpenClaw skill semantics
    - `references/examples-and-anti-examples.md` when you need grounded examples or want to sanity-check framing
@@ -65,12 +68,13 @@ make install
 
 1. Lock the job-to-be-done, the leverage claim, and 2-3 canonical user asks before touching wording.
 2. Choose the right mechanism: skill, prompt, `AGENTS.md`, plan doc, or ordinary docs.
-3. Define scope, one strong out-of-scope lookalike, and the runtime boundaries.
-4. Write the trigger description so it says what the skill does, when to use it, and when not to.
-5. Encode any runtime-specific load, gating, slash-command, or invocation behavior in the runtime's machine-readable schema before treating the prose as done.
-6. Build the minimum viable package: `SKILL.md` first, then only the `references/`, `scripts/`, `assets/`, and `agents/` metadata the workflow truly needs.
-7. Use progressive disclosure aggressively: core contract in `SKILL.md`, deeper guidance in `references/`, determinism in `scripts/`.
-8. Validate trigger quality, package integrity, runtime-specific behavior, and execution quality before shipping.
+3. If the skill has visible peers, name the target lane and the nearest lookalike before rewriting trigger prose.
+4. Define scope, one strong out-of-scope lookalike, and the runtime boundaries.
+5. Write the trigger description so it says what the skill does, when to use it, and when not to.
+6. Encode any runtime-specific load, gating, slash-command, or invocation behavior in the runtime's machine-readable schema before treating the prose as done.
+7. Build the minimum viable package: `SKILL.md` first, then only the `references/`, `scripts/`, `assets/`, and `agents/` metadata the workflow truly needs.
+8. Use progressive disclosure aggressively: core contract in `SKILL.md`, deeper guidance in `references/`, determinism in `scripts/`.
+9. Validate trigger quality, package integrity, runtime-specific behavior, and execution quality before shipping.
 
 ## Output expectations
 
@@ -84,6 +88,7 @@ make install
 - `references/skill-pattern-contract.md` - the contract for high-impact, anti-heuristic skills
 - `references/workflow-and-modes.md` - choose the right mode and keep the output shape honest
 - `references/leverage-and-scope.md` - decide whether the skill should exist and what it should own
+- `references/peer-groups-and-boundaries.md` - place a skill inside its visible peer group without turning boundaries into routing tables
 - `references/packaging-trigger-and-validation.md` - file layout, trigger quality, progressive disclosure, and shipping checks
 - `references/openclaw-skills.md` - OpenClaw-only frontmatter, gating, slash-command, fleet-isolation, and security rules
 - `references/examples-and-anti-examples.md` - grounded good and bad patterns; use them to teach, not to cargo-cult

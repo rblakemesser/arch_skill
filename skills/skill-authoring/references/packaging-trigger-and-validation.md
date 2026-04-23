@@ -7,6 +7,7 @@ Use this file when turning the concept into a shippable skill package.
 - Packaging rules
 - Naming rules
 - Description writing rules
+- Peer-aware trigger rules
 - Progressive disclosure rules
 - `agents/openai.yaml` rules
 - Validation loop
@@ -68,6 +69,8 @@ Strong descriptions usually:
 - name the artifact, such as `prompt`, `skill`, or `plan`
 - name the quality bar or boundaries
 - include recognizable user-language triggers
+- distinguish the skill from its nearest visible peer when sibling skills share
+  the same domain
 
 Weak descriptions usually:
 
@@ -75,6 +78,29 @@ Weak descriptions usually:
 - omit the artifact entirely
 - describe a topic area instead of a workflow
 - say only "best practices" or "help with X"
+- reuse the same domain phrase as sibling skills without naming ownership,
+  stage, artifact, or handoff
+
+## Peer-aware trigger rules
+
+When a repo has related sibling skills, write trigger text for a model choosing
+among peers, not for a reader admiring one package in isolation.
+
+Ask the nearest-lookalike question:
+
+- Which sibling skill is easiest to confuse with this one?
+- What signal should appear in the user ask or artifact state before this skill
+  wins?
+- What signal should route to the sibling instead?
+- If both are relevant, who goes first and what is handed off?
+
+Prefer ownership words over intensity words. "Owns field-level feedback copy"
+is stronger than "for detailed feedback work." "Read-only router" is stronger
+than "for lightweight flow work."
+
+Do not turn descriptions into long routing manuals. Put one sharp discriminator
+in the description, keep the nearest rejection in `When not to use`, and move
+deeper suite guidance into a reference or guide skill when it truly needs one.
 
 ## Progressive disclosure rules
 
@@ -134,6 +160,8 @@ Validate four different things:
    - obvious user asks trigger it
    - paraphrased asks still trigger it
    - unrelated lookalikes do not trigger it
+   - the nearest sibling lookalike loses when the target skill should win, and
+     wins when the target skill should stand down
 3. **Execution quality**
    - once loaded, the skill actually improves the work
    - the instructions are followable
@@ -158,8 +186,10 @@ npx skills check
   - is this self-contained?
   - is `SKILL.md` doing too much?
   - does the description sound like a trigger or an advertisement?
+  - could the description also select a sibling skill?
   - are references being used for real doctrine rather than clutter?
 - Run at least one representative task from the main use cases and one nearby anti-case.
+- In a multi-skill package, run at least one nearest-peer anti-case.
 - If you use an independent validation pass, give it only the minimum task-local context needed to judge whether the skill worked.
 - For OpenClaw skill packs, also validate eligibility, placement, and config with the runtime's own tooling and session model. See `references/openclaw-skills.md`.
 
@@ -169,6 +199,8 @@ If the skill:
 
 - overtriggers, tighten the description or use explicit invocation
 - undertriggers, add clearer trigger language and explicit artifact names
+- picks the wrong sibling, fix the ownership discriminator, handoff line, or
+  suite guide before adding more examples
 - executes vaguely, improve `SKILL.md` or add the right reference
 - appears to pass validation only when the evaluator already knows the expected answer, fix the validation setup before changing the skill
 - keeps failing the same precise task, add or refine a script

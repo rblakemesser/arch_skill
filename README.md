@@ -325,7 +325,7 @@ Use when the user wants to write, edit, refactor, or audit a reusable prompt con
 
 ### `skill-authoring`
 
-Use when the user wants to write, edit, refactor, or audit a reusable agent skill package with precise triggers, lean packaging, and self-contained references.
+Use when the user wants to write, edit, refactor, or audit a reusable agent skill package with precise triggers, clear peer boundaries, lean packaging, and self-contained references.
 
 ### `amir-publish`
 
