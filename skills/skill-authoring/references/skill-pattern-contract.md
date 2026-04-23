@@ -23,7 +23,7 @@ This file is the contract for what a strong skill must contain, what it must not
 4. **Peer-group fit**
    - When visible sibling skills exist, name the target lane and the nearest lookalike before rewriting trigger text.
 5. **Trigger description**
-   - Write the `description` so it explains what the skill does, when it should fire, and what nearby work is out of scope.
+   - Write the `description` so it explains what the skill does, when it should fire, and what nearby work is out of scope while staying within the runtime length cap.
 6. **Runtime-specific machine behavior**
    - Encode host-specific invocation, gating, or command behavior in frontmatter or supported machine-readable fields rather than hiding it in prose.
 7. **Core runtime contract**
@@ -95,6 +95,8 @@ Never ship a skill that relies on:
 
 - folder-first design with no real use cases
 - vague or marketing-style descriptions that overtrigger or undertrigger
+- over-1024-character descriptions that are invalid for runtimes with the
+  standard skill metadata cap
 - peer-overlapping descriptions that make sibling skills indistinguishable
 - giant umbrella scope that hides multiple unrelated workflows in one package
 - heuristic rulebooks, slogans, or finite lists standing in for reasoning
@@ -108,6 +110,7 @@ The test is simple:
 - Would the skill still make sense if you removed the folder name and looked only at the use cases?
 - Could the description accidentally match generic writing or planning work?
 - Could the description also match a sibling skill with no clear discriminator?
+- Is the description within the target runtime length cap?
 - Does the skill teach why and when, or only recite what?
 - Could another repo install this skill and still use it without missing context?
 
@@ -119,6 +122,8 @@ If the problem is:
 
 - the skill loads at the wrong times: fix the `description`, scope boundaries, and maybe `allow_implicit_invocation`
 - the skill never loads for obvious asks: strengthen the `description` with clearer user-language triggers
+- the skill fails package validation for description length: keep the trigger
+  discriminator but move explanation into `SKILL.md` or `references/`
 - the wrong sibling skill loads: name the nearest lookalike and repair the ownership boundary, handoff rule, or guide skill
 - the skill loads correctly but executes poorly: fix `SKILL.md`, the workflow, or add a script if the failure is deterministic
 - the skill feels huge or muddy: narrow the use cases, split reference material, or split the skill entirely
@@ -132,6 +137,7 @@ If the problem is:
 - Are 2-3 canonical use cases and one anti-case obvious?
 - If visible peer skills exist, is the nearest lookalike boundary clear?
 - Is the `description` precise enough to control triggering?
+- Is the `description` at or under 1024 characters unless the target runtime has a stricter cap?
 - Are runtime-specific invocation and gating rules encoded in machine-readable form where the host supports them?
 - Does `SKILL.md` contain only the durable contract and workflow?
 - Are detailed examples and doctrine in `references/` instead of bloating the entrypoint?

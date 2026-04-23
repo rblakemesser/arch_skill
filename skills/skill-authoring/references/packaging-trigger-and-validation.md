@@ -22,6 +22,8 @@ Every skill needs:
   - valid YAML frontmatter
   - `name`
   - `description`
+  - `description` length within the target runtime cap; default to
+    `<= 1024` characters when the runtime does not document a stricter limit
 
 If the target runtime supports additional frontmatter or load-time gating, treat those keys as part of the functional contract, not as decorative metadata.
 
@@ -62,6 +64,11 @@ The `description` is runtime behavior. It should answer three things in one pass
 1. What the skill does
 2. When the skill should be used
 3. What nearby work is not the same thing
+
+It must also fit the runtime limit. Treat a `description` over 1024 characters
+as invalid unless the target runtime documents a stricter cap. Do not solve an
+over-cap description by deleting the real discriminator and leaving a slogan;
+move deeper detail into `SKILL.md`, `references/`, or a guide skill.
 
 Strong descriptions usually:
 
@@ -154,6 +161,7 @@ Validate four different things:
 
 1. **Package integrity**
    - frontmatter is valid
+   - `description` is present and within the runtime length cap
    - file names are sensible
    - no broken self-references
 2. **Trigger quality**
@@ -186,6 +194,8 @@ npx skills check
   - is this self-contained?
   - is `SKILL.md` doing too much?
   - does the description sound like a trigger or an advertisement?
+  - is the description at or under 1024 characters, or the stricter target
+    runtime cap?
   - could the description also select a sibling skill?
   - are references being used for real doctrine rather than clutter?
 - Run at least one representative task from the main use cases and one nearby anti-case.
@@ -199,6 +209,8 @@ If the skill:
 
 - overtriggers, tighten the description or use explicit invocation
 - undertriggers, add clearer trigger language and explicit artifact names
+- fails packaging because the description is too long, keep the discriminator
+  and move explanation into the body or references
 - picks the wrong sibling, fix the ownership discriminator, handoff line, or
   suite guide before adding more examples
 - executes vaguely, improve `SKILL.md` or add the right reference

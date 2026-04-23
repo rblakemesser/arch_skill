@@ -43,6 +43,7 @@ make install
 - Decide whether a skill is the right mechanism before writing one.
 - Teach reusable workflow, judgment, and invariants; do not replace reasoning with slogans, keyword rules, canned menus, or giant checklists.
 - Treat the `description` field as runtime trigger logic, not marketing copy.
+- Keep the frontmatter `description` inside the runtime length cap; treat over-1024-character descriptions as invalid unless the target runtime documents a stricter cap.
 - Shape trigger boundaries against the visible peer group when related skills exist; do not judge a skill only in isolation.
 - Encode runtime-specific behavior in machine-readable fields when the host supports them; do not hide load, gating, or invocation rules only in prose.
 - Keep the shipped skill self-contained; do not depend on repo docs, hidden context, or local prompt packs at runtime.
