@@ -65,9 +65,10 @@ break.
   upstream session that owns the bad input. Downstream steps respawn fresh
   after upstream repair; resuming downstream sessions would compound broken
   context.
-- Every operational instruction in a repair prompt carries a source tag:
-  user, manifest, owner runbook, critic evidence, or confirmed diagnosis.
-  Instructions without a source tag are invented and must be removed.
+- Every hard boundary and operational instruction in a repair prompt carries a
+  source tag: user, manifest, owner runbook, critic evidence, or confirmed
+  diagnosis. Unsourced boundaries or instructions are invented and must be
+  removed.
 - Learnings are consulted with applicability tests and surfaced in Stepwise's
   reasoning. They never appear as worker-facing doctrine. Workers act on owner
   doctrine, not on Stepwise process memory.
@@ -148,6 +149,7 @@ Five phases. Detail lives in `references/workflow-contract.md`.
 - Run directory at `.arch_skill/stepwise/runs/<run-id>/` in the orchestrator
   repo root.
 - Per-step artifacts under `steps/<n>/try-<k>/`.
+- Attempt origin metadata at `steps/<n>/try-<k>/origin.json`.
 - Diagnostic records under `steps/<n>/try-<k>/diagnostic/`.
 - Learnings under `.arch_skill/stepwise/learnings/`.
 - `report.md` summarizing the run in plain English.
@@ -199,5 +201,9 @@ Subcommands:
   diagnostic turn into `diagnostic/` without consuming a repair bounce.
 - `critic-spawn` - spawn an ephemeral critic with a structured schema; parse
   and validate the observational verdict.
+- `latest-session` - print latest try/session metadata for a step.
+- `upstream-for` - print manifest-declared upstream artifacts and latest
+  sessions for a step.
+- `report-scaffold` - print or write a deterministic `report.md` scaffold.
 
 Run `python3 scripts/run_stepwise.py <subcommand> --help` for flags.

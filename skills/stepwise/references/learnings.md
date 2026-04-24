@@ -71,6 +71,11 @@ each id.
 
 Promotion is deliberate. A learning does not silently rewrite the skill.
 
+Automatic acceptance is evidence of repeated usefulness, not automatic
+doctrine. A candidate may become `accepted` after two recorded successful
+applications. It becomes `promoted` only when a human or agent deliberately
+moves the underlying principle into live skill doctrine.
+
 ## Consult discipline
 
 Stepwise consults learnings at intake and repair authorship. The deterministic
@@ -91,13 +96,38 @@ reappearing just because surface words match.
 - `query --scope-json`
 - `accept <id>`
 - `reject <id>`
-- `promote <id>`
+- `record-application <id> --outcome success|null --run-id <id>
+  --diagnostic-path <path> [--note <text>]`
+- `promote <id> [--target-path <path> --summary <text>]`
 - `export-md`
 - `sync-from-md`
 - `fingerprint --scope-json --principle`
 
 The script uses file locking for append operations. It does not decide whether
 a learning applies to a run; Stepwise does that in the diagnostic record.
+
+`record-application` updates counts after Stepwise has already decided whether
+the learning helped. `success` means applying the learning materially improved
+the diagnosis or repair. `null` means Stepwise considered it and learned that
+it did not apply. If a candidate reaches `applied_success_count >= 2`, the
+script marks it `accepted`.
+
+## Promotion workflow
+
+Promotion extracts the durable principle from a learning and places it in the
+smallest owning live surface:
+
+1. Read the accepted learning and its applicability/contraindication text.
+2. Choose the owning doctrine target: usually `SKILL.md` for the core runtime
+   contract, a Stepwise reference file for deeper workflow teaching, or a
+   deterministic script when the learning is bookkeeping that language keeps
+   getting wrong.
+3. Edit the target so it teaches the principle and why it matters. Do not paste
+   the incident as hidden lore, and do not turn one example into a routing
+   shortcut.
+4. Validate the owning surface.
+5. Mark the learning promoted with `promote <id> --target-path <path>
+   --summary <what changed>`.
 
 ## Reporting
 

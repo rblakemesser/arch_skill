@@ -114,6 +114,10 @@ turn an overcorrection into a new constraint.
 Stepwise authors repair prompts only after the diagnostic conversation
 converges on root cause.
 
+The prompt teaches the worker the diagnosed issue without importing Stepwise's
+internal process. Source tags are not decoration: they are the guardrail that
+keeps Stepwise from turning its own speculation into a worker command.
+
 ```text
 Your prior attempt on this step did not honor its contract. We have diagnosed
 the issue.
@@ -127,12 +131,12 @@ manifest, owner runbook, and confirmed repair.
 
 ## Hard boundaries
 
-- {{boundary with source tag}}
+- {{boundary}} [source: manifest]
 
 ## Repair steps
 
-1. {{instruction with source tag}}
-2. {{instruction with source tag}}
+1. {{instruction}} [source: owner runbook]
+2. {{instruction}} [source: confirmed diagnosis]
 
 ## Evidence to leave
 
@@ -145,7 +149,8 @@ manifest, owner runbook, and confirmed repair.
 When the fixes are in place, end your turn.
 ```
 
-Every numbered repair step must carry one source tag. Valid source tags are:
+Every hard-boundary bullet and every numbered repair step must carry one source
+tag. Valid source tags are:
 
 - `[source: user]`
 - `[source: manifest]`
@@ -153,8 +158,13 @@ Every numbered repair step must carry one source tag. Valid source tags are:
 - `[source: critic evidence]`
 - `[source: confirmed diagnosis]`
 
-If a numbered step has no source tag, it is invented and must be removed before
-the prompt is sent.
+If a hard boundary or numbered step has no source tag, it is invented and must
+be removed before the prompt is sent.
+
+`Evidence to leave` bullets do not require source tags. They name the records
+the worker should leave behind so the next reader can inspect the repair. They
+are not allowed to introduce new operational instructions; if an evidence line
+starts acting like a command, move it into `Repair steps` and source-tag it.
 
 ## What stays out of worker prompts
 

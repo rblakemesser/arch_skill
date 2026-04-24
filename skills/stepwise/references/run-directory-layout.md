@@ -40,6 +40,7 @@ intended to be visible and shareable.
 │       ├── descriptor.json
 │       └── try-<k>/
 │           ├── prompt.md
+│           ├── origin.json
 │           ├── invocation.sh
 │           ├── stdout.final.json
 │           ├── stream.log
@@ -68,8 +69,11 @@ intended to be visible and shareable.
 ```
 
 Repairs executed against an upstream session as a result of another step's
-diagnostic live in the upstream step's own `try-<k>/` directory, with a
-back-reference to the diagnostic path that triggered them.
+diagnostic live in the upstream step's own `try-<k>/` directory. The
+`origin.json` file records whether the attempt was a fresh spawn, repair
+resume, or downstream respawn after upstream repair. Stepwise uses that fact
+for repair-bounce accounting and audit truth; it does not infer intent from
+the `try-<k>` name alone.
 
 ## state.json
 
@@ -118,12 +122,58 @@ run directories should not contain top-level `models` or `models_sha256`.
 ## Per-step try directory
 
 Every attempt gets its own try directory. `try-1` is the initial attempt;
-`try-2` is the first operational repair; diagnostic turns are stored under the
-try they diagnose and do not create new tries.
+later tries may be operational repairs or fresh downstream respawns after an
+upstream repair. Diagnostic turns are stored under the try they diagnose and do
+not create new tries.
+
+`origin.json` disambiguates attempt meaning:
+
+```json
+{
+  "schema_version": 1,
+  "created_at": "2026-04-24T00:00:00Z",
+  "kind": "repair-resume",
+  "session_mode": "same-session",
+  "consumes_repair_bounce": true,
+  "triggered_by": {
+    "diagnostic_path": "steps/6/try-1/diagnostic/root-cause.md"
+  },
+  "created_by_subcommand": "step-resume",
+  "session_id": "...",
+  "prompt_path": "/abs/run-dir/steps/6/try-2/prompt.md"
+}
+```
+
+Valid `kind` values:
+
+- `fresh`: a normal fresh worker session.
+- `repair-resume`: an operational repair prompt resumed into the same session.
+- `respawn-after-upstream`: a fresh downstream worker session after an
+  upstream repair passed.
+
+Only `repair-resume` consumes the repaired step's repair-bounce budget.
+Respawning a downstream step after upstream repair is not a repair of the
+downstream worker's own failed attempt; it is context hygiene.
 
 `prompt.md` is the exact worker-facing prompt. `invocation.sh` is a
 reproducible shell script. `session_id.txt` contains one session id or
 `UNRECOVERABLE`.
+
+## Helper subcommands
+
+`latest-session --run-dir <dir> --step-n <n>` prints the latest try, session id,
+session path, origin kind, and repair-bounce metadata for one step.
+
+`upstream-for --run-dir <dir> --step-n <n>` reads the confirmed manifest and
+prints earlier steps whose `expected_artifact.selector` exactly matches the
+step's declared inputs. Inputs shaped as `source: /absolute/path` normalize to
+the absolute path before exact matching. Unmatched inputs are returned
+explicitly. The helper does not do fuzzy inference; Stepwise can reason about
+the result, but the script only reports deterministic manifest facts.
+
+`report-scaffold --run-dir <dir>` prints a report scaffold. Add `--write` to
+write `report.md`. The scaffold supplies structure; Stepwise still writes the
+judgment and plain-English explanation.
 
 ## report.md
 

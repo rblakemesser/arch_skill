@@ -43,6 +43,9 @@ prompt. The repair prompt is Stepwise's synthesis, grounded in those sources.
 3. **Upstream traversal**
    - If the worker says an input was already wrong, read the manifest to find
      the earlier step whose expected artifact produced that input.
+   - Use `upstream-for --run-dir <dir> --step-n <n>` when the relationship is
+     represented in manifest inputs. The helper reports exact matches and
+     unmatched inputs; Stepwise still decides what the result means.
    - Resume that upstream session with the same diagnostic prompt shape.
    - If the upstream worker confirms its output was wrong, repair upstream.
    - If the upstream output was correct but the downstream received something
@@ -54,7 +57,8 @@ prompt. The repair prompt is Stepwise's synthesis, grounded in those sources.
      evidence, the owner-doctrine clause, and any downstream sessions that must
      respawn fresh.
    - Author one repair prompt for the root-cause session.
-   - Every numbered operational step carries a source tag:
+   - Every hard-boundary bullet and numbered operational step carries a source
+     tag:
      `[source: user]`, `[source: manifest]`, `[source: owner runbook]`,
      `[source: critic evidence]`, or `[source: confirmed diagnosis]`.
    - Delete any instruction that cannot be source-tagged.
@@ -68,6 +72,9 @@ prompt. The repair prompt is Stepwise's synthesis, grounded in those sources.
 6. **After rejudgement**
    - If the repaired step passes and it was upstream of the original failure,
      respawn downstream steps fresh from the confirmed manifest.
+   - Mark the fresh downstream attempt with
+     `origin.kind = "respawn-after-upstream"` so repair accounting stays
+     honest.
    - If the repaired step fails, re-enter this protocol from intake.
    - If repair bounces are exhausted, halt with the diagnostic record.
 
@@ -76,11 +83,12 @@ prompt. The repair prompt is Stepwise's synthesis, grounded in those sources.
 - `max_retries` / `per_step_retry_cap` is the operational repair-bounce budget
   for each session. Default is 5.
 - Diagnostic read-only turns do not consume repair bounces.
-- A single critic failure may use at most 10 diagnostic turns across all
-  sessions. This is a sanity cap, not a routing shortcut.
+- A single critic failure may use at most the value stored in
+  `state.json.diagnostic_turn_cap` across all sessions. `init-run` writes 10 by
+  default. This is a sanity cap, not a routing shortcut.
 
 If the diagnostic turn cap is exhausted, halt with the record. A failure that
-cannot be located after 10 read-only turns is not safe to repair by invention.
+cannot be located within the recorded cap is not safe to repair by invention.
 
 ## Halt conditions
 

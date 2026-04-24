@@ -126,10 +126,30 @@ def _validate_entry(entry: dict[str, Any]) -> None:
         value = entry.get(key)
         if not isinstance(value, str) or not value.strip():
             _die(f"{key} must be a non-empty string")
-    if not isinstance(entry.get("source"), dict):
+    source = entry.get("source")
+    if not isinstance(source, dict):
         _die("source must be an object")
-    if not isinstance(entry.get("scope"), dict):
+    for key in ["run_id", "diagnostic_path"]:
+        value = source.get(key)
+        if not isinstance(value, str) or not value.strip():
+            _die(f"source.{key} must be a non-empty string")
+    for key in ["step_n", "try_k"]:
+        if not isinstance(source.get(key), int):
+            _die(f"source.{key} must be an integer")
+
+    scope = entry.get("scope")
+    if not isinstance(scope, dict):
         _die("scope must be an object")
+    for key in ["owner_skill", "failure_class", "surface"]:
+        value = scope.get(key)
+        if not isinstance(value, str) or not value.strip():
+            _die(f"scope.{key} must be a non-empty string")
+    support_skills = scope.get("support_skills")
+    if not isinstance(support_skills, list):
+        _die("scope.support_skills must be an array")
+    for i, item in enumerate(support_skills):
+        if not isinstance(item, str) or not item.strip():
+            _die(f"scope.support_skills[{i}] must be a non-empty string")
 
 
 def _write_learning_md(root: Path, event: dict[str, Any]) -> None:
@@ -145,6 +165,10 @@ def _write_learning_md(root: Path, event: dict[str, Any]) -> None:
     body = f"""# {learning_id}
 
 Status: {status}
+
+Applied success count: {event.get("applied_success_count", 0)}
+
+Applied null count: {event.get("applied_null_count", 0)}
 
 ## Observation
 
@@ -169,6 +193,15 @@ Status: {status}
 ## Promotion Target
 
 {event.get("promotion_target", "")}
+"""
+    promotion = event.get("promotion")
+    if isinstance(promotion, dict):
+        body += f"""
+## Promotion Record
+
+Target path: {promotion.get("target_path", "")}
+
+Summary: {promotion.get("summary", "")}
 """
     _write_text(root / folder / f"{learning_id}.md", body)
 
@@ -254,7 +287,73 @@ def cmd_reject(args: argparse.Namespace) -> int:
 
 
 def cmd_promote(args: argparse.Namespace) -> int:
-    return _transition(args, "promoted")
+    root = _ledger_root(args)
+    events = _events(root)
+    current = _current_by_id(events)
+    if args.id not in current:
+        _die(f"unknown learning id: {args.id}")
+    now = _utc_now_iso()
+    event = dict(current[args.id])
+    event["status"] = "promoted"
+    event["updated_at"] = now
+    if args.target_path or args.summary:
+        if not args.target_path or not args.summary:
+            _die("--target-path and --summary must be provided together")
+        event["promotion"] = {
+            "promoted_at": now,
+            "target_path": args.target_path,
+            "summary": args.summary,
+        }
+    with _locked_index(root) as f:
+        f.seek(0, os.SEEK_END)
+        f.write(json.dumps(event, sort_keys=True) + "\n")
+    _write_learning_md(root, event)
+    print(args.id)
+    return 0
+
+
+def cmd_record_application(args: argparse.Namespace) -> int:
+    root = _ledger_root(args)
+    events = _events(root)
+    current = _current_by_id(events)
+    if args.id not in current:
+        _die(f"unknown learning id: {args.id}")
+    event = dict(current[args.id])
+    success_count = int(event.get("applied_success_count", 0))
+    null_count = int(event.get("applied_null_count", 0))
+    if args.outcome == "success":
+        success_count += 1
+    elif args.outcome == "null":
+        null_count += 1
+    else:
+        _die(f"invalid outcome: {args.outcome}")
+
+    event["applied_success_count"] = success_count
+    event["applied_null_count"] = null_count
+    if event.get("status") == "candidate" and success_count >= 2:
+        event["status"] = "accepted"
+
+    applications = event.get("applications")
+    if not isinstance(applications, list):
+        applications = []
+    applications.append(
+        {
+            "recorded_at": _utc_now_iso(),
+            "outcome": args.outcome,
+            "run_id": args.run_id,
+            "diagnostic_path": args.diagnostic_path,
+            "note": args.note or "",
+        }
+    )
+    event["applications"] = applications
+    event["updated_at"] = _utc_now_iso()
+
+    with _locked_index(root) as f:
+        f.seek(0, os.SEEK_END)
+        f.write(json.dumps(event, sort_keys=True) + "\n")
+    _write_learning_md(root, event)
+    print(args.id)
+    return 0
 
 
 def cmd_export_md(args: argparse.Namespace) -> int:
@@ -338,10 +437,24 @@ def _build_parser() -> argparse.ArgumentParser:
     q.add_argument("--scope-json", required=True)
     q.set_defaults(func=cmd_query)
 
-    for name, func in [("accept", cmd_accept), ("reject", cmd_reject), ("promote", cmd_promote)]:
+    for name, func in [("accept", cmd_accept), ("reject", cmd_reject)]:
         sp = sub.add_parser(name)
         sp.add_argument("id")
         sp.set_defaults(func=func)
+
+    promote = sub.add_parser("promote")
+    promote.add_argument("id")
+    promote.add_argument("--target-path", default=None)
+    promote.add_argument("--summary", default=None)
+    promote.set_defaults(func=cmd_promote)
+
+    record = sub.add_parser("record-application")
+    record.add_argument("id")
+    record.add_argument("--outcome", required=True, choices=["success", "null"])
+    record.add_argument("--run-id", required=True)
+    record.add_argument("--diagnostic-path", required=True)
+    record.add_argument("--note", default=None)
+    record.set_defaults(func=cmd_record_application)
 
     sub.add_parser("export-md").set_defaults(func=cmd_export_md)
     sub.add_parser("sync-from-md").set_defaults(func=cmd_sync_from_md)

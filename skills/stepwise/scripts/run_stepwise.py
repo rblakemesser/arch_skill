@@ -14,6 +14,11 @@ Subcommands:
                Resume an existing step sub-session with a read-only
                diagnostic prompt and write diagnostic artifacts.
   critic-spawn Spawn an ephemeral critic sub-session with a structured schema.
+  latest-session
+               Print the latest session metadata for a step.
+  upstream-for Print manifest-declared upstream artifacts for a step.
+  report-scaffold
+               Print or write a deterministic report.md scaffold.
 
 All subcommands exit non-zero with a plain-English message when their
 expected output shape does not appear. They never swallow errors silently.
@@ -56,6 +61,46 @@ def _write_text(path: Path, content: str) -> None:
 
 def _write_json(path: Path, payload: Any) -> None:
     _write_text(path, json.dumps(payload, indent=2, sort_keys=True) + "\n")
+
+
+def _parse_json_object_arg(value: str | None, field: str) -> dict[str, Any] | None:
+    if value is None:
+        return None
+    try:
+        payload = json.loads(value)
+    except json.JSONDecodeError as e:
+        _die(f"{field} is not valid JSON: {e}")
+    if not isinstance(payload, dict):
+        _die(f"{field} must be a JSON object")
+    return payload
+
+
+def _ensure_stepwise_runs_gitignore_marker(orch_root: Path) -> None:
+    """Ignore local run logs without hiding the visible learnings ledger."""
+    gi = orch_root / ".gitignore"
+    marker = ".arch_skill/stepwise/runs/"
+    old_marker = ".arch_skill/"
+    if not gi.exists():
+        gi.write_text(f"{marker}\n", encoding="utf-8")
+        return
+
+    lines = gi.read_text(encoding="utf-8").splitlines()
+    new_lines: list[str] = []
+    changed = False
+    for line in lines:
+        if line == old_marker:
+            if marker not in new_lines:
+                new_lines.append(marker)
+            changed = True
+        else:
+            new_lines.append(line)
+
+    if marker not in new_lines:
+        new_lines.append(marker)
+        changed = True
+
+    if changed:
+        gi.write_text("\n".join(new_lines).rstrip() + "\n", encoding="utf-8")
 
 
 def _schema_allows_null(schema: Any) -> bool:
@@ -361,20 +406,7 @@ def cmd_init_run(args: argparse.Namespace) -> int:
     }
     _write_json(run_dir / "state.json", state)
 
-    # ensure .gitignore ignores local run logs without hiding learnings
-    gi = orch_root / ".gitignore"
-    marker = ".arch_skill/stepwise/runs/"
-    if gi.exists():
-        lines = gi.read_text(encoding="utf-8").splitlines()
-        changed = False
-        lines = [marker if line == ".arch_skill/" else line for line in lines]
-        if marker not in lines:
-            lines.append(marker)
-            changed = True
-        if changed or ".arch_skill/" in gi.read_text(encoding="utf-8").splitlines():
-            gi.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
-    else:
-        gi.write_text(f"{marker}\n", encoding="utf-8")
+    _ensure_stepwise_runs_gitignore_marker(orch_root)
 
     print(str(run_dir))
     return 0
@@ -387,6 +419,37 @@ def _ensure_try_dir(run_dir: Path, step_n: int, try_k: int) -> Path:
     d = run_dir / "steps" / str(step_n) / f"try-{try_k}"
     d.mkdir(parents=True, exist_ok=True)
     return d
+
+
+def _try_dir(run_dir: Path, step_n: int, try_k: int) -> Path:
+    return run_dir / "steps" / str(step_n) / f"try-{try_k}"
+
+
+def _write_try_origin(
+    try_dir: Path,
+    *,
+    kind: str,
+    session_mode: str,
+    consumes_repair_bounce: bool,
+    triggered_by: dict[str, Any] | None,
+    created_by_subcommand: str,
+    session_id: str,
+    prompt_path: Path,
+) -> None:
+    _write_json(
+        try_dir / "origin.json",
+        {
+            "schema_version": 1,
+            "created_at": _utc_now_iso(),
+            "kind": kind,
+            "session_mode": session_mode,
+            "consumes_repair_bounce": consumes_repair_bounce,
+            "triggered_by": triggered_by,
+            "created_by_subcommand": created_by_subcommand,
+            "session_id": session_id,
+            "prompt_path": str(prompt_path),
+        },
+    )
 
 
 def _ensure_critic_dir(run_dir: Path, step_n: int, try_k: int) -> Path:
@@ -471,11 +534,49 @@ def _latest_session_id(run_dir: Path, step_n: int) -> str | None:
     try_k = _latest_try_k(run_dir, step_n)
     if try_k is None:
         return None
-    sid_path = run_dir / "steps" / str(step_n) / f"try-{try_k}" / "session_id.txt"
+    sid_path = _try_dir(run_dir, step_n, try_k) / "session_id.txt"
     if not sid_path.is_file():
         return None
     sid = sid_path.read_text(encoding="utf-8").strip()
     return sid if sid and sid != "UNRECOVERABLE" else None
+
+
+def _latest_try_metadata(run_dir: Path, step_n: int) -> dict[str, Any]:
+    try_k = _latest_try_k(run_dir, step_n)
+    if try_k is None:
+        return {
+            "step_n": step_n,
+            "latest_try_k": None,
+            "try_dir": None,
+            "session_id": None,
+            "session_id_path": None,
+            "origin_kind": None,
+            "consumes_repair_bounce": None,
+        }
+
+    tdir = _try_dir(run_dir, step_n, try_k)
+    sid_path = tdir / "session_id.txt"
+    sid = sid_path.read_text(encoding="utf-8").strip() if sid_path.is_file() else None
+    if sid == "UNRECOVERABLE":
+        sid = None
+
+    origin_path = tdir / "origin.json"
+    origin: dict[str, Any] = {}
+    if origin_path.is_file():
+        loaded = _load_json_file(origin_path)
+        if isinstance(loaded, dict):
+            origin = loaded
+
+    return {
+        "step_n": step_n,
+        "latest_try_k": try_k,
+        "try_dir": str(tdir),
+        "session_id": sid,
+        "session_id_path": str(sid_path) if sid_path.is_file() else None,
+        "origin_path": str(origin_path) if origin_path.is_file() else None,
+        "origin_kind": origin.get("kind"),
+        "consumes_repair_bounce": origin.get("consumes_repair_bounce"),
+    }
 
 
 def _manifest_steps_by_artifact(run_dir: Path) -> dict[str, int]:
@@ -491,6 +592,26 @@ def _manifest_steps_by_artifact(run_dir: Path) -> dict[str, int]:
             if isinstance(selector, str) and selector:
                 out[selector] = n
     return out
+
+
+def _manifest_step_by_n(run_dir: Path, step_n: int) -> dict[str, Any] | None:
+    manifest = _load_json_file(run_dir / "manifest.json")
+    for step in manifest.get("steps", []):
+        if isinstance(step, dict) and step.get("n") == step_n:
+            return step
+    return None
+
+
+def _input_selector_candidate(value: Any) -> str | None:
+    if not isinstance(value, str):
+        return None
+    stripped = value.strip()
+    prefix = "source:"
+    if stripped.lower().startswith(prefix):
+        candidate = stripped[len(prefix):].strip()
+        if candidate.startswith("/"):
+            return candidate
+    return stripped or None
 
 
 def _extract_claude_result_event(payload) -> dict | None:
@@ -563,10 +684,14 @@ def cmd_step_spawn(args: argparse.Namespace) -> int:
     run_dir = Path(args.run_dir).resolve()
     if not (run_dir / "state.json").is_file():
         _die(f"run_dir has no state.json: {run_dir}")
+    triggered_by = _parse_json_object_arg(args.origin_trigger_json, "--origin-trigger-json")
+    if args.origin_kind == "respawn-after-upstream" and triggered_by is None:
+        _die("--origin-trigger-json is required for respawn-after-upstream")
     prompt = Path(args.prompt_file).read_text(encoding="utf-8")
     target_repo = str(Path(args.target_repo).resolve())
     try_dir = _ensure_try_dir(run_dir, args.step_n, args.try_k)
-    _write_text(try_dir / "prompt.md", prompt)
+    prompt_path = try_dir / "prompt.md"
+    _write_text(prompt_path, prompt)
 
     final_path = try_dir / "stdout.final.json"
     stream_path = try_dir / "stream.log"
@@ -627,11 +752,31 @@ def cmd_step_spawn(args: argparse.Namespace) -> int:
 
     if sid is None:
         _write_text(try_dir / "session_id.txt", "UNRECOVERABLE\n")
+        _write_try_origin(
+            try_dir,
+            kind=args.origin_kind,
+            session_mode="fresh-session",
+            consumes_repair_bounce=False,
+            triggered_by=triggered_by,
+            created_by_subcommand="step-spawn",
+            session_id="UNRECOVERABLE",
+            prompt_path=prompt_path,
+        )
         _die(
             f"session id not captured (runtime={args.runtime}, exit={code})",
             code=4,
         )
     _write_text(try_dir / "session_id.txt", sid + "\n")
+    _write_try_origin(
+        try_dir,
+        kind=args.origin_kind,
+        session_mode="fresh-session",
+        consumes_repair_bounce=False,
+        triggered_by=triggered_by,
+        created_by_subcommand="step-spawn",
+        session_id=sid,
+        prompt_path=prompt_path,
+    )
 
     print(sid)
     return 0 if code == 0 else code
@@ -644,10 +789,12 @@ def cmd_step_resume(args: argparse.Namespace) -> int:
     run_dir = Path(args.run_dir).resolve()
     if not (run_dir / "state.json").is_file():
         _die(f"run_dir has no state.json: {run_dir}")
+    triggered_by = _parse_json_object_arg(args.origin_trigger_json, "--origin-trigger-json")
     prompt = Path(args.prompt_file).read_text(encoding="utf-8")
     target_repo = str(Path(args.target_repo).resolve())
     try_dir = _ensure_try_dir(run_dir, args.step_n, args.try_k)
-    _write_text(try_dir / "prompt.md", prompt)
+    prompt_path = try_dir / "prompt.md"
+    _write_text(prompt_path, prompt)
     sid = args.session_id
     if not sid or sid == "UNRECOVERABLE":
         _die(f"refusing to resume without a valid session id: {sid!r}")
@@ -707,6 +854,16 @@ def cmd_step_resume(args: argparse.Namespace) -> int:
         out_sid = _parse_codex_thread_id(stdout_text) or sid
 
     _write_text(try_dir / "session_id.txt", out_sid + "\n")
+    _write_try_origin(
+        try_dir,
+        kind="repair-resume",
+        session_mode="same-session",
+        consumes_repair_bounce=True,
+        triggered_by=triggered_by,
+        created_by_subcommand="step-resume",
+        session_id=out_sid,
+        prompt_path=prompt_path,
+    )
     print(out_sid)
     return 0 if code == 0 else code
 
@@ -916,6 +1073,197 @@ def cmd_critic_spawn(args: argparse.Namespace) -> int:
     return 0 if code == 0 else code
 
 
+# ---- metadata helpers -----------------------------------------------------
+
+
+def cmd_latest_session(args: argparse.Namespace) -> int:
+    run_dir = Path(args.run_dir).resolve()
+    if not (run_dir / "state.json").is_file():
+        _die(f"run_dir has no state.json: {run_dir}")
+    print(json.dumps(_latest_try_metadata(run_dir, args.step_n), indent=2, sort_keys=True))
+    return 0
+
+
+def cmd_upstream_for(args: argparse.Namespace) -> int:
+    run_dir = Path(args.run_dir).resolve()
+    if not (run_dir / "state.json").is_file():
+        _die(f"run_dir has no state.json: {run_dir}")
+    step = _manifest_step_by_n(run_dir, args.step_n)
+    if step is None:
+        _die(f"manifest has no step n={args.step_n}")
+
+    artifact_to_step = _manifest_steps_by_artifact(run_dir)
+    inputs = step.get("inputs", [])
+    if not isinstance(inputs, list):
+        _die(f"manifest step {args.step_n} inputs must be an array")
+
+    matches: list[dict[str, Any]] = []
+    unmatched: list[dict[str, Any]] = []
+    for raw_input in inputs:
+        candidate = _input_selector_candidate(raw_input)
+        if candidate is None:
+            unmatched.append(
+                {
+                    "input": raw_input,
+                    "normalized_selector": None,
+                    "reason": "input is not a non-empty string",
+                }
+            )
+            continue
+        upstream_step_n = artifact_to_step.get(candidate)
+        if upstream_step_n is None:
+            unmatched.append(
+                {
+                    "input": raw_input,
+                    "normalized_selector": candidate,
+                    "reason": "no matching expected_artifact.selector",
+                }
+            )
+            continue
+        if upstream_step_n >= args.step_n:
+            unmatched.append(
+                {
+                    "input": raw_input,
+                    "normalized_selector": candidate,
+                    "reason": "matching artifact is not from an earlier step",
+                    "matched_step_n": upstream_step_n,
+                }
+            )
+            continue
+
+        latest = _latest_try_metadata(run_dir, upstream_step_n)
+        matches.append(
+            {
+                "input": raw_input,
+                "normalized_selector": candidate,
+                "upstream_step_n": upstream_step_n,
+                "selector": candidate,
+                "latest_try_k": latest["latest_try_k"],
+                "session_id": latest["session_id"],
+                "session_id_path": latest["session_id_path"],
+                "origin_kind": latest["origin_kind"],
+                "consumes_repair_bounce": latest["consumes_repair_bounce"],
+            }
+        )
+
+    print(
+        json.dumps(
+            {
+                "step_n": args.step_n,
+                "matches": matches,
+                "unmatched": unmatched,
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    return 0
+
+
+def _latest_verdict_summary(run_dir: Path, step_n: int, try_k: int | None) -> str:
+    if try_k is None:
+        return "pending"
+    verdict_path = _try_dir(run_dir, step_n, try_k) / "critic" / "verdict.json"
+    if not verdict_path.is_file():
+        return "no critic verdict recorded"
+    verdict = _load_json_file(verdict_path)
+    if not isinstance(verdict, dict):
+        return "critic verdict is malformed"
+    status = verdict.get("verdict", "unknown")
+    summary = verdict.get("summary")
+    if isinstance(summary, str) and summary.strip():
+        return f"{status}: {summary.strip()}"
+    return str(status)
+
+
+def _md_cell(value: Any) -> str:
+    return str(value).replace("|", "\\|").replace("\n", " ")
+
+
+def _render_report_scaffold(run_dir: Path) -> str:
+    state = _load_json_file(run_dir / "state.json")
+    manifest = _load_json_file(run_dir / "manifest.json")
+    if not isinstance(state, dict):
+        _die("state.json must contain a JSON object")
+    if not isinstance(manifest, dict):
+        _die("manifest.json must contain a JSON object")
+
+    steps = manifest.get("steps", [])
+    if not isinstance(steps, list):
+        _die("manifest steps must be an array")
+
+    lines = [
+        "# Stepwise Run Report",
+        "",
+        f"Run id: {state.get('run_id', '')}",
+        f"Target: {state.get('target_repo_path', manifest.get('target_repo_path', ''))}",
+        f"Process: {manifest.get('target_process', '')}",
+        f"Profile: {state.get('profile', manifest.get('profile', ''))}",
+        "",
+        "## Per-step Status",
+        "",
+        "| Step | Label | Latest Try | Origin | Status |",
+        "|---|---|---:|---|---|",
+    ]
+
+    for step in steps:
+        if not isinstance(step, dict):
+            continue
+        step_n = step.get("n")
+        if not isinstance(step_n, int):
+            continue
+        latest = _latest_try_metadata(run_dir, step_n)
+        latest_try = latest["latest_try_k"]
+        origin = latest["origin_kind"] or ""
+        status = _latest_verdict_summary(run_dir, step_n, latest_try)
+        lines.append(
+            f"| {step_n} | {_md_cell(step.get('label', ''))} | "
+            f"{latest_try or ''} | {_md_cell(origin)} | {_md_cell(status)} |"
+        )
+
+    lines.extend(
+        [
+            "",
+            "## Notable Critic Observations",
+            "",
+            "- Fill from critic verdict evidence and summaries.",
+            "",
+            "## Diagnostic Root Cause",
+            "",
+            "- Fill from diagnostic/root-cause.md if the run halted or repaired upstream.",
+            "",
+            "## Learnings",
+            "",
+            "- Applied accepted learnings:",
+            "- Candidate learnings written:",
+            "- Near-misses considered and dismissed:",
+            "",
+            "## Attempt-Origin Notes",
+            "",
+            "- Note any repair resumes and downstream respawns after upstream repair.",
+            "",
+            "## Pending Work",
+            "",
+            "- Fill only if the run halted or intentionally left later steps pending.",
+        ]
+    )
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def cmd_report_scaffold(args: argparse.Namespace) -> int:
+    run_dir = Path(args.run_dir).resolve()
+    if not (run_dir / "state.json").is_file():
+        _die(f"run_dir has no state.json: {run_dir}")
+    report = _render_report_scaffold(run_dir)
+    if args.write:
+        path = run_dir / "report.md"
+        _write_text(path, report)
+        print(str(path))
+    else:
+        print(report, end="")
+    return 0
+
+
 # ---- arg parsing ----------------------------------------------------------
 
 
@@ -953,6 +1301,16 @@ def _build_parser() -> argparse.ArgumentParser:
     step.add_argument("--runtime", required=True, choices=["claude", "codex"])
     step.add_argument("--step-n", required=True, type=int)
     step.add_argument("--try-k", required=True, type=int)
+    step.add_argument(
+        "--origin-kind",
+        choices=["fresh", "respawn-after-upstream"],
+        default="fresh",
+    )
+    step.add_argument(
+        "--origin-trigger-json",
+        default=None,
+        help="JSON object naming the diagnostic or upstream repair that caused this spawn",
+    )
     step.set_defaults(func=cmd_step_spawn)
 
     resume = sub.add_parser("step-resume", help="Resume an existing step session")
@@ -962,6 +1320,11 @@ def _build_parser() -> argparse.ArgumentParser:
     resume.add_argument("--runtime", required=True, choices=["claude", "codex"])
     resume.add_argument("--step-n", required=True, type=int)
     resume.add_argument("--try-k", required=True, type=int)
+    resume.add_argument(
+        "--origin-trigger-json",
+        default=None,
+        help="JSON object naming the diagnostic record that caused this repair",
+    )
     resume.set_defaults(func=cmd_step_resume)
 
     diagnose = sub.add_parser(
@@ -986,6 +1349,30 @@ def _build_parser() -> argparse.ArgumentParser:
     critic.add_argument("--step-n", required=True, type=int)
     critic.add_argument("--try-k", required=True, type=int)
     critic.set_defaults(func=cmd_critic_spawn)
+
+    latest = sub.add_parser(
+        "latest-session",
+        help="Print latest try/session metadata for a step as JSON",
+    )
+    latest.add_argument("--run-dir", required=True)
+    latest.add_argument("--step-n", required=True, type=int)
+    latest.set_defaults(func=cmd_latest_session)
+
+    upstream = sub.add_parser(
+        "upstream-for",
+        help="Print manifest-declared upstream artifacts and latest sessions for a step",
+    )
+    upstream.add_argument("--run-dir", required=True)
+    upstream.add_argument("--step-n", required=True, type=int)
+    upstream.set_defaults(func=cmd_upstream_for)
+
+    report = sub.add_parser(
+        "report-scaffold",
+        help="Print or write a deterministic report.md scaffold",
+    )
+    report.add_argument("--run-dir", required=True)
+    report.add_argument("--write", action="store_true")
+    report.set_defaults(func=cmd_report_scaffold)
 
     return p
 

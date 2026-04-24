@@ -130,7 +130,10 @@ Field notes:
   paths remain in scope.
 - `inputs`: prior artifacts or source files the step reads. Use absolute paths
   where possible. Inputs are how Stepwise walks upstream when a diagnostic
-  conversation surfaces bad input.
+  conversation surfaces bad input. If an input is produced by an earlier step,
+  record it as the exact earlier `expected_artifact.selector`, or as
+  `source: <absolute selector>`, so `upstream-for` can report the relationship
+  without fuzzy guessing.
 - `expected_artifact`: the artifact the critic verifies.
 - `step_execution`: resolved worker runtime/model/effort.
 - `critic_execution`: resolved critic runtime/model/effort.

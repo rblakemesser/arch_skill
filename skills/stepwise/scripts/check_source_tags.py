@@ -9,6 +9,8 @@ from pathlib import Path
 
 
 STEP_RE = re.compile(r"^\s*\d+\.\s+")
+BULLET_RE = re.compile(r"^\s*-\s+")
+HEADING_RE = re.compile(r"^\s*##\s+(.+?)\s*$")
 SOURCE_RE = re.compile(
     r"\[source:\s*(user|manifest|owner runbook|critic evidence|confirmed diagnosis)\]",
     re.IGNORECASE,
@@ -22,9 +24,20 @@ def check_file(path: Path) -> list[str]:
     except OSError as e:
         return [f"{path}: cannot read: {e}"]
 
+    current_section: str | None = None
     for lineno, line in enumerate(lines, start=1):
+        heading = HEADING_RE.match(line)
+        if heading:
+            current_section = heading.group(1).strip().lower()
+            continue
         if STEP_RE.match(line) and not SOURCE_RE.search(line):
             errors.append(f"{path}:{lineno}: numbered repair step lacks source tag")
+        if (
+            current_section == "hard boundaries"
+            and BULLET_RE.match(line)
+            and not SOURCE_RE.search(line)
+        ):
+            errors.append(f"{path}:{lineno}: hard boundary lacks source tag")
     return errors
 
 

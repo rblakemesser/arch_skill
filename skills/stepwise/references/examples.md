@@ -164,6 +164,9 @@ resumes the step-3 session read-only with the same diagnostic prompt shape.
 If step 3 confirms it picked the wrong stage from its own owner runbook, root
 cause is step 3. Stepwise authors a source-tagged repair prompt for step 3,
 repairs step 3, runs the step-3 critic, then respawns steps 4 and 5 fresh.
+Those downstream tries are marked `origin.kind = "respawn-after-upstream"` so
+the run record shows they were fresh context after an upstream fix, not
+repairs of the downstream worker's own attempt.
 
 Why fresh respawn matters: step 5's session history was built around the wrong
 stage. Resuming it after step 3 changes would carry poisoned context forward.

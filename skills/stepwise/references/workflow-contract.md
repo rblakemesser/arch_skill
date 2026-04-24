@@ -132,7 +132,8 @@ bounces.
 - Build the invocation per `session-resume.md`.
 - Run the subprocess with stdin closed.
 - Capture exit code, stdout, final output file, stream log, and session id.
-- Write all artifacts to `steps/<n>/try-1/`, including `prompt.md`.
+- Write all artifacts to `steps/<n>/try-1/`, including `prompt.md` and
+  `origin.json`.
 
 **Failure modes**
 
@@ -194,6 +195,8 @@ On `verdict=fail` or inspectable `verdict=abstain`:
 6. Run a fresh critic against the repaired attempt.
 7. If an upstream repair passes, respawn downstream steps fresh. Do not resume
    downstream sessions that were built on the broken upstream artifact.
+   Record those respawns with `origin.kind = "respawn-after-upstream"` so they
+   are not counted as downstream repair bounces.
 8. If the repair fails, re-enter this same protocol.
 
 Halt when:

@@ -345,6 +345,211 @@ class InitRunAndPromptArtifacts(unittest.TestCase):
                 (run_dir / "steps" / "1" / "try-1" / "prompt.md").read_text(encoding="utf-8"),
                 "do the step\n",
             )
+            origin = json.loads(
+                (run_dir / "steps" / "1" / "try-1" / "origin.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            self.assertEqual(origin["kind"], "fresh")
+            self.assertEqual(origin["session_mode"], "fresh-session")
+            self.assertFalse(origin["consumes_repair_bounce"])
+
+    def test_step_resume_records_repair_origin(self):
+        old_run_subprocess = rs._run_subprocess
+
+        def fake_run(argv, stdout_stream_path, out_dir, cwd=None, stamp_prefix=None):
+            payload = dict(_RESULT_EVENT)
+            stdout = json.dumps(payload)
+            stdout_stream_path.write_text(stdout, encoding="utf-8")
+            return 0, stdout
+
+        with tempfile.TemporaryDirectory() as td:
+            run_dir = Path(td) / "run"
+            target = Path(td) / "target"
+            run_dir.mkdir()
+            target.mkdir()
+            (run_dir / "state.json").write_text("{}\n", encoding="utf-8")
+            prompt = Path(td) / "repair.md"
+            prompt.write_text("repair the step\n", encoding="utf-8")
+            parser = rs._build_parser()
+            args = parser.parse_args(
+                [
+                    "step-resume",
+                    "--run-dir",
+                    str(run_dir),
+                    "--target-repo",
+                    str(target),
+                    "--prompt-file",
+                    str(prompt),
+                    "--model",
+                    "haiku",
+                    "--effort",
+                    "low",
+                    "--runtime",
+                    "claude",
+                    "--step-n",
+                    "1",
+                    "--try-k",
+                    "2",
+                    "--session-id",
+                    "session-1",
+                    "--origin-trigger-json",
+                    '{"diagnostic_path":"steps/1/try-1/diagnostic/root-cause.md"}',
+                ]
+            )
+            try:
+                rs._run_subprocess = fake_run
+                with contextlib.redirect_stdout(io.StringIO()):
+                    self.assertEqual(args.func(args), 0)
+            finally:
+                rs._run_subprocess = old_run_subprocess
+
+            origin = json.loads(
+                (run_dir / "steps" / "1" / "try-2" / "origin.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            self.assertEqual(origin["kind"], "repair-resume")
+            self.assertEqual(origin["session_mode"], "same-session")
+            self.assertTrue(origin["consumes_repair_bounce"])
+            self.assertEqual(
+                origin["triggered_by"]["diagnostic_path"],
+                "steps/1/try-1/diagnostic/root-cause.md",
+            )
+
+    def test_step_spawn_records_respawn_origin(self):
+        old_run_subprocess = rs._run_subprocess
+
+        def fake_run(argv, stdout_stream_path, out_dir, cwd=None, stamp_prefix=None):
+            payload = dict(_RESULT_EVENT)
+            stdout = json.dumps(payload)
+            stdout_stream_path.write_text(stdout, encoding="utf-8")
+            return 0, stdout
+
+        with tempfile.TemporaryDirectory() as td:
+            run_dir = Path(td) / "run"
+            target = Path(td) / "target"
+            run_dir.mkdir()
+            target.mkdir()
+            (run_dir / "state.json").write_text("{}\n", encoding="utf-8")
+            prompt = Path(td) / "prompt.md"
+            prompt.write_text("fresh downstream\n", encoding="utf-8")
+            parser = rs._build_parser()
+            args = parser.parse_args(
+                [
+                    "step-spawn",
+                    "--run-dir",
+                    str(run_dir),
+                    "--target-repo",
+                    str(target),
+                    "--prompt-file",
+                    str(prompt),
+                    "--model",
+                    "haiku",
+                    "--effort",
+                    "low",
+                    "--runtime",
+                    "claude",
+                    "--step-n",
+                    "5",
+                    "--try-k",
+                    "2",
+                    "--origin-kind",
+                    "respawn-after-upstream",
+                    "--origin-trigger-json",
+                    '{"upstream_step_n":4,"diagnostic_path":"steps/5/try-1/diagnostic/root-cause.md"}',
+                ]
+            )
+            try:
+                rs._run_subprocess = fake_run
+                with contextlib.redirect_stdout(io.StringIO()):
+                    self.assertEqual(args.func(args), 0)
+            finally:
+                rs._run_subprocess = old_run_subprocess
+
+            origin = json.loads(
+                (run_dir / "steps" / "5" / "try-2" / "origin.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            self.assertEqual(origin["kind"], "respawn-after-upstream")
+            self.assertFalse(origin["consumes_repair_bounce"])
+
+
+class MetadataHelpers(unittest.TestCase):
+    def test_latest_session_and_upstream_for_report_exact_metadata(self):
+        with tempfile.TemporaryDirectory() as td:
+            run_dir = Path(td) / "run"
+            run_dir.mkdir()
+            (run_dir / "state.json").write_text(
+                json.dumps(
+                    {
+                        "run_id": "run-1",
+                        "target_repo_path": str(Path(td) / "target"),
+                        "profile": "strict",
+                    }
+                ),
+                encoding="utf-8",
+            )
+            artifact = str(Path(td) / "target" / "outline.md")
+            manifest = {
+                "target_process": "Demo process",
+                "steps": [
+                    {
+                        "n": 1,
+                        "label": "Write outline",
+                        "inputs": [],
+                        "expected_artifact": {"selector": artifact},
+                    },
+                    {
+                        "n": 2,
+                        "label": "Use outline",
+                        "inputs": [f"source: {artifact}", "source: /not/produced.md"],
+                        "expected_artifact": {"selector": str(Path(td) / "target" / "brief.md")},
+                    },
+                ],
+            }
+            rs._write_json(run_dir / "manifest.json", manifest)
+            tdir = run_dir / "steps" / "1" / "try-1"
+            tdir.mkdir(parents=True)
+            (tdir / "session_id.txt").write_text("session-1\n", encoding="utf-8")
+            rs._write_json(
+                tdir / "origin.json",
+                {
+                    "kind": "fresh",
+                    "consumes_repair_bounce": False,
+                    "session_mode": "fresh-session",
+                },
+            )
+
+            parser = rs._build_parser()
+            latest_args = parser.parse_args(
+                ["latest-session", "--run-dir", str(run_dir), "--step-n", "1"]
+            )
+            with contextlib.redirect_stdout(io.StringIO()) as latest_out:
+                self.assertEqual(latest_args.func(latest_args), 0)
+            latest = json.loads(latest_out.getvalue())
+            self.assertEqual(latest["session_id"], "session-1")
+            self.assertEqual(latest["origin_kind"], "fresh")
+
+            upstream_args = parser.parse_args(
+                ["upstream-for", "--run-dir", str(run_dir), "--step-n", "2"]
+            )
+            with contextlib.redirect_stdout(io.StringIO()) as upstream_out:
+                self.assertEqual(upstream_args.func(upstream_args), 0)
+            upstream = json.loads(upstream_out.getvalue())
+            self.assertEqual(upstream["matches"][0]["upstream_step_n"], 1)
+            self.assertEqual(upstream["matches"][0]["session_id"], "session-1")
+            self.assertEqual(upstream["unmatched"][0]["reason"], "no matching expected_artifact.selector")
+
+            report_args = parser.parse_args(
+                ["report-scaffold", "--run-dir", str(run_dir)]
+            )
+            with contextlib.redirect_stdout(io.StringIO()) as report_out:
+                self.assertEqual(report_args.func(report_args), 0)
+            report = report_out.getvalue()
+            self.assertIn("## Per-step Status", report)
+            self.assertIn("Write outline", report)
 
 
 class DiagnosticCommand(unittest.TestCase):
@@ -420,6 +625,37 @@ class SourceTagChecker(unittest.TestCase):
             self.assertEqual(cst.check_file(good), [])
             self.assertEqual(len(cst.check_file(bad)), 1)
 
+    def test_hard_boundary_bullets_require_source_tags_but_evidence_does_not(self):
+        with tempfile.TemporaryDirectory() as td:
+            good = Path(td) / "good.md"
+            bad = Path(td) / "bad.md"
+            good.write_text(
+                "\n".join(
+                    [
+                        "## Hard boundaries",
+                        "- Stay in this step. [source: manifest]",
+                        "",
+                        "## Evidence to leave",
+                        "- scan result",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            bad.write_text(
+                "\n".join(
+                    [
+                        "## Hard boundaries",
+                        "- Stay in this step.",
+                        "",
+                        "## Evidence to leave",
+                        "- scan result",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            self.assertEqual(cst.check_file(good), [])
+            self.assertEqual(len(cst.check_file(bad)), 1)
+
 
 class LearningLedger(unittest.TestCase):
     def _entry(self) -> dict:
@@ -468,6 +704,112 @@ class LearningLedger(unittest.TestCase):
 
             events = sl._current_by_id(sl._events(root))
             self.assertEqual(events[first_id]["status"], "accepted")
+
+    def test_append_rejects_empty_scope(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td) / "learnings"
+            entry = self._entry()
+            entry["scope"] = {}
+            entry_file = Path(td) / "entry.json"
+            entry_file.write_text(json.dumps(entry), encoding="utf-8")
+
+            parser = sl._build_parser()
+            append_args = parser.parse_args(
+                ["--root", str(root), "append", "--entry-file", str(entry_file)]
+            )
+            with contextlib.redirect_stderr(io.StringIO()):
+                with self.assertRaises(SystemExit):
+                    append_args.func(append_args)
+
+    def test_record_application_auto_accepts_after_two_successes(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td) / "learnings"
+            entry_file = Path(td) / "entry.json"
+            entry_file.write_text(json.dumps(self._entry()), encoding="utf-8")
+            parser = sl._build_parser()
+            append_args = parser.parse_args(
+                ["--root", str(root), "append", "--entry-file", str(entry_file)]
+            )
+            with contextlib.redirect_stdout(io.StringIO()) as out:
+                self.assertEqual(append_args.func(append_args), 0)
+            learning_id = out.getvalue().strip()
+
+            for run_id in ["run-a", "run-b"]:
+                record_args = parser.parse_args(
+                    [
+                        "--root",
+                        str(root),
+                        "record-application",
+                        learning_id,
+                        "--outcome",
+                        "success",
+                        "--run-id",
+                        run_id,
+                        "--diagnostic-path",
+                        "steps/1/try-1/diagnostic/root-cause.md",
+                    ]
+                )
+                with contextlib.redirect_stdout(io.StringIO()):
+                    self.assertEqual(record_args.func(record_args), 0)
+
+            events = sl._current_by_id(sl._events(root))
+            self.assertEqual(events[learning_id]["applied_success_count"], 2)
+            self.assertEqual(events[learning_id]["status"], "accepted")
+
+    def test_record_null_and_promote_with_provenance(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td) / "learnings"
+            entry_file = Path(td) / "entry.json"
+            entry_file.write_text(json.dumps(self._entry()), encoding="utf-8")
+            parser = sl._build_parser()
+            append_args = parser.parse_args(
+                ["--root", str(root), "append", "--entry-file", str(entry_file)]
+            )
+            with contextlib.redirect_stdout(io.StringIO()) as out:
+                self.assertEqual(append_args.func(append_args), 0)
+            learning_id = out.getvalue().strip()
+
+            null_args = parser.parse_args(
+                [
+                    "--root",
+                    str(root),
+                    "record-application",
+                    learning_id,
+                    "--outcome",
+                    "null",
+                    "--run-id",
+                    "run-c",
+                    "--diagnostic-path",
+                    "steps/1/try-1/diagnostic/root-cause.md",
+                    "--note",
+                    "near miss",
+                ]
+            )
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(null_args.func(null_args), 0)
+
+            promote_args = parser.parse_args(
+                [
+                    "--root",
+                    str(root),
+                    "promote",
+                    learning_id,
+                    "--target-path",
+                    "skills/stepwise/references/examples.md",
+                    "--summary",
+                    "Added the principle to the upstream traversal example.",
+                ]
+            )
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(promote_args.func(promote_args), 0)
+
+            events = sl._current_by_id(sl._events(root))
+            self.assertEqual(events[learning_id]["applied_null_count"], 1)
+            self.assertEqual(events[learning_id]["status"], "promoted")
+            self.assertEqual(
+                events[learning_id]["promotion"]["target_path"],
+                "skills/stepwise/references/examples.md",
+            )
 
     def test_sync_from_md_accepts_known_ids(self):
         with tempfile.TemporaryDirectory() as td:
