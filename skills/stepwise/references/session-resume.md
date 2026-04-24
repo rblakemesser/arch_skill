@@ -6,11 +6,11 @@ file before trusting any invocation here.
 
 ## Why sessions matter for this skill
 
-A step runs in a fresh subprocess. The critic inspects the output and either
-passes or fails it. On fail, we need to resume **the same step session** with
-the critic's findings — never spawn a new session, never redo the work in the
-orchestrator. Claude and Codex expose different session handles; this reference
-is the single place the exact mechanics live.
+A step runs in a fresh subprocess. The critic inspects the output and returns
+an observational verdict. On failure, Stepwise may resume worker sessions in
+two different ways: read-only diagnostic conversation, then operational repair
+after root cause is located. Claude and Codex expose different session handles;
+this reference is the single place the exact mechanics live.
 
 ## Runtime behavior contract
 
@@ -18,6 +18,9 @@ is the single place the exact mechanics live.
   `--no-session-persistence` (Claude) to them.
 - Critic sub-sessions are stateless. Pass `--ephemeral` (Codex) or rely on
   fresh process (Claude) — we never resume a critic.
+- Diagnostic and repair turns both resume worker sessions. Diagnostic turns
+  are read-only by prompt contract and do not consume repair bounces. Repair
+  turns are operational and do consume repair bounces.
 - Both runtimes run with dangerous/skip-permissions/no-sandbox. This is a
   user-set constraint on this skill. Read-only discipline for the critic is
   enforced in the critic prompt, not with a sandbox flag.
@@ -72,7 +75,7 @@ claude \
   --model <resolved_step_model> \
   --effort <resolved_step_effort> \
   -r <session_id> \
-  <resume_prompt>
+  <diagnostic_or_repair_prompt>
 ```
 
 The returned `.session_id` equals the resumed id (verified). Use `-r`, never
@@ -148,7 +151,7 @@ codex exec resume <thread_id> \
   --skip-git-repo-check \
   --json \
   -o <final_message_file> \
-  <resume_prompt>
+  <diagnostic_or_repair_prompt>
 ```
 
 `codex exec resume` does not accept `--cd` — the session carries the cwd from
@@ -177,8 +180,7 @@ every object level and requires every object property to be listed in
 `required`. Semantically optional fields must therefore be
 required-but-nullable. `scripts/run_stepwise.py` writes a normalized
 `critic/schema.codex.json` before invoking Codex, then validates the returned
-StepVerdict semantically so `resume_hint`, `route_to_step_n`, and
-`abstain_reason` still behave as optional concepts.
+observational StepVerdict semantically.
 
 ## Notes on flag drift
 
@@ -187,10 +189,10 @@ StepVerdict semantically so `resume_hint`, `route_to_step_n`, and
   do not set both.
 - Codex uses `-c model_reasoning_effort='"<level>"'` — note the TOML-quoted
   string inside a shell-quoted argument. The inner double quotes are required.
-- Codex 0.124 rejects old schema files where properties such as `resume_hint`
-  exist in `properties` but not in `required`. This is recoverable
-  orchestration drift: normalize the schema and retry, do not halt the whole
-  run if the schema semantics are clear.
+- Codex 0.124 rejects schema files where properties exist in `properties` but
+  not in `required`. This is recoverable orchestration drift: normalize the
+  schema and retry, do not halt the whole run if the schema semantics are
+  clear.
 - `--output-format json` on Claude and `--json` on Codex are unrelated flags
   with similar purpose: Claude returns one JSON object at end, Codex streams
   JSONL events. Treat them differently in the parser.

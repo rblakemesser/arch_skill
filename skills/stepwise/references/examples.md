@@ -1,495 +1,194 @@
-# Worked examples
+# Examples
 
-Seven worked examples. Each shows the intake, the manifest, and a notable
-event during execution. These are teaching examples — they illustrate the
-thinking, not a script the agent should imitate verbatim.
+Examples illustrate the single protocol. They are not a routing table. In each
+case, Stepwise follows the same shape: observe, diagnose, talk to the relevant
+session, repair at root cause, then rejudge.
 
-## Example 1 — Strict lesson authoring, happy path
+## Example 1 - Local timeline-sensitive copy failure
 
-**User prompt**
+User asks Stepwise to finish a lesson section with strict skill-order
+adherence. The manifest includes a bounded copy cleanup step. The worker
+removes placeholders and the artifact verifies, but the transcript shows the
+worker edited learner-facing copy before loading the owner-declared copy
+baseline and grounding support.
 
-> "Work in ../lessons_studio. Ramp up on track 3 section 3 and implement
-> lesson 2 strictly according to the skill order, no fabrication. Steps
-> on Claude Opus 4.7 xhigh, critic on Claude Sonnet 4.6 xhigh."
+### Critic output
 
-**Phase 1 announcement**
-
-```
-Interpreting:
-- Target repo: /Users/aelaguiz/workspace/lessons_studio
-- Target process: Track 3 / Section 3 / Lesson 2
-- Profile: strict (from "strictly")
-- Forced checks: skill_order_adherence (from "strictly according to the
-  skill order"), no_fabrication (from "no fabrication")
-- Retry cap: 1
-- On exhaustion: halt_and_ask
-- Execution defaults:
-  - step: Claude / opus-4-7 / xhigh
-  - critic: Claude / sonnet-4-6 / xhigh
-- Execution preferences: none
-```
-
-**Phase 2 manifest (abbreviated)**
-
-Three steps, derived from reading
-`lessons_studio/skills/lessons/SKILL.md` which prescribes ramp-up →
-outline → body. Each step's `expected_artifact` names the real file
-the target doctrine says that step produces.
-
-**Phase 3** — strict profile prints the manifest plus execution table,
-then pauses for confirmation. User: "go".
-
-**Phase 4 execution**
-
-- Step 1 (ramp-up) runs on Claude with opus-4-7 xhigh. Writes
-  `_rampup_notes.md`. Critic PASS on all five checks.
-- Step 2 (outline) runs. Writes `outline.md`. Critic PASS.
-- Step 3 (body) runs. Writes `body.md`. Critic PASS.
-
-**Phase 5 report**
-
-```
-| # | Label       | Status | Tries |
-|---|-------------|--------|-------|
-| 1 | Ramp-up     | pass   | 1     |
-| 2 | Outline     | pass   | 1     |
-| 3 | Body        | pass   | 1     |
-```
-
-## Example 2 — Routed copywriting preference
-
-**User prompt**
-
-> "Work in ../lessons_studio. Run the lesson 2 flow. Default steps on Codex
-> gpt-5.4 high, critic on Codex gpt-5.4-mini xhigh. Use Claude Opus 4.7 for
-> all copywriting steps."
-
-**Phase 1 announcement**
-
-```
-Interpreting:
-- Execution defaults:
-  - step: Codex / gpt-5.4 / high
-  - critic: Codex / gpt-5.4-mini / xhigh
-- Execution preferences:
-  - "Use Claude Opus 4.7 for all copywriting steps" applies to worker steps
-    whose primary artifact is learner-facing copy. Effort inherits from the
-    step default unless the user specifies a different effort.
-```
-
-**Phase 2 execution resolution**
-
-The orchestrator first drafts real steps from doctrine. Then it resolves the
-preference:
-
-```
-| # | Label                       | Worker                  | Critic                    | Source |
-|---|-----------------------------|-------------------------|---------------------------|--------|
-| 1 | Ramp up                     | Codex gpt-5.4 high      | Codex gpt-5.4-mini xhigh  | defaults |
-| 2 | Build playable manifest     | Codex gpt-5.4 high      | Codex gpt-5.4-mini xhigh  | defaults |
-| 3 | Write learner-facing copy   | Claude opus-4-7 high    | Codex gpt-5.4-mini xhigh  | copywriting preference |
-```
-
-The preference does not apply to critics because the user did not say that
-critics should switch. It does not apply to the playable manifest step because
-that artifact is structural JSON, even though it may contain some strings.
-
-## Example 3 — Fabrication catch and resume
-
-Same prompt as Example 1. The interesting event is Step 2.
-
-**Step 2, try 1**
-
-Step session runs, produces a long assistant message that says:
-
-> "I wrote the outline to outline.md with five sections covering the
-> lesson scope. Each section has a pedagogical intent note and a
-> hand-off to the next. Ready for review."
-
-The final-message file `try-1/stdout.final.json` contains this claim.
-
-**Critic, try 1**
-
-The critic reads the step descriptor:
+The critic returns observation only:
 
 ```json
 {
-  "expected_artifact": {
-    "kind": "file",
-    "selector":
-      "/Users/aelaguiz/workspace/lessons_studio/tracks/track-3/section-3/lesson-2/outline.md",
-    "evidence_required":
-      "file exists AND first line matches '^# Lesson 2'"
-  }
-}
-```
-
-The critic reads the declared selector. The file does not exist. The
-critic also checks the transcript for tool calls that would have
-written the file — there are none. No `Write` or `Edit` or shell
-redirect produced this file.
-
-Verdict:
-
-```json
-{
-  "step_n": 2,
+  "step_n": 6,
   "verdict": "fail",
   "checks": [
-    {"name": "artifact_exists", "status": "fail",
-     "evidence": "outline.md does not exist at the declared path"},
-    {"name": "no_fabrication", "status": "fail",
-     "evidence": "step claimed to write outline.md but no write tool call in transcript"},
-    {"name": "skill_order_adherence", "status": "pass",
-     "evidence": "invoked $lessons-ops · draft outline per descriptor"},
-    {"name": "no_substep_skipped", "status": "inapplicable",
-     "evidence": "no work was done; no sub-steps to check"},
-    {"name": "doctrine_quote_fidelity", "status": "inapplicable",
-     "evidence": "no ordered operations were performed"}
+    {
+      "name": "skill_order_adherence",
+      "status": "fail",
+      "evidence": "stream.log shows manifest write before owner-declared baseline reads"
+    },
+    {
+      "name": "artifact_exists",
+      "status": "pass",
+      "evidence": "placeholder scan returned 0 and verify exited 0"
+    }
   ],
-  "resume_hint": {
-    "headline": "outline.md was described but never written. Produce the file.",
-    "required_fixes": [
-      "Write /Users/aelaguiz/workspace/lessons_studio/tracks/track-3/section-3/lesson-2/outline.md",
-      "First line must be '# Lesson 2'",
-      "Include the five sections you described in your prior message"
-    ],
-    "do_not_redo": [
-      "The ramp-up notes in _rampup_notes.md are fine; do not touch them",
-      "You already chose a section structure; reuse it"
-    ]
-  },
-  "route_to_step_n": null,
-  "abstain_reason": null,
-  "summary": "Step 2 was described but not executed. File outline.md is absent."
+  "observed_breach": "The attempt changed learner-facing copy before the owner-declared copy gate was evidenced.",
+  "evidence_pointers": [
+    "steps/6/try-1/stream.log: manifest write event precedes baseline reads",
+    "steps/6/try-1/stdout.final.json: final proof claims clean copy cleanup"
+  ],
+  "contract_clauses_implicated": [
+    "manifest step 6 owner instruction: follow $lesson-copy-discipline",
+    "$lesson-copy-discipline: load copy baseline before learner-facing write"
+  ],
+  "summary": "The artifact is clean, but the attempt skipped pre-write copy provenance.",
+  "abstain_reason": null
 }
 ```
 
-**Resume prompt** (sent via `claude -r <session_id>`)
+The critic does not say how to repair, does not say "do not redo," and does not
+route upstream.
 
-```
-Your prior attempt failed this step. The critic's findings below are binding.
+### Diagnostic intake
 
-Do not justify the prior attempt. Do not summarize these instructions back.
-Execute the required fixes in order. If a required path, tool, command, or
-write primitive is unavailable, stop and report the exact blocker with the
-command or path that proved it.
+Stepwise writes `diagnostic/intake.md`:
 
-## Failure
+- Artifact state is green.
+- Contract evidence is not green.
+- The suspect break is between owner skill requirements and worker action.
+- The old repair instinct "preserve the good edit and patch proof" would be
+  dishonest because the requirement is timeline-sensitive.
 
-outline.md was described but never written. Produce the file.
+### Diagnostic conversation
 
-## Required fixes
+Stepwise resumes the step-6 worker read-only:
 
-1. Write /Users/aelaguiz/workspace/lessons_studio/tracks/track-3/section-3/lesson-2/outline.md
-2. First line must be '# Lesson 2'
-3. Include the five sections you described in your prior message
+```text
+Diagnostic conversation only. Do not modify files. Do not run commands beyond
+safe reads explicitly allowed below. Do not attempt repair.
 
-## Do not redo
+## What the transcript already shows
 
-- The ramp-up notes in _rampup_notes.md are fine; do not touch them
-- You already chose a section structure; reuse it
+- Tool calls during this attempt: manifest read, manifest write, placeholder scan, verify
+- Owner runbook paths you read or did not read: $lesson-copy-discipline read after the write
+- Artifact state after the attempt: placeholders 0, verify pass
+- Contract clauses this attempt is being judged against: copy baseline before learner-facing copy write
 
-When the fixes are in place, end your turn.
-```
+## Questions
 
-**Step 2, try 2**
+1. What did you believe this step was asking, and which owner-runbook line made
+   you believe it?
+2. Which of your actions in this attempt supports that belief, and which of
+   them contradicts it?
+3. What evidence does the owner contract actually require here?
+4. Where did each input to this step come from? Did any of those inputs look
+   wrong to you at the time?
 
-The step session resumes. It now writes the file. Final message:
-
-> "Wrote outline.md with '# Lesson 2' as the header and the five
-> sections from my prior message."
-
-**Critic, try 2** — reads outline.md, confirms the header, confirms
-the five sections exist. All checks pass.
-
-**Report** — Step 2 shows `pass-after-retry (2)`. The run continues
-to Step 3.
-
-## Example 4 — Process evidence fail gets operational retry
-
-Step 4 is a whole-lesson copy pass. The worker writes acceptable copy, but it
-uses raw edits instead of the declared copy-lane owner path and ends by
-claiming only file tools plus bash were available. The critic checks the
-transcript and finds no evidence that the owning skill or specialists were
-loaded.
-
-Verdict excerpt:
-
-```json
-{
-  "step_n": 4,
-  "verdict": "fail",
-  "checks": [
-    {"name": "skill_order_adherence", "status": "fail",
-     "evidence": "No transcript evidence that skills/lesson-copy-discipline/build/SKILL.md was read or invoked."},
-    {"name": "doctrine_quote_fidelity", "status": "fail",
-     "evidence": "The step used raw Edit instead of the declared copy-lane owner path."},
-    {"name": "no_fabrication", "status": "fail",
-     "evidence": "Final message claimed only file tools plus bash were available, but the transcript does not support that limitation."}
-  ],
-  "resume_hint": {
-    "headline": "The copy artifact exists, but the step failed the declared copy-lane process and made an unsupported tool-availability claim.",
-    "required_fixes": [
-      "Read skills/lesson-copy-discipline/build/SKILL.md before making any further changes.",
-      "Read each required baseline and specialist skill path named by that owner skill, visibly in the transcript.",
-      "Do not use raw Edit for new changes. Use the declared owner write path or stop and report the exact missing command/help output that proves the owner path is unavailable.",
-      "If no content change is needed after specialist review, state that the existing copy is retained and cite the specialist review evidence.",
-      "Remove or correct the unsupported final claim that only file tools plus bash were available.",
-      "Finish by running the exact selector command from the step descriptor."
-    ],
-    "do_not_redo": [
-      "Do not rebuild upstream manifest or outline artifacts.",
-      "Do not rewrite copy fields that already pass specialist review."
-    ]
-  },
-  "route_to_step_n": null,
-  "abstain_reason": null,
-  "summary": "Step 4 produced an artifact but did not leave transcript evidence for the required copy-lane path."
-}
+End with exactly one line:
+CONFIRMATION: <one sentence naming what you now understand about the issue,
+citing the owner-runbook clause that implies the correct behavior>.
 ```
 
-The retry prompt is blunt. It does not ask the worker to "think about" the
-copy lane; it orders the observable recovery sequence.
+The worker says it treated placeholder cleanup as reuse of existing copy, not a
+copy-lane write. It confirms that this was not an owner-doctrine exception.
 
-## Example 5 — Lenient profile, one step skipped
+If the worker overcorrects and says every support skill must emit a receipt id,
+Stepwise asks the same conversation's follow-up:
 
-**User prompt**
-
-> "Run the lesson thing on ../lessons_studio for track 3 section 3
-> lesson 2. I don't care just get it done but don't make stuff up.
-> Claude Haiku for everything."
-
-**Phase 1 announcement**
-
-```
-Interpreting:
-- Target repo: /Users/aelaguiz/workspace/lessons_studio
-- Target process: Track 3 / Section 3 / Lesson 2
-- Profile: lenient (from "I don't care just get it done")
-- Forced checks: no_fabrication (from "don't make stuff up")
-- Retry cap: 6
-- On exhaustion: skip_and_continue
-- Execution defaults:
-  - step: Claude / haiku / medium
-  - critic: Claude / haiku / medium
-- Execution preferences: none
+```text
+Continue diagnostic conversation only. You stated: "every support skill must
+emit a receipt id". Where does the owner runbook or declared support say that?
+If it is not in the owner doctrine, what is the owner-doctrine rule you are
+actually trying to honor?
 ```
 
-Note: the user said "Claude Haiku for everything" without specifying effort.
-The intake asks for the missing effort in one consolidated question. The user
-says "medium is fine." The intake records both step and critic defaults.
+The worker corrects itself: lenses need invocation and visible application;
+grounding primitives need real receipts where their runbook requires them.
 
-**Phase 3** — lenient profile prints and proceeds; user can interrupt.
+### Repair prompt
 
-**Phase 4 execution**
+Stepwise authors an operational repair prompt with source tags:
 
-- Step 1: pass.
-- Step 2: fails try-1 through try-6. The step keeps partially-writing
-  the outline but never producing a header that matches. Retries
-  exhausted. Step marked `skipped` per `skip_and_continue`.
-- Step 3: runs despite Step 2 being skipped (lenient profile did not
-  declare dependencies). Writes body.md. Critic passes.
+```text
+Your prior attempt on this step did not honor its contract. We have diagnosed
+the issue.
 
-**Phase 5 report**
+Execute the repair below. Do not add constraints beyond the user prompt,
+manifest, owner runbook, and confirmed repair.
 
-```
-| # | Label       | Status   | Tries |
-|---|-------------|----------|-------|
-| 1 | Ramp-up     | pass     | 1     |
-| 2 | Outline     | skipped  | 6     |
-| 3 | Body        | pass     | 1     |
-```
+## Confirmed issue
 
-The report notes Step 2's last critic finding: "outline.md header
-never matched '^# Lesson 2' after 6 tries." The user can decide to
-re-invoke the skill with strict profile targeting just Step 2, or to
-edit the outline by hand, or to accept the gap.
+The artifact is currently clean, but the original copy write happened before
+the owner-declared copy gate. The recovery must not claim the original write
+was pre-gated; it must either reapply the copy under the gate or record an
+honest post-gate audit if the owner primitive performs an idempotent write.
 
-## Example 6 — Autonomous upstream repair, leave-me-alone run
+## Repair steps
 
-**User prompt**
+1. Load the owner copy baseline and declared support before any recovery write. [source: owner runbook]
+2. Ground the learner-visible headline through the owner-declared grounding primitive and record the returned evidence. [source: owner runbook]
+3. Use the owner-declared read/write primitive to reapply or audit the four headline fields. [source: manifest]
+4. Rewrite the proof note so it states the true timeline: the first write was not pre-gated; this repair is the compliant recovery event. [source: confirmed diagnosis]
 
-> "Work in ../lessons_studio. Ramp up on track 3 section 3 and
-> implement lesson 2 strictly according to the skill order, no
-> fabrication. I'm going to sleep — don't wake me up, fix it and
-> keep going. Steps on Claude Opus 4.7 xhigh, critic on Claude Sonnet
-> 4.6 xhigh."
+## Evidence to leave
 
-**Phase 1 announcement**
+- baseline/support reads,
+- grounding receipt or explicit owner-supported no-receipt evidence,
+- owner primitive readback/writeback,
+- placeholder scan,
+- lesson verify result,
+- truthful proof note.
 
-```
-Interpreting:
-- Target repo: /Users/aelaguiz/workspace/lessons_studio
-- Target process: Track 3 / Section 3 / Lesson 2
-- Profile: strict (from "strictly")
-- Forced checks: skill_order_adherence (from "strictly according to
-  the skill order"), no_fabrication (from "no fabrication")
-- Retry cap: 1
-- On exhaustion: autonomous_repair (from "don't wake me up, fix it
-  and keep going") — reopen an earlier step when a downstream critic
-  routes the fix there; per-step retry cap still governs runaway
-  loops
-- Execution defaults:
-  - step: Claude / opus-4-7 / xhigh
-  - critic: Claude / sonnet-4-6 / xhigh
-- Execution preferences: none
+## Stop instead of finishing if
+
+- the owner primitive is unavailable and no owner-documented substitute exists,
+- the only way to pass would be to claim the original write was pre-gated.
 ```
 
-**Phase 4 execution**
+### Rejudge
 
-- Step 1 (ramp-up) runs. Critic PASS.
-- Step 2 (outline) runs. Critic PASS.
-- Step 3 (draft playable manifest) runs on Claude with opus-4-7
-  xhigh. Writes `playable-manifest.json`. Its descriptor verifies
-  `solver sequence present AND role partition consistent AND
-  taxonomy refs present` — the artifact satisfies all three.
-  Critic PASS (narrow predicate; the descriptor did not include
-  Brief-fidelity as an evidence requirement).
-- Step 4 (per-surface copy) runs. The step's skill contract forbids
-  rewriting upstream structure; it produces copy and ends. The
-  step's final message flags: "step 3's playable-manifest has the
-  wrong walkthrough stage (flop-c-bet where the Brief pins
-  preflop-BTN-open) and cloned `context.hero` from LESSON_03-03-01
-  — I cannot rewire step 3's artifact from within copy authoring."
-- Step 4's critic inspects: the copy artifact exists but references
-  a stage the Brief contradicts; the `context.hero` in the manifest
-  does not match Situations' Kept Reps. The critic returns:
+A fresh critic judges the repaired attempt. If the worker left honest evidence
+and did not fabricate the original timeline, the step can pass.
 
-```json
-{
-  "step_n": 4,
-  "verdict": "fail",
-  "checks": [
-    {"name": "artifact_exists", "status": "pass",
-     "evidence": "copy.json exists"},
-    {"name": "no_fabrication", "status": "pass",
-     "evidence": "all claims back-verified"},
-    {"name": "skill_order_adherence", "status": "pass",
-     "evidence": "invoked copy-authoring skill per descriptor"}
-  ],
-  "route_to_step_n": 3,
-  "resume_hint": {
-    "headline": "playable-manifest walkthrough stage is flop-c-bet; the Brief pins preflop-BTN-open, and context.hero was cloned from LESSON_03-03-01 instead of rewired from Situations.",
-    "required_fixes": [
-      "Rewire steps[0].config.script[0].childConfig to a preflop walkthrough with the opener-range parallax table",
-      "Rewire steps[1..9].context.{hero,parallaxTable} from Situations Kept Reps",
-      "Leave role partition, stepIds, option ids, correctness booleans, taxonomyRefs, and concept partition untouched"
-    ],
-    "do_not_redo": [
-      "Solver-stamped correctness sequence is correct; preserve it",
-      "Role partition and taxonomyRefs passed their checks; preserve them"
-    ]
-  },
-  "abstain_reason": null,
-  "summary": "Step 4 could not produce valid copy against step 3's manifest because the manifest's stage and cloned contexts contradict the pinned Brief. Route to step 3."
-}
-```
+## Example 2 - Upstream input is the real root cause
 
-**Upstream repair**
+Step 5 creates learner-facing copy from a stage descriptor produced by step 3.
+Step 5 fails because its output references the wrong stage. The step-5 worker
+says in diagnostic conversation that it used the stage text it received from
+step 3.
 
-- Orchestrator sees `route_to_step_n: 3` + `stop_discipline:
-  autonomous_repair`. Step 3's retries are not exhausted (1 cap, 1
-  try so far). Orchestrator `step-resume`s step 3's session with
-  the critic's `resume_hint` (addressed to step 3).
-- Step 3 rewires the walkthrough stage and the per-step contexts.
-  Its session preserves the role partition, stepIds, option ids,
-  correctness booleans, and taxonomyRefs. Writes the updated
-  manifest. Ends turn.
-- Step 3's critic re-runs against the new try. All checks PASS.
-  Step 3's status becomes `repaired`.
+Stepwise does not hammer step 5 with local rewrite instructions. It reads the
+manifest, sees step 3 produced the stage descriptor consumed by step 5, and
+resumes the step-3 session read-only with the same diagnostic prompt shape.
 
-**Downstream re-run**
+If step 3 confirms it picked the wrong stage from its own owner runbook, root
+cause is step 3. Stepwise authors a source-tagged repair prompt for step 3,
+repairs step 3, runs the step-3 critic, then respawns steps 4 and 5 fresh.
 
-- Orchestrator fresh `step-spawn`s step 4. Step 4 reads the
-  now-corrected playable-manifest, produces copy that references
-  the preflop-BTN-open walkthrough and the rewired contexts. Ends
-  turn.
-- Step 4's critic PASSES. Step 4's status becomes
-  `pass-after-repair`.
-- Execution continues with steps 5 through N as usual.
+Why fresh respawn matters: step 5's session history was built around the wrong
+stage. Resuming it after step 3 changes would carry poisoned context forward.
 
-**Phase 5 report**
+## Example 3 - Mechanical missing artifact
 
-```
-| # | Label                        | Status              | Tries |
-|---|------------------------------|---------------------|-------|
-| 1 | Ramp-up                      | pass                | 1     |
-| 2 | Outline                      | pass                | 1     |
-| 3 | Playable manifest            | repaired            | 2     |
-| 4 | Per-surface copy             | pass-after-repair   | 2     |
-| … | …                            | …                   | …     |
+Step 2 claims it wrote `outline.md`; the critic sees the file is missing.
 
-## Repairs
+Even this simple failure enters the same protocol:
 
-- Step 3 reopened from step 4's finding: "playable-manifest
-  walkthrough stage is flop-c-bet; the Brief pins preflop-BTN-open,
-  and context.hero was cloned from LESSON_03-03-01 instead of
-  rewired from Situations."
-  Step 3 repaired; step 4 re-ran fresh and passed.
+1. Intake names the broken link: worker claim to artifact evidence.
+2. Diagnostic prompt asks the worker what it believed it produced and what
+   evidence supports it.
+3. Worker confirms it wrote notes to the wrong path.
+4. Stepwise authors a source-tagged repair prompt: write the expected artifact
+   at the manifest path or stop with evidence that the path is impossible.
+5. Fresh critic rejudges.
 
-## Status
+Simple failures converge quickly. They do not need a separate shortcut path.
 
-completed
-```
+## Example 4 - Doctrine ambiguity
 
-The user wakes up to a finished run, not a menu.
+The critic fails a step because support evidence appears missing. Diagnostic
+conversation shows the owner runbook names two incompatible support paths, and
+neither one clearly dominates.
 
-**What would have halted the run**
-
-If step 3's retries had been exhausted (cap 1 + already consumed
-by the repair), the run would have halted with step 3's last
-verdict — no extra budget beyond the target's own `max_retries`.
-Ping-pong is impossible in practice: either step 3 converges within
-its cap, or the run halts.
-
-## Example 7 — Known unblock repairs orchestration drift
-
-A strict run reaches Step 1's critic. The worker completed its artifact, but
-the critic subprocess fails before judging because the local Codex CLI rejects
-the StepVerdict schema shape. The error says every property in `properties`
-must appear in `required`.
-
-This is not a target-work failure and not a user decision. The orchestrator
-knows the bounded repair: preserve the StepVerdict semantics, normalize
-semantically optional fields to required-nullable fields, write
-`critic/schema.codex.json`, retry the critic once, and validate the returned
-verdict semantically.
-
-Run-directory evidence after repair:
-
-```
-steps/1/try-1/critic/
-├── prompt.md
-├── schema.codex.json
-├── invocation.sh
-├── stdout.final.json
-├── verdict.json
-├── stream.log
-└── exit_code
-```
-
-The run continues if the retried critic returns a valid verdict. It halts only
-if the same repaired schema path still fails, the verdict is invalid and no
-known prompt/schema fix remains, or the critic finds a real step failure whose
-retry budget is exhausted.
-
-## Takeaways
-
-- The intake announces a concrete interpretation before anything runs.
-  Flippant phrasing gets interpreted, not pattern-matched.
-- The critic catches fabrication not by reading prose but by checking
-  the artifact on disk against the descriptor's `evidence_required`.
-- The resume prompt is the critic's findings inside a fixed failure wrapper.
-  No orchestrator-authored repair advice.
-- Known orchestration blockers are repaired inside the run directory before
-  stop discipline is applied.
-- Lenient profile trades completion for process purity — but not for
-  truth. Fabrication still fails.
-- `pass-after-retry (k)` is a normal outcome, not a warning. The
-  report uses it to help the user understand where the process
-  stumbled.
-- `autonomous_repair` adds one new move to the orchestrator: when a
-  critic sets `route_to_step_n`, reopen that step with its critic's
-  `resume_hint`. Containment is the target's own retry cap — no new
-  budgets, no new tripwires.
+Stepwise halts and asks the user. It does not invent a tie-breaker, and it does
+not prompt the worker to choose whichever support path seems plausible.

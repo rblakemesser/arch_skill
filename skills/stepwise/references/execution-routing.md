@@ -67,8 +67,6 @@ when `model-and-effort.md` says that inheritance is unambiguous.
 
 ## Matching discipline
 
-Semantic matching is prose reasoning. It is not a keyword table.
-
 Use all available manifest evidence:
 
 - step label
@@ -132,10 +130,10 @@ Every StepDescriptor gets both resolved execution blocks:
 }
 ```
 
-Retries reuse the same execution block as the original step. Upstream repairs
-reuse the reopened step's block. Downstream fresh re-runs use the confirmed
-manifest's resolved blocks; the orchestrator does not reinterpret the user's
-prompt mid-run.
+Repair attempts reuse the same execution block as the original step. Upstream
+repairs reuse the reopened step's block. Downstream fresh re-runs use the
+confirmed manifest's resolved blocks; the orchestrator does not reinterpret
+the user's prompt mid-run.
 
 ## Anti-patterns
 
@@ -145,5 +143,5 @@ prompt mid-run.
   the example, not a permanent category.
 - Do not apply worker preferences to critics unless the user clearly said so.
 - Do not hide conflicts by falling back to defaults.
-- Do not change model or effort on retry because a step failed. Retry failure
-  is handled by the critic resume loop, not by changing the runtime.
+- Do not change model or effort because a step failed. Step failure is handled
+  by the diagnose-and-repair protocol, not by changing the runtime.

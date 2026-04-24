@@ -9,7 +9,10 @@ Subcommands:
 
   init-run     Create the run directory and initial state.json.
   step-spawn   Spawn a fresh step sub-session (claude or codex).
-  step-resume  Resume an existing step sub-session with a resume prompt.
+  step-resume  Resume an existing step sub-session with a repair prompt.
+  step-diagnose
+               Resume an existing step sub-session with a read-only
+               diagnostic prompt and write diagnostic artifacts.
   critic-spawn Spawn an ephemeral critic sub-session with a structured schema.
 
 All subcommands exit non-zero with a plain-English message when their
@@ -98,9 +101,8 @@ def _codex_strict_schema(schema: Any) -> Any:
     """Normalize JSON Schema for Codex structured output.
 
     Recent Codex/OpenAI structured-output validation requires every object
-    property to be listed in `required`. Older stepwise schemas used ordinary
-    optional properties for fields like resume_hint. Preserve those semantics
-    by making formerly optional properties required-but-nullable.
+    property to be listed in `required`. Preserve optional-field semantics by
+    making formerly optional properties required-but-nullable.
     """
     if isinstance(schema, list):
         return [_codex_strict_schema(item) for item in schema]
@@ -143,23 +145,15 @@ def _nonempty_str(value: Any) -> bool:
     return isinstance(value, str) and bool(value.strip())
 
 
-def _validate_resume_hint(value: Any) -> list[str]:
+def _nonempty_str_list(value: Any, field: str, *, require_nonempty: bool) -> list[str]:
     errors: list[str] = []
-    if not isinstance(value, dict):
-        return ["resume_hint must be an object on fail"]
-    headline = value.get("headline")
-    if not _nonempty_str(headline):
-        errors.append("resume_hint.headline must be a non-empty string")
-    required_fixes = value.get("required_fixes")
-    if not isinstance(required_fixes, list) or not required_fixes:
-        errors.append("resume_hint.required_fixes must be a non-empty array")
-    elif not all(_nonempty_str(item) for item in required_fixes):
-        errors.append("resume_hint.required_fixes entries must be non-empty strings")
-    do_not_redo = value.get("do_not_redo")
-    if not isinstance(do_not_redo, list):
-        errors.append("resume_hint.do_not_redo must be an array")
-    elif not all(isinstance(item, str) for item in do_not_redo):
-        errors.append("resume_hint.do_not_redo entries must be strings")
+    if not isinstance(value, list):
+        return [f"{field} must be an array"]
+    if require_nonempty and not value:
+        errors.append(f"{field} must be a non-empty array")
+    for i, item in enumerate(value):
+        if not _nonempty_str(item):
+            errors.append(f"{field}[{i}] must be a non-empty string")
     return errors
 
 
@@ -168,15 +162,35 @@ def _validate_step_verdict(verdict: Any) -> list[str]:
     if not isinstance(verdict, dict):
         return ["verdict must be a JSON object"]
 
+    stale_fields = {"resume_hint", "route_to_step_n", "required_fixes", "do_not_redo"}
+    for key in sorted(stale_fields & set(verdict)):
+        if key == "resume_hint":
+            errors.append(
+                "resume_hint is no longer accepted; critics observe only and "
+                "Stepwise authors repairs"
+            )
+        elif key == "route_to_step_n":
+            errors.append(
+                "route_to_step_n is no longer accepted; Stepwise diagnoses "
+                "upstream root cause"
+            )
+        else:
+            errors.append(f"{key} is no longer accepted in StepVerdict")
+
     required = [
         "step_n",
         "verdict",
         "checks",
-        "resume_hint",
-        "route_to_step_n",
-        "abstain_reason",
+        "observed_breach",
+        "evidence_pointers",
+        "contract_clauses_implicated",
         "summary",
+        "abstain_reason",
     ]
+    allowed = set(required)
+    for key in verdict:
+        if key not in allowed and key not in stale_fields:
+            errors.append(f"unexpected field: {key}")
     for key in required:
         if key not in verdict:
             errors.append(f"missing required field: {key}")
@@ -214,27 +228,47 @@ def _validate_step_verdict(verdict: Any) -> list[str]:
             if not _nonempty_str(check.get("evidence")):
                 errors.append(f"checks[{i}].evidence must be a non-empty string")
 
-    route = verdict.get("route_to_step_n")
-    if route is not None and (not isinstance(route, int) or route < 1):
-        errors.append("route_to_step_n must be null or an integer >= 1")
-
     if not _nonempty_str(verdict.get("summary")):
         errors.append("summary must be a non-empty string")
 
-    resume_hint = verdict.get("resume_hint")
+    observed_breach = verdict.get("observed_breach")
+    if observed_breach is not None and not _nonempty_str(observed_breach):
+        errors.append("observed_breach must be null or a non-empty string")
+    errors.extend(
+        _nonempty_str_list(
+            verdict.get("evidence_pointers"),
+            "evidence_pointers",
+            require_nonempty=False,
+        )
+    )
+    errors.extend(
+        _nonempty_str_list(
+            verdict.get("contract_clauses_implicated"),
+            "contract_clauses_implicated",
+            require_nonempty=False,
+        )
+    )
+
+    evidence_pointers = verdict.get("evidence_pointers")
+    contract_clauses = verdict.get("contract_clauses_implicated")
     abstain_reason = verdict.get("abstain_reason")
     if outcome == "pass":
-        if resume_hint is not None:
-            errors.append("resume_hint must be null when verdict=pass")
+        if observed_breach is not None:
+            errors.append("observed_breach must be null when verdict=pass")
         if abstain_reason is not None:
             errors.append("abstain_reason must be null when verdict=pass")
     elif outcome == "fail":
-        errors.extend(_validate_resume_hint(resume_hint))
+        if not _nonempty_str(observed_breach):
+            errors.append("observed_breach must be a non-empty string on fail")
+        if not isinstance(evidence_pointers, list) or not evidence_pointers:
+            errors.append("evidence_pointers must be non-empty on fail")
+        if not isinstance(contract_clauses, list) or not contract_clauses:
+            errors.append("contract_clauses_implicated must be non-empty on fail")
         if abstain_reason is not None:
             errors.append("abstain_reason must be null when verdict=fail")
     elif outcome == "abstain":
-        if resume_hint is not None:
-            errors.append("resume_hint must be null when verdict=abstain")
+        if observed_breach is not None:
+            errors.append("observed_breach must be null when verdict=abstain")
         if not _nonempty_str(abstain_reason):
             errors.append("abstain_reason must be a non-empty string on abstain")
 
@@ -320,20 +354,25 @@ def cmd_init_run(args: argparse.Namespace) -> int:
         else [],
         "stop_discipline": args.stop_discipline,
         "per_step_retry_cap": args.per_step_retry_cap,
+        "diagnostic_turn_cap": args.diagnostic_turn_cap,
         "execution": execution,
         "execution_sha256": execution_hash,
         "progress": [],
     }
     _write_json(run_dir / "state.json", state)
 
-    # ensure .gitignore has .arch_skill/
+    # ensure .gitignore ignores local run logs without hiding learnings
     gi = orch_root / ".gitignore"
-    marker = ".arch_skill/"
+    marker = ".arch_skill/stepwise/runs/"
     if gi.exists():
         lines = gi.read_text(encoding="utf-8").splitlines()
+        changed = False
+        lines = [marker if line == ".arch_skill/" else line for line in lines]
         if marker not in lines:
-            with gi.open("a", encoding="utf-8") as f:
-                f.write(f"\n{marker}\n")
+            lines.append(marker)
+            changed = True
+        if changed or ".arch_skill/" in gi.read_text(encoding="utf-8").splitlines():
+            gi.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
     else:
         gi.write_text(f"{marker}\n", encoding="utf-8")
 
@@ -356,6 +395,12 @@ def _ensure_critic_dir(run_dir: Path, step_n: int, try_k: int) -> Path:
     return d
 
 
+def _ensure_diagnostic_dir(run_dir: Path, step_n: int, try_k: int) -> Path:
+    d = run_dir / "steps" / str(step_n) / f"try-{try_k}" / "diagnostic"
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
 def _write_invocation_sh(path: Path, argv: list[str], cwd: str | None) -> None:
     def quote(s: str) -> str:
         return "'" + s.replace("'", "'\\''") + "'"
@@ -373,13 +418,17 @@ def _run_subprocess(
     stdout_stream_path: Path,
     out_dir: Path,
     cwd: str | None = None,
+    stamp_prefix: str | None = None,
 ) -> tuple[int, str]:
     """Run a subprocess with stdin closed, streaming stdout+stderr to a file.
 
     Returns (exit_code, stdout_text). stdout_text is also on disk at
     stdout_stream_path (combined with stderr).
     """
-    _write_text(out_dir / "start_ts", _utc_now_iso())
+    start_name = f"{stamp_prefix}.start_ts" if stamp_prefix else "start_ts"
+    end_name = f"{stamp_prefix}.end_ts" if stamp_prefix else "end_ts"
+    exit_name = f"{stamp_prefix}.exit_code" if stamp_prefix else "exit_code"
+    _write_text(out_dir / start_name, _utc_now_iso())
     with open(os.devnull, "rb") as devnull, open(stdout_stream_path, "wb") as out:
         proc = subprocess.run(
             argv,
@@ -390,9 +439,58 @@ def _run_subprocess(
             check=False,
         )
         out.write(proc.stdout)
-    _write_text(out_dir / "end_ts", _utc_now_iso())
-    _write_text(out_dir / "exit_code", str(proc.returncode) + "\n")
+    _write_text(out_dir / end_name, _utc_now_iso())
+    _write_text(out_dir / exit_name, str(proc.returncode) + "\n")
     return proc.returncode, proc.stdout.decode("utf-8", errors="replace")
+
+
+def _load_json_file(path: Path) -> Any:
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        _die(f"JSON file missing: {path}")
+    except json.JSONDecodeError as e:
+        _die(f"JSON file is not valid JSON: {path}: {e}")
+
+
+def _latest_try_k(run_dir: Path, step_n: int) -> int | None:
+    step_dir = run_dir / "steps" / str(step_n)
+    if not step_dir.is_dir():
+        return None
+    tries: list[int] = []
+    for child in step_dir.iterdir():
+        if child.is_dir() and child.name.startswith("try-"):
+            try:
+                tries.append(int(child.name.removeprefix("try-")))
+            except ValueError:
+                continue
+    return max(tries) if tries else None
+
+
+def _latest_session_id(run_dir: Path, step_n: int) -> str | None:
+    try_k = _latest_try_k(run_dir, step_n)
+    if try_k is None:
+        return None
+    sid_path = run_dir / "steps" / str(step_n) / f"try-{try_k}" / "session_id.txt"
+    if not sid_path.is_file():
+        return None
+    sid = sid_path.read_text(encoding="utf-8").strip()
+    return sid if sid and sid != "UNRECOVERABLE" else None
+
+
+def _manifest_steps_by_artifact(run_dir: Path) -> dict[str, int]:
+    manifest = _load_json_file(run_dir / "manifest.json")
+    out: dict[str, int] = {}
+    for step in manifest.get("steps", []):
+        if not isinstance(step, dict):
+            continue
+        n = step.get("n")
+        artifact = step.get("expected_artifact")
+        if isinstance(n, int) and isinstance(artifact, dict):
+            selector = artifact.get("selector")
+            if isinstance(selector, str) and selector:
+                out[selector] = n
+    return out
 
 
 def _extract_claude_result_event(payload) -> dict | None:
@@ -468,6 +566,7 @@ def cmd_step_spawn(args: argparse.Namespace) -> int:
     prompt = Path(args.prompt_file).read_text(encoding="utf-8")
     target_repo = str(Path(args.target_repo).resolve())
     try_dir = _ensure_try_dir(run_dir, args.step_n, args.try_k)
+    _write_text(try_dir / "prompt.md", prompt)
 
     final_path = try_dir / "stdout.final.json"
     stream_path = try_dir / "stream.log"
@@ -548,6 +647,7 @@ def cmd_step_resume(args: argparse.Namespace) -> int:
     prompt = Path(args.prompt_file).read_text(encoding="utf-8")
     target_repo = str(Path(args.target_repo).resolve())
     try_dir = _ensure_try_dir(run_dir, args.step_n, args.try_k)
+    _write_text(try_dir / "prompt.md", prompt)
     sid = args.session_id
     if not sid or sid == "UNRECOVERABLE":
         _die(f"refusing to resume without a valid session id: {sid!r}")
@@ -608,6 +708,97 @@ def cmd_step_resume(args: argparse.Namespace) -> int:
 
     _write_text(try_dir / "session_id.txt", out_sid + "\n")
     print(out_sid)
+    return 0 if code == 0 else code
+
+
+# ---- step-diagnose --------------------------------------------------------
+
+
+def cmd_step_diagnose(args: argparse.Namespace) -> int:
+    run_dir = Path(args.run_dir).resolve()
+    if not (run_dir / "state.json").is_file():
+        _die(f"run_dir has no state.json: {run_dir}")
+    prompt = Path(args.prompt_file).read_text(encoding="utf-8")
+    target_repo = str(Path(args.target_repo).resolve())
+    diag_dir = _ensure_diagnostic_dir(run_dir, args.step_n, args.try_k)
+    sid = args.session_id
+    if not sid or sid == "UNRECOVERABLE":
+        _die(f"refusing to diagnose without a valid session id: {sid!r}")
+
+    prefix = f"turn-{args.round_k}.with-step-{args.with_step_m}"
+    prompt_path = diag_dir / f"{prefix}.prompt.md"
+    response_path = diag_dir / f"{prefix}.response.md"
+    final_path = diag_dir / f"{prefix}.stdout.final.json"
+    stream_path = diag_dir / f"{prefix}.stream.log"
+    session_path = diag_dir / f"{prefix}.session_id.txt"
+    _write_text(prompt_path, prompt)
+
+    if args.runtime == "claude":
+        argv = [
+            "claude",
+            "-p",
+            "--output-format",
+            "json",
+            "--dangerously-skip-permissions",
+            "--settings",
+            '{"disableAllHooks":true}',
+            "--model",
+            args.model,
+            "--effort",
+            args.effort,
+            "-r",
+            sid,
+            prompt,
+        ]
+        resume_cwd = target_repo
+    elif args.runtime == "codex":
+        argv = [
+            "codex",
+            "exec",
+            "resume",
+            sid,
+            "--dangerously-bypass-approvals-and-sandbox",
+            "--skip-git-repo-check",
+            "--json",
+            "-o",
+            str(response_path),
+            prompt,
+        ]
+        resume_cwd = None
+    else:
+        _die(f"unknown runtime: {args.runtime}")
+
+    _write_invocation_sh(diag_dir / f"{prefix}.invocation.sh", argv, resume_cwd)
+    code, stdout_text = _run_subprocess(
+        argv,
+        stream_path,
+        diag_dir,
+        cwd=resume_cwd,
+        stamp_prefix=prefix,
+    )
+
+    out_sid: str | None
+    if args.runtime == "claude":
+        final = _parse_claude_final_json(stdout_text)
+        if final is None:
+            _die(
+                "claude stdout did not parse as JSON; see diagnostic stream log",
+                code=3,
+            )
+        _write_json(final_path, final)
+        result_text = final.get("result")
+        _write_text(
+            response_path,
+            result_text if isinstance(result_text, str) else json.dumps(final, indent=2),
+        )
+        out_sid = _parse_claude_session_id(stdout_text) or sid
+    else:
+        out_sid = _parse_codex_thread_id(stdout_text) or sid
+        if not response_path.is_file():
+            _die(f"codex diagnostic did not write -o file: {response_path}", code=5)
+
+    _write_text(session_path, out_sid + "\n")
+    print(str(response_path))
     return 0 if code == 0 else code
 
 
@@ -741,8 +932,9 @@ def _build_parser() -> argparse.ArgumentParser:
     init.add_argument("--forced-checks-json", default="[]")
     init.add_argument("--stop-discipline", required=True,
                       choices=["halt_and_ask", "skip_and_continue",
-                               "escalate_to_user", "autonomous_repair"])
+                               "escalate_to_user"])
     init.add_argument("--per-step-retry-cap", type=int, required=True)
+    init.add_argument("--diagnostic-turn-cap", type=int, default=10)
     init.add_argument("--execution-json", default=None,
                       help="JSON object with execution defaults and preferences")
     init.add_argument(
@@ -771,6 +963,20 @@ def _build_parser() -> argparse.ArgumentParser:
     resume.add_argument("--step-n", required=True, type=int)
     resume.add_argument("--try-k", required=True, type=int)
     resume.set_defaults(func=cmd_step_resume)
+
+    diagnose = sub.add_parser(
+        "step-diagnose",
+        help="Resume a worker session read-only and record diagnostic artifacts",
+    )
+    for a in ["--run-dir", "--target-repo", "--prompt-file", "--model",
+              "--effort", "--session-id"]:
+        diagnose.add_argument(a, required=True)
+    diagnose.add_argument("--runtime", required=True, choices=["claude", "codex"])
+    diagnose.add_argument("--step-n", required=True, type=int)
+    diagnose.add_argument("--try-k", required=True, type=int)
+    diagnose.add_argument("--round-k", required=True, type=int)
+    diagnose.add_argument("--with-step-m", required=True, type=int)
+    diagnose.set_defaults(func=cmd_step_diagnose)
 
     critic = sub.add_parser("critic-spawn", help="Spawn an ephemeral critic")
     for a in ["--run-dir", "--target-repo", "--prompt-file", "--model",

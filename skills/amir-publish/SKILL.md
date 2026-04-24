@@ -1,6 +1,6 @@
 ---
 name: amir-publish
-description: "Publish this skills repo across Amir's machine cluster by committing and pushing the current local work, installing locally, then SSHing to the known hosts, skipping the current machine, pulling the same branch in the same directory, and running the local install. Use when Amir asks to distribute, sync, or publish skill changes to his machines. Not for generic deployments, CI release work, or remote edits outside this repo."
+description: "Publish this skills repo across Amir's machine cluster by committing and pushing the current local work, installing locally, then SSHing to the known hosts, skipping the current machine, pulling the same branch from ~/workspace/<repo-name>, and running the local install. Use when Amir asks to distribute, sync, or publish skill changes to his machines. Not for generic deployments, CI release work, or remote edits outside this repo."
 metadata:
   short-description: "Publish skill changes across Amir's machines"
 ---
@@ -38,7 +38,7 @@ Treat `agents@amirs-mac-studio` as the host `amirs-mac-studio` when deciding whe
 
 ## Workflow
 
-1. Resolve the git repo root, current branch, current commit, and same absolute directory path to use on remotes.
+1. Resolve the git repo root, current branch, current commit, and repo directory name. The local path may be `/Users/aelaguiz/workspace/<repo-name>`, but remotes must use `~/workspace/<repo-name>` because home directories differ across machines.
 2. Identify the current machine with `hostname -s` or the closest available hostname command.
 3. Inspect `git status --short`. Default to committing the full tracked-file diff across the repo, including tracked changes you do not recognize. Unfamiliar tracked changes are not a blocker by themselves.
 4. Stage tracked modifications and deletions with `git add -u`. Also stage untracked files that are clearly part of the current repo work; ask only for ambiguous untracked files or concrete safety issues such as secrets.
@@ -50,10 +50,10 @@ Treat `agents@amirs-mac-studio` as the host `amirs-mac-studio` when deciding whe
 make install
 ```
 
-8. For each non-skipped SSH target, run the remote sync from the same absolute directory:
+8. For each non-skipped SSH target, run the remote sync from the repo under that host's home-relative workspace. Do not use the local absolute `/Users/aelaguiz/...` path on remotes.
 
 ```bash
-cd <same-dir> &&
+cd ~/workspace/<repo-name> &&
 git fetch origin &&
 (git checkout <branch> || git checkout -t origin/<branch>) &&
 git pull --ff-only &&

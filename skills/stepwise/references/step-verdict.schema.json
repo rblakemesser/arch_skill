@@ -5,10 +5,11 @@
     "step_n",
     "verdict",
     "checks",
-    "resume_hint",
-    "route_to_step_n",
-    "abstain_reason",
-    "summary"
+    "observed_breach",
+    "evidence_pointers",
+    "contract_clauses_implicated",
+    "summary",
+    "abstain_reason"
   ],
   "properties": {
     "step_n": {
@@ -43,37 +44,26 @@
         }
       }
     },
-    "resume_hint": {
-      "type": ["object", "null"],
-      "additionalProperties": false,
-      "required": ["headline", "required_fixes", "do_not_redo"],
-      "properties": {
-        "headline": {
-          "type": "string"
-        },
-        "required_fixes": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "do_not_redo": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
+    "observed_breach": {
+      "type": ["string", "null"]
+    },
+    "evidence_pointers": {
+      "type": "array",
+      "items": {
+        "type": "string"
       }
     },
-    "route_to_step_n": {
-      "type": ["integer", "null"],
-      "minimum": 1
-    },
-    "abstain_reason": {
-      "type": ["string", "null"]
+    "contract_clauses_implicated": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     },
     "summary": {
       "type": "string"
+    },
+    "abstain_reason": {
+      "type": ["string", "null"]
     }
   }
 }

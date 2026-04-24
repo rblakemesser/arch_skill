@@ -18,7 +18,7 @@ preferences or hard target-repo doctrine. See `execution-routing.md`.
 Different work deserves different price points. A lesson-authoring run may
 want strong worker steps and a strong critic. A many-step drill may want cheap
 workers and a stronger critic. The right baseline is a user judgment, not a
-skill heuristic.
+value the skill should invent.
 
 Asking once at the start is cheap. Guessing wrong is expensive: wrong runtime
 or model wastes money or quality; wrong effort blows budget on trivial work or
@@ -87,6 +87,7 @@ Once set, the full execution policy is written into `state.json` and pinned
 with `execution_sha256`. The policy includes defaults and unresolved routing
 preferences. Changing it mid-run clears run state.
 
-Per-step retries reuse the same resolved execution block as the original try.
-A user who wants a different model for retries should re-invoke the skill with
-new execution choices; this skill does not change horses mid-stream.
+Per-step repair attempts reuse the same resolved execution block as the
+original try. A user who wants a different model for repair attempts should
+re-invoke the skill with new execution choices; this skill does not change
+horses mid-stream.
