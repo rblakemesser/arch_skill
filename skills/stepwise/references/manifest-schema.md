@@ -138,9 +138,11 @@ Field notes:
   A skill reference (`$lessons-ops`) or a free-form instruction
   (`"run tests and record results"`). Specificity here is what
   `skill_order_adherence` keys off.
-- `doctrine_path_for_this_step`: the single file the step session should read
-  to learn how to do this step. If the doctrine is split, list the entry
-  point; the step session reads onwards from there.
+- `doctrine_path_for_this_step`: the owner runbook entrypoint the step session
+  should read first to learn how to do this step. If that runbook names
+  supporting skills, primitives, configs, commands, or MCP tools, those
+  declared support paths remain in scope for this step. If the doctrine is
+  split, list the owner entrypoint; the step session reads onwards from there.
 - `inputs`: prior artifacts or source files the step needs to read. Absolute
   paths.
 - `expected_artifact`: the thing the critic will verify.

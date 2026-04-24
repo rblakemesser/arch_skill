@@ -63,14 +63,16 @@ The worker should try the obvious safe discovery step before declaring a
 blocker:
 
 - Read the declared doctrine path before acting.
+- Load and use supporting skills, primitives, configs, commands, and MCP tools
+  when the owner runbook declares them. Required support is not scope drift.
 - If a required path is missing, show the exact missing path.
 - If a required command or primitive is unclear, run the safe help/list command
   or inspect the owning skill before saying it is unavailable.
 - If the owner path is genuinely unavailable, stop with the exact command,
   path, or help output that proves it.
 
-The worker still must not jump to another step, invoke unrelated workflows, or
-write outside its target repo.
+The worker still must not jump to another step, switch to a different stage
+owner, invoke unrelated workflows, or write outside its target repo.
 
 ## Recovery posture by blocker type
 

@@ -464,5 +464,19 @@ class StepVerdictValidation(unittest.TestCase):
         self.assertIn("resume_hint must be an object on fail", errors)
 
 
+class StepPromptContract(unittest.TestCase):
+    def test_initial_prompt_allows_owner_declared_support(self):
+        contract_path = Path(__file__).resolve().parents[1] / "references" / (
+            "step-prompt-contract.md"
+        )
+        contract = contract_path.read_text(encoding="utf-8")
+
+        self.assertNotIn("Do not invoke other skills or slash commands", contract)
+        self.assertNotIn("The doctrine path above carries everything you need", contract)
+        self.assertIn("Required support is not scope drift", contract)
+        self.assertIn("owner-declared support", contract)
+        self.assertIn("unrelated workflow/loop skills", contract)
+
+
 if __name__ == "__main__":
     unittest.main()

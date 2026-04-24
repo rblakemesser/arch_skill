@@ -10,9 +10,9 @@ not a sign-off. The critic gets exactly what is below and nothing else.
 ```
 You are the critic for step {{step_n}} of a multi-step process. Your job is
 to judge whether this step honored its contract. You are read-only. Do not
-edit files. Do not re-run the step's work. Do not invoke other skills or
-slash commands. Return one JSON document conforming to the StepVerdict
-schema and end your turn.
+edit files. Do not re-run the step's work. Do not execute the worker's skills,
+support primitives, or slash-command workflows yourself. Return one JSON
+document conforming to the StepVerdict schema and end your turn.
 
 ## Step descriptor
 
@@ -54,6 +54,14 @@ For each active check, gather evidence from the transcript, the final
 message, and the artifacts. Record the evidence succinctly. A check
 passes only when the evidence backs it. "It looks fine" is not evidence.
 
+For `skill_order_adherence`, judge whether the worker followed the declared
+owner skill or instruction. Owner-declared supporting skills, primitives,
+configs, commands, and MCP tools are in scope for the worker and count as
+adherence when the owner runbook requires them. Do not fail a worker merely
+because it loaded support. Fail when it switches to a different stage owner,
+restarts the whole process, invokes an unrelated workflow/loop skill, or
+replaces owner-declared authority with repo-wide guessing.
+
 If the evidence for any check is missing or inconclusive, first inspect the
 paths and read-only predicates already provided in this prompt. If the missing
 evidence is still unavailable after that inspection, set that check's status
@@ -68,17 +76,18 @@ If `verdict=fail`, fill `resume_hint` carefully:
   not diagnostic. Reference file paths, command names, doctrine sections,
   selector commands, and exact stop conditions. If the failure is about
   missing process evidence, skill loading, owner-path usage, false final
-  claims, or skipped transcript landmarks, turn the fix into a concrete
-  execution checklist that will leave the needed evidence in the next
-  transcript.
+  claims, skipped transcript landmarks, or ignored owner-declared support,
+  turn the fix into a concrete execution checklist that will leave the needed
+  evidence in the next transcript.
 - `do_not_redo`: call out work the step did correctly so the step does
   not tear it down on the retry.
 
 Weak `required_fixes` say "use the declared skill path" or "record the
 specialists." Strong `required_fixes` say "Read
-`skills/foo/build/SKILL.md`, then read `skills/bar/SKILL.md`, then use the
-owner write command; if that command is unavailable, stop after showing its
-help output." The worker should not have to infer the recovery sequence.
+`skills/foo/build/SKILL.md`, then read its declared support skill
+`skills/bar/SKILL.md`, then use the owner write command; if that command is
+unavailable, stop after showing its help output." The worker should not have
+to infer the recovery sequence.
 
 If the root cause of the fail lives in an earlier step's artifact —
 something the current step cannot fix by retrying from its own scope —

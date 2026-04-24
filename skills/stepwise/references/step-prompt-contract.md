@@ -12,8 +12,9 @@ is orchestrator overreach.
 
 ```
 You are executing step {{step_n}} of {{total_steps}} in a multi-step
-process. Your job is this step only. Do not touch steps outside your
-scope. End your turn when this step's work is complete.
+process. Complete this step's declared outcome using the owner skill or
+instruction below as authority. Stay inside this step's outcome; do not take
+over adjacent stages. End your turn when this step's work is complete.
 
 ## Process
 
@@ -23,33 +24,41 @@ scope. End your turn when this step's work is complete.
 
 {{step_label}}
 
-## How to do this step
+## Owner instruction
 
 Follow the skill or instruction:
 
 {{skill_or_instruction}}
 
-Its runbook lives at {{doctrine_path_for_this_step}}. Read it fully
-before acting, then execute it.
+Owner runbook: {{doctrine_path_for_this_step}}
+
+Read the owner runbook first. Then execute the step. If the owner runbook
+names supporting skills, primitives, configs, commands, or MCP tools, load and
+use them as part of this step. Required support is not scope drift.
 
 ## Expected artifact
 
 {{expected_artifact_block}}
 
-## Rules
+## Boundaries
 
 - Work inside {{target_repo_absolute_path}} only. Do not edit files
   outside it.
-- Follow the runbook's ordering. If it says read doctrine first, do
-  that before editing.
+- Preserve the confirmed step outcome and expected artifact.
+- Follow the owner runbook's ordering. If it says read doctrine first, do
+  that before editing. If it names authoritative support, use that support
+  before repo-wide discovery.
 - Do not claim work you did not do. If a sub-step is infeasible,
   first run the safe read/help/list command or inspect the owning
   doctrine path that would prove the blocker, then say so explicitly
   and stop with that evidence.
-- Do not invoke any step other than the one declared above.
-- Do not invoke other skills or slash commands. The doctrine path
-  above carries everything you need; picking up a second skill
-  (e.g. `/loop`, `/goal-loop`) takes you outside this step's scope.
+- Do not jump to a different stage owner, restart the whole process, or invoke
+  unrelated workflow/loop skills.
+- Do not replace declared authority with repo-wide guessing. When the owner
+  runbook or a declared support skill names the authoritative primitive,
+  config, endpoint, or command, use that first.
+- Do not claim tool availability, support loading, or primitive use that the
+  transcript does not show.
 
 When done, end your turn. A critic will inspect your work.
 ```
@@ -94,8 +103,9 @@ Two temptations must be resisted:
 
 **Tempt 1:** pad the initial prompt with generic advice ("remember to
 test thoroughly"). Don't. The runbook at `doctrine_path_for_this_step`
-is the authoritative guide. Our job is to point the step at it, not
-restate it badly.
+is the owner entrypoint. Our job is to point the step at the owner path and
+let that owner path bring in its declared support, not restate it badly or
+override it with Stepwise's guesses.
 
 **Tempt 2:** on retry, re-explain the whole step. Don't. The session
 already has the initial prompt, the work it did, and any tool output.
@@ -114,13 +124,15 @@ history the step session can learn from.
 
 A step session is expected to:
 
-- Read the doctrine path it was pointed at.
-- Execute the declared skill or instruction.
+- Read the owner runbook it was pointed at.
+- Execute the declared skill or instruction, including owner-declared support
+  skills, primitives, configs, commands, and MCP tools when the runbook needs
+  them.
 - Produce the declared artifact.
 - Resolve obvious safe blockers inside its own step before stopping:
   missing-path claims need the exact path checked, command-availability
-  claims need the help/list output or owning doctrine read, and owner-path
-  claims need evidence from the owner path.
+  claims need the help/list output or owning doctrine read, and support-path
+  claims need evidence from the owner or support path.
 - End its turn.
 
 A step session is not expected to:
@@ -129,6 +141,8 @@ A step session is not expected to:
 - Validate its own work. (The critic does that.)
 - Adjust the process or the manifest. (That is a user decision handled
   outside this skill.)
+- Treat stale repo-local discovery as higher authority than the owner runbook
+  or its declared support.
 
 If a step session finds that the declared step is genuinely impossible
 (missing prerequisite, contradicted doctrine, unavailable owner primitive,

@@ -20,10 +20,14 @@ critic runs only the named checks. If a check is not in the descriptor, the
 critic does not report on it.
 
 ### `skill_order_adherence`
-The step invoked the exact skill or instruction the manifest declared, in
+The step followed the owner skill or instruction the manifest declared, in
 the declared position in the sequence. Evidence lives in the transcript
-(tool calls, slash-command mentions, or explicit doctrine reads). A step
-that used a shortcut or a similar-but-different skill fails this check.
+(tool calls, slash-command mentions, explicit doctrine reads, and reads or
+invocations of owner-declared support). A step that uses the owner runbook's
+declared supporting skills, primitives, configs, commands, or MCP tools is
+adhering, not drifting. A step that switches to a different stage owner,
+restarts the process, uses an unrelated workflow/loop skill, or replaces the
+owner-declared authority with repo-wide guessing fails this check.
 
 ### `no_substep_skipped`
 When the target-repo doctrine prescribes sub-steps inside a skill's runbook,
@@ -208,6 +212,12 @@ exact operational sequence: read the owning skill path, read each required
 specialist path, use the owner write command or stop with the exact missing
 command/help output, remove the false final claim, and finish with the selector
 command the critic will use.
+
+Example — required support is not drift: step 6 uses the declared
+situation-synthesis owner skill. That owner skill names solver screening
+through a support skill. Loading and using that support skill is evidence for
+`skill_order_adherence`; grepping unrelated local clients after skipping the
+declared support path is evidence against it.
 
 Example — route upstream: step 4 produced per-surface copy correctly,
 but that copy references step 3's walkthrough stage. Step 3 used the
