@@ -27,7 +27,7 @@ reasoning:
   "applies_to": "steps whose primary artifact is learner-facing copy",
   "step_execution": {
     "runtime": "claude",
-    "model": "opus-4-7"
+    "model": "claude-opus-4-7"
   },
   "resolution_rationale": "The user named a semantic class, so resolve it against step labels, declared instructions, and expected artifacts after manifest drafting."
 }
@@ -42,6 +42,11 @@ If an override omits effort, inherit the base effort for that lane. If it
 omits runtime but names a model that only belongs to one runtime family, infer
 that runtime and say so in the rationale. If the runtime cannot be inferred
 responsibly, ask.
+
+The user's raw wording stays in `source_quote`; `step_execution.model` and
+`critic_execution.model` store runnable model identifiers resolved by
+`model-and-effort.md`. Do not pass raw shorthand such as `opus-4-7` to a
+subprocess when the runtime requires `claude-opus-4-7`.
 
 ## Resolution order
 
@@ -101,6 +106,8 @@ Ask or pause when:
   matters
 - target doctrine requires one runtime and the user asked for another
 - a model name does not identify a runtime family clearly
+- a model phrase cannot be resolved to a runnable identifier with the same
+  family and exact version
 - applying a preference to critics would be an inference rather than an
   explicit user instruction
 
@@ -115,7 +122,7 @@ Every StepDescriptor gets both resolved execution blocks:
 {
   "step_execution": {
     "runtime": "claude",
-    "model": "opus-4-7",
+    "model": "claude-opus-4-7",
     "effort": "xhigh",
     "source": "execution_preferences[0]",
     "reason": "Matched learner-facing copy artifact lesson-copy.json."

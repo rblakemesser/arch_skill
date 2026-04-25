@@ -37,6 +37,38 @@ None of these is magic. The intake reads the phrase, maps the baseline into
 execution defaults, records routing preferences separately, and prints back
 the interpretation before executing.
 
+## Model phrase resolution
+
+Treat the user's model text as intent, not necessarily the exact CLI token.
+Resolve it to a runnable model identifier before writing it into execution
+defaults, per-step execution blocks, or subprocess commands.
+
+This is reasoning, not a lookup table:
+
+- Preserve the model family and numeric version exactly. You may add a
+  required provider prefix or change spaces/dots to the runtime's separator,
+  but you may not change the family or version. `4.7` must stay `4.7`/`4-7`;
+  `5.5` must stay `5.5`, never `5.4`.
+- For Claude, if the runtime is Claude and the user names a family plus a
+  version, prefer the full Claude CLI identifier:
+  `claude-<family>-<version-with-hyphens>`. For example, "Claude Opus 4.7",
+  "claude opus-4-7", and "opus 4.7" under a Claude runtime all resolve to
+  `claude-opus-4-7`. Family-only aliases such as `opus`, `sonnet`, or `haiku`
+  are acceptable only when the user did not pin a version.
+- For Codex, inspect the installed CLI's model list when needed
+  (`codex debug models`) and choose the available identifier with the same
+  family and exact version. For example, "gpt 5.5" resolves to `gpt-5.5` if
+  that exact model appears, and "gpt 5.4 mini" resolves to `gpt-5.4-mini`.
+- If the runtime is unavailable, model discovery is unavailable, the exact
+  version is not present, or the phrase could map to multiple runnable
+  identifiers, ask the user for the runnable model id.
+- Do not run paid trial prompts to discover whether a Claude model exists.
+  Use the CLI's help/list surface when available; otherwise ask.
+
+Always announce the raw-to-resolved mapping before execution, for example:
+`Claude Opus 4.7 xhigh -> runtime=claude, model=claude-opus-4-7,
+effort=xhigh`.
+
 ## Asking when missing
 
 If one or more required defaults is unspecified and cannot be inferred
@@ -61,6 +93,9 @@ If the user answers with one complete value ("Codex gpt-5.4 medium
 everywhere"), apply it to both worker and critic defaults and announce that
 before executing. If they answer with a worker-only override ("copywriting on
 Claude Opus 4.7") but no baseline, still ask for the missing defaults.
+Do not ask merely because the user used spaces, dots, or omitted a runtime
+prefix when the runtime and exact version are otherwise clear; resolve the
+same-version spelling first.
 
 ## Runtime inference
 
@@ -75,6 +110,8 @@ Infer runtime only when the evidence is unambiguous:
 
 When inference is ambiguous, ask. Do not build a hidden model-name lookup
 table. The runtime choice must be explainable in the Phase 1 announcement.
+Once runtime is known, resolve the model phrase using the exact-version rules
+above instead of passing raw shorthand through to the CLI.
 
 Critic runtime defaults to the critic default from intake. If the user gives
 only one "everywhere" choice, critic and step defaults match. If the user gives
@@ -84,8 +121,9 @@ overridden.
 ## Pinning
 
 Once set, the full execution policy is written into `state.json` and pinned
-with `execution_sha256`. The policy includes defaults and unresolved routing
-preferences. Changing it mid-run clears run state.
+with `execution_sha256`. The policy includes resolved runnable defaults and
+the raw routing preference quotes plus their resolved execution blocks.
+Changing it mid-run clears run state.
 
 Per-step repair attempts reuse the same resolved execution block as the
 original try. A user who wants a different model for repair attempts should

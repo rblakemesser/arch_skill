@@ -1,0 +1,7 @@
+interface:
+  display_name: "Skill Flow"
+  short_description: "Design and audit ordered flows of distinct skills"
+  default_prompt: "Use $skill-flow to design, repair, or audit an ordered flow of multiple agent skills with distinct jobs, concrete handoffs, clear peer boundaries, and lean prompt contracts."
+
+policy:
+  allow_implicit_invocation: true

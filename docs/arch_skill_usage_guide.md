@@ -29,6 +29,7 @@ Other shipped skills:
 - `agents-md-authoring`
 - `prompt-authoring`
 - `skill-authoring`
+- `skill-flow`
 - `amir-publish`
 - `codex-review-yolo`
 - `code-review`
@@ -75,6 +76,7 @@ Default local path:
 - `~/.agents/skills/agents-md-authoring/`
 - `~/.agents/skills/prompt-authoring/`
 - `~/.agents/skills/skill-authoring/`
+- `~/.agents/skills/skill-flow/`
 - `~/.agents/skills/amir-publish/`
 - `~/.agents/skills/codex-review-yolo/`
 - `~/.agents/skills/code-review/`
@@ -104,6 +106,7 @@ Installed skills:
   - `agents-md-authoring`
   - `prompt-authoring`
   - `skill-authoring`
+  - `skill-flow`
   - `amir-publish`
   - `codex-review-yolo`
   - `code-review`
@@ -128,6 +131,7 @@ Installed skills:
   - `agents-md-authoring`
   - `prompt-authoring`
   - `skill-authoring`
+  - `skill-flow`
   - `amir-publish`
   - `codex-review-yolo`
   - `code-review`
@@ -149,6 +153,7 @@ Installed skills:
   - `agents-md-authoring`
   - `prompt-authoring`
   - `skill-authoring`
+  - `skill-flow`
   - `amir-publish`
   - `codex-review-yolo`
 
@@ -428,6 +433,14 @@ Use when the user wants to write, edit, refactor, or audit a reusable agent skil
 Examples:
 
 - `Use $skill-authoring to audit this skill package`
+
+### `skill-flow`
+
+Use when the user wants to design, repair, or audit an ordered flow of multiple agent skills. It owns the flow-level question: which skills should exist, what each one owns, what artifact it hands to the next skill, and where specialist skills like `skill-authoring` or `prompt-authoring` should be used. Use `arch-epic` instead for decomposing one execution goal into `arch-step` sub-plans, and use `stepwise` instead for deterministic process execution.
+
+Examples:
+
+- `Use $skill-flow to design the authoring and audit flow for this skill suite`
 
 ### `amir-publish`
 

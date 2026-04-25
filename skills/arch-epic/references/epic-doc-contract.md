@@ -35,7 +35,7 @@ raw_goal: |
 raw_goal_sha256: <hex digest of the raw_goal string>
 sub_plans_approved: false
 critic_runtime: claude | codex
-critic_model: <e.g. opus-4-7>
+critic_model: <resolved CLI model, e.g. claude-opus-4-7>
 critic_effort: <low | medium | high | xhigh | max>
 models_sha256: <hex digest of {runtime, model, effort} tuple>
 ---
@@ -62,7 +62,8 @@ Frontmatter rules:
   keeps `sub_plans_approved: true`; "approved" means "the user has
   seen and blessed the shape," not "the decomposition is frozen."
 - `critic_runtime`, `critic_model`, `critic_effort` are user-supplied
-  per `model-and-effort.md`. Not defaulted.
+  per `model-and-effort.md`. Not defaulted. `critic_model` stores the
+  resolved runnable identifier, not raw shorthand.
 - `models_sha256` is computed over the runtime/model/effort tuple.
   Changing any of them re-hashes. Past verdicts keep their old
   models recorded in their own artifacts.

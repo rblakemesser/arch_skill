@@ -17,7 +17,7 @@ not a script to copy.
 
 Skill proposes `docs/EPIC_ADMIN_DASHBOARD_SSO_2026-04-22.md`. User
 is silent on path, so proceed. Skill writes frontmatter with
-`critic_runtime: claude`, `critic_model: opus-4-7`,
+`critic_runtime: claude`, `critic_model: claude-opus-4-7`,
 `critic_effort: xhigh`, hashes set.
 
 Drafts the Decomposition:
