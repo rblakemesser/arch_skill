@@ -1,6 +1,6 @@
 ---
 name: arch-epic
-description: "Orchestrate a goal too large for one `$arch-step` plan by decomposing it into approved ordered sub-plans, running each through `$arch-step new`, `auto-plan`, `implement-loop`, and `audit-implementation`, then launching a fresh critic to catch scope drift before advancing. Use when the user asks to break up and run a multi-plan epic, continue an existing epic, or resume from an on-disk epic doc. Planning is progressive: sub-plan N+1 starts only after sub-plan N completes and passes the critic. Not for a single architecture plan (`$arch-step`), one-pass mini plan (`$arch-mini-plan`), small 1-3 phase feature (`$lilarch`), open-ended optimization (`$goal-loop`), read-only status routing (`$arch-flow`), or foreign-repo step orchestration (`$stepwise`)."
+description: "Orchestrate a goal too large for one `$arch-step` plan by decomposing it into approved ordered sub-plans, then running them depth-first through interactive arch-step handoffs or an explicit automatic harness mode. Use when the user asks to break up and run a multi-plan epic, continue an existing epic, resume from an epic doc, or automatically implement the approved epic end to end. Automatic mode asks for role-based agent/model choices for planner, implementation worker, repair worker, and critics, then uses spawned Claude/Codex harnesses with fresh context and 60s default child-wait cadence. Not for a single architecture plan (`$arch-step`), one-pass mini plan (`$arch-mini-plan`), small feature (`$lilarch`), generic completion loops (`$arch-loop`), read-only status (`$arch-flow`), or foreign-repo step orchestration (`$stepwise`)."
 metadata:
   short-description: "Multi-plan orchestrator wrapping arch-step with decomposition approval, progressive North-Star gates, and a per-sub-plan scope-drift critic"
 ---
@@ -18,9 +18,24 @@ discovery or a non-trivial scope change, the skill halts and asks the
 user how to resolve it (extend, insert a new sub-plan, defer, or drop).
 Otherwise it advances to the next sub-plan.
 
+The normal lane is interactive and re-entrant: arch-epic invokes or observes
+arch-step commands in the visible session one transition at a time.
+
+The automatic lane is explicit and opt-in. After the user approves the
+decomposition, arch-epic asks for a role-based execution table:
+`epic_planner`, `implementation_worker`, `repair_worker`, and `critic`.
+It resolves shorthand such as `opus 4.7 xhigh` or `gpt 5.4 mini high` to
+runnable model IDs using the shared resolver doctrine, pins the resolved
+policy, then drives sub-plans depth-first with spawned hook-suppressed
+Claude/Codex harnesses. Automatic workers apply arch-step doctrine directly
+from disk; they do not arm nested `auto-plan`, `implement-loop`, or
+`arch-loop` controllers.
+
 Progressive lazy planning: sub-plan N+1 is not planned until sub-plan
 N is complete. The user approves the decomposition up front, then
-approves each sub-plan's North Star when it comes up.
+approves each sub-plan's North Star when it comes up in interactive
+mode. In automatic mode, spawned critics check North Star and Epic
+Requirement Coverage gates instead of asking the user on every sub-plan.
 
 Resume is the only mode — every `$arch-epic` invocation re-reads the
 epic doc and arch-step state from disk and picks up where things left
@@ -28,10 +43,12 @@ off. "Continue my epic", "pick up where we left off", "keep going on
 <project>" all work.
 
 The skill is a thoughtful wrapper — its job is to reduce user
-orchestration burden. User involvement is bounded to four decision
-points: the goal, the decomposition, per-sub-plan North Star (arch-step
-handles that gate), and scope-change decisions when the critic flags
-something material.
+orchestration burden. In interactive mode, user involvement is bounded
+to the goal, decomposition, per-sub-plan North Star, and material
+scope-change decisions. In automatic mode, the user approves the
+decomposition and role table up front; spawned critics replace
+per-sub-plan North-Star pauses unless a material ambiguity or scope
+change requires the user.
 
 ## When to use
 
@@ -42,6 +59,9 @@ something material.
 - "Continue my epic at `docs/EPIC_<slug>_<date>.md`."
 - "Keep going on the <goal> epic."
 - "Pick up where we left off on <project>."
+- "Automatically implement this approved epic end to end."
+- "Run the epic automatically and ask me which models to use for the
+  planner, workers, repair, and critics."
 
 ## When not to use
 
@@ -72,24 +92,32 @@ Must happen every run:
   only after sub-plan N is `complete` per the epic critic.
 - Per-sub-plan North Star approval uses `$arch-step`'s existing
   North-Star gate. `arch-epic` does not re-invent it — it just
-  stops when arch-step stops.
+  stops when arch-step stops. In automatic mode, this gate is replaced
+  by a fresh North-Star critic harness after the user-approved
+  decomposition and role table are pinned.
 - Per-sub-plan implementation runs through
-  `$arch-step implement-loop`. `arch-epic` does NOT implement code
-  itself.
+  `$arch-step implement-loop` in interactive mode. In automatic mode,
+  spawned implementation workers execute the approved sub-plan directly
+  from arch-step doctrine and the sub-plan doc; the top-level
+  orchestrator still does not edit target code itself.
 - Epic critic runs once per sub-plan at sub-plan completion and
   returns structured JSON `EpicVerdict`. Critic is a separate
   subprocess (claude or codex).
 - Both arch-step invocations and critic subprocesses run dangerous
   / skip-permissions / no-sandbox per repo convention.
-- User supplies critic runtime + model + effort at invocation;
-  skill asks once if missing; never silently defaults.
+- User supplies execution policy at invocation or at the role-table
+  gate. Interactive mode needs critic runtime + model + effort.
+  Automatic mode needs role execution for `epic_planner`,
+  `implementation_worker`, `repair_worker`, and `critic`. The skill
+  asks once for missing role values and never silently defaults.
 - Resume is re-entrant: any invocation against an existing epic doc
   re-reads on-disk state and continues. No dedicated `resume`
   command.
 
 Must never happen:
 - `arch-epic` editing the target repo's code directly. Sub-plans do
-  that via arch-step's implement-loop.
+  that via arch-step's implement-loop in interactive mode or spawned
+  implementation workers in automatic mode.
 - Silent scope changes. If the critic sees a dropped acceptance
   criterion or a silent addition without a Decision Log entry, the
   sub-plan fails.
@@ -97,7 +125,15 @@ Must never happen:
   approval when the choice is non-obvious. Only nice-to-have
   discoveries with `defer` or `drop` recommendations auto-apply;
   must-have or `extend_current`/`new_sub_plan` always halt.
-- Parallel sub-plan planning. Only one sub-plan is active at a time.
+- Parallel or breadth-first sub-plan planning. Only one sub-plan is
+  active at a time, and sub-plan N+1 starts only after sub-plan N is
+  complete and has no blocking critic findings.
+- Two-second child polling. Automatic mode defaults to 60-second waits
+  while waiting for spawned harnesses unless the user explicitly pins a
+  different cadence in the role policy.
+- Passing raw model shorthand to subprocesses. Resolve it first using
+  shared model-resolution doctrine; preserve exact family/version or
+  ask for the runnable ID.
 - Heuristic keyword mapping for decomposition. Interpretation is
   prose reasoning, taught by `references/decomposition-principles.md`.
 - A second "resume" command. The user types what they type; the
@@ -108,16 +144,18 @@ Must never happen:
 1. Capture the user's goal verbatim. Compute `sha256`.
 2. Resolve or propose the epic doc path
    (`docs/EPIC_<TITLE>_<YYYY-MM-DD>.md`).
-3. Read `references/model-and-effort.md`. If the user's prompt does
-   not name runtime + model + effort for the critic, ask one
-   consolidated question.
+3. Read `references/model-and-effort.md`. If the user is starting
+   the interactive lane and did not name runtime + model + effort for
+   the critic, ask one consolidated question. If the user explicitly
+   asked for automatic end-to-end execution, defer execution choices
+   to the automatic role-table gate after decomposition approval.
 4. Read `references/decomposition-principles.md`. Draft the
    Decomposition (3–7 sub-plans, one-sentence descriptions,
    assertion-style gates, dependency-then-risk ordering).
 5. Read `references/epic-doc-contract.md`. Write the epic doc.
 6. Surface the Decomposition and ask the user to approve or adjust.
 
-## Five modes (re-entrant; one per turn)
+## Six modes (re-entrant; one per turn)
 
 Detail per mode lives in `references/workflow-contract.md`.
 
@@ -137,6 +175,10 @@ Detail per mode lives in `references/workflow-contract.md`.
 5. **`summary`** — user asked a status question. Render a table of
    sub-plan statuses and the most recent log entries. No state
    changes.
+6. **`auto-run`** — explicit automatic lane after decomposition
+   approval. Resolve/pin the role execution table, initialize the
+   auto run directory, then drive one active sub-plan depth-first
+   through planner, implementation, repair, and critic harnesses.
 
 ## Output expectations
 
@@ -147,13 +189,17 @@ Detail per mode lives in `references/workflow-contract.md`.
   `<orchestrator repo root>/.arch_skill/arch-epic/critics/<slug>/run-<ts>/`
   including the EpicVerdict JSON, the exact invocation.sh, and the
   subprocess stream log.
+- Automatic-mode artifacts under
+  `<orchestrator repo root>/.arch_skill/arch-epic/auto/<epic-slug>/run-<ts>/`
+  including `state.json`, `execution_policy.json`, worker prompts,
+  worker session IDs, critic verdicts, and `report.md`.
 - Orchestration Log and Decision Log append-only in the epic doc.
 - Console summary with the epic doc path, the per-sub-plan status
   table, and the current active sub-plan's next action.
 
 ## Reference map
 
-- `references/workflow-contract.md` — five modes with inputs,
+- `references/workflow-contract.md` — six modes with inputs,
   outputs, failure modes, judgment-vs-determinism split.
 - `references/epic-doc-contract.md` — epic doc shape, frontmatter,
   section structure, mutation rules, validation on load.
@@ -166,13 +212,17 @@ Detail per mode lives in `references/workflow-contract.md`.
 - `references/scope-change-discipline.md` — materially-different
   path vs noise. Auto-act rule for discovered items.
 - `references/critic-contract.md` — EpicVerdict JSON schema and
-  the four scope-drift checks.
+  scope-drift / requirement-coverage checks.
 - `references/critic-prompt.md` — verbatim critic prompt body with
   placeholders.
+- `references/auto-harness-prompts.md` — role-specific prompt
+  contracts for automatic planner, implementation, repair, and critic
+  harnesses.
 - `references/epic-verdict-schema.json` — JSON schema file used by
   Codex `--output-schema` (and inlined into Claude `--json-schema`).
-- `references/model-and-effort.md` — how to elicit critic runtime +
-  model + effort from the user; ask-once discipline.
+- `references/model-and-effort.md` — role-based execution policy,
+  model shorthand resolution, exact-version preservation, and ask-once
+  discipline.
 - `references/resume-semantics.md` — how the skill re-derives state
   each turn from the epic doc + arch-step controller state files.
 - `references/examples.md` — worked examples: happy path,
@@ -180,11 +230,12 @@ Detail per mode lives in `references/workflow-contract.md`.
 
 ## The orchestration script
 
-`scripts/run_arch_epic.py` is deterministic plumbing. Its one
-subcommand spawns the critic subprocess and writes run-directory
-artifacts. It does NOT interpret decomposition, draft the epic doc,
-decide verdicts, or route sub-plan states — those live in the
-orchestrator's prose reasoning.
+`scripts/run_arch_epic.py` is deterministic plumbing. It resolves
+automatic-mode execution policy, creates run directories, spawns and
+resumes workers, spawns structured critics, and writes artifacts. It
+does NOT interpret decomposition, draft the epic doc, decide verdicts,
+or route sub-plan states — those live in the orchestrator's prose
+reasoning.
 
 ```
 python3 scripts/run_arch_epic.py critic-spawn \
@@ -197,6 +248,24 @@ python3 scripts/run_arch_epic.py critic-spawn \
   --model <model> \
   --effort <effort> \
   [--orchestrator-root <dir>]
+```
+
+Automatic-mode examples:
+
+```
+python3 scripts/run_arch_epic.py resolve-execution \
+  --policy-file /tmp/arch-epic-auto-policy.json
+
+python3 scripts/run_arch_epic.py auto-init \
+  --epic-doc docs/EPIC_BIG_GOAL_2026-04-26.md \
+  --policy-file /tmp/arch-epic-auto-policy.json
+
+python3 scripts/run_arch_epic.py worker-spawn \
+  --run-dir .arch_skill/arch-epic/auto/big-goal/run-2026-04-26T00-00-00Z \
+  --target-repo . \
+  --role implementation_worker \
+  --sub-plan-name "Build the core service" \
+  --prompt-file /tmp/worker.prompt.md
 ```
 
 Prints the verdict JSON path. Writes:

@@ -34,10 +34,11 @@ raw_goal: |
   <verbatim user input that created this epic — every word, no edits>
 raw_goal_sha256: <hex digest of the raw_goal string>
 sub_plans_approved: false
-critic_runtime: claude | codex
-critic_model: <resolved CLI model, e.g. claude-opus-4-7>
-critic_effort: <low | medium | high | xhigh | max>
-models_sha256: <hex digest of {runtime, model, effort} tuple>
+critic_runtime: null | claude | codex
+critic_model: null | <resolved CLI model, e.g. claude-opus-4-7>
+critic_effort: null | <low | medium | high | xhigh | max>
+models_sha256: null | <hex digest of {runtime, model, effort} tuple>
+auto_execution: null | <automatic-mode policy block>
 ---
 ```
 
@@ -62,11 +63,73 @@ Frontmatter rules:
   keeps `sub_plans_approved: true`; "approved" means "the user has
   seen and blessed the shape," not "the decomposition is frozen."
 - `critic_runtime`, `critic_model`, `critic_effort` are user-supplied
-  per `model-and-effort.md`. Not defaulted. `critic_model` stores the
-  resolved runnable identifier, not raw shorthand.
-- `models_sha256` is computed over the runtime/model/effort tuple.
-  Changing any of them re-hashes. Past verdicts keep their old
-  models recorded in their own artifacts.
+  per `model-and-effort.md` for interactive-mode completion critics.
+  They are not defaulted. `critic_model` stores the resolved runnable
+  identifier, not raw shorthand. When the user explicitly asked for
+  automatic end-to-end execution, these fields may stay `null` until an
+  interactive critic is needed; automatic-mode critics use the
+  `auto_execution.roles.critic` block instead.
+- `models_sha256` is computed over the runtime/model/effort tuple when
+  that tuple is present. Changing any of them re-hashes. Past verdicts
+  keep their old models recorded in their own artifacts.
+- `auto_execution` is `null` until the user explicitly asks for
+  automatic execution. Automatic mode fills it after decomposition
+  approval and role-table resolution. Interactive mode ignores it.
+
+### `auto_execution`
+
+Automatic mode stores the role-based policy in both the epic doc and
+the automatic run directory:
+
+```yaml
+auto_execution:
+  schema_version: 1
+  approval_policy: auto_after_decomposition
+  poll_seconds: 60
+  auto_run_dir: .arch_skill/arch-epic/auto/<epic-slug>/run-<ts>
+  source_quotes:
+    epic_planner: claude opus 4.7 xhigh
+    implementation_worker: codex gpt 5.4 xhigh
+    repair_worker: same as implementation_worker
+    critic: codex gpt 5.4 mini xhigh
+  roles:
+    epic_planner:
+      runtime: claude
+      model: claude-opus-4-7
+      effort: xhigh
+      source: user_table
+    implementation_worker:
+      runtime: codex
+      model: gpt-5.4
+      effort: xhigh
+      source: user_table
+    repair_worker:
+      runtime: codex
+      model: gpt-5.4
+      effort: xhigh
+      source: same_as:implementation_worker
+    critic:
+      runtime: codex
+      model: gpt-5.4-mini
+      effort: xhigh
+      source: user_table
+  execution_sha256: <hex digest of the normalized policy>
+```
+
+Rules:
+
+- The user approves the decomposition before this block is written.
+- `poll_seconds` defaults to `60`; do not use short polling loops while
+  waiting for spawned harnesses.
+- `auto_run_dir` is an operational pointer. It is added after the run
+  directory exists and is not part of the `execution_sha256` input.
+- Raw shorthand belongs in `source_quotes`; executable fields store
+  runnable model IDs.
+- Model resolution comes from `skills/_shared/model_resolution.py` and
+  `references/model-and-effort.md`; exact versions are never silently
+  substituted.
+- Changing any role updates `execution_sha256`, appends a Decision Log
+  entry, and affects only future child runs.
 
 ## Body sections
 
@@ -104,6 +167,9 @@ A numbered list of sub-plans. Each entry has:
 - `Epic-critic verdict:` empty until the sub-plan reaches
   completion; then the verdict path (relative or absolute) for
   audit.
+- In automatic mode, add `Auto-run status:` when useful. Keep it
+  compact: current role, latest worker artifact, latest critic verdict,
+  or `not started`. Do not copy child transcripts into the epic doc.
 
 Example:
 
@@ -178,6 +244,22 @@ The Decision Log is the user-facing record of why the decomposition
 looks the way it does after the fact. It should read like a
 conversation history a month from now, not a machine log.
 
+### Epic Requirement Coverage
+
+Automatic-mode sub-plan DOC_PATHs must include an Epic Requirement
+Coverage section, usually in Section 0 or immediately after it. The
+coverage map classifies every meaningful raw-goal/decomposition
+requirement as one of:
+
+- owned by this sub-plan
+- satisfied by a prior sub-plan
+- deferred to a named later sub-plan
+- out of scope with a recorded reason
+
+The epic doc does not duplicate the full coverage map. It points to the
+sub-plan DOC_PATH and records only material coverage decisions in the
+Decision Log.
+
 ## Mutation rules
 
 The skill mutates the epic doc under these conditions only:
@@ -192,6 +274,10 @@ The skill mutates the epic doc under these conditions only:
 - `resume-scope-change` mode: inserts a new sub-plan, or extends an
   existing one's scope, or marks items deferred/dropped; always
   appends a Decision Log entry.
+- `auto-run` mode: writes or updates `auto_execution`, writes compact
+  Auto-run status fields, records role-policy changes, critic-gated
+  repairs, and auto-inserted sub-plans. Full child artifacts stay in the
+  automatic run directory.
 
 The skill never edits `raw_goal` or `raw_goal_sha256` except at
 `start`. If the user wants to edit the goal, they start a new epic;
@@ -203,14 +289,20 @@ Every time the skill reads the epic doc, it validates:
 
 1. Frontmatter parses as YAML with all required fields.
 2. `raw_goal_sha256` matches a fresh hash of `raw_goal`.
-3. `models_sha256` matches a fresh hash of the runtime/model/effort
-   tuple.
-4. The Decomposition section is present and non-empty if
+3. If the interactive critic tuple is present, `models_sha256` matches
+   a fresh hash of the runtime/model/effort tuple. If the tuple is
+   pending/null, `models_sha256` is also null and the skill must ask
+   before running an interactive completion critic.
+4. If `auto_execution` is present, its role blocks contain
+   `runtime`, `model`, `effort`, `source_quote` or source metadata, a
+   positive `poll_seconds`, and a matching `execution_sha256` computed
+   over the normalized execution policy excluding `auto_run_dir`.
+5. The Decomposition section is present and non-empty if
    `sub_plans_approved: true`.
-5. Every sub-plan entry has a Status; Status is one of the allowed
+6. Every sub-plan entry has a Status; Status is one of the allowed
    values; sub-plans whose Status is beyond `pending` have a
    DOC_PATH set.
-6. Orchestration Log and Decision Log are present (may be empty at
+7. Orchestration Log and Decision Log are present (may be empty at
    `start`, always present after).
 
 Validation failure is a loud error. The skill tells the user exactly

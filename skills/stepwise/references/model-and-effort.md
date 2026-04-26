@@ -69,6 +69,12 @@ Always announce the raw-to-resolved mapping before execution, for example:
 `Claude Opus 4.7 xhigh -> runtime=claude, model=claude-opus-4-7,
 effort=xhigh`.
 
+For deterministic script plumbing that needs these same resolution rules, use
+`skills/_shared/model_resolution.py` instead of adding another hidden model
+alias table. The helper keeps Stepwise-style flows, fresh-consult, and
+arch-epic automatic harnesses aligned on exact-version preservation and
+fail-loud behavior.
+
 ## Asking when missing
 
 If one or more required defaults is unspecified and cannot be inferred

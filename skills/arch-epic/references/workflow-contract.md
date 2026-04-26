@@ -1,4 +1,4 @@
-# Workflow contract: five modes the skill runs
+# Workflow contract: six modes the skill runs
 
 The skill runs one mode per turn. The mode is chosen from the epic
 doc's state, not from a user command. The user types whatever; the
@@ -33,10 +33,13 @@ determinism happens.
    `epic-doc-contract.md`. If the user's invocation named a path,
    use it. If the user is silent and the proposed path exists
    already, append `_v2` and re-propose.
-2. Ask the user for `critic_runtime`, `critic_model`,
-   `critic_effort` if any is missing from their invocation. One
-   consolidated question per `model-and-effort.md`. Wait for
-   answer before writing the doc.
+2. If the invocation is for the interactive lane, ask the user for
+   `critic_runtime`, `critic_model`, `critic_effort` if any is
+   missing. One consolidated question per `model-and-effort.md`. Wait
+   for the answer before writing the doc. If the user explicitly asked
+   for automatic end-to-end execution, defer execution choices to the
+   role-table gate in `auto-run`; write the interactive critic tuple as
+   pending/null.
 3. Write the epic doc: frontmatter (with hashes), TL;DR in plain
    English, draft Decomposition per `decomposition-principles.md`
    (3–7 sub-plans typically, one sentence each, ordering by
@@ -162,6 +165,79 @@ full turn to arm and disarm cleanly.
   the arch-step audit's reported blockers; let the user decide.
 - Critic verdict is `incomplete` (check 4 failed). Halt, surface
   the arch-step audit block contents.
+
+## Mode: `auto-run`
+
+### Trigger
+- Epic doc has `sub_plans_approved: true`.
+- User explicitly asks to automatically implement/run the epic end to
+  end, or an existing epic doc has `auto_execution` and active auto-run
+  artifacts.
+
+### Inputs
+- Epic doc.
+- Approved Decomposition.
+- Role execution table from the user, or existing `auto_execution`.
+- Automatic run directory state.
+- All sub-plan DOC_PATHs and worklogs as they exist on disk.
+
+### Outputs
+- Resolved `auto_execution` policy if not already present.
+- Automatic run directory under
+  `.arch_skill/arch-epic/auto/<epic-slug>/run-<ts>/`.
+- One worker or critic harness action, one repair action, or one
+  explicit 60-second wait while a child run is still active.
+- Compact Orchestration Log and Decision Log entries.
+
+### Actions
+1. If `auto_execution` is absent, present the role table:
+   `epic_planner`, `implementation_worker`, `repair_worker`, and
+   `critic`. Resolve shorthand via `skills/_shared/model_resolution.py`.
+   Ask once if any role is missing, ambiguous, or cannot resolve to a
+   runnable exact-version model.
+2. Initialize the auto run directory with
+   `scripts/run_arch_epic.py auto-init`.
+3. Select the first sub-plan whose Status is not `complete`.
+4. Drive that sub-plan depth-first:
+   - planner harness creates or repairs the sub-plan DOC_PATH and Epic
+     Requirement Coverage.
+   - critic harness runs the North Star / coverage gate.
+   - implementation worker executes the approved sub-plan and updates
+     worklog evidence.
+   - critic harness runs plan-readiness and completion/scope gates.
+   - repair worker fixes critic failures that stay inside approved scope.
+5. Mark the sub-plan complete only after the critic has no blocking
+   findings. Then move to the next sub-plan.
+6. If all sub-plans are complete, set epic `status: complete`, write
+   `report.md`, and render the final summary.
+
+### Where judgment lives
+- The orchestrator decides which gate is next, whether a critic finding
+  is in-scope repair versus material scope change, and when to halt for
+  the user.
+- Worker and critic prompts teach the child roles why the approved epic
+  goal, decomposition, and coverage map matter. Children are not treated
+  as prompt runners.
+
+### Where determinism lives
+- Role-policy normalization and hashing.
+- Child invocation command rendering.
+- Run-directory artifact layout.
+- 60-second default child wait cadence.
+- Worker session-id capture.
+- Structured critic verdict parsing.
+
+### Failure modes
+- Missing/ambiguous role execution policy: ask once before running.
+- Exact model cannot be resolved from shorthand: ask for runnable ID.
+- Child run still active: wait using `poll_seconds`, default 60.
+- Child exits without inspectable artifacts: halt with run directory.
+- Critic finds missing epic requirement coverage: repair through the
+  planner or repair worker until repair budget is exhausted.
+- Critic finds material product-intent change or two valid scope paths:
+  halt and ask the user.
+- Repair budget exhausted: halt with the latest critic verdict and
+  diagnostic record.
 
 ## Mode: `resume-scope-change`
 

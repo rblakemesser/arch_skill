@@ -1,22 +1,45 @@
-# Critic contract: EpicVerdict schema and the four scope-drift checks
+# Critic contract: EpicVerdict schema and scope-drift checks
 
-The epic critic runs once per sub-plan, after `$arch-step
-implement-loop` finishes and the audit block reports
+In interactive mode, the epic critic runs once per sub-plan after
+`$arch-step implement-loop` finishes and the audit block reports
 `Verdict (code): COMPLETE`. Its job is narrow: detect scope drift
-between what the user approved and what shipped. It does NOT
-re-audit code completeness — arch-step already did that and the
-epic critic trusts the verdict.
+between what the user approved and what shipped.
+
+In automatic mode, the same critic role also runs earlier gates:
+North Star / Epic Requirement Coverage, plan readiness, and
+completion/scope. Automatic mode uses spawned critics instead of
+per-sub-plan user approval, so those critics must check that the raw
+epic goal and approved decomposition are still represented.
 
 The critic is a fresh subprocess (Claude or Codex, per the epic
 doc's `critic_runtime`). It has no memory of the orchestrator's
 prose. It reads the sub-plan's DOC_PATH, worklog, and the arch-step
 audit block directly, returns one JSON document, and exits.
 
-## The four checks
+## The checks
 
-Each check runs on every critic invocation. There are no
-strictness profiles at the epic level; scope drift is always
-important.
+Completion critics run all checks. Earlier automatic-mode gates run the
+checks that apply to that gate and mark completion-only checks
+`inapplicable`.
+
+### 0. `epic_requirement_coverage`
+
+Automatic-mode sub-plan docs must include an Epic Requirement Coverage
+section. Verify that every meaningful raw-goal/decomposition requirement
+is classified as:
+
+- owned by this sub-plan
+- satisfied by a prior sub-plan
+- deferred to a named later sub-plan
+- out of scope with a recorded reason
+
+Fail if the worker only restates the one-sentence decomposition and
+loses a raw-goal obligation, if a future sub-plan depends on an unstated
+handoff from the current sub-plan, or if a requirement is deferred
+without a named later owner.
+
+Evidence source: epic doc raw goal and Decomposition, current sub-plan
+Section 0 / coverage map, prior sub-plan verdicts when relevant.
 
 ### 1. `north_star_preserved`
 
@@ -94,8 +117,8 @@ in the DOC_PATH.
 The critic computes each check's status (`pass` / `fail` /
 `inapplicable`), then picks the overall verdict:
 
-- `pass`: all four checks passed.
-- `scope_change_detected`: at least one of checks 1–3 failed, OR
+- `pass`: all applicable checks passed.
+- `scope_change_detected`: at least one of checks 0–3 failed, OR
   the critic found at least one `discovered_items[]` entry that
   needs a user decision.
 - `incomplete`: check 4 (`audit_clean`) failed. This should never
@@ -128,6 +151,7 @@ object level.
         "properties": {
           "name": {
             "enum": [
+              "epic_requirement_coverage",
               "north_star_preserved",
               "scope_not_cut",
               "no_orphaned_discoveries",
@@ -177,6 +201,10 @@ object level.
 - `summary`: 1–3 sentences the orchestrator prints to the user at
   the halt or pass boundary. Plain English.
 
+Existing schema consumers may see older verdicts without
+`epic_requirement_coverage`; those historical verdicts stand. New
+automatic-mode critics must include it.
+
 ## Critic posture
 
 The critic reads. It does not write files. It does not run arch-step
@@ -200,7 +228,7 @@ make the epic proceed smoothly.
 - Not a re-audit of arch-step's implementation. That is
   `$arch-step audit-implementation`'s job.
 - Not a gate on the next sub-plan's North Star (that is the user's
-  job at the next `$arch-step new` invocation).
+  job at the next `$arch-step new` invocation in interactive mode).
 - Not a general quality checker for the epic. The epic doc
   maintains quality by being approved up-front; the critic watches
   for drift from that approval.

@@ -17,6 +17,7 @@ The current skill suite is:
 - `north-star-investigation`
 - `arch-flow`
 - `arch-skills-guide`
+- `arch-epic`
 
 Use `miniarch-step` for full-arch work when you want the trimmed command surface. Use `arch-step` when you need the broader or helper-heavy full-arch surface.
 
@@ -29,11 +30,13 @@ Other shipped skills:
 - `agents-md-authoring`
 - `prompt-authoring`
 - `skill-authoring`
+- `pr-authoring`
 - `skill-flow`
 - `amir-publish`
 - `codex-review-yolo`
 - `fresh-consult`
 - `code-review`
+- `stepwise`
 
 Examples in this guide use Codex `$skill` notation. In Claude Code, invoke the same skill as `/skill`.
 
@@ -77,11 +80,14 @@ Default local path:
 - `~/.agents/skills/agents-md-authoring/`
 - `~/.agents/skills/prompt-authoring/`
 - `~/.agents/skills/skill-authoring/`
+- `~/.agents/skills/pr-authoring/`
 - `~/.agents/skills/skill-flow/`
 - `~/.agents/skills/amir-publish/`
 - `~/.agents/skills/codex-review-yolo/`
 - `~/.agents/skills/fresh-consult/`
 - `~/.agents/skills/code-review/`
+- `~/.agents/skills/stepwise/`
+- `~/.agents/skills/arch-epic/`
 
 Codex reads the same installed skills from `~/.agents/skills/`. `make install` also writes one arch_skill-managed Codex `Stop` hook through `~/.codex/hooks.json` pointing at `~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py --runtime codex`, writes one arch_skill-managed Claude Code `Stop` hook plus one `SessionStart` hook through `~/.claude/settings.json` pointing at the same installed runner with `--runtime claude`, and removes older `~/.codex/skills/<skill>` mirrors from previous installs. Every loop-skill arm also reruns `arch_controller_stop_hook.py --ensure-installed --runtime <codex|claude>` so the canonical hook entries cannot drift between runs; drift is fail-loud at dispatch with the exact repair command.
 
@@ -108,11 +114,14 @@ Installed skills:
   - `agents-md-authoring`
   - `prompt-authoring`
   - `skill-authoring`
+  - `pr-authoring`
   - `skill-flow`
   - `amir-publish`
   - `codex-review-yolo`
   - `fresh-consult`
   - `code-review`
+  - `stepwise`
+  - `arch-epic`
 - Claude Code:
   - `arch-step`
   - `miniarch-step`
@@ -134,11 +143,14 @@ Installed skills:
   - `agents-md-authoring`
   - `prompt-authoring`
   - `skill-authoring`
+  - `pr-authoring`
   - `skill-flow`
   - `amir-publish`
   - `codex-review-yolo`
   - `fresh-consult`
   - `code-review`
+  - `stepwise`
+  - `arch-epic`
 - Gemini:
   - `arch-step`
   - `miniarch-step`
@@ -157,10 +169,13 @@ Installed skills:
   - `agents-md-authoring`
   - `prompt-authoring`
   - `skill-authoring`
+  - `pr-authoring`
   - `skill-flow`
   - `amir-publish`
   - `codex-review-yolo`
   - `fresh-consult`
+  - `stepwise`
+  - `arch-epic`
 
 Install removes stale pre-skill command surfaces, removed skill packages, and older Codex skill mirrors. It installs one repo-managed Codex `Stop` hook in `~/.codex/hooks.json` pointing at `~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py --runtime codex` and one repo-managed Claude Code `Stop` hook plus one `SessionStart` hook in `~/.claude/settings.json` pointing at the same installed runner with `--runtime claude`. Every loop-skill arm also reruns `arch_controller_stop_hook.py --ensure-installed --runtime <codex|claude>` so the canonical hook entries cannot drift between runs. Those entries back `arch-step` automatic controllers, `arch-docs auto`, `audit-loop auto`, `comment-loop auto`, `audit-loop-sim auto`, `arch-loop`, and `delay-poll`.
 
@@ -278,6 +293,25 @@ Practical rule:
 - After a clean code audit, `miniarch-step` hands off to `arch-docs` for docs cleanup using the finished artifact as context.
 - Every arm runs `arch_controller_stop_hook.py --ensure-installed --runtime <codex|claude>` first; the installer is idempotent and flock-guarded and writes the canonical `Stop` entry (and the `SessionStart` entry on Claude). If `--ensure-installed` fails loud, repair the named prerequisite and rerun.
 - Do not run the Stop hook yourself for any of those controllers. After the controller is armed, just end the turn and let the installed Stop hook run.
+
+### `arch-epic`
+
+Use when one execution goal is too large for a single `arch-step` plan and should be decomposed into approved, ordered sub-plans with inter-plan gates. The epic doc owns the raw goal, decomposition, sub-plan DOC_PATHs, orchestration log, decision log, and critic verdict pointers. Each sub-plan remains a real arch-step-style plan; the epic doc is not a replacement for the sub-plan plan docs.
+
+Examples:
+
+- `Use $arch-epic to break this migration into sub-plans and run them in order`
+- `Use $arch-epic docs/EPIC_AUTH_MIGRATION_2026-04-26.md`
+- `Use $arch-epic to automatically implement this approved epic end to end`
+
+Practical rule:
+
+- Interactive mode runs one visible transition at a time: draft decomposition, get approval, invoke or observe the next arch-step step, then run a fresh Claude/Codex critic after each completed sub-plan.
+- Automatic mode is explicit and opt-in after decomposition approval. It asks once for a role execution table: `epic_planner`, `implementation_worker`, `repair_worker`, and `critic`.
+- Role choices are resolved with the shared exact-version model resolver. Shorthand such as `opus 4.7 xhigh` becomes `claude-opus-4-7`; `gpt 5.4 mini high` becomes `gpt-5.4-mini`. There is no silent downgrade, provider switch, or effort substitution.
+- Automatic mode drives sub-plans depth-first. It does not plan or implement sub-plan N+1 until sub-plan N has passed the relevant critic gates.
+- Spawned automatic workers apply arch-step doctrine directly from disk and do not arm nested `auto-plan`, `implement-loop`, `arch-loop`, `delay-poll`, or `wait` controllers.
+- The default child wait cadence is 60 seconds while waiting for spawned harnesses; avoid tight two-second polling loops.
 
 ### `arch-docs`
 

@@ -62,6 +62,12 @@ Always announce the raw-to-resolved mapping before execution:
 Claude Opus 4.7 xhigh -> runtime=claude, model=claude-opus-4-7, effort=xhigh
 ```
 
+For deterministic script plumbing that needs the same rules, use
+`skills/_shared/model_resolution.py` instead of creating a local model alias
+table. The helper exists to keep fresh-consult, Stepwise-style orchestrators,
+and arch-epic automatic harnesses aligned on exact-version preservation and
+fail-loud behavior.
+
 ## Effort Resolution
 
 - Claude accepts `low`, `medium`, `high`, `xhigh`, and `max` via `--effort`.

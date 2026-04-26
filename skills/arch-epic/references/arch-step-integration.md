@@ -6,6 +6,14 @@ orchestrator's own session. It does NOT shell out to `claude -p` or
 controllers and collide with the session-scoped state arch-step
 relies on. arch-step runs in the same session as `arch-epic`.
 
+That rule applies to interactive mode. Automatic mode is a separate
+explicit lane: spawned workers do not invoke `$arch-step auto-plan`,
+`implement-loop`, or any hook-backed controller. Instead, the worker
+prompt points at arch-step's reference files and tells the child to apply
+the doctrine directly against the sub-plan DOC_PATH. This avoids nested
+controller state collisions while still preserving arch-step's artifact
+and quality contract.
+
 This reference maps sub-plan Status to the exact arch-step command
 the skill issues next. It is the operational cheat sheet the
 orchestrator prose leans on.
@@ -151,6 +159,27 @@ user whether to re-arm implement-loop or investigate manually.
 - `$arch-step status` as part of the loop — only if the user
   explicitly asks "what does arch-step think of sub-plan N?", in
   which case the skill relays the answer without acting on it.
+
+## Automatic harness integration
+
+Automatic mode uses the same sub-plan Status vocabulary, but the
+transition owner changes:
+
+- `pending`: planner harness creates or repairs the DOC_PATH and Epic
+  Requirement Coverage, then a critic checks the North Star gate.
+- `north-star-approved`: planner/implementation harness performs the
+  planning stages from arch-step doctrine directly. It does not arm
+  `auto-plan`.
+- `planning`: critic checks plan readiness and decision completeness.
+- `implementing`: implementation worker executes Section 7, updates the
+  worklog, and leaves verification evidence. It does not arm
+  `implement-loop`.
+- completion: critic checks implementation audit, scope drift, and epic
+  requirement coverage.
+
+Automatic mode still treats the sub-plan DOC_PATH and worklog as the
+truth. Child transcripts are evidence, not a second plan. The top-level
+orchestrator records only compact artifact pointers in the epic doc.
 
 ## Cross-runtime parity
 

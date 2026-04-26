@@ -1,6 +1,6 @@
 # Worked examples
 
-Three scenarios. Each walks through the user's interaction and the
+Four scenarios. Each walks through the user's interaction and the
 skill's state transitions at key moments. These are teaching examples,
 not a script to copy.
 
@@ -114,6 +114,8 @@ The worklog contains this entry:
   "sub_plan_name": "Ship SSO in the auth service",
   "verdict": "scope_change_detected",
   "checks": [
+    {"name": "epic_requirement_coverage", "status": "pass",
+     "evidence": "sub-plan coverage owns SSO auth service requirements and defers dashboard/migration requirements to named later sub-plans"},
     {"name": "north_star_preserved", "status": "pass",
      "evidence": "SSO login endpoint is live; session tokens issued"},
     {"name": "scope_not_cut", "status": "pass",
@@ -199,6 +201,8 @@ arch-step audit passes. Skill runs critic.
   "sub_plan_name": "Build admin dashboard backed by SSO",
   "verdict": "scope_change_detected",
   "checks": [
+    {"name": "epic_requirement_coverage", "status": "pass",
+     "evidence": "dashboard requirements are owned here; auth service SSO is satisfied by sub-plan 1; migration remains deferred to sub-plan 3"},
     {"name": "north_star_preserved", "status": "pass", "evidence": "..."},
     {"name": "scope_not_cut", "status": "pass", "evidence": "..."},
     {"name": "no_orphaned_discoveries", "status": "fail",
@@ -235,10 +239,72 @@ Skill:
 User sees the auto-deferral in the Decision Log and the brief
 console notice but is not blocked.
 
+## Example 4 — Automatic mode with role-based spawned harnesses
+
+### User invokes
+
+> "Use `$arch-epic` to implement this approved payments migration
+> epic automatically. Ask me which agents to use."
+
+### Role-table gate
+
+The epic doc already has `sub_plans_approved: true` and no
+`auto_execution` block. The skill asks one consolidated question for
+the automatic role table:
+
+```text
+Before I run the epic automatically, I need the role execution table.
+
+- epic_planner: drafts/repairs sub-plan North Stars and requirement coverage
+- implementation_worker: edits code/docs and runs verification
+- repair_worker: fixes critic findings
+- critic: checks North Star, plan readiness, completion, and scope drift
+```
+
+### User replies
+
+> "Planner Claude Opus 4.7 xhigh, implementation Codex gpt 5.4
+> xhigh, repair same as implementation, critic Codex gpt 5.4 mini
+> xhigh."
+
+### `auto-run` mode
+
+The skill resolves and announces:
+
+```text
+epic_planner -> runtime=claude, model=claude-opus-4-7, effort=xhigh
+implementation_worker -> runtime=codex, model=gpt-5.4, effort=xhigh
+repair_worker -> same_as:implementation_worker
+critic -> runtime=codex, model=gpt-5.4-mini, effort=xhigh
+poll_seconds -> 60
+```
+
+It writes `auto_execution` to the epic doc and initializes:
+
+```text
+.arch_skill/arch-epic/auto/payments-migration/run-<ts>/
+```
+
+For sub-plan 1, the parent orchestrator stays compact and launches
+one child at a time:
+
+1. Planner harness creates the sub-plan DOC_PATH and Epic Requirement
+   Coverage.
+2. Critic harness checks the North Star / coverage gate.
+3. Implementation worker edits the repo and updates the worklog.
+4. Critic harness checks completion and scope drift.
+5. Repair worker runs only if critic findings are inside approved
+   scope.
+
+The skill waits with the pinned `poll_seconds` cadence while children
+run. It does not poll every few seconds, and it does not plan sub-plan
+2 until sub-plan 1 passes its critic gates.
+
 ## Takeaways
 
-- The user makes three kinds of decisions: goal, decomposition,
-  scope changes. Everything else runs without their attention.
+- The user makes a bounded set of decisions: goal, decomposition,
+  role execution policy, and scope changes. Everything else runs
+  without their attention in automatic mode.
 - `pass-after-retry` in stepwise has no analogue here — sub-plans
   don't retry at the epic level. arch-step's implement-loop
   retries internally until audit passes or blocks.

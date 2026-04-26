@@ -25,6 +25,7 @@ The live arch suite is:
 - `north-star-investigation` — math-first investigation loop
 - `arch-flow` — read-only "what's next?" router for arch docs
 - `arch-skills-guide` — explains the suite and recommends the right live subskill
+- `arch-epic` — multi-plan orchestrator that wraps `arch-step` for goals too big for a single canonical plan. Captures the goal, drafts a plain-English one-sentence-per-sub-plan decomposition with inter-plan gates, gets user approval, then runs sub-plans depth-first. Interactive mode drives each sub-plan through arch-step's `new` → `auto-plan` → `implement-loop` → `audit-implementation` arc and uses a fresh Claude/Codex critic after completion. Automatic mode asks for role-based execution choices for planner, implementation worker, repair worker, and critic, resolves shorthand to exact runnable model IDs, pins the policy, then uses hook-suppressed spawned harnesses with a 60s default child-wait cadence to plan, implement, audit, repair, and advance until the epic completes or a material scope decision needs the user.
 
 Use `miniarch-step` when the work still needs a real full-arch artifact and auto continuation, but you want the trimmed command surface instead of the broader `arch-step` helper surface. Use `arch-step` when the work is broader, more ambiguous, or needs the full helper surface.
 
@@ -44,7 +45,6 @@ Other shipped skills are:
 - `fresh-consult` — prompt-only fresh Claude/Codex second opinion for cold reads, flow consistency audits, completion-claim checks, and readability/confusion checks; asks once for runtime/model/effort when missing and reports the child result back to the parent skill
 - `code-review` — deterministic general code-review skill that always shells out to fresh unsandboxed Codex `gpt-5.4` `xhigh` (with parallel `gpt-5.4-mini` `xhigh` review lenses) for diffs, branches, paths, or completion-claim audits; supports direct and hook-backed invocation, and keeps Codex as the reviewer even when Claude hosts the Stop hook
 - `stepwise` — diagnostic orchestrator for ordered multi-step processes defined in another repo's doctrine; spawns a fresh Claude or Codex worker session per step, runs an independent observational critic, and on failure diagnoses with the involved sessions before authoring a source-grounded repair at root cause. Model and effort for worker and critic are supplied by the user at invocation; both runtimes run dangerous / skip-permissions / no-sandbox. Distinct from `arch-loop` (requirement-satisfaction, not ordered steps), `arch-step` (plan-doc-backed full-arch), and `code-review` (one-shot review).
-- `arch-epic` — multi-plan orchestrator that wraps `arch-step` for goals too big for a single canonical plan. Captures the goal, drafts a plain-English one-sentence-per-sub-plan decomposition with inter-plan gates, gets user approval, then drives each sub-plan through arch-step's `new` → `auto-plan` → `implement-loop` → `audit-implementation` arc. After each sub-plan completes a fresh Claude or Codex critic subprocess inspects the shipped work for scope drift against the approved North Star and flags must-have discoveries or silent scope changes. Progressive lazy planning: sub-plan N+1 is not planned until sub-plan N is complete and passes the critic. Resume is the only mode — any invocation re-reads the epic doc and arch-step state from disk and continues. User involvement is bounded to the goal, decomposition approval, per-sub-plan North Star (arch-step's existing gate), and scope-change decisions.
 
 Examples in this repo use Codex `$skill` notation. In Claude Code, invoke the same skill as `/skill`.
 
@@ -261,6 +261,14 @@ It keeps the same full-arch artifact shape and the same clean-audit handoff to `
 
 Use `miniarch-step` when the work needs full-arch execution but does not need `arch-step`'s broader helper surface.
 
+### `arch-epic`
+
+Use when one goal is too large for a single `arch-step` plan and should be decomposed into approved, ordered sub-plans. The epic doc owns the raw goal, decomposition, inter-plan gates, sub-plan DOC_PATHs, and append-only orchestration history; each sub-plan remains a real arch-step plan.
+
+Interactive mode is re-entrant: `arch-epic` invokes or observes one arch-step transition at a time, runs a fresh Claude or Codex scope-drift critic after each completed sub-plan, and advances only after the critic passes. Automatic mode is explicit and opt-in after decomposition approval. It asks once for a role table (`epic_planner`, `implementation_worker`, `repair_worker`, `critic`), resolves shorthand such as `opus 4.7 xhigh` or `gpt 5.4 mini high` to runnable model IDs, writes a pinned policy, then drives one sub-plan at a time through spawned hook-suppressed harnesses. The default child wait cadence is 60 seconds, not aggressive polling.
+
+Use `arch-epic` instead of `stepwise` when the subprocesses are implementing one epic through arch-step-style sub-plans. Use `stepwise` when a foreign repo's doctrine already defines an ordered process to execute.
+
 ### `arch-docs`
 
 Use when the job is leaving repo docs healthier: cleaning up stale, overlapping, misleading, or obviously dated docs, updating stale survivors, clarifying confusing docs, and promoting grounded missing truth into evergreen docs. It works in any repo and, after full-arch work, uses the plan/worklog as narrowing context instead of as the whole scope.
@@ -369,7 +377,7 @@ Use `code-review` when the user wants an automated finding-set with explicit cov
 
 ## Usage
 
-- Primary surface: ask the agent to use `arch-step`, `arch-docs`, `arch-mini-plan`, `lilarch`, `bugs-flow`, `audit-loop`, `comment-loop`, `audit-loop-sim`, `arch-loop`, `delay-poll`, `wait`, `goal-loop`, `north-star-investigation`, `arch-flow`, `arch-skills-guide`, `agent-definition-auditor`, `agents-md-authoring`, `prompt-authoring`, `skill-authoring`, `pr-authoring`, `skill-flow`, `amir-publish`, `fresh-consult`, `code-review`, or `codex-review-yolo`.
+- Primary surface: ask the agent to use `arch-step`, `miniarch-step`, `arch-epic`, `arch-docs`, `arch-mini-plan`, `lilarch`, `bugs-flow`, `audit-loop`, `comment-loop`, `audit-loop-sim`, `arch-loop`, `delay-poll`, `wait`, `goal-loop`, `north-star-investigation`, `arch-flow`, `arch-skills-guide`, `agent-definition-auditor`, `agents-md-authoring`, `prompt-authoring`, `skill-authoring`, `pr-authoring`, `skill-flow`, `amir-publish`, `fresh-consult`, `code-review`, `stepwise`, or `codex-review-yolo`.
 - Full-arch execution defaults to `miniarch-step` when the trimmed command surface is enough and `arch-step` when the broader or helper-heavy surface is needed.
 - Docs cleanup loops default to `arch-docs`.
 - Read-only checklist and next-step inspection uses `arch-flow`.
@@ -388,6 +396,8 @@ Examples:
 - `Use $miniarch-step auto-plan`
 - `Use $miniarch-step implement-loop docs/MY_PLAN.md`
 - `Use $miniarch-step auto-implement docs/MY_PLAN.md`
+- `Use $arch-epic to break this migration into sub-plans and run them in order`
+- `Use $arch-epic to automatically implement this approved epic end to end`
 - `Use $arch-docs`
 - `Use $arch-docs auto`
 - `Use $arch-mini-plan docs/MY_PLAN.md`

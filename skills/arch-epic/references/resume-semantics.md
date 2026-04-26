@@ -2,9 +2,9 @@
 
 The skill does not have a dedicated `resume` command. Every
 invocation of `$arch-epic` is the same thing: read the epic doc,
-read the arch-step state for each sub-plan, figure out where we
-are, do the next action, end the turn. "Pick up where we left off"
-is the only mode of operation, because there is no other mode.
+read the relevant sub-plan / run state, figure out where we are, do
+the next action, end the turn. "Pick up where we left off" is the
+only mode of operation, because there is no other mode.
 
 That is why the user can type whatever they naturally type
 ("continue", "resume the epic", "keep going", "pick up on
@@ -40,6 +40,9 @@ Every turn the skill runs this sequence:
    - The arch-step controller state files for auto-plan and
      implement-loop at both `.codex/` and `.claude/arch_skill/`
      paths.
+   - Automatic-mode run state and child artifacts under
+     `.arch_skill/arch-epic/auto/<epic-slug>/run-<ts>/` when
+     `auto_execution` is present.
    - The `arch_skill:block:implementation_audit` block in the
      DOC_PATH if present.
    If the stored Status disagrees with the observed reality
@@ -63,17 +66,27 @@ Every turn the skill runs this sequence:
    - Critic verdict drives the next transition per
      `scope-change-discipline.md`.
 
-5. End the turn. The next turn re-runs the same routine. Nothing
-   is stored outside the epic doc and arch-step's own state files.
+5. End the turn. The next turn re-runs the same routine. In
+   interactive mode, nothing is stored outside the epic doc and
+   arch-step's own state files. In automatic mode, child-run artifacts
+   live in the ignored arch-epic run directory and the epic doc points
+   at the active run through `auto_execution.auto_run_dir`.
 
-## Why no separate state file for arch-epic
+## State authority
 
-Adding an `arch-epic`-owned state file would introduce a third
-source of truth (after the epic doc and arch-step's controller
-state). Three sources disagree eventually. Two sources are already
-manageable: the epic doc is for orchestration decisions; arch-step's
-state files are for live controllers. The skill's job is to read
-both every turn.
+Interactive mode does not add an `arch-epic`-owned state file. That
+would introduce a third source of truth after the epic doc and
+arch-step's controller state. Two sources are already manageable: the
+epic doc is for orchestration decisions; arch-step's state files are
+for live controllers. The skill's job is to read both every turn.
+
+Automatic mode is different because it intentionally owns spawned
+harnesses outside arch-step's Stop-hook controller. It writes a compact
+`state.json` plus child artifacts under
+`.arch_skill/arch-epic/auto/<epic-slug>/run-<ts>/`. That run state is
+operational evidence, not a competing source of product truth: the epic
+doc remains the approved goal/decomposition/decision surface, and
+sub-plan DOC_PATHs remain the implementation contract.
 
 This also means resuming works across Claude CLI restarts. There
 is no volatile cache in RAM that disappears between sessions; the
