@@ -27,8 +27,8 @@ Claude Code, and Gemini.
 
 ## Red Lines
 
-- Do not use external multi-model consultation workflows unless the user
-  explicitly asks for a code review.
+- Do not use external model consultation workflows unless the user explicitly
+  asks for code review, fresh consult, second opinion, or completion audit.
 - Do not delete user work, untracked files, or repo changes unless the user
   explicitly asks for that exact cleanup. If you are not sure whether a file
   came from your own run, leave it alone and ask.
@@ -73,6 +73,9 @@ Claude Code, and Gemini.
   `<doc-dir>/<doc-slug>_DAG.md`, and surfaces wasted-energy patterns
   (over-promotion, redundancy, dead skills, broken refs) with `path:line`
   evidence.
+- Use `$fresh-consult` when the user or another skill wants a clean-context
+  Claude or Codex second opinion on a concrete artifact, completion claim,
+  flow consistency question, or readability/confusion check.
 
 ## Writing And Replies
 

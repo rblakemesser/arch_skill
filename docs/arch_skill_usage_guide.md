@@ -32,6 +32,7 @@ Other shipped skills:
 - `skill-flow`
 - `amir-publish`
 - `codex-review-yolo`
+- `fresh-consult`
 - `code-review`
 
 Examples in this guide use Codex `$skill` notation. In Claude Code, invoke the same skill as `/skill`.
@@ -79,6 +80,7 @@ Default local path:
 - `~/.agents/skills/skill-flow/`
 - `~/.agents/skills/amir-publish/`
 - `~/.agents/skills/codex-review-yolo/`
+- `~/.agents/skills/fresh-consult/`
 - `~/.agents/skills/code-review/`
 
 Codex reads the same installed skills from `~/.agents/skills/`. `make install` also writes one arch_skill-managed Codex `Stop` hook through `~/.codex/hooks.json` pointing at `~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py --runtime codex`, writes one arch_skill-managed Claude Code `Stop` hook plus one `SessionStart` hook through `~/.claude/settings.json` pointing at the same installed runner with `--runtime claude`, and removes older `~/.codex/skills/<skill>` mirrors from previous installs. Every loop-skill arm also reruns `arch_controller_stop_hook.py --ensure-installed --runtime <codex|claude>` so the canonical hook entries cannot drift between runs; drift is fail-loud at dispatch with the exact repair command.
@@ -109,6 +111,7 @@ Installed skills:
   - `skill-flow`
   - `amir-publish`
   - `codex-review-yolo`
+  - `fresh-consult`
   - `code-review`
 - Claude Code:
   - `arch-step`
@@ -134,6 +137,7 @@ Installed skills:
   - `skill-flow`
   - `amir-publish`
   - `codex-review-yolo`
+  - `fresh-consult`
   - `code-review`
 - Gemini:
   - `arch-step`
@@ -156,10 +160,11 @@ Installed skills:
   - `skill-flow`
   - `amir-publish`
   - `codex-review-yolo`
+  - `fresh-consult`
 
 Install removes stale pre-skill command surfaces, removed skill packages, and older Codex skill mirrors. It installs one repo-managed Codex `Stop` hook in `~/.codex/hooks.json` pointing at `~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py --runtime codex` and one repo-managed Claude Code `Stop` hook plus one `SessionStart` hook in `~/.claude/settings.json` pointing at the same installed runner with `--runtime claude`. Every loop-skill arm also reruns `arch_controller_stop_hook.py --ensure-installed --runtime <codex|claude>` so the canonical hook entries cannot drift between runs. Those entries back `arch-step` automatic controllers, `arch-docs auto`, `audit-loop auto`, `comment-loop auto`, `audit-loop-sim auto`, `arch-loop`, and `delay-poll`.
 
-`arch-loop`, `delay-poll`, and `wait` are installed on Codex and Claude Code because both runtimes have a native `Stop` hook surface. Gemini still has no hook-backed auto-controller surface, so none of those three are installed there. `arch-loop` evaluator turns additionally always shell out to fresh unsandboxed Codex `gpt-5.4` `xhigh` for the external verdict, mirroring the `code-review` exception: the Claude host can arm and drive the loop, but the evaluator subprocess itself must always be Codex. `code-review` is installed on the agents/Codex and Claude Code surfaces only; Claude may host the Stop hook, but the review subprocess itself always shells out to fresh Codex.
+`arch-loop`, `delay-poll`, and `wait` are installed on Codex and Claude Code because both runtimes have a native `Stop` hook surface. Gemini still has no hook-backed auto-controller surface, so none of those three are installed there. `arch-loop` evaluator turns additionally always shell out to fresh unsandboxed Codex `gpt-5.4` `xhigh` for the external verdict, mirroring the `code-review` exception: the Claude host can arm and drive the loop, but the evaluator subprocess itself must always be Codex. `fresh-consult` is prompt-only and installed on all three skill surfaces, but the selected local `claude` or `codex` CLI must exist on the host at invocation time. `code-review` is installed on the agents/Codex and Claude Code surfaces only; Claude may host the Stop hook, but the review subprocess itself always shells out to fresh Codex.
 
 ## Shared conventions
 
@@ -452,6 +457,24 @@ Examples:
 
 - `Use $amir-publish`
 
+### `fresh-consult`
+
+Use when the user or another skill wants a clean-context second opinion from a fresh Claude or Codex subprocess on a concrete artifact, completion claim, flow consistency question, or readability/confusion check. It is prompt-only: it writes a consult prompt, runs the selected local CLI hook-suppressed and unsandboxed, captures `prompt.md`, `final.txt`, and `stream.log` under `/tmp/fresh-consult/...`, and reports the child verdict back to the parent.
+
+The user supplies runtime, model, and effort, or the skill asks once before invoking. Runtime can be inferred only from unambiguous model families such as `gpt-5.5` for Codex or `Claude Opus 4.7` for Claude. Exact model versions are preserved; there is no silent downgrade, provider switch, or effort substitution.
+
+Examples:
+
+- `Use $fresh-consult with Codex gpt-5.5 xhigh to audit whether this plan is complete`
+- `Use $fresh-consult with Claude Opus 4.7 high for a cold read of this skill flow`
+- `Use $fresh-consult to tell me whether this doc is linear and not confusing`
+
+Practical rule:
+
+- Use `fresh-consult` for general Claude/Codex second opinions, cold reads, consistency audits, and completion checks.
+- Use `code-review` for the deterministic full code-review product with Codex lens fan-out and coverage guarantees.
+- Use `codex-review-yolo` when the user specifically asks for the existing Codex `-p yolo` pattern.
+
 ### `code-review`
 
 Use when the user wants a real, deterministic code review — on an uncommitted diff, a branch comparison, a commit range, an explicit path set, or a "is this approved plan phase actually complete?" completion-claim. `code-review` never makes the caller model the reviewer. It always shells out to a fresh unsandboxed Codex `gpt-5.4` `xhigh` synthesis subprocess, with parallel fresh Codex `gpt-5.4-mini` `xhigh` subprocesses for the required per-lens review coverage (`correctness`, `architecture`, `proof`, `docs-drift`, `security`, and a conditional `agent-linter` lens when the change touches agent-building or instruction-bearing surfaces).
@@ -468,6 +491,7 @@ Examples:
 Practical rule:
 
 - Use `code-review` when the user wants an automated finding-set with explicit coverage guarantees, including docs-drift and agent-surface checks.
+- Use `fresh-consult` when the user wants a general Claude/Codex second opinion without the code-review runner.
 - Use `codex-review-yolo` when the user wants a narrower, more interactive `-p yolo` fresh-eyes consult on a specific artifact rather than a full lens-by-lens review.
 - Gemini is intentionally not supported; the skill package is never installed on Gemini because the runner always launches fresh Codex subprocesses.
 
