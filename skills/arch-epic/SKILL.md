@@ -13,9 +13,10 @@ The skill takes a prose goal, proposes a plain-English decomposition
 each sub-plan through arch-step's `new` → `auto-plan` → `implement-loop`
 → `audit-implementation` arc. After each sub-plan completes, a fresh
 Claude or Codex critic subprocess inspects the shipped work for scope
-drift against the approved North Star. If the critic finds a must-have
-discovery or a non-trivial scope change, the skill halts and asks the
-user how to resolve it (extend, insert a new sub-plan, defer, or drop).
+drift against the approved North Star. If the critic finds a requirement
+needed to preserve approved scope or a non-trivial scope change, the skill
+halts and asks the user how to preserve the scope by extending the current
+sub-plan or inserting a new sub-plan.
 Otherwise it advances to the next sub-plan.
 
 The normal lane is interactive and re-entrant: arch-epic invokes or observes
@@ -45,7 +46,7 @@ off. "Continue my epic", "pick up where we left off", "keep going on
 The skill is a thoughtful wrapper — its job is to reduce user
 orchestration burden. In interactive mode, user involvement is bounded
 to the goal, decomposition, per-sub-plan North Star, and material
-scope-change decisions. In automatic mode, the user approves the
+scope-preservation decisions. In automatic mode, the user approves the
 decomposition and role table up front; spawned critics replace
 per-sub-plan North-Star pauses unless a material ambiguity or scope
 change requires the user.
@@ -118,13 +119,17 @@ Must never happen:
 - `arch-epic` editing the target repo's code directly. Sub-plans do
   that via arch-step's implement-loop in interactive mode or spawned
   implementation workers in automatic mode.
-- Silent scope changes. If the critic sees a dropped acceptance
-  criterion or a silent addition without a Decision Log entry, the
-  sub-plan fails.
+- Scope reduction. The epic scope is the epic scope. If the critic
+  sees a dropped, narrowed, parked, or moved requirement from the raw
+  goal, approved Decomposition, North Star, Epic Requirement Coverage,
+  Section 7, acceptance criteria, or verification obligations, the
+  sub-plan fails. Agent-written Decision Log entries are evidence, not
+  approval to reduce scope.
 - Auto-acting on materially-different-path detections without user
-  approval when the choice is non-obvious. Only nice-to-have
-  discoveries with `defer` or `drop` recommendations auto-apply;
-  must-have or `extend_current`/`new_sub_plan` always halt.
+  approval. Material scope discoveries always halt and preserve scope
+  through `extend_current` or `new_sub_plan`. There is no automatic
+  defer/drop path and no supported scope-reduction lane inside
+  arch-epic auto mode.
 - Parallel or breadth-first sub-plan planning. Only one sub-plan is
   active at a time, and sub-plan N+1 starts only after sub-plan N is
   complete and has no blocking critic findings.
@@ -180,8 +185,8 @@ Detail per mode lives in `references/workflow-contract.md`.
    command for the first non-complete sub-plan, or waits for a
    hook-backed controller, or runs the critic.
 4. **`resume-scope-change`** — epic is `halted` after a critic
-   flagged a scope change; user has replied with their decision.
-   Apply (extend, insert, defer, drop), log, resume.
+   flagged a scope change; user has replied with their preservation
+   decision. Apply `extend_current` or `new_sub_plan`, log, resume.
 5. **`summary`** — user asked a status question. Render a table of
    sub-plan statuses and the most recent log entries. No state
    changes.
@@ -222,8 +227,9 @@ Detail per mode lives in `references/workflow-contract.md`.
 - `references/arch-step-integration.md` — sub-plan Status →
   arch-step command mapping. What the skill invokes vs. what the
   hook drives vs. what the user does.
-- `references/scope-change-discipline.md` — materially-different
-  path vs noise. Auto-act rule for discovered items.
+- `references/scope-change-discipline.md` — approved scope lock,
+  materially-different path vs noise, and preservation-only scope
+  decisions.
 - `references/critic-contract.md` — EpicVerdict JSON schema and
   scope-drift / requirement-coverage checks.
 - `references/critic-prompt.md` — verbatim critic prompt body with
@@ -239,7 +245,7 @@ Detail per mode lives in `references/workflow-contract.md`.
 - `references/resume-semantics.md` — how the skill re-derives state
   each turn from the epic doc + arch-step controller state files.
 - `references/examples.md` — worked examples: happy path,
-  scope-change insertion, nice-to-have auto-defer.
+  scope-change insertion, harmless observations ignored.
 
 ## The orchestration script
 

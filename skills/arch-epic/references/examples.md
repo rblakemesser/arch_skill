@@ -117,7 +117,7 @@ The worklog contains this entry:
   "verdict": "scope_change_detected",
   "checks": [
     {"name": "epic_requirement_coverage", "status": "pass",
-     "evidence": "sub-plan coverage owns SSO auth service requirements and defers dashboard/migration requirements to named later sub-plans"},
+     "evidence": "sub-plan coverage owns SSO auth service requirements and assigns dashboard/migration requirements to named later sub-plans"},
     {"name": "north_star_preserved", "status": "pass",
      "evidence": "SSO login endpoint is live; session tokens issued"},
     {"name": "scope_not_cut", "status": "pass",
@@ -130,35 +130,32 @@ The worklog contains this entry:
   "discovered_items": [
     {
       "what": "background token rotation job for long-lived sessions; current middleware fails when session idles past refresh window",
-      "must_have_or_nice": "must_have",
+      "scope_relationship": "required_for_approved_scope",
       "recommendation": "new_sub_plan"
     }
   ],
-  "summary": "Sub-plan 1 shipped cleanly for short sessions but worklog names a must-have background rotation job that is not in any sub-plan's scope. Recommending new_sub_plan before sub-plan 2 (dashboard) starts."
+  "summary": "Sub-plan 1 shipped cleanly for short sessions but worklog names a required background rotation job that is not in any sub-plan's scope. Recommending new_sub_plan before sub-plan 2 (dashboard) starts."
 }
 ```
 
-### Skill applies auto-act rule
+### Skill applies scope lock
 
-One `discovered_item`; `must_have_or_nice: must_have`;
-`recommendation: new_sub_plan`. Per `scope-change-discipline.md`,
-must-have items never auto-apply. Skill halts.
+One `discovered_item`; `scope_relationship:
+required_for_approved_scope`; `recommendation: new_sub_plan`. Per
+`scope-change-discipline.md`, material scope items never auto-apply.
+Skill halts.
 
 Sets `status: halted`, sub-plan 1 Status to `scope-changed`.
 Appends critic verdict path. Appends Decision Log entry:
 
 > 2026-04-22 During sub-plan 1 (Ship SSO in the auth service)
 > implementation, worklog surfaced that background token rotation
-> is a must-have for long-lived sessions. Current implementation
+> is required for long-lived sessions. Current implementation
 > is inline middleware and fails when sessions idle past refresh
 > windows. Options:
 >   a. extend_current — roll the rotation job into sub-plan 1's
 >      scope, re-run implement-loop.
 >   b. new_sub_plan — insert a new sub-plan between 1 and 2.
->   c. defer — mark sub-plan 1 complete and park the rotation
->      issue for future.
->   d. drop — decide the rotation job is unneeded (reverse course
->      on the middleware change).
 > What do you want?
 
 Skill ends turn with the question.
@@ -191,7 +188,7 @@ Decision Log, flips `status: active`.
 and invokes `$arch-step new` on that DOC_PATH. Flow continues as in
 Example 1 from that point.
 
-## Example 3 — Scope-change auto-acted on nice-to-have
+## Example 3 — Harmless improvement ignored, no scope action
 
 ### During sub-plan 2 (Build admin dashboard)
 
@@ -205,42 +202,29 @@ arch-step audit passes. Skill runs critic.
   "verdict": "scope_change_detected",
   "checks": [
     {"name": "epic_requirement_coverage", "status": "pass",
-     "evidence": "dashboard requirements are owned here; auth service SSO is satisfied by sub-plan 1; migration remains deferred to sub-plan 3"},
+     "evidence": "dashboard requirements are owned here; auth service SSO is satisfied by sub-plan 1; migration remains assigned to sub-plan 3"},
     {"name": "north_star_preserved", "status": "pass", "evidence": "..."},
     {"name": "scope_not_cut", "status": "pass", "evidence": "..."},
-    {"name": "no_orphaned_discoveries", "status": "fail",
-     "evidence": "worklog notes dashboard polls every 10s for audit events; implementer notes a WebSocket upgrade would be cleaner but is not required for staging"},
+    {"name": "no_orphaned_discoveries", "status": "pass",
+     "evidence": "worklog notes dashboard polls every 10s and mentions WebSockets would be cleaner, but the approved North Star and gate only require timely audit event visibility"},
     {"name": "audit_clean", "status": "pass", "evidence": "..."}
   ],
-  "discovered_items": [
-    {
-      "what": "WebSocket upgrade for audit event streaming instead of 10s polling",
-      "must_have_or_nice": "nice_to_have",
-      "recommendation": "defer"
-    }
-  ],
-  "summary": "Sub-plan 2 shipped cleanly. One nice-to-have deferral identified: WebSocket upgrade for audit event streaming."
+  "discovered_items": [],
+  "summary": "Sub-plan 2 shipped cleanly. The WebSocket note is a harmless implementation observation, not approved scope drift."
 }
 ```
 
-### Skill applies auto-act rule
+### Skill applies scope lock
 
-One `discovered_item`; `must_have_or_nice: nice_to_have`;
-`recommendation: defer`. Per `scope-change-discipline.md`, this
-case auto-applies (all items nice_to_have, all recommendations in
-`{defer, drop}`).
+No `discovered_items` exist. Per `scope-change-discipline.md`, harmless
+improvement ideas are ignored rather than recorded as scope decisions.
 
 Skill:
-- Appends Decision Log entry:
-  > 2026-04-22 Sub-plan 2 completion: auto-deferred nice-to-have
-  > item: WebSocket upgrade for audit event streaming. Current
-  > 10s polling is sufficient for the approved North Star.
 - Marks sub-plan 2 Status `complete` with verdict path.
-- Announces the auto-action to the user (one line).
 - Proceeds to sub-plan 3 on the next turn without stopping.
 
-User sees the auto-deferral in the Decision Log and the brief
-console notice but is not blocked.
+No scope choice was made. The WebSocket observation can become future work
+only if the user asks for it outside the locked epic scope.
 
 ## Example 4 — Automatic mode with role-based spawned harnesses
 
@@ -319,5 +303,5 @@ there is no final artifact after a short window, and it does not plan sub-plan
   retries internally until audit passes or blocks.
 - The epic critic catches cross-plan issues; arch-step catches
   within-plan issues.
-- Halting is normal when the critic flags a must-have. That is
+- Halting is normal when the critic flags approved-scope work. That is
   the skill doing its job, not a failure.

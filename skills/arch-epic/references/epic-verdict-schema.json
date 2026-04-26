@@ -31,12 +31,12 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["what", "must_have_or_nice", "recommendation"],
+        "required": ["what", "scope_relationship", "recommendation"],
         "properties": {
           "what": {"type": "string"},
-          "must_have_or_nice": {"enum": ["must_have", "nice_to_have"]},
+          "scope_relationship": {"enum": ["required_for_approved_scope"]},
           "recommendation": {
-            "enum": ["extend_current", "new_sub_plan", "defer", "drop"]
+            "enum": ["extend_current", "new_sub_plan"]
           }
         }
       }

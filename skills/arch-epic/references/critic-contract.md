@@ -30,13 +30,13 @@ is classified as:
 
 - owned by this sub-plan
 - satisfied by a prior sub-plan
-- deferred to a named later sub-plan
-- out of scope with a recorded reason
+- assigned to a named later sub-plan
 
 Fail if the worker only restates the one-sentence decomposition and
 loses a raw-goal obligation, if a future sub-plan depends on an unstated
-handoff from the current sub-plan, or if a requirement is deferred
-without a named later owner.
+handoff from the current sub-plan, if a requirement is assigned onward
+without a named later owner, or if an approved requirement is called out
+of scope.
 
 Evidence source: epic doc raw goal and Decomposition, current sub-plan
 Section 0 / coverage map, prior sub-plan verdicts when relevant.
@@ -53,30 +53,29 @@ North Star), versus the worklog and phase status lines.
 
 Fail pattern: the North Star says "the dashboard shows the last 30
 days of audit events"; the worklog says "shipped with 7-day window
-because of performance concerns"; the Decision Log has no entry
-authorizing the change. Fail.
+because of performance concerns." Fail even if an agent wrote a Decision
+Log note, because agents cannot approve scope reduction.
 
 Pass pattern: the North Star's claims are fully represented in the
-shipped behavior, or narrowed with an explicit Decision Log entry.
+shipped behavior.
 
 ### 2. `scope_not_cut`
 
 Check the sub-plan's Section 7 (phase plan) checklist items and
 Exit Criteria against the worklog. Any item that was dropped,
 marked "skipped," or never referenced in the worklog is a suspect
-silent scope cut.
+scope cut.
 
 Evidence source: Section 7 of the DOC_PATH (phase plan and exit
 criteria), the WORKLOG_PATH, and the Decision Log inside the
 sub-plan doc.
 
 Fail pattern: phase 2 had an exit criterion "migration script
-tested against staging data"; worklog never mentions the test; no
-Decision Log entry. Fail.
+tested against staging data"; worklog never mentions the test. Fail.
 
 Pass pattern: every phase's checklist items and exit criteria are
-either visibly completed in the worklog or explicitly deferred with
-a Decision Log note the user can inspect.
+visibly completed in the worklog. If an item cannot be completed, the
+verdict must be `scope_change_detected` or `incomplete`, not pass.
 
 ### 3. `no_orphaned_discoveries`
 
@@ -92,9 +91,8 @@ work around". Every such mention is a candidate. Classify each:
   implementation exists but the decomposition does not reflect it.
 - If the discovery was called out but left unresolved ("we'll need
   X eventually, punting for now"): this is a `discovered_items[]`
-  entry. Classify `must_have_or_nice` by reading the North Star —
-  if the sub-plan's claim cannot be met without the discovery, it
-  is must-have.
+  entry only if X is required for approved scope. If X is a harmless
+  observation that is not required for the approved North Star, ignore it.
 
 Evidence source: worklog text, Decision Log text, North Star.
 
@@ -168,12 +166,12 @@ object level.
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["what", "must_have_or_nice", "recommendation"],
+        "required": ["what", "scope_relationship", "recommendation"],
         "properties": {
           "what": {"type": "string"},
-          "must_have_or_nice": {"enum": ["must_have", "nice_to_have"]},
+          "scope_relationship": {"enum": ["required_for_approved_scope"]},
           "recommendation": {
-            "enum": ["extend_current", "new_sub_plan", "defer", "drop"]
+            "enum": ["extend_current", "new_sub_plan"]
           }
         }
       }
@@ -196,8 +194,9 @@ object level.
   `verdict: scope_change_detected`. Codex's `--output-schema`
   requires every `properties` key to appear in `required`, so
   this field is always emitted — the empty-array form is the
-  "no items" signal. Each item, when present, is actionable —
-  the orchestrator or the user picks a recommendation.
+  "no items" signal. Each item, when present, names scope-preserving
+  work required by the approved epic and recommends either extending
+  the current sub-plan or inserting a new sub-plan.
 - `summary`: 1–3 sentences the orchestrator prints to the user at
   the halt or pass boundary. Plain English.
 
@@ -217,10 +216,10 @@ If the critic discovers that the sub-plan doc is malformed (missing
 required sections, corrupt frontmatter), it fails `audit_clean` and
 reports the malformation in `summary`. It does not try to repair it.
 
-The critic does not have authority to downgrade a discovery from
-must-have to nice-to-have as a "compromise." Its classification is
-based on whether the sub-plan's North Star is met, not on what would
-make the epic proceed smoothly.
+The critic does not have authority to downgrade approved scope as a
+"compromise." Its classification is based on whether the sub-plan's North Star
+and epic requirements are met, not on what would make the epic proceed
+smoothly.
 
 ## What this critic is NOT
 

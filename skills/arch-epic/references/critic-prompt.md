@@ -53,24 +53,24 @@ Run all checks. Report each with `status` and `evidence` even if
 Compare the epic doc's raw goal and approved Decomposition against
 the sub-plan's Epic Requirement Coverage. Pass when every meaningful
 epic requirement is owned by this sub-plan, satisfied by a prior
-sub-plan, deferred to a named later sub-plan, or explicitly out of
-scope with a recorded reason. Fail when a requirement disappears,
-is deferred without a named later owner, or is needed for this
-sub-plan's gate but absent from the North Star.
+sub-plan, or assigned to a named later sub-plan. Fail when a
+requirement disappears, is assigned onward without a named later
+owner, is called out of scope, or is needed for this sub-plan's
+gate but absent from the North Star.
 
 ### 1. north_star_preserved
 Compare the approved North Star claims (Section 0) against the
 shipped behavior documented in the worklog and phase status lines.
 Fail if any North Star claim is missing, downgraded, or silently
-reinterpreted. Pass if every claim is represented in shipped work,
-or if a narrowing is explicitly recorded in the Decision Log.
+reinterpreted. Agent-written Decision Log notes do not authorize
+scope reduction. Pass only if every claim is represented in shipped
+work.
 
 ### 2. scope_not_cut
 For each Section 7 phase, verify every checklist item and every
-exit criterion is either (a) completed per the worklog, or (b)
-explicitly deferred in the Decision Log with a reason the user
-can inspect. A silent cut (no worklog evidence, no Decision Log
-entry) is a fail.
+exit criterion is completed per the worklog. A missing, skipped,
+parked, or narrowed item is a fail even if an agent wrote a Decision
+Log note.
 
 ### 3. no_orphaned_discoveries
 Scan the worklog and Decision Log for discovery-signal phrases:
@@ -80,19 +80,17 @@ Scan the worklog and Decision Log for discovery-signal phrases:
   recorded in Decision Log: no action, it was managed correctly.
 - If the discovery was implemented silently (no Decision Log
   entry): fail — silent scope expansion.
-- If the discovery was noted but left open (not yet in any
-  sub-plan's scope): add a `discovered_items[]` entry. Classify
-  `must_have_or_nice` by checking whether the sub-plan's North
-  Star can be met without it:
-    - must_have: North Star's claim fails without it.
-    - nice_to_have: observation, not required for the approved
-      sub-plan to stand on its own.
-  Pick a `recommendation`:
+- If the discovery was noted but left open and is required for the
+  approved North Star, Section 7, gate, or raw epic goal, add a
+  `discovered_items[]` entry with
+  `scope_relationship: required_for_approved_scope`.
+  Pick a scope-preserving `recommendation`:
     - extend_current: small enough to fit inside this sub-plan's
       existing surface without distortion.
     - new_sub_plan: deserves its own North Star and plan doc.
-    - defer: real but not needed for this epic's goal.
-    - drop: turns out not needed at all.
+- If the discovery is only a harmless improvement idea and not
+  required for approved scope, ignore it. Do not report nice-to-have
+  observations as scope changes.
 
 ### 4. audit_clean
 Confirm `arch_skill:block:implementation_audit` exists with
@@ -138,8 +136,8 @@ Good summary (pass):
 
 Good summary (scope_change_detected):
   "Sub-plan met its North Star but implementation surfaced a
-  must-have need for session-token rotation that is not in any
-  sub-plan's scope yet. Recommending a new sub-plan."
+  required approved-scope need for session-token rotation that is
+  not in any sub-plan's scope yet. Recommending a new sub-plan."
 
 Good summary (incomplete):
   "The arch-step implementation audit says reopened phases 2 and 3.

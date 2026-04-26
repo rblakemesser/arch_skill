@@ -157,8 +157,8 @@ Example:
 > only be tested against a live SSO endpoint, and migration is only
 > safe once the dashboard works. If implementation reveals a new
 > system we did not anticipate (e.g., audit logging), the skill will
-> halt and ask whether to extend the current sub-plan, insert a new
-> one, or defer.
+> halt and ask whether to extend the current sub-plan or insert a new
+> one.
 
 ### Decomposition
 
@@ -252,7 +252,7 @@ sub-plans, reordered sub-plans. One entry per decision. Example:
 - 2026-04-22 During sub-plan 1 (Ship SSO in the auth service)
   implementation, worklog surfaced that session token rotation needs
   a background job. Options presented: extend current sub-plan, new
-  sub-plan, defer, drop. User chose: new sub-plan. Inserted as
+  sub-plan. User chose: new sub-plan. Inserted as
   sub-plan 1.5 "Token rotation background job" between sub-plans 1
   and 2. Gate 1 → 1.5: rotation endpoint live. Gate 1.5 → 2: unchanged
   from original 1 → 2.
@@ -271,12 +271,17 @@ requirement as one of:
 
 - owned by this sub-plan
 - satisfied by a prior sub-plan
-- deferred to a named later sub-plan
-- out of scope with a recorded reason
+- assigned to a named later sub-plan
 
 The epic doc does not duplicate the full coverage map. It points to the
 sub-plan DOC_PATH and records only material coverage decisions in the
 Decision Log.
+
+Coverage is a scope-preservation map, not a scope-reduction tool. A
+requirement from the raw goal, approved Decomposition, North Star, Section 7,
+acceptance criteria, or verification obligations must never be classified as
+out of scope by an automatic child. If it is not owned here, satisfied already,
+or assigned to a named later sub-plan, the sub-plan is not ready.
 
 ## Mutation rules
 
@@ -289,8 +294,8 @@ The skill mutates the epic doc under these conditions only:
 - `run` mode: updates sub-plan Status fields, fills in DOC_PATH when
   `$arch-step new` runs, appends to log, writes critic verdict
   pointer under the sub-plan entry.
-- `resume-scope-change` mode: inserts a new sub-plan, or extends an
-  existing one's scope, or marks items deferred/dropped; always
+- `resume-scope-change` mode: inserts a new sub-plan or extends an
+  existing one's scope to preserve approved requirements; always
   appends a Decision Log entry.
 - `auto-run` mode: writes or updates `auto_execution`, writes compact
   Auto-run status fields, records role-policy changes, critic-gated

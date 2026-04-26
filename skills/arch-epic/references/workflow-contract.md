@@ -148,9 +148,10 @@ full turn to arm and disarm cleanly.
 - Detecting state disagreements between stored Status and observed
   reality. When they differ, prose reasoning decides what the real
   state is.
-- Deciding whether an epic critic verdict triggers halt (scope
-  change) or auto-apply (all nice-to-have + defer-or-drop) per
-  `scope-change-discipline.md`.
+- Deciding whether an epic critic verdict can be repaired inside the
+  current sub-plan or needs a new sub-plan per
+  `scope-change-discipline.md`. Material scope findings always halt
+  for a scope-preserving user decision.
 
 ### Where determinism lives
 - Reading state files.
@@ -269,13 +270,12 @@ full turn to arm and disarm cleanly.
 - Epic doc with a pending scope-change entry in the most recent
   Decision Log section (or the critic verdict that halted the
   run).
-- The user's decision: extend_current, new_sub_plan, defer, drop
-  (or a custom mix when multiple discovered items exist).
+- The user's decision: extend_current or new_sub_plan (or a custom
+  scope-preserving mix when multiple discovered items exist).
 
 ### Outputs
-- Decomposition updated per user's decision (new sub-plan inserted,
-  existing sub-plan scope extended, or sub-plan marked complete
-  with items parked/dropped).
+- Decomposition updated per user's decision: new sub-plan inserted or
+  existing sub-plan scope extended.
 - Epic doc `status: active`.
 - Decision Log entry recording the resolution.
 
@@ -292,18 +292,13 @@ full turn to arm and disarm cleanly.
   Insert it after the current sub-plan. Current sub-plan Status
   becomes `complete` (its own scope is met; the discovered items
   are carried in the new sub-plan).
-- **defer**: Add the items to the epic-level Decision Log with
-  `parked: true`. Current sub-plan Status becomes `complete`.
-- **drop**: Add the items to the epic-level Decision Log with
-  `dropped: true` and the rationale. Current sub-plan Status
-  becomes `complete`.
 
 Set `status: active`. Append Orchestration Log entry and Decision
 Log entry. End turn. Next turn re-enters `run`.
 
 ### Where judgment lives
 - Interpreting the user's reply when it doesn't map cleanly to
-  one of the four options ("fold items 1 and 3 into the current
+  one of the scope-preserving options ("fold items 1 and 3 into the current
   sub-plan but make item 2 its own thing"). The skill parses,
   announces its interpretation, applies.
 
@@ -318,6 +313,9 @@ Log entry. End turn. Next turn re-enters `run`.
 - User chooses `extend_current` but the item would violate the
   sub-plan's North Star (the item truly doesn't belong). Flag the
   mismatch, ask to reconfirm.
+- User asks to remove, park, or postpone approved scope. Explain that
+  arch-epic does not have a scope-reduction path; the scope-preserving
+  choices are extend_current, new_sub_plan, or blocked.
 
 ## Mode: `summary`
 

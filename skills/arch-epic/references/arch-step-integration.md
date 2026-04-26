@@ -131,13 +131,11 @@ silently advance.
 
 ### Critic verdict: `scope_change_detected`
 
-- Apply the auto-act rule from `scope-change-discipline.md`: if and
-  only if all discovered items are nice-to-have and recommendation
-  is defer-or-drop, auto-apply and continue. Otherwise halt.
-- Halt branch: set epic `status: halted`, update sub-plan Status to
-  `scope-changed`, write the verdict path, append a Decision Log
-  entry that names the discovered items and the options, end the
-  turn with the user question.
+- Halt. There is no auto-defer, auto-drop, or scope-reduction branch.
+- Set epic `status: halted`, update sub-plan Status to
+  `scope-changed`, write the verdict path, append a Decision Log entry
+  that names the discovered items and the scope-preserving options, end
+  the turn with the user question.
 
 ### Critic verdict: `incomplete`
 

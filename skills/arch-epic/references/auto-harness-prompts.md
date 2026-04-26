@@ -32,6 +32,8 @@ Every child must:
 
 - read ground truth from disk
 - preserve the approved epic goal and decomposition
+- treat approved epic scope as locked: no child may cut, narrow,
+  park, drop, or move a requirement out of scope
 - work depth-first on exactly one active sub-plan
 - leave compact, inspectable evidence
 - avoid nested controller commands such as `auto-plan`, `implement-loop`,
@@ -84,20 +86,25 @@ final artifact in the first few minutes as failure.
 - Do not start the next sub-plan.
 - Do not arm `auto-plan`, `implement-loop`, `arch-loop`, or any Stop-hook
   controller. Apply the arch-step doctrine directly from the references.
-- Do not narrow, defer, or drop an epic requirement silently.
+- Do not narrow, park, drop, or mark an approved epic requirement out of
+  scope. The epic scope is the epic scope.
 
 ## Process
 1. Read the epic doc, especially raw goal, Decomposition, Orchestration Log,
    and Decision Log.
 2. Build an Epic Requirement Coverage section for this sub-plan. Classify each
-   meaningful epic requirement as owned here, already satisfied, deferred to a
-   named later sub-plan, or out of scope with a reason.
+   meaningful epic requirement as owned here, already satisfied, or assigned
+   to a named later sub-plan.
 3. Draft or repair Section 0 so a cold reader can tell exactly what this
    sub-plan must make true.
 4. Fill the planning sections required by arch-step doctrine for this stage.
 5. Keep Section 7 as the one authoritative execution checklist; do not create
    a competing checklist elsewhere.
-6. Record any material scope interpretation in the sub-plan Decision Log.
+6. If a requirement cannot be owned here, marked already satisfied, or assigned
+   to a named later sub-plan, stop and report the coverage gap. Do not solve
+   the gap by calling it out of scope.
+7. Record any material scope interpretation in the sub-plan Decision Log as
+   evidence, not as permission to reduce scope.
 
 ## Quality Bar
 Strong output lets a later implementation worker see why this sub-plan exists,
@@ -109,7 +116,7 @@ obligations.
 Return a concise summary with:
 - DOC_PATH touched
 - Epic requirements owned by this sub-plan
-- Requirements deferred to named later sub-plans
+- Requirements assigned to named later sub-plans
 - Any Decision Log entries added
 - Remaining blockers, or `none`
 
@@ -157,7 +164,8 @@ that attention is needed.
 - Implement the active sub-plan depth-first.
 - Do not rewrite the plan to make partial work look complete.
 - Do not arm nested controllers.
-- Do not silently cut approved behavior, acceptance criteria, or verification.
+- Do not cut, narrow, park, or drop approved behavior, acceptance criteria, or
+  verification. Missing approved work is a blocker, not a scope decision.
 
 ## Process
 1. Read Section 0, Epic Requirement Coverage, Section 7, verification plan, and
@@ -166,8 +174,9 @@ that attention is needed.
 3. Implement every reachable approved phase in order.
 4. Run verification proportional to the risk and record exact commands.
 5. Update the worklog with what changed, evidence, and residual risk.
-6. If implementation discovers a requirement change, record it and stop unless
-   it is a small repair wholly inside the approved sub-plan surface.
+6. If implementation discovers required work not represented in the current
+   sub-plan, record it and stop unless it is a small repair wholly inside the
+   approved sub-plan surface.
 
 ## Quality Bar
 Strong output leaves a reviewer able to trace each Section 7 item and exit
@@ -185,6 +194,8 @@ Return:
 
 ## Stop Instead Of Continuing If
 - completing the work would require cutting approved scope
+- completing the work would require parking, dropping, or narrowing approved
+  scope
 - a needed decision is absent from the epic or sub-plan Decision Log
 - verification cannot run and no bounded unblock remains
 ```
@@ -228,6 +239,8 @@ silent.
 - Do not arm nested controllers.
 - Do not alter the approved North Star or Epic Requirement Coverage unless
   the repair instruction explicitly says to record a same-scope clarification.
+- Do not remove, park, drop, or narrow a requirement to make the critic finding
+  disappear.
 
 ## Process
 1. Re-read the critic evidence and confirmed diagnosis.
@@ -257,8 +270,10 @@ Return:
 - {{evidence_requirement}}
 
 ## Stop Instead Of Continuing If
-- the repair would require a scope decision not recorded in the epic Decision
-  Log
+- the repair would require a scope-preserving decision not recorded in the
+  epic Decision Log
+- the repair would require removing, parking, dropping, or narrowing approved
+  scope
 - the repair would require claiming proof that did not happen
 ```
 
@@ -277,7 +292,8 @@ You are read-only. Return structured JSON only.
 ## System Context
 Automatic mode replaces per-sub-plan user approval with spawned critics. Your
 job is to protect the approved epic requirements from being lost, narrowed, or
-silently moved while allowing normal implementation latitude.
+silently moved while allowing normal implementation latitude. The epic scope
+is locked: do not invent any defer/drop/out-of-scope compromise.
 
 ## Progress Visibility
 Critic reads can be long when the artifacts are large. Stream the read-only
@@ -297,6 +313,8 @@ real inspection.
 - Do not run implementation commands.
 - Do not run arch-step or Stop-hook controllers.
 - Do not invent a compromise scope; report drift instead.
+- Do not treat an agent-written Decision Log entry as approval to reduce
+  scope.
 
 ## Process
 1. Read the epic doc raw goal, approved Decomposition, Orchestration Log, and
@@ -304,20 +322,19 @@ real inspection.
 2. Read Section 0, Epic Requirement Coverage, Section 7, implementation audit,
    and worklog evidence in the sub-plan DOC_PATH family.
 3. Run each applicable check below and cite exact artifact evidence.
-4. Classify discoveries as must-have or nice-to-have by asking whether the
-   approved North Star can stand without them.
+4. Emit discoveries only when they are required to preserve approved scope;
+   ignore harmless improvement ideas.
 5. Return one schema-conforming verdict and stop.
 
 ## Checks
 1. `epic_requirement_coverage`: every meaningful epic requirement is owned,
-   satisfied, deferred to a named later sub-plan, or explicitly out of scope.
+   satisfied, or assigned to a named later sub-plan.
 2. `north_star_preserved`: Section 0 represents the approved sub-plan and its
    owned epic requirements.
 3. `scope_not_cut`: Section 7 checklist items and exit criteria are completed
-   or explicitly deferred in a Decision Log.
+   or represented as a blocking scope-preserving finding.
 4. `no_orphaned_discoveries`: discoveries in worklog or Decision Log are
-   handled by implementation, current-scope repair, new sub-plan insertion,
-   defer, or drop.
+   handled by implementation, current-scope repair, or new sub-plan insertion.
 5. `audit_clean`: implementation audit exists and is COMPLETE when this is a
    completion gate.
 
@@ -335,6 +352,8 @@ outside JSON.
   with evidence instead of guessing
 - two valid product-scope interpretations exist; return
   `scope_change_detected` and explain the choice the user must make
+- the only way to pass would be to park, drop, narrow, or move approved scope
+  out of the epic
 - the schema cannot represent a material finding; fail loud rather than
   emitting prose outside JSON
 ```
