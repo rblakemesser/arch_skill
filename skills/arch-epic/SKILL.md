@@ -193,8 +193,9 @@ Detail per mode lives in `references/workflow-contract.md`.
 ## Output expectations
 
 - Epic doc at the user-named (or proposed) path.
-- Per-sub-plan canonical arch-step DOC_PATHs under the repo's usual
-  docs/ directory, owned by arch-step.
+- Per-sub-plan canonical arch-step DOC_PATHs under
+  `docs/epic/<EPIC_SLUG_WITH_DATE>/PHASE_<NN>_<SUBPLAN_SLUG>_<YYYY-MM-DD>.md`,
+  owned by arch-step.
 - Epic critic artifacts under
   `<orchestrator repo root>/.arch_skill/arch-epic/critics/<slug>/run-<ts>/`
   including the EpicVerdict JSON, the exact invocation.sh, and the

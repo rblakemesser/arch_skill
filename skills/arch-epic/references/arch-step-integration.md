@@ -27,10 +27,17 @@ the Decomposition, but no arch-step doc yet.
 
 Next action:
 1. If the sub-plan's DOC_PATH is empty in the Decomposition, propose
-   a path using the arch-step convention:
-   `docs/<SLUG_SCREAMING_SNAKE>_<YYYY-MM-DD>.md` where `<SLUG>` is
-   derived from the sub-plan's name. Ask the user to accept or
-   override. Silence means proceed with the proposed path.
+   an arch-epic grouped path:
+   `docs/epic/<EPIC_SLUG_WITH_DATE>/PHASE_<NN>_<SUBPLAN_SLUG>_<YYYY-MM-DD>.md`.
+   Derive `<EPIC_SLUG_WITH_DATE>` from the epic doc stem without the
+   leading `EPIC_`; derive `<NN>` from the Decomposition order at the
+   moment the DOC_PATH is assigned; derive `<SUBPLAN_SLUG>` from the
+   sub-plan's name. Ask the user to accept or override. Silence means
+   proceed with the proposed path. Preserve any already-created
+   DOC_PATHs; if a later scope-change decision inserts a new sub-plan
+   between existing numbered docs, use a sortable fractional slot such
+   as `PHASE_01_5_<SUBPLAN_SLUG>_<YYYY-MM-DD>.md` instead of renaming
+   existing docs or worklogs.
 2. Fill the DOC_PATH field in the Decomposition entry.
 3. Invoke `$arch-step new <DOC_PATH>` with the sub-plan's
    one-sentence description as the North Star seed (pass it through
@@ -165,8 +172,9 @@ user whether to re-arm implement-loop or investigate manually.
 Automatic mode uses the same sub-plan Status vocabulary, but the
 transition owner changes:
 
-- `pending`: planner harness creates or repairs the DOC_PATH and Epic
-  Requirement Coverage, then a critic checks the North Star gate.
+- `pending`: planner harness creates or repairs the numbered per-epic
+  DOC_PATH and Epic Requirement Coverage, then a critic checks the
+  North Star gate.
 - `north-star-approved`: planner/implementation harness performs the
   planning stages from arch-step doctrine directly. It does not arm
   `auto-plan`.

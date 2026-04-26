@@ -59,8 +59,10 @@ log entry. Ends turn.
 
 ### Next turn — `run` mode, sub-plan 1 `pending`
 
-Skill proposes `docs/AUTH_SSO_2026-04-22.md` for sub-plan 1's
-DOC_PATH. Invokes `$arch-step new docs/AUTH_SSO_2026-04-22.md`
+Skill proposes
+`docs/epic/ADMIN_DASHBOARD_SSO_2026-04-22/PHASE_01_AUTH_SSO_2026-04-22.md`
+for sub-plan 1's DOC_PATH. Invokes
+`$arch-step new docs/epic/ADMIN_DASHBOARD_SSO_2026-04-22/PHASE_01_AUTH_SSO_2026-04-22.md`
 with the sub-plan's description as seed. Ends turn.
 
 User confirms the North Star in the arch-step flow on the next
@@ -70,7 +72,7 @@ turn.
 
 - Skill sees `status: active` in sub-plan 1's DOC_PATH frontmatter.
   Updates epic Status to `north-star-approved`. Invokes
-  `$arch-step auto-plan docs/AUTH_SSO_2026-04-22.md`. Status becomes
+  `$arch-step auto-plan docs/epic/ADMIN_DASHBOARD_SSO_2026-04-22/PHASE_01_AUTH_SSO_2026-04-22.md`. Status becomes
   `planning`. Ends turn.
 - Hook drives auto-plan across several turns (research,
   deep-dive, phase-plan, consistency-pass).
@@ -184,9 +186,10 @@ Decision Log, flips `status: active`.
 
 ### Next turn
 
-`run` mode sees sub-plan 1.5 `pending`. Invokes `$arch-step new`
-on a proposed DOC_PATH. Flow continues as in Example 1 from that
-point.
+`run` mode sees sub-plan 1.5 `pending`. Skill proposes
+`docs/epic/ADMIN_DASHBOARD_SSO_2026-04-22/PHASE_01_5_TOKEN_ROTATION_BACKGROUND_JOB_2026-04-22.md`
+and invokes `$arch-step new` on that DOC_PATH. Flow continues as in
+Example 1 from that point.
 
 ## Example 3 — Scope-change auto-acted on nice-to-have
 
@@ -291,8 +294,8 @@ It writes `auto_execution` to the epic doc and initializes:
 For sub-plan 1, the parent orchestrator stays compact and launches
 one child at a time:
 
-1. Planner harness creates the sub-plan DOC_PATH and Epic Requirement
-   Coverage.
+1. Planner harness creates the numbered per-epic sub-plan DOC_PATH
+   and Epic Requirement Coverage.
 2. Critic harness checks the North Star / coverage gate.
 3. Implementation worker edits the repo and updates the worklog.
 4. Critic harness checks completion and scope drift.

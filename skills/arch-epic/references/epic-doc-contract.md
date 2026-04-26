@@ -170,6 +170,14 @@ A numbered list of sub-plans. Each entry has:
   Empty at decomposition time for sub-plans that have not been
   started yet (lazy planning). Filled in when the skill invokes
   `$arch-step new` for that sub-plan.
+  When arch-epic assigns a path, use
+  `docs/epic/<EPIC_SLUG_WITH_DATE>/PHASE_<NN>_<SUBPLAN_SLUG>_<YYYY-MM-DD>.md`.
+  Derive `<EPIC_SLUG_WITH_DATE>` from the epic doc stem without the
+  leading `EPIC_`; derive `<NN>` from the approved Decomposition order
+  at assignment time. Preserve already-created DOC_PATHs. If a new
+  sub-plan is inserted between existing numbered docs, use a sortable
+  fractional slot such as `PHASE_01_5_<SUBPLAN_SLUG>_<YYYY-MM-DD>.md`
+  instead of renaming existing docs or worklogs.
 - `Gate to next:` the assertion that must be true before the next
   sub-plan starts planning. The last sub-plan has no `Gate to next`.
 - `Status:` one of `pending | north-star-approved | planning |
@@ -188,7 +196,7 @@ Example:
 
 1. **Ship SSO in the auth service**: Add SAML/OIDC support to the
    existing email-password auth service.
-   - DOC_PATH: docs/AUTH_SSO_2026-04-22.md
+   - DOC_PATH: docs/epic/ADMIN_DASHBOARD_SSO_2026-04-22/PHASE_01_AUTH_SSO_2026-04-22.md
    - Gate to next: SSO login endpoint live in staging, returns a
      session token compatible with existing dashboard middleware.
    - Status: complete
@@ -197,7 +205,7 @@ Example:
 
 2. **Build admin dashboard backed by SSO**: New internal dashboard
    that authenticates via the SSO flow from sub-plan 1.
-   - DOC_PATH: docs/ADMIN_DASHBOARD_2026-04-23.md
+   - DOC_PATH: docs/epic/ADMIN_DASHBOARD_SSO_2026-04-22/PHASE_02_ADMIN_DASHBOARD_2026-04-23.md
    - Gate to next: Admin dashboard live behind SSO for new users in
      staging.
    - Status: implementing

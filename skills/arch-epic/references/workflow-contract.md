@@ -199,7 +199,8 @@ full turn to arm and disarm cleanly.
    `scripts/run_arch_epic.py auto-init`.
 3. Select the first sub-plan whose Status is not `complete`.
 4. Drive that sub-plan depth-first:
-   - planner harness creates or repairs the sub-plan DOC_PATH and Epic
+   - planner harness uses the numbered per-epic sub-plan DOC_PATH
+     from the Decomposition, creating or repairing that doc and Epic
      Requirement Coverage.
    - critic harness runs the North Star / coverage gate.
    - implementation worker executes the approved sub-plan and updates

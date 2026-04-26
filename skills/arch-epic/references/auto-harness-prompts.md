@@ -66,6 +66,7 @@ final artifact in the first few minutes as failure.
 - Epic doc: {{epic_doc_path}}
 - Raw epic goal inside the epic doc frontmatter
 - Approved Decomposition entry for sub-plan {{sub_plan_n}}
+- Sub-plan DOC_PATH: {{sub_plan_doc_path}}
 - Prior sub-plan gates and critic verdicts, if any
 - Arch-step references:
   - {{artifact_contract_path}}
@@ -77,6 +78,9 @@ final artifact in the first few minutes as failure.
 
 ## Boundaries
 - Work only on sub-plan {{sub_plan_n}}.
+- Use the supplied sub-plan DOC_PATH. Do not invent a root-level
+  `docs/<TITLE>_<DATE>.md` path; arch-epic groups sub-plan docs under
+  `docs/epic/<EPIC_SLUG_WITH_DATE>/PHASE_<NN>_<SUBPLAN_SLUG>_<YYYY-MM-DD>.md`.
 - Do not start the next sub-plan.
 - Do not arm `auto-plan`, `implement-loop`, `arch-loop`, or any Stop-hook
   controller. Apply the arch-step doctrine directly from the references.
