@@ -27,8 +27,9 @@ Claude Code, and Gemini.
 
 ## Red Lines
 
-- Do not use external model consultation workflows unless the user explicitly
-  asks for code review, fresh consult, second opinion, or completion audit.
+- Do not use external model consultation or delegation workflows unless the
+  user explicitly asks for code review, fresh consult, second opinion,
+  completion audit, or delegated agent work.
 - Do not delete user work, untracked files, or repo changes unless the user
   explicitly asks for that exact cleanup. If you are not sure whether a file
   came from your own run, leave it alone and ask.
@@ -76,6 +77,9 @@ Claude Code, and Gemini.
 - Use `$fresh-consult` when the user or another skill wants a clean-context
   Claude or Codex second opinion on a concrete artifact, completion claim,
   flow consistency question, or readability/confusion check.
+- Use `$agent-delegate` when the user wants a fresh Claude or Codex subprocess
+  to do concrete work in the current workspace, including implementation,
+  editing, investigation-and-fix, command execution, or installed-skill use.
 - Use `$model-consensus` when the user wants two selected Claude/Codex models
   to iterate on a plan, architecture, design, or concept until they converge
   or expose the smallest unresolved decision, including adversarial

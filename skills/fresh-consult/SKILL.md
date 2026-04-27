@@ -1,6 +1,6 @@
 ---
 name: fresh-consult
-description: "Invoke a fresh Claude or Codex subprocess for a prompt-engineered second opinion with clean context. Use when the user or another skill asks for a cold read, external consult, flow consistency audit, completion-claim check, readability/confusion check, or general second opinion from Claude/Codex. Ask once if runtime, model, or effort is missing; run hook-suppressed and unsandboxed; report the child result back. Do NOT use for deterministic full code-review coverage (`code-review`), Codex `-p yolo` reviews (`codex-review-yolo`), ordered subprocess orchestration (`stepwise`/`arch-epic`), or implementation/fixing by the child."
+description: "Invoke a fresh Claude or Codex subprocess for a prompt-engineered second opinion with clean context. Use when the user or another skill asks for a cold read, external consult, flow consistency audit, completion-claim check, readability/confusion check, or general second opinion from Claude/Codex. Ask once if runtime, model, or effort is missing; run hook-suppressed and unsandboxed; report the child result back. Do NOT use for deterministic full code-review coverage (`code-review`), Codex `-p yolo` reviews (`codex-review-yolo`), ordered subprocess orchestration (`stepwise`/`arch-epic`), or implementation/fixing by the child (`agent-delegate`)."
 metadata:
   short-description: "Fresh Claude/Codex second opinion with clean context"
 ---
@@ -32,9 +32,10 @@ controllers, state machines, parsers, or install-time automation.
   Use `$codex-review-yolo`.
 - The work is an ordered subprocess workflow with manifests, critics, repair
   loops, or persistent orchestration. Use `$stepwise` or `$arch-epic`.
-- The child is expected to edit files, fix issues, arm hooks, or continue a
-  controller. Fresh consult is read-only unless the user explicitly requests a
-  separate operational subprocess task.
+- The child is expected to edit files or fix issues. Use `$agent-delegate` for
+  a one-shot operational subprocess task.
+- The child is expected to arm hooks or continue a controller. Use the matching
+  hook-backed workflow skill instead.
 - There is no concrete artifact, claim, question, or target path to inspect.
 - The requested runtime CLI is not installed.
 

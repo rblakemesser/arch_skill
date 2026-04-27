@@ -43,6 +43,7 @@ Other shipped skills are:
 - `amir-publish` — personal shortcut for publishing this skills repo across Amir's usual machines
 - `codex-review-yolo` — external Codex `-p yolo` reviewer for substantial diffs, plans, docs, and completion claims
 - `fresh-consult` — prompt-only fresh Claude/Codex second opinion for cold reads, flow consistency audits, completion-claim checks, and readability/confusion checks; asks once for runtime/model/effort when missing and reports the child result back to the parent skill
+- `agent-delegate` — prompt-only fresh Claude/Codex worker for delegated implementation, editing, investigation-and-fix, command execution, or installed-skill use in the shared worktree; asks once for runtime/model/effort or write scope when missing and reports changed files, verification, blockers, and the run directory
 - `model-consensus` — prompt-only parent-agent orchestration for two selected Claude/Codex model sessions to iterate on a plan, architecture, design, or concept until they converge or expose the smallest unresolved decision; supports adversarial simplification and requires repo-backed participants to read real code, canonical paths, conventions, and drift risks before agreeing
 - `code-review` — deterministic general code-review skill that always shells out to fresh unsandboxed Codex `gpt-5.4` `xhigh` (with parallel `gpt-5.4-mini` `xhigh` review lenses) for diffs, branches, paths, or completion-claim audits; supports direct and hook-backed invocation, and keeps Codex as the reviewer even when Claude hosts the Stop hook
 - `stepwise` — diagnostic orchestrator for ordered multi-step processes defined in another repo's doctrine; spawns a fresh Claude or Codex worker session per step, runs an independent observational critic, and on failure diagnoses with the involved sessions before authoring a source-grounded repair at root cause. Model and effort for worker and critic are supplied by the user at invocation; both runtimes run dangerous / skip-permissions / no-sandbox. Distinct from `arch-loop` (requirement-satisfaction, not ordered steps), `arch-step` (plan-doc-backed full-arch), and `code-review` (one-shot review).
@@ -112,6 +113,7 @@ Installed skills:
   - `~/.agents/skills/amir-publish/`
   - `~/.agents/skills/codex-review-yolo/`
   - `~/.agents/skills/fresh-consult/`
+  - `~/.agents/skills/agent-delegate/`
   - `~/.agents/skills/model-consensus/`
   - `~/.agents/skills/code-review/`
   - `~/.agents/skills/stepwise/`
@@ -142,6 +144,7 @@ Installed skills:
   - `~/.claude/skills/amir-publish/`
   - `~/.claude/skills/codex-review-yolo/`
   - `~/.claude/skills/fresh-consult/`
+  - `~/.claude/skills/agent-delegate/`
   - `~/.claude/skills/model-consensus/`
   - `~/.claude/skills/code-review/`
   - `~/.claude/skills/stepwise/`
@@ -169,13 +172,14 @@ Installed skills:
   - `~/.gemini/skills/amir-publish/`
   - `~/.gemini/skills/codex-review-yolo/`
   - `~/.gemini/skills/fresh-consult/`
+  - `~/.gemini/skills/agent-delegate/`
   - `~/.gemini/skills/model-consensus/`
   - `~/.gemini/skills/stepwise/`
   - `~/.gemini/skills/arch-epic/`
 
 Codex reads the same installed skill surface from `~/.agents/skills/`. `make install` also removes stale pre-skill command surfaces, removed skill packages, and older `~/.codex/skills/<skill>` mirrors so runtime routing stays unambiguous.
 
-`arch-loop`, `delay-poll`, and `wait` are installed on Codex and Claude Code because both runtimes have a native `Stop` hook surface; all three are omitted from Gemini because Gemini still has no hook-backed auto-controller surface and there is no way for the parsed duration, condition re-check, or evaluator-backed verdict to resume the same thread there. `arch-loop` evaluator turns additionally always shell out to fresh unsandboxed Codex `gpt-5.4` `xhigh` for the external verdict; the Claude host can arm and drive the loop, but the evaluator subprocess itself is always Codex, mirroring the `code-review` exception below. `fresh-consult` and `model-consensus` are prompt-only and are installed on all three skill surfaces, but the selected local `claude` or `codex` CLI must exist on the host at invocation time. `code-review` is installed on the agents/Codex and Claude Code surfaces only; the Claude host can trigger the skill, but the actual review subprocess always shells out to fresh Codex.
+`arch-loop`, `delay-poll`, and `wait` are installed on Codex and Claude Code because both runtimes have a native `Stop` hook surface; all three are omitted from Gemini because Gemini still has no hook-backed auto-controller surface and there is no way for the parsed duration, condition re-check, or evaluator-backed verdict to resume the same thread there. `arch-loop` evaluator turns additionally always shell out to fresh unsandboxed Codex `gpt-5.4` `xhigh` for the external verdict; the Claude host can arm and drive the loop, but the evaluator subprocess itself is always Codex, mirroring the `code-review` exception below. `fresh-consult`, `agent-delegate`, and `model-consensus` are prompt-only and are installed on all three skill surfaces, but the selected local `claude` or `codex` CLI must exist on the host at invocation time. `fresh-consult` and `model-consensus` report read-only or planning results; `agent-delegate` may write to the shared worktree when invoked with an allowed write scope. `code-review` is installed on the agents/Codex and Claude Code surfaces only; the Claude host can trigger the skill, but the actual review subprocess always shells out to fresh Codex.
 
 ### Remote install
 
@@ -369,7 +373,15 @@ Use when the user or another skill wants a clean-context second opinion from a f
 
 The user supplies runtime, model, and effort, or the skill asks once before invoking. Runtime can be inferred only from unambiguous model families such as `gpt-5.5` for Codex or `Claude Opus 4.7` for Claude. Exact model versions are preserved; there is no silent downgrade, provider switch, or effort substitution.
 
-Use `fresh-consult` for cold reads, consistency audits, completion checks, and general second opinions. Use `code-review` when the user wants the deterministic full code-review product with Codex lens fan-out and coverage guarantees. Use `codex-review-yolo` when the user specifically wants the existing Codex `-p yolo` review pattern. Use `stepwise` or `arch-epic` when subprocesses are part of a larger ordered workflow with manifests, critics, repair loops, or persistent orchestration.
+Use `fresh-consult` for cold reads, consistency audits, completion checks, and general second opinions. Use `agent-delegate` when the fresh child should implement, edit, investigate-and-fix, run commands, or use installed skills in the shared worktree. Use `code-review` when the user wants the deterministic full code-review product with Codex lens fan-out and coverage guarantees. Use `codex-review-yolo` when the user specifically wants the existing Codex `-p yolo` review pattern. Use `stepwise` or `arch-epic` when subprocesses are part of a larger ordered workflow with manifests, critics, repair loops, or persistent orchestration.
+
+### `agent-delegate`
+
+Use when the user wants a fresh Claude or Codex subprocess to do concrete work in the current workspace: implementation, editing, investigation-and-fix, command execution, verification, or installed-skill use. The skill is prompt-only: it writes a delegation prompt, runs the selected local CLI hook-suppressed and unsandboxed in the shared worktree, captures `prompt.md`, `final.txt`, and `stream.log` under `/tmp/agent-delegate/...`, then reports status, changed files, verification, blockers, follow-up, and the run directory.
+
+The user supplies runtime, model, and effort, or the skill asks once before invoking. Runtime can be inferred only from unambiguous model families such as `gpt-5.5` for Codex or `Claude Opus 4.7` for Claude. Exact model versions are preserved; there is no silent downgrade, provider switch, effort substitution, detached fallback, or separate-worktree fallback.
+
+Use `agent-delegate` for one-shot operational delegation where the child may write files. Use `fresh-consult` for read-only second opinions and completion checks. Use `model-consensus` for two-model plan convergence. Use `stepwise` or `arch-epic` when subprocesses are part of an ordered workflow with manifests, critics, repair loops, or persistent orchestration.
 
 ### `model-consensus`
 
@@ -377,7 +389,7 @@ Use when the user wants two selected Claude/Codex models to iterate on a plan, a
 
 The user supplies the two participant runtime/model/effort choices, or the skill asks once. It follows the shared model-resolution doctrine for shorthand such as `gpt 5.5 xhigh` and `Claude Opus 4.7 high`, preserves exact versions, and reports the raw-to-resolved mapping before execution.
 
-Use `model-consensus` for collaborative or adversarial plan refinement. Use `fresh-consult` for one cold second opinion, `code-review` for deterministic review findings, and `stepwise` or `arch-epic` for ordered implementation workflows.
+Use `model-consensus` for collaborative or adversarial plan refinement. Use `fresh-consult` for one cold second opinion, `agent-delegate` for one foreground worker that may edit the shared worktree, `code-review` for deterministic review findings, and `stepwise` or `arch-epic` for ordered implementation workflows.
 
 ### `code-review`
 
@@ -389,7 +401,7 @@ Use `code-review` when the user wants an automated finding-set with explicit cov
 
 ## Usage
 
-- Primary surface: ask the agent to use `arch-step`, `miniarch-step`, `arch-epic`, `arch-docs`, `arch-mini-plan`, `lilarch`, `bugs-flow`, `audit-loop`, `comment-loop`, `audit-loop-sim`, `arch-loop`, `delay-poll`, `wait`, `goal-loop`, `north-star-investigation`, `arch-flow`, `arch-skills-guide`, `agent-definition-auditor`, `agents-md-authoring`, `prompt-authoring`, `skill-authoring`, `pr-authoring`, `skill-flow`, `amir-publish`, `fresh-consult`, `model-consensus`, `code-review`, `stepwise`, or `codex-review-yolo`.
+- Primary surface: ask the agent to use `arch-step`, `miniarch-step`, `arch-epic`, `arch-docs`, `arch-mini-plan`, `lilarch`, `bugs-flow`, `audit-loop`, `comment-loop`, `audit-loop-sim`, `arch-loop`, `delay-poll`, `wait`, `goal-loop`, `north-star-investigation`, `arch-flow`, `arch-skills-guide`, `agent-definition-auditor`, `agents-md-authoring`, `prompt-authoring`, `skill-authoring`, `pr-authoring`, `skill-flow`, `amir-publish`, `fresh-consult`, `agent-delegate`, `model-consensus`, `code-review`, `stepwise`, or `codex-review-yolo`.
 - Full-arch execution defaults to `miniarch-step` when the trimmed command surface is enough and `arch-step` when the broader or helper-heavy surface is needed.
 - Docs cleanup loops default to `arch-docs`.
 - Read-only checklist and next-step inspection uses `arch-flow`.
