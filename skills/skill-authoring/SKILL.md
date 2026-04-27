@@ -1,13 +1,16 @@
 ---
 name: skill-authoring
-description: "Write, edit, refactor, or audit agent skills so they are leverage-first, self-contained, anti-heuristic, and distinct from nearby peer skills. Use when a Codex, OpenClaw, OpenAI, Anthropic, or repo-local skill needs stronger use-case selection, peer-group boundaries, runtime-specific packaging, gating, references, or validation before shipping."
+description: "Write, edit, refactor, or audit prompt-first agent skills so they stay simple by default, self-contained, anti-heuristic, and distinct from nearby peers. Use when a Codex, OpenClaw, OpenAI, Anthropic, or repo-local skill needs stronger intent, trigger boundaries, packaging, references, runtime metadata, or validation before shipping."
 metadata:
-  short-description: "Author high-impact reusable skills"
+  short-description: "Author prompt-first reusable skills"
 ---
 
 # Skill Authoring
 
 Use this skill when the work is creating or repairing an agent skill, not generic documentation.
+
+Skills are reusable prompt contracts first. Default to the smallest prompt-only
+package that preserves the user's intent and leaves room for agent judgment.
 
 This skill is intentionally self-contained. Use the references in this folder, not external repo docs, while doing the runtime work.
 
@@ -27,6 +30,7 @@ make install
 - A skill's role is blurry relative to sibling skills, a suite guide, or a nearby tool wrapper.
 - The user wants a findings-first audit of a skill's leverage, progressive disclosure, self-containment, or validation plan.
 - The user wants to refactor an overgrown or heuristic skill without losing useful workflow knowledge.
+- The user wants to remove accidental scripts, parameters, fake blockers, or harness behavior from a skill that should be simple prompt guidance.
 - The target runtime is OpenClaw and the skill needs slash-command behavior, loader gating, metadata rules, or per-agent/shared installation guidance.
 
 ## When not to use
@@ -41,6 +45,9 @@ make install
 
 - Start from 2-3 concrete user asks and the leverage claim before designing files.
 - Decide whether a skill is the right mechanism before writing one.
+- Apply `$prompt-authoring` discipline to all skill prose, including `SKILL.md`, references, bundled agents, and output contracts.
+- Default to simple prompt engineering. Add references, scripts, or harness behavior only after the lean prompt contract proves insufficient.
+- Generalize from the user's intent, not from the first concrete incident. Preserve common-sense interpretation instead of adding formal inputs for natural-language asks.
 - Teach reusable workflow, judgment, and invariants; do not replace reasoning with slogans, keyword rules, canned menus, or giant checklists.
 - Treat the `description` field as runtime trigger logic, not marketing copy.
 - Keep the frontmatter `description` inside the runtime length cap; treat over-1024-character descriptions as invalid unless the target runtime documents a stricter cap.
@@ -48,7 +55,8 @@ make install
 - Encode runtime-specific behavior in machine-readable fields when the host supports them; do not hide load, gating, or invocation rules only in prose.
 - Keep the shipped skill self-contained; do not depend on repo docs, hidden context, or local prompt packs at runtime.
 - Keep `SKILL.md` lean and move heavy detail into `references/`.
-- Add `scripts/` only when deterministic reliability or repeated complexity justifies them.
+- Add `scripts/` only when deterministic reliability or repeated complexity justifies them, and record why a simple prompt-only package is not enough.
+- Do not create a runner, launcher, controller, or formal parameter schema unless the user explicitly asked for orchestration or the workflow genuinely cannot be expressed as prompt guidance.
 - Treat any script the skill ships as part of the agent's prompt budget; default to a high-signal verdict and a handle for detail, not an inline blob.
 - Debug undertriggering, overtriggering, and poor execution separately.
 - Validate the skill on representative tasks without leaking the intended answer into the evaluation surface.
@@ -58,7 +66,8 @@ make install
 
 1. Classify the job as `author`, `edit`, `refactor`, or `audit`.
 2. Read `references/skill-pattern-contract.md`.
-3. Read the smallest additional reference that matches the job:
+3. Apply `$prompt-authoring` best practices: single job, mission-level intent, success/failure, section-correct guidance, and anti-heuristic checks.
+4. Read the smallest additional reference that matches the job:
    - `references/workflow-and-modes.md` for mode routing and output expectations
    - `references/leverage-and-scope.md` for deciding what the skill should own and whether it should exist at all
    - `references/peer-groups-and-boundaries.md` when related sibling skills, suite routing, or overlap are in scope
@@ -71,13 +80,15 @@ make install
 
 1. Lock the job-to-be-done, the leverage claim, and 2-3 canonical user asks before touching wording.
 2. Choose the right mechanism: skill, prompt, `AGENTS.md`, plan doc, or ordinary docs.
-3. If the skill has visible peers, name the target lane and the nearest lookalike before rewriting trigger prose.
-4. Define scope, one strong out-of-scope lookalike, and the runtime boundaries.
-5. Write the trigger description so it says what the skill does, when to use it, and when not to.
-6. Encode any runtime-specific load, gating, slash-command, or invocation behavior in the runtime's machine-readable schema before treating the prose as done.
-7. Build the minimum viable package: `SKILL.md` first, then only the `references/`, `scripts/`, `assets/`, and `agents/` metadata the workflow truly needs.
-8. Use progressive disclosure aggressively: core contract in `SKILL.md`, deeper guidance in `references/`, determinism in `scripts/`.
-9. Validate trigger quality, package integrity, runtime-specific behavior, and execution quality before shipping.
+3. Start with the lean prompt-only shape. Add references only when they reduce repeated prompting or keep `SKILL.md` small.
+4. If the skill has visible peers, name the target lane and the nearest lookalike before rewriting trigger prose.
+5. Define scope, one strong out-of-scope lookalike, and the runtime boundaries.
+6. Write the trigger description so it says what the skill does, when to use it, and when not to.
+7. Encode any runtime-specific load, gating, slash-command, or invocation behavior in the runtime's machine-readable schema before treating the prose as done.
+8. Build the minimum viable package: `SKILL.md` first, then only the `references/`, `scripts/`, `assets/`, and `agents/` metadata the workflow truly needs.
+9. Use progressive disclosure aggressively: core contract in `SKILL.md`, deeper guidance in `references/`, determinism in `scripts/`.
+10. Before adding a script, runner, launcher, or formal input interface, write the proof that prompt guidance is insufficient. If the proof is weak, keep it prompt-only.
+11. Validate trigger quality, package integrity, runtime-specific behavior, execution quality, and anti-heuristic quality before shipping.
 
 ## Output expectations
 

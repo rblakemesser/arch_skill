@@ -6,7 +6,7 @@ Always read `skill-pattern-contract.md` first. Then use this file to choose the 
 
 - The four supported modes
 - Mode router
-- Four concrete use cases
+- Five concrete use cases
 
 ## The four supported modes
 
@@ -26,10 +26,12 @@ What to do:
 1. State the repeated user problem and why a skill is the right mechanism.
 2. Lock 2-3 canonical user asks and one out-of-scope lookalike.
 3. Draft the `description` before drafting the body so the trigger boundary is explicit.
-4. If the target runtime is OpenClaw, lock the frontmatter, gating, install scope, and slash-command behavior before treating the package as complete.
-5. Build the leanest package that can teach the workflow well.
-6. Push detailed material down into `references/` instead of expanding `SKILL.md`.
-7. Run trigger, package, and runtime-specific validation before returning.
+4. Start prompt-first: write the smallest `SKILL.md` that would work if the user had typed the reusable prompt by hand.
+5. If the target runtime is OpenClaw, lock the frontmatter, gating, install scope, and slash-command behavior before treating the package as complete.
+6. Build the leanest package that can teach the workflow well.
+7. Push detailed material down into `references/` instead of expanding `SKILL.md`.
+8. Add scripts or harness behavior only after writing why prompt guidance is insufficient.
+9. Run trigger, package, runtime-specific, and anti-heuristic validation before returning.
 
 What to return:
 
@@ -51,7 +53,9 @@ What to do:
 
 1. Identify the failing layer before rewriting.
 2. Patch only the owning layer first: frontmatter, `description`, `SKILL.md`, `references/`, `scripts/`, or runtime metadata such as `openai.yaml`.
-3. Re-read the whole package for drift, especially when a local edit reveals a broader scope problem.
+3. If the failure is over-constraint, remove fake blockers, formal inputs, scripts, or harness behavior before adding more rules.
+4. Re-read the whole package for drift, especially when a local edit reveals a broader scope problem.
+5. Run the `$prompt-authoring` anti-heuristic check on the edited prose before returning.
 
 What to return:
 
@@ -71,8 +75,9 @@ What to do:
 
 1. Identify the workflow knowledge worth preserving.
 2. Extract the durable principles that explain why the old skill helped.
-3. Re-home bulky doctrine, examples, or narrow rules into the correct layer.
-4. Rebuild the top-level contract so the package is lean, bounded, and portable.
+3. Convert brittle rules into principles, examples, or recognition tests instead of preserving them as control flow.
+4. Re-home bulky doctrine, examples, or narrow rules into the correct layer.
+5. Rebuild the top-level contract so the package is lean, bounded, prompt-first, and portable.
 
 What to return:
 
@@ -93,7 +98,8 @@ What to do:
 
 1. Read the package as it exists before proposing fixes.
 2. Separate trigger failures, packaging failures, and execution failures.
-3. Point each finding to the exact layer that should change.
+3. Call out prompt drift, over-specialization, fake blockers, and unjustified scripts separately.
+4. Point each finding to the exact layer that should change.
 
 What to return:
 
@@ -111,7 +117,7 @@ Choose the smallest mode that matches the job:
 
 If unsure, start with `audit`, then either stop with findings or continue into `edit` or `refactor`.
 
-## Four concrete use cases
+## Five concrete use cases
 
 1. A team has a repeated workflow and wants a reusable skill package. Use `author`.
 2. A good skill undertriggers because the description is vague. Use `edit`.

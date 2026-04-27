@@ -11,6 +11,7 @@ Use this file when you need concrete patterns for framing, packaging, or auditin
 - Example: coordinator versus specialist
 - Example: OpenClaw metadata is operational, not decorative
 - Example: preserve the principle, not the checklist
+- Example: prompt-first runbook
 - Example: script discipline
 
 ## Example: strong use-case framing
@@ -167,6 +168,34 @@ Better refactor:
 - keep the old concrete detail as an example, litmus test, or reference note if it still teaches something real
 
 This is how you avoid deleting the skill's real value while still removing heuristics.
+
+## Example: prompt-first runbook
+
+Bad:
+
+- The user says, "Run the lesson I specify from beginning to end."
+- The skill becomes a runner with flags, target schemas, route recovery rules,
+  hard blockers for missing artifacts, and a script that mostly enforces the
+  same order a prompt could have stated.
+
+Why it fails:
+
+- it treats natural language as an API problem
+- it overfits one repair incident into runtime behavior
+- it removes the agent's ability to use common sense about the named target
+- it blocks on normal start states the skill was supposed to handle
+
+Better:
+
+- "Use when the author names one lesson and wants it authored end to end."
+- "Assume the section is ready unless the owning controller or skill proves otherwise."
+- "Run the owner skills in this order; stop only for real owner blockers, failed validation, or ambiguity."
+
+Why it works:
+
+- the skill is a reusable prompt the user no longer has to type
+- the sequence is clear without pretending every branch is knowable up front
+- ownership boundaries stay visible without becoming a second harness
 
 ## Example: script discipline
 

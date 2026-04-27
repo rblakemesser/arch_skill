@@ -5,6 +5,7 @@ Use this file when turning the concept into a shippable skill package.
 ## Table of contents
 
 - Packaging rules
+- Package ladder
 - Naming rules
 - Description writing rules
 - Peer-aware trigger rules
@@ -40,6 +41,20 @@ Avoid extra files such as:
 - `CHANGELOG.md`
 - `QUICK_REFERENCE.md`
 - process diaries inside the skill directory
+
+## Package ladder
+
+Build the smallest package that solves the repeated user problem:
+
+1. Start with a lean prompt-only `SKILL.md`.
+2. Add `references/` only when the detail would bloat the entrypoint or be useful only on demand.
+3. Add `agents/openai.yaml` only when UI metadata, a default prompt, or invocation policy helps.
+4. Add `scripts/` only when deterministic validation, transforms, or repeated code are truly needed.
+5. Add a runner, launcher, controller, harness, or formal input interface only when the user explicitly wants orchestration or the task cannot be expressed as prompt guidance.
+
+Before adding anything beyond `SKILL.md`, write the reason in the package
+design notes or review summary. If the reason is only "this makes the skill
+feel more robust," keep the package prompt-only.
 
 ## Naming rules
 
@@ -137,6 +152,10 @@ Add a `script` when:
 - precise validation is valuable
 - natural-language execution keeps failing in a repeatable way
 
+Do not add a script, runner, launcher, controller, or formal input schema just
+to make a prompt sequence look deterministic. If a human would reasonably type
+the workflow as a few sentences, the skill should probably remain prompt-only.
+
 Once the decision to ship a script is made, the script's stdout shape is a separate design problem and is owned by `references/script-output-economy.md`. Treat it as part of the skill's prompt-budget surface, not as a developer console.
 
 ## `agents/openai.yaml` rules
@@ -176,6 +195,7 @@ Validate four different things:
    - once loaded, the skill actually improves the work
    - the instructions are followable
    - the references are sufficient without hidden context
+   - the skill preserves common-sense interpretation instead of forcing needless parameters
 4. **Validation integrity**
    - representative tasks are realistic rather than cherry-picked
    - the evaluator does not receive the intended answer or hidden conclusions
@@ -200,7 +220,10 @@ npx skills check
     runtime cap?
   - could the description also select a sibling skill?
   - are references being used for real doctrine rather than clutter?
+  - does the package stay prompt-first unless determinism is proven?
+  - did any concrete example become a rigid workflow rule by accident?
 - Run at least one representative task from the main use cases and one nearby anti-case.
+- Run one paraphrased task that names the target naturally instead of through exact keywords or formal inputs.
 - In a multi-skill package, run at least one nearest-peer anti-case.
 - If you use an independent validation pass, give it only the minimum task-local context needed to judge whether the skill worked.
 - For OpenClaw skill packs, also validate eligibility, placement, and config with the runtime's own tooling and session model. See `references/openclaw-skills.md`.
@@ -216,5 +239,6 @@ If the skill:
 - picks the wrong sibling, fix the ownership discriminator, handoff line, or
   suite guide before adding more examples
 - executes vaguely, improve `SKILL.md` or add the right reference
+- became over-constrained, remove fake blockers, formal inputs, and scripted control flow before adding more rules
 - appears to pass validation only when the evaluator already knows the expected answer, fix the validation setup before changing the skill
 - keeps failing the same precise task, add or refine a script

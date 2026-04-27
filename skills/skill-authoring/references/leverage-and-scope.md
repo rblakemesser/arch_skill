@@ -6,6 +6,7 @@ Use this file when you need to decide whether the skill should exist, what it sh
 
 - Start with the user problem, not the folder
 - Choose the right mechanism
+- Generalize from intent
 - Shape scope aggressively
 - Shape scope against visible peers
 - Massive impact comes from leverage, not volume
@@ -41,6 +42,10 @@ Use a skill when:
 - implicit or explicit invocation would be valuable
 - the package should travel between repos or users
 
+Most reusable skills should still be prompt-only. A skill usually starts as the
+prompt the user would have typed repeatedly, plus the minimum boundaries and
+references needed to make that prompt portable.
+
 Use a prompt when:
 
 - the user wants an explicit one-shot command
@@ -56,6 +61,26 @@ Use ordinary docs when:
 
 - humans are the primary audience
 - no runtime behavior or invocation surface is needed
+
+## Generalize from intent
+
+A skill should capture the durable move behind the user's examples, not freeze
+the first example into control flow.
+
+Good generalization:
+
+- "Take the named lesson through the normal authoring flow."
+- "Review the prompt for heuristic drift and fix the owning section."
+- "Use the visible peer group to pick the right skill and explain the boundary."
+
+Bad specialization:
+
+- a fixed branch for one lesson number, section name, or field label
+- formal inputs for a target the user can name in normal language
+- hard blockers for normal start states, such as missing artifacts in a skill
+  that is supposed to create those artifacts
+- a runner or script whose only job is to enforce a prompt sequence the agent
+  can follow from plain instructions
 
 ## Shape scope aggressively
 
@@ -127,11 +152,11 @@ The highest-leverage skills usually do a small number of important things well:
 Set the skill's specificity to match the fragility of the task.
 
 - High freedom:
-  - Use when multiple valid approaches exist and judgment is the point.
+  - Use when multiple valid approaches exist and judgment is the point. This is the default for most prompt-first skills.
 - Medium freedom:
   - Use when there is a preferred pattern but some variation is healthy.
 - Low freedom:
-  - Use when the sequence is fragile, safety-critical, or repeatedly mis-executed.
+  - Use only when the sequence is fragile, safety-critical, explicitly orchestrated, or repeatedly mis-executed after prompt guidance.
 
 If you find yourself writing many rigid rules for a high-variance task, the skill is probably compensating for poor framing rather than teaching the real lesson.
 

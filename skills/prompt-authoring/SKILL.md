@@ -18,6 +18,7 @@ make install
 ## When to use
 
 - The user wants a new system prompt, skill prompt, agent prompt, reviewer prompt, or reusable prompt contract.
+- The user wants `SKILL.md`, skill references, or bundled agent prompts written with prompt-quality discipline.
 - The user wants to strengthen an existing prompt without rewriting its entire personality.
 - The user wants a prompt refactored so brittle heuristics become examples, rationale, or litmus tests.
 - The user wants a findings-first audit of a prompt for myopia, wrong-layer content, weak commander’s intent, or hidden heuristics.
@@ -33,6 +34,7 @@ make install
 - Push back against heuristic and myopic prompt design aggressively.
 - Keep commander’s intent mission-level; push concrete behaviors lower into success/failure, recognition tests, process, and examples.
 - Teach principles and recognition tests, not keyword lists, lookup tables, or canned action menus.
+- Treat skill prose as prompt prose. Keep it intent-driven and anti-heuristic; leave packaging, trigger metadata, and runtime boundaries to `$skill-authoring`.
 - Fix the right section instead of smearing new guidance across the whole prompt.
 - Preserve useful prompt magic during refactors by extracting the durable principle and demoting brittle heuristics into examples, rationale, or litmus tests.
 - Work only from the prompt and the references listed here; do not assume hidden supporting material.

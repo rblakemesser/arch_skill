@@ -37,7 +37,7 @@ Other shipped skills are:
 - `agent-definition-auditor` — cold-reader scoring and findings for `AGENTS.md`, `CLAUDE.md`, `SKILL.md`, `SOUL.md`, system prompts, and other agent-definition markdown
 - `agents-md-authoring` — writes, edits, refactors, and audits concise repo-present `AGENTS.md` files
 - `prompt-authoring` — writes, edits, refactors, and audits reusable prompt contracts
-- `skill-authoring` — writes, edits, refactors, and audits reusable agent skill packages
+- `skill-authoring` — writes, edits, refactors, and audits prompt-first reusable agent skill packages
 - `pr-authoring` — writes and publishes high-quality GitHub pull requests from real repo changes
 - `skill-flow` — designs, repairs, and audits ordered multi-skill flows with distinct skill jobs, concrete handoffs, clear peer boundaries, and no prompt-runner scaffolding; for 30+ skill suites, the DAG-grounded audit sub-mode parallel-walks the suite, builds a labeled-edge substrate, and surfaces wasted-energy patterns (over-promotion, redundancy, dead skills, broken refs)
 - `amir-publish` — personal shortcut for publishing this skills repo across Amir's usual machines
@@ -353,7 +353,7 @@ Use when the user wants to write, edit, refactor, or audit a reusable prompt con
 
 ### `skill-authoring`
 
-Use when the user wants to write, edit, refactor, or audit a reusable agent skill package with precise triggers, clear peer boundaries, lean packaging, and self-contained references.
+Use when the user wants to write, edit, refactor, or audit a reusable agent skill package so it stays prompt-first, simple by default, generalized from user intent, anti-heuristic, and clear about peer boundaries, packaging, references, and validation.
 
 ### `pr-authoring`
 
