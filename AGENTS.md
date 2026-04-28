@@ -47,6 +47,9 @@ Claude Code, and Gemini.
 - Use `$skill-authoring` for new, edited, refactored, or audited skill
   packages.
 - Use `$agents-md-authoring` for `AGENTS.md` authoring or refactors.
+- Use `$figma-best-practices` when the user wants Figma file-craft,
+  component-library, variables/token, Dev Mode, Code Connect, Make, Sites,
+  Buzz, Slides, or MCP-readiness guidance.
 - If the user wants to execute one of the shipped workflows, use the matching
   split skill instead of reviving the archived pre-skill surface.
 - Use `$arch-step` when the user wants explicit full-arch commands such as

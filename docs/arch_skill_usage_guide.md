@@ -30,6 +30,7 @@ Other shipped skills:
 - `agents-md-authoring`
 - `prompt-authoring`
 - `skill-authoring`
+- `figma-best-practices`
 - `eli10`
 - `pr-authoring`
 - `commit-history-authoring`
@@ -84,6 +85,7 @@ Default local path:
 - `~/.agents/skills/agents-md-authoring/`
 - `~/.agents/skills/prompt-authoring/`
 - `~/.agents/skills/skill-authoring/`
+- `~/.agents/skills/figma-best-practices/`
 - `~/.agents/skills/eli10/`
 - `~/.agents/skills/pr-authoring/`
 - `~/.agents/skills/commit-history-authoring/`
@@ -122,6 +124,7 @@ Installed skills:
   - `agents-md-authoring`
   - `prompt-authoring`
   - `skill-authoring`
+  - `figma-best-practices`
   - `eli10`
   - `pr-authoring`
   - `commit-history-authoring`
@@ -155,6 +158,7 @@ Installed skills:
   - `agents-md-authoring`
   - `prompt-authoring`
   - `skill-authoring`
+  - `figma-best-practices`
   - `eli10`
   - `pr-authoring`
   - `commit-history-authoring`
@@ -185,6 +189,7 @@ Installed skills:
   - `agents-md-authoring`
   - `prompt-authoring`
   - `skill-authoring`
+  - `figma-best-practices`
   - `eli10`
   - `pr-authoring`
   - `commit-history-authoring`
@@ -199,7 +204,7 @@ Installed skills:
 
 Install removes stale pre-skill command surfaces, removed skill packages, and older Codex skill mirrors. It installs one repo-managed Codex `Stop` hook in `~/.codex/hooks.json` pointing at `~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py --runtime codex` and one repo-managed Claude Code `Stop` hook plus one `SessionStart` hook in `~/.claude/settings.json` pointing at the same installed runner with `--runtime claude`. Every loop-skill arm also reruns `arch_controller_stop_hook.py --ensure-installed --runtime <codex|claude>` so the canonical hook entries cannot drift between runs. Those entries back `arch-step` automatic controllers, `arch-docs auto`, `audit-loop auto`, `comment-loop auto`, `audit-loop-sim auto`, `arch-loop`, and `delay-poll`.
 
-`arch-loop`, `delay-poll`, and `wait` are installed on Codex and Claude Code because both runtimes have a native `Stop` hook surface. Gemini still has no hook-backed auto-controller surface, so none of those three are installed there. `arch-loop` evaluator turns additionally always shell out to fresh unsandboxed Codex `gpt-5.4` `xhigh` for the external verdict, mirroring the `code-review` exception: the Claude host can arm and drive the loop, but the evaluator subprocess itself must always be Codex. `fresh-consult`, `agent-delegate`, and `model-consensus` are prompt-only and installed on all three skill surfaces, but the selected local `claude` or `codex` CLI must exist on the host at invocation time. `fresh-consult` is read-only and can run multiple fresh children when explicitly requested; `agent-delegate` may write to the shared worktree when invoked with an allowed write scope and can run multiple fresh workers when explicitly requested. `code-review` is installed on the agents/Codex and Claude Code surfaces only; Claude may host the Stop hook, but the review subprocess itself always shells out to fresh Codex.
+`arch-loop`, `delay-poll`, and `wait` are installed on Codex and Claude Code because both runtimes have a native `Stop` hook surface. Gemini still has no hook-backed auto-controller surface, so none of those three are installed there. `arch-loop` evaluator turns additionally always shell out to fresh unsandboxed Codex `gpt-5.4` `xhigh` for the external verdict, mirroring the `code-review` exception: the Claude host can arm and drive the loop, but the evaluator subprocess itself must always be Codex. `figma-best-practices`, `fresh-consult`, `agent-delegate`, and `model-consensus` are prompt-only and installed on all three skill surfaces, but subprocess skills still require the selected local `claude` or `codex` CLI to exist on the host at invocation time. `fresh-consult` is read-only and can run multiple fresh children when explicitly requested; `agent-delegate` may write to the shared worktree when invoked with an allowed write scope and can run multiple fresh workers when explicitly requested. `code-review` is installed on the agents/Codex and Claude Code surfaces only; Claude may host the Stop hook, but the review subprocess itself always shells out to fresh Codex.
 
 ## Shared conventions
 
@@ -493,6 +498,14 @@ Use when the user wants to write, edit, refactor, or audit a reusable agent skil
 Examples:
 
 - `Use $skill-authoring to audit this skill package`
+
+### `figma-best-practices`
+
+Use when the user wants to create, audit, or repair a Figma file, component library, variable/token system, prototype, Dev Mode surface, Code Connect mapping, Make kit, Sites page, Buzz template, Slides deck, or MCP-readable design artifact. The skill is prompt-only and applies bundled Figma file-craft doctrine; use implementation or Figma automation skills instead when the task is building code from a design or operating the Figma UI.
+
+Examples:
+
+- `Use $figma-best-practices to audit this Figma library for Dev Mode and MCP readiness`
 
 ### `eli10`
 
