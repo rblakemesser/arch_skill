@@ -1,7 +1,7 @@
 interface:
-  display_name: "ELI10 Decision Briefs"
-  short_description: "Format user decisions with plain-English stakes, recommendations, pros/cons, and a Net line"
-  default_prompt: "Use $eli10 to format this user-facing decision question with ELI10 context, concrete stakes, a recommendation, honest pros/cons, and a closing Net line."
+  display_name: "ELI10 Plain-English Answers"
+  short_description: "Answer questions in plain English while preserving technical truth"
+  default_prompt: "Use $eli10 to answer the current question in plain English a 16-year-old can follow, define jargon on first use, preserve exact technical facts, name the stakes, and use a decision brief only if you need me to choose."
 
 policy:
   allow_implicit_invocation: true

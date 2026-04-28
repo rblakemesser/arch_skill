@@ -491,10 +491,11 @@ Examples:
 
 ### `eli10`
 
-Use when the user wants to write, repair, or audit a user-facing decision question so it includes ELI10 plain-English context, concrete stakes, a recommendation, honest pros/cons, and a closing `Net:` tradeoff line.
+Use when the user wants any answer, explanation, plan, review, recommendation, or status update in ELI10/ELI16 plain-English style. It defines jargon on first use, names stakes, preserves exact commands/metrics/file names, and uses the decision-brief contract only when the answer is asking the user to choose.
 
 Examples:
 
+- `Use $eli10 to explain why this test failed`
 - `Use $eli10 to format this decision question`
 
 ### `skill-flow`

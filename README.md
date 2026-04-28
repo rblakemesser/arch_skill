@@ -38,7 +38,7 @@ Other shipped skills are:
 - `agents-md-authoring` — writes, edits, refactors, and audits concise repo-present `AGENTS.md` files
 - `prompt-authoring` — writes, edits, refactors, and audits reusable prompt contracts
 - `skill-authoring` — writes, edits, refactors, and audits prompt-first reusable agent skill packages
-- `eli10` — writes and repairs user-facing decision briefs with plain-English stakes, recommendations, pros/cons, and a closing `Net:` line
+- `eli10` — answers questions in plain-English ELI10 style while preserving exact technical facts, with a decision-brief sub-mode only when the user must choose
 - `pr-authoring` — writes and publishes high-quality GitHub pull requests from real repo changes
 - `skill-flow` — designs, repairs, and audits ordered multi-skill flows with distinct skill jobs, concrete handoffs, clear peer boundaries, and no prompt-runner scaffolding; for 30+ skill suites, the DAG-grounded audit sub-mode parallel-walks the suite, builds a labeled-edge substrate, and surfaces wasted-energy patterns (over-promotion, redundancy, dead skills, broken refs)
 - `amir-publish` — personal shortcut for publishing this skills repo across Amir's usual machines
@@ -361,7 +361,7 @@ Use when the user wants to write, edit, refactor, or audit a reusable agent skil
 
 ### `eli10`
 
-Use when the user wants to write, repair, or audit a user-facing decision question so it includes ELI10 plain-English context, concrete stakes, a recommendation, honest pros/cons, and a closing `Net:` tradeoff line. Use `prompt-authoring` for reusable prompt contracts and `skill-authoring` for skill packages.
+Use when the user wants any answer, explanation, plan, review, recommendation, or status update in ELI10/ELI16 plain-English style. The skill defines jargon on first use, names stakes, preserves exact commands/metrics/file names, and uses the decision-brief contract only when the answer is asking the user to choose. Use `prompt-authoring` for reusable prompt contracts and `skill-authoring` for skill packages.
 
 ### `pr-authoring`
 
@@ -467,6 +467,7 @@ Examples:
 - `Use $agents-md-authoring to tighten this AGENTS.md`
 - `Use $prompt-authoring to refactor this prompt`
 - `Use $skill-authoring to audit this skill package`
+- `Use $eli10 to explain why this test failed`
 - `Use $eli10 to format this decision question`
 - `Use $pr-authoring to write and publish a PR for this branch`
 - `Use $skill-flow to design the authoring and audit flow for this skill suite`
