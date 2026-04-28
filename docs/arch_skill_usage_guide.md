@@ -30,6 +30,7 @@ Other shipped skills:
 - `agents-md-authoring`
 - `prompt-authoring`
 - `skill-authoring`
+- `eli10`
 - `pr-authoring`
 - `skill-flow`
 - `amir-publish`
@@ -82,6 +83,7 @@ Default local path:
 - `~/.agents/skills/agents-md-authoring/`
 - `~/.agents/skills/prompt-authoring/`
 - `~/.agents/skills/skill-authoring/`
+- `~/.agents/skills/eli10/`
 - `~/.agents/skills/pr-authoring/`
 - `~/.agents/skills/skill-flow/`
 - `~/.agents/skills/amir-publish/`
@@ -118,6 +120,7 @@ Installed skills:
   - `agents-md-authoring`
   - `prompt-authoring`
   - `skill-authoring`
+  - `eli10`
   - `pr-authoring`
   - `skill-flow`
   - `amir-publish`
@@ -149,6 +152,7 @@ Installed skills:
   - `agents-md-authoring`
   - `prompt-authoring`
   - `skill-authoring`
+  - `eli10`
   - `pr-authoring`
   - `skill-flow`
   - `amir-publish`
@@ -177,6 +181,7 @@ Installed skills:
   - `agents-md-authoring`
   - `prompt-authoring`
   - `skill-authoring`
+  - `eli10`
   - `pr-authoring`
   - `skill-flow`
   - `amir-publish`
@@ -483,6 +488,14 @@ Use when the user wants to write, edit, refactor, or audit a reusable agent skil
 Examples:
 
 - `Use $skill-authoring to audit this skill package`
+
+### `eli10`
+
+Use when the user wants to write, repair, or audit a user-facing decision question so it includes ELI10 plain-English context, concrete stakes, a recommendation, honest pros/cons, and a closing `Net:` tradeoff line.
+
+Examples:
+
+- `Use $eli10 to format this decision question`
 
 ### `skill-flow`
 

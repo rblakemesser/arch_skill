@@ -38,6 +38,7 @@ Other shipped skills are:
 - `agents-md-authoring` — writes, edits, refactors, and audits concise repo-present `AGENTS.md` files
 - `prompt-authoring` — writes, edits, refactors, and audits reusable prompt contracts
 - `skill-authoring` — writes, edits, refactors, and audits prompt-first reusable agent skill packages
+- `eli10` — writes and repairs user-facing decision briefs with plain-English stakes, recommendations, pros/cons, and a closing `Net:` line
 - `pr-authoring` — writes and publishes high-quality GitHub pull requests from real repo changes
 - `skill-flow` — designs, repairs, and audits ordered multi-skill flows with distinct skill jobs, concrete handoffs, clear peer boundaries, and no prompt-runner scaffolding; for 30+ skill suites, the DAG-grounded audit sub-mode parallel-walks the suite, builds a labeled-edge substrate, and surfaces wasted-energy patterns (over-promotion, redundancy, dead skills, broken refs)
 - `amir-publish` — personal shortcut for publishing this skills repo across Amir's usual machines
@@ -108,6 +109,7 @@ Installed skills:
   - `~/.agents/skills/agents-md-authoring/`
   - `~/.agents/skills/prompt-authoring/`
   - `~/.agents/skills/skill-authoring/`
+  - `~/.agents/skills/eli10/`
   - `~/.agents/skills/pr-authoring/`
   - `~/.agents/skills/skill-flow/`
   - `~/.agents/skills/amir-publish/`
@@ -139,6 +141,7 @@ Installed skills:
   - `~/.claude/skills/agents-md-authoring/`
   - `~/.claude/skills/prompt-authoring/`
   - `~/.claude/skills/skill-authoring/`
+  - `~/.claude/skills/eli10/`
   - `~/.claude/skills/pr-authoring/`
   - `~/.claude/skills/skill-flow/`
   - `~/.claude/skills/amir-publish/`
@@ -167,6 +170,7 @@ Installed skills:
   - `~/.gemini/skills/agents-md-authoring/`
   - `~/.gemini/skills/prompt-authoring/`
   - `~/.gemini/skills/skill-authoring/`
+  - `~/.gemini/skills/eli10/`
   - `~/.gemini/skills/pr-authoring/`
   - `~/.gemini/skills/skill-flow/`
   - `~/.gemini/skills/amir-publish/`
@@ -355,6 +359,10 @@ Use when the user wants to write, edit, refactor, or audit a reusable prompt con
 
 Use when the user wants to write, edit, refactor, or audit a reusable agent skill package so it stays prompt-first, simple by default, generalized from user intent, anti-heuristic, and clear about peer boundaries, packaging, references, and validation.
 
+### `eli10`
+
+Use when the user wants to write, repair, or audit a user-facing decision question so it includes ELI10 plain-English context, concrete stakes, a recommendation, honest pros/cons, and a closing `Net:` tradeoff line. Use `prompt-authoring` for reusable prompt contracts and `skill-authoring` for skill packages.
+
 ### `pr-authoring`
 
 Use when the user wants a high-quality GitHub pull request written and published from real repo changes. The skill inspects repo truth, uses its vendored PR scaffold as a quality reference, creates or updates the GitHub PR, and returns the PR link instead of only printing suggested text.
@@ -411,7 +419,7 @@ Use `code-review` when the user wants an automated finding-set with explicit cov
 
 ## Usage
 
-- Primary surface: ask the agent to use `arch-step`, `miniarch-step`, `arch-epic`, `arch-docs`, `arch-mini-plan`, `lilarch`, `bugs-flow`, `audit-loop`, `comment-loop`, `audit-loop-sim`, `arch-loop`, `delay-poll`, `wait`, `goal-loop`, `north-star-investigation`, `arch-flow`, `arch-skills-guide`, `agent-definition-auditor`, `agents-md-authoring`, `prompt-authoring`, `skill-authoring`, `pr-authoring`, `skill-flow`, `amir-publish`, `fresh-consult`, `agent-delegate`, `model-consensus`, `code-review`, `stepwise`, or `codex-review-yolo`.
+- Primary surface: ask the agent to use `arch-step`, `miniarch-step`, `arch-epic`, `arch-docs`, `arch-mini-plan`, `lilarch`, `bugs-flow`, `audit-loop`, `comment-loop`, `audit-loop-sim`, `arch-loop`, `delay-poll`, `wait`, `goal-loop`, `north-star-investigation`, `arch-flow`, `arch-skills-guide`, `agent-definition-auditor`, `agents-md-authoring`, `prompt-authoring`, `skill-authoring`, `eli10`, `pr-authoring`, `skill-flow`, `amir-publish`, `fresh-consult`, `agent-delegate`, `model-consensus`, `code-review`, `stepwise`, or `codex-review-yolo`.
 - Full-arch execution defaults to `miniarch-step` when the trimmed command surface is enough and `arch-step` when the broader or helper-heavy surface is needed.
 - Docs cleanup loops default to `arch-docs`.
 - Read-only checklist and next-step inspection uses `arch-flow`.
@@ -459,6 +467,7 @@ Examples:
 - `Use $agents-md-authoring to tighten this AGENTS.md`
 - `Use $prompt-authoring to refactor this prompt`
 - `Use $skill-authoring to audit this skill package`
+- `Use $eli10 to format this decision question`
 - `Use $pr-authoring to write and publish a PR for this branch`
 - `Use $skill-flow to design the authoring and audit flow for this skill suite`
 - `Use $amir-publish`
