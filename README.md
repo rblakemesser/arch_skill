@@ -40,7 +40,7 @@ Other shipped skills are:
 - `skill-authoring` — writes, edits, refactors, and audits prompt-first reusable agent skill packages
 - `eli10` — answers in maximum-readability ELI10 style: plain speech, right-layer explanation, emoji scan markers, exact technical facts, root cause before symptom, no fake memory, renderer-aware tables when they improve understanding, and decision briefs only when the user must choose
 - `pr-authoring` — writes and publishes high-quality GitHub pull requests from real repo changes
-- `commit-history-authoring` — rewrites the current branch's local-only commit messages into informative history while preserving commit boundaries, patches, trailers, and backup recovery; it never pushes rewritten history
+- `commit-history-authoring` — rewrites the current branch's branch-span commit messages from its nearest parent branch into informative history while preserving commit boundaries, patches, trailers, and backup recovery; it never pushes rewritten history
 - `skill-flow` — designs, repairs, and audits ordered multi-skill flows with distinct skill jobs, concrete handoffs, clear peer boundaries, and no prompt-runner scaffolding; for 30+ skill suites, the DAG-grounded audit sub-mode parallel-walks the suite, builds a labeled-edge substrate, and surfaces wasted-energy patterns (over-promotion, redundancy, dead skills, broken refs)
 - `amir-publish` — personal shortcut for publishing this skills repo across Amir's usual machines
 - `codex-review-yolo` — external Codex `-p yolo` reviewer for substantial diffs, plans, docs, and completion claims, with live `--json` stream logs
@@ -373,7 +373,7 @@ Use when the user wants a high-quality GitHub pull request written and published
 
 ### `commit-history-authoring`
 
-Use when the user wants the current branch's local-only commit messages rewritten into an informative history before sharing. The skill inspects the local commit range, diffs, old messages, trailers, and any evidenced active arch plan; it then applies a message-only rewrite with a backup branch while preserving commit boundaries, patch content, author metadata, and final tree state. It refuses dirty worktrees, remote-reachable commits, upstream-ahead branches, protected branches by default, and merge commits. It never pushes or force-pushes.
+Use when the user wants the current branch's commit messages rewritten into an informative history from the point where the branch diverged from its nearest parent branch. The skill inspects the inferred branch-span range, diffs, old messages, trailers, and any evidenced active arch plan; it then applies a message-only rewrite with a backup branch while preserving commit boundaries, patch content, author metadata, and final tree state. It allows commits already reachable from the current branch's own remote-tracking ref, but refuses dirty worktrees, unrelated shared remote refs, current-branch remotes ahead of local `HEAD`, protected branches by default, and merge commits. It never pushes or force-pushes.
 
 ### `skill-flow`
 
@@ -478,7 +478,7 @@ Examples:
 - `Use $eli10 to explain why this test failed`
 - `Use $eli10 to format this decision question`
 - `Use $pr-authoring to write and publish a PR for this branch`
-- `Use $commit-history-authoring to rewrite this branch's WIP commits into informative local history`
+- `Use $commit-history-authoring to rewrite this branch's WIP commits into informative branch history`
 - `Use $skill-flow to design the authoring and audit flow for this skill suite`
 - `Use $amir-publish`
 - `Use $code-review on the uncommitted diff`

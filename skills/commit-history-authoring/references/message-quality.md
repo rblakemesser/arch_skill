@@ -20,7 +20,7 @@ Existing-Trailer: preserved exactly
 
 Good subjects are specific and action-led:
 
-- `Add local-only commit rewrite safety checks`
+- `Add branch-span commit rewrite safety checks`
 - `Document recovery path for rewritten commit messages`
 - `Wire commit history skill into install surfaces`
 

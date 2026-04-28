@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Safely rewrite local-only commit messages on the current branch."""
+"""Safely rewrite branch-span commit messages on the current branch."""
 
 from __future__ import annotations
 
@@ -16,6 +16,16 @@ from typing import Any
 
 PROTECTED_BRANCHES = ("main", "master", "trunk", "develop")
 PROTECTED_PREFIXES = ("release/", "hotfix/")
+PREFERRED_PARENT_REFS = (
+    "origin/main",
+    "main",
+    "origin/master",
+    "master",
+    "origin/trunk",
+    "trunk",
+    "origin/develop",
+    "develop",
+)
 
 
 class SafetyError(RuntimeError):
@@ -81,13 +91,171 @@ def resolve_upstream(repo: Path) -> str | None:
     return upstream or None
 
 
-def resolve_base(repo: Path, explicit_base: str | None) -> tuple[str, str, str | None]:
-    upstream = resolve_upstream(repo)
-    base_ref = explicit_base or upstream
-    if not base_ref:
-        raise SafetyError("current branch has no upstream; provide --base <ref>")
-    base_sha = git_stdout(repo, ["rev-parse", "--verify", f"{base_ref}^{{commit}}"])
-    return base_ref, base_sha, upstream
+def remote_branch_name(full_ref: str) -> str | None:
+    prefix = "refs/remotes/"
+    if not full_ref.startswith(prefix):
+        return None
+    remainder = full_ref[len(prefix):]
+    parts = remainder.split("/", 1)
+    if len(parts) != 2:
+        return None
+    if parts[1] == "HEAD":
+        return None
+    return parts[1]
+
+
+def is_current_branch_remote(full_ref: str, branch: str) -> bool:
+    return remote_branch_name(full_ref) == branch
+
+
+def list_refs(repo: Path, prefixes: list[str]) -> list[tuple[str, str]]:
+    raw = git_stdout(
+        repo,
+        ["for-each-ref", "--format=%(refname)%00%(refname:short)", *prefixes],
+    )
+    refs: list[tuple[str, str]] = []
+    for line in raw.splitlines():
+        if not line:
+            continue
+        full, short = line.split("\x00", 1)
+        refs.append((full, short))
+    return refs
+
+
+def current_branch_remote_refs(repo: Path, branch: str) -> list[tuple[str, str]]:
+    return [
+        (full, short)
+        for full, short in list_refs(repo, ["refs/remotes"])
+        if is_current_branch_remote(full, branch)
+    ]
+
+
+def ensure_current_branch_remotes_not_ahead(
+    repo: Path,
+    current_remote_refs: list[tuple[str, str]],
+) -> None:
+    for _full, short in current_remote_refs:
+        process = run_git(repo, ["rev-list", "--left-right", "--count", f"HEAD...{short}"], check=False)
+        if process.returncode != 0:
+            continue
+        parts = process.stdout.strip().split()
+        if len(parts) == 2 and int(parts[1]) > 0:
+            raise SafetyError(
+                f"current branch remote {short} is ahead of HEAD; "
+                "pull or reconcile before rewriting"
+            )
+
+
+def fork_point_or_merge_base(repo: Path, parent_ref: str) -> tuple[str, str]:
+    fork_point = run_git(repo, ["merge-base", "--fork-point", parent_ref, "HEAD"], check=False)
+    if fork_point.returncode == 0 and fork_point.stdout.strip():
+        return fork_point.stdout.strip(), "fork-point"
+    merge_base = run_git(repo, ["merge-base", parent_ref, "HEAD"], check=False)
+    if merge_base.returncode != 0 or not merge_base.stdout.strip():
+        raise SafetyError(f"could not find merge-base between {parent_ref} and HEAD")
+    return merge_base.stdout.strip(), "merge-base"
+
+
+def candidate_parent_refs(repo: Path, branch: str) -> list[tuple[str, str]]:
+    candidates: list[tuple[str, str]] = []
+    for full, short in list_refs(repo, ["refs/heads", "refs/remotes"]):
+        if full == f"refs/heads/{branch}":
+            continue
+        if full.startswith("refs/heads/backup/") or full.startswith("refs/remotes/backup/"):
+            continue
+        if full.startswith("refs/remotes/") and full.endswith("/HEAD"):
+            continue
+        if is_current_branch_remote(full, branch):
+            continue
+        candidates.append((full, short))
+    return candidates
+
+
+def preferred_parent_rank(short: str) -> tuple[int, str]:
+    try:
+        return PREFERRED_PARENT_REFS.index(short), short
+    except ValueError:
+        return len(PREFERRED_PARENT_REFS), short
+
+
+def rev_list_count(repo: Path, rev_range: str) -> int:
+    raw = git_stdout(repo, ["rev-list", "--count", rev_range])
+    return int(raw)
+
+
+def resolve_parent_base(repo: Path, branch: str, parent_ref: str) -> dict[str, Any]:
+    git_stdout(repo, ["rev-parse", "--verify", f"{parent_ref}^{{commit}}"])
+    base_sha, base_resolution = fork_point_or_merge_base(repo, parent_ref)
+    ensure_base_ancestor(repo, base_sha)
+    commit_count = rev_list_count(repo, f"{base_sha}..HEAD")
+    if commit_count == 0:
+        raise SafetyError(f"parent {parent_ref} does not leave any branch commits to rewrite")
+    return {
+        "range_mode": "explicit_parent",
+        "parent_ref": parent_ref,
+        "base_ref": parent_ref,
+        "base": base_sha,
+        "base_resolution": base_resolution,
+        "candidate_commit_count": commit_count,
+    }
+
+
+def auto_parent_base(repo: Path, branch: str) -> dict[str, Any]:
+    scored: list[tuple[int, tuple[int, str], str, str, str]] = []
+    for _full, short in candidate_parent_refs(repo, branch):
+        process = run_git(repo, ["rev-parse", "--verify", f"{short}^{{commit}}"], check=False)
+        if process.returncode != 0:
+            continue
+        try:
+            base_sha, base_resolution = fork_point_or_merge_base(repo, short)
+        except SafetyError:
+            continue
+        if base_sha == git_stdout(repo, ["rev-parse", "HEAD"]):
+            continue
+        process = run_git(repo, ["merge-base", "--is-ancestor", base_sha, "HEAD"], check=False)
+        if process.returncode != 0:
+            continue
+        commit_count = rev_list_count(repo, f"{base_sha}..HEAD")
+        if commit_count == 0:
+            continue
+        scored.append((commit_count, preferred_parent_rank(short), short, base_sha, base_resolution))
+
+    if not scored:
+        raise SafetyError(
+            "could not infer a parent branch; provide --parent <ref> or --base <ref>"
+        )
+    commit_count, _rank, parent_ref, base_sha, base_resolution = sorted(scored)[0]
+    return {
+        "range_mode": "auto_parent",
+        "parent_ref": parent_ref,
+        "base_ref": parent_ref,
+        "base": base_sha,
+        "base_resolution": base_resolution,
+        "candidate_commit_count": commit_count,
+    }
+
+
+def resolve_base(
+    repo: Path,
+    branch: str,
+    explicit_base: str | None,
+    explicit_parent: str | None,
+) -> dict[str, Any]:
+    if explicit_base and explicit_parent:
+        raise SafetyError("provide either --base or --parent, not both")
+    if explicit_base:
+        base_sha = git_stdout(repo, ["rev-parse", "--verify", f"{explicit_base}^{{commit}}"])
+        return {
+            "range_mode": "explicit_base",
+            "parent_ref": None,
+            "base_ref": explicit_base,
+            "base": base_sha,
+            "base_resolution": "explicit-base",
+            "candidate_commit_count": None,
+        }
+    if explicit_parent:
+        return resolve_parent_base(repo, branch, explicit_parent)
+    return auto_parent_base(repo, branch)
 
 
 def ensure_base_ancestor(repo: Path, base_sha: str) -> None:
@@ -96,22 +264,11 @@ def ensure_base_ancestor(repo: Path, base_sha: str) -> None:
         raise SafetyError("base is not an ancestor of HEAD; refusing ambiguous rewrite range")
 
 
-def ensure_upstream_not_ahead(repo: Path, upstream: str | None) -> None:
-    if not upstream:
-        return
-    process = run_git(repo, ["rev-list", "--left-right", "--count", f"HEAD...{upstream}"], check=False)
-    if process.returncode != 0:
-        return
-    parts = process.stdout.strip().split()
-    if len(parts) == 2 and int(parts[1]) > 0:
-        raise SafetyError(f"upstream {upstream} is ahead of HEAD; update or resolve divergence first")
-
-
-def local_commits(repo: Path, base_sha: str) -> list[str]:
+def branch_commits(repo: Path, base_sha: str) -> list[str]:
     raw = git_stdout(repo, ["rev-list", "--reverse", f"{base_sha}..HEAD"])
     commits = [line for line in raw.splitlines() if line]
     if not commits:
-        raise SafetyError("no local commits found in base..HEAD")
+        raise SafetyError("no branch commits found in base..HEAD")
     return commits
 
 
@@ -122,19 +279,38 @@ def ensure_linear(repo: Path, base_sha: str) -> None:
         raise SafetyError(f"target range contains merge commit {first}; message-only linear rewrite required")
 
 
-def remote_refs_containing(repo: Path, commit: str) -> list[str]:
+def remote_refs_containing(repo: Path, commit: str) -> list[tuple[str, str]]:
     raw = git_stdout(
         repo,
-        ["for-each-ref", "--contains", commit, "--format=%(refname)", "refs/remotes"],
+        ["for-each-ref", "--contains", commit, "--format=%(refname)%00%(refname:short)", "refs/remotes"],
     )
-    return [line for line in raw.splitlines() if line]
+    refs: list[tuple[str, str]] = []
+    for line in raw.splitlines():
+        if not line:
+            continue
+        full, short = line.split("\x00", 1)
+        refs.append((full, short))
+    return refs
 
 
-def ensure_not_remote_reachable(repo: Path, commits: list[str]) -> None:
+def ensure_not_shared_remote_reachable(
+    repo: Path,
+    commits: list[str],
+    allowed_current_remote_refs: list[tuple[str, str]],
+) -> list[str]:
+    allowed_full_refs = {full for full, _short in allowed_current_remote_refs}
     for commit in commits:
-        refs = remote_refs_containing(repo, commit)
-        if refs:
-            raise SafetyError(f"commit {commit} is reachable from remote ref {refs[0]}; refusing shared history rewrite")
+        blocked = [
+            short
+            for full, short in remote_refs_containing(repo, commit)
+            if full not in allowed_full_refs
+        ]
+        if blocked:
+            raise SafetyError(
+                f"commit {commit} is reachable from shared remote ref {blocked[0]}; "
+                "refusing shared history rewrite"
+            )
+    return []
 
 
 def commit_info(repo: Path, commit: str) -> dict[str, str]:
@@ -154,28 +330,41 @@ def commit_info(repo: Path, commit: str) -> dict[str, str]:
     }
 
 
-def inspect_state(repo_arg: str, base_arg: str | None, allow_protected: bool) -> dict[str, Any]:
+def inspect_state(
+    repo_arg: str,
+    base_arg: str | None,
+    parent_arg: str | None,
+    allow_protected: bool,
+) -> dict[str, Any]:
     root = repo_root(Path(repo_arg))
     branch = current_branch(root)
     if is_protected_branch(branch) and not allow_protected:
         raise SafetyError(f"current branch {branch!r} is protected; explicit approval is required")
     ensure_clean(root)
-    base_ref, base_sha, upstream = resolve_base(root, base_arg)
-    ensure_upstream_not_ahead(root, upstream)
+    upstream = resolve_upstream(root)
+    current_remote_refs = current_branch_remote_refs(root, branch)
+    ensure_current_branch_remotes_not_ahead(root, current_remote_refs)
+    base_state = resolve_base(root, branch, base_arg, parent_arg)
+    base_sha = base_state["base"]
     ensure_base_ancestor(root, base_sha)
-    commits = local_commits(root, base_sha)
+    commits = branch_commits(root, base_sha)
     ensure_linear(root, base_sha)
-    ensure_not_remote_reachable(root, commits)
+    blocked_shared_refs = ensure_not_shared_remote_reachable(root, commits, current_remote_refs)
     head = git_stdout(root, ["rev-parse", "HEAD"])
     return {
         "status": "ok",
         "repo": str(root),
         "branch": branch,
-        "base_ref": base_ref,
+        "range_mode": base_state["range_mode"],
+        "parent_ref": base_state["parent_ref"],
+        "base_ref": base_state["base_ref"],
         "base": base_sha,
+        "base_resolution": base_state["base_resolution"],
         "upstream": upstream,
         "head": head,
         "commit_count": len(commits),
+        "allowed_current_branch_remote_refs": [short for _full, short in current_remote_refs],
+        "blocked_shared_refs": blocked_shared_refs,
         "commits": [commit_info(root, commit) for commit in commits],
         "message_file_pattern": "<messages-dir>/<full-old-sha>.msg",
     }
@@ -227,8 +416,14 @@ def commit_tree(repo: Path, tree: str, parent: str, message_path: Path, info: di
     return process.stdout.strip()
 
 
-def apply_rewrite(repo_arg: str, base_arg: str | None, messages_dir_arg: str, allow_protected: bool) -> dict[str, Any]:
-    state = inspect_state(repo_arg, base_arg, allow_protected)
+def apply_rewrite(
+    repo_arg: str,
+    base_arg: str | None,
+    parent_arg: str | None,
+    messages_dir_arg: str,
+    allow_protected: bool,
+) -> dict[str, Any]:
+    state = inspect_state(repo_arg, base_arg, parent_arg, allow_protected)
     root = Path(state["repo"])
     messages_dir = Path(messages_dir_arg).resolve()
     if not messages_dir.is_dir():
@@ -286,8 +481,12 @@ def apply_rewrite(repo_arg: str, base_arg: str | None, messages_dir_arg: str, al
         "mode": "apply",
         "repo": str(root),
         "branch": branch,
+        "range_mode": state["range_mode"],
+        "parent_ref": state["parent_ref"],
         "base_ref": state["base_ref"],
         "base": state["base"],
+        "base_resolution": state["base_resolution"],
+        "allowed_current_branch_remote_refs": state["allowed_current_branch_remote_refs"],
         "backup_ref": backup_ref,
         "old_head": old_head,
         "new_head": new_head,
@@ -304,7 +503,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     inspect_parser = subparsers.add_parser("inspect", help="inspect rewrite safety")
     inspect_parser.add_argument("--repo", default=".", help="repository path")
-    inspect_parser.add_argument("--base", help="base ref; defaults to current branch upstream")
+    inspect_parser.add_argument("--base", help="exact base ref; overrides parent-branch inference")
+    inspect_parser.add_argument("--parent", help="parent branch ref; defaults to nearest inferred parent")
     inspect_parser.add_argument(
         "--allow-protected",
         action="store_true",
@@ -313,7 +513,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     apply_parser = subparsers.add_parser("apply", help="apply message-only rewrite")
     apply_parser.add_argument("--repo", default=".", help="repository path")
-    apply_parser.add_argument("--base", help="base ref; defaults to current branch upstream")
+    apply_parser.add_argument("--base", help="exact base ref; overrides parent-branch inference")
+    apply_parser.add_argument("--parent", help="parent branch ref; defaults to nearest inferred parent")
     apply_parser.add_argument("--messages-dir", required=True, help="directory of <old-sha>.msg files")
     apply_parser.add_argument(
         "--allow-protected",
@@ -328,9 +529,9 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         if args.command == "inspect":
-            result = inspect_state(args.repo, args.base, args.allow_protected)
+            result = inspect_state(args.repo, args.base, args.parent, args.allow_protected)
         elif args.command == "apply":
-            result = apply_rewrite(args.repo, args.base, args.messages_dir, args.allow_protected)
+            result = apply_rewrite(args.repo, args.base, args.parent, args.messages_dir, args.allow_protected)
         else:
             parser.error("unknown command")
         print(json.dumps(result, indent=2, sort_keys=True))

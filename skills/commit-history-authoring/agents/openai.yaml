@@ -1,7 +1,7 @@
 interface:
   display_name: "Commit History Authoring"
-  short_description: "Rewrite local commit messages safely"
-  default_prompt: "Use $commit-history-authoring to rewrite the current branch's local-only commit messages into an informative history while preserving patches, commit boundaries, trailers, and safety backups."
+  short_description: "Rewrite branch-span commit messages safely"
+  default_prompt: "Use $commit-history-authoring to rewrite the current branch's branch-span commit messages into an informative history from its nearest parent branch while preserving patches, commit boundaries, trailers, and safety backups."
 
 policy:
   allow_implicit_invocation: true

@@ -5,8 +5,8 @@ cleanup step after the messages are written.
 
 ## Allowed rewrite
 
-The default rewrite is message-only for the current branch's local linear
-commit range:
+The default rewrite is message-only for the current branch's linear commit span
+from its nearest parent branch:
 
 - same number of commits
 - same commit order
@@ -18,14 +18,24 @@ commit range:
 The helper recreates commits with `git commit-tree`, then moves the branch with
 `git update-ref`. It does not run interactive rebase and does not push.
 
-## Base selection
+## Parent and base selection
 
-- Use the current branch upstream by default.
-- If no upstream exists, the user or invocation must provide `--base <ref>`.
-- The base must be an ancestor of `HEAD`.
-- If the configured upstream is ahead of `HEAD`, stop. The local branch must be
-  brought up to date or the base choice must be made explicit in a separate
-  safe workflow.
+- By default, infer the nearest parent branch by scanning local and remote
+  branch refs, excluding the current branch, same-name remote-tracking refs,
+  backup refs, and `*/HEAD` refs.
+- Choose the parent whose fork point leaves the shortest `base..HEAD` range.
+  Ties prefer `origin/main`, `main`, `origin/master`, `master`, `origin/trunk`,
+  `trunk`, `origin/develop`, `develop`, then lexical order.
+- Use `git merge-base --fork-point <parent> HEAD` when available. Fall back to
+  `git merge-base <parent> HEAD`.
+- Use `--parent <ref>` when the user names the parent branch.
+- Use `--base <ref>` only when the user wants an exact boundary override.
+- The resolved base must be an ancestor of `HEAD`.
+- `--base` and `--parent` are mutually exclusive.
+
+The current branch's own remote-tracking refs, such as
+`origin/<current-branch>`, are allowed to contain target commits. That is the
+normal case for a feature branch that has been pushed already.
 
 ## Blocked states
 
@@ -36,8 +46,9 @@ Stop instead of rewriting when:
 - the branch is protected or shared, such as `main`, `master`, `trunk`,
   `develop`, `release/*`, or `hotfix/*`, unless the user explicitly approved
   that exact branch risk
-- the local range is empty
-- any commit in the target range is reachable from any remote ref
+- the branch-span range is empty
+- the current branch's own remote-tracking ref is ahead of local `HEAD`
+- any commit in the target range is reachable from an unrelated remote ref
 - the target range contains a merge commit
 - any replacement message file is missing or empty
 - the helper cannot create a backup branch
@@ -51,13 +62,13 @@ history rewrite.
 Inspect mode:
 
 ```bash
-python3 skills/commit-history-authoring/scripts/rewrite_commit_messages.py inspect --repo . [--base <ref>]
+python3 skills/commit-history-authoring/scripts/rewrite_commit_messages.py inspect --repo . [--parent <ref> | --base <ref>]
 ```
 
 Apply mode:
 
 ```bash
-python3 skills/commit-history-authoring/scripts/rewrite_commit_messages.py apply --repo . --messages-dir <dir> [--base <ref>]
+python3 skills/commit-history-authoring/scripts/rewrite_commit_messages.py apply --repo . --messages-dir <dir> [--parent <ref> | --base <ref>]
 ```
 
 Replacement message files must be named with the full old commit SHA:
@@ -67,8 +78,10 @@ Replacement message files must be named with the full old commit SHA:
 ```
 
 The script exits nonzero and prints one clear error on unsafe state. On success,
-it prints JSON with the base, backup branch, old head, new head, per-commit
-mapping, tree-equivalence result, and recovery command.
+inspect prints JSON with the range mode, inferred or explicit parent, base,
+allowed current-branch remote refs, commit list, and message-file pattern. Apply
+prints JSON with the same range fields plus backup branch, old head, new head,
+per-commit mapping, tree-equivalence result, and recovery command.
 
 ## Recovery
 
