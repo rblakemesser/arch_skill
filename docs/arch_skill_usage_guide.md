@@ -485,7 +485,7 @@ Examples:
 
 ### `prompt-authoring`
 
-Use when the user wants to write, edit, refactor, or audit a reusable prompt contract so it stays intent-driven, section-correct, and anti-heuristic.
+Use when the user wants to write, edit, refactor, or audit a prompt or reusable prompt contract so it fits the user's intent, evidence needs, constraints, stop rules, and output shape without becoming brittle or overbuilt. The user does not need to name a prompt type or mode; the skill infers the shape from normal language.
 
 Examples:
 

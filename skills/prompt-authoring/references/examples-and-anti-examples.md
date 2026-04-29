@@ -13,6 +13,10 @@ These are adapted from real failures already seen in this repo, but rewritten as
 - Case 7: system context existed in name only
 - Case 8: quality bar was too generic to guide judgment
 - Case 9: output contract named fields but not validity
+- Case 10: prompt-type diagnosis leaked to the user
+- Case 11: outcome-first prompt got buried under process
+- Case 12: creative drafting invented unsupported claims
+- Case 13: validation was requested but not made real
 - How to use these examples safely
 
 ## Case 1: commander’s intent collapsed into procedure
@@ -178,6 +182,80 @@ Why the better shape works:
 
 Transferable principle:
 - output contracts should define validity and reject semantics, not just field names
+
+## Case 10: prompt-type diagnosis leaked to the user
+
+Real failure pattern:
+- the author made the user choose a prompt type before writing the prompt
+
+Bad shape:
+- "Which mode should I use: personality, retrieval, drafting, validation, or workflow?"
+
+Better shape:
+- "Infer the needed shape from the brief. If the user asks for a friendly assistant that searches docs and cites sources, write one prompt that blends collaboration style, retrieval rules, citation behavior, and stop conditions."
+
+Why the better shape works:
+- the taxonomy stays internal
+- casual prompt-writing asks keep moving
+- mixed prompts get the useful parts of several lenses
+
+Transferable principle:
+- prompt types are diagnostic lenses, not gates the user must pass through
+
+## Case 11: outcome-first prompt got buried under process
+
+Real failure pattern:
+- a simple task prompt became a long sequence of steps that narrowed the model's judgment
+
+Bad shape:
+- "First inspect every input, then list all possible actions, then compare each option, then choose, then write a summary, then verify the summary."
+
+Better shape:
+- "Resolve the user's issue end to end. Success means the decision is made from available evidence, allowed actions are completed, missing required facts are requested narrowly, and the final answer states what was done and what remains blocked."
+
+Why the better shape works:
+- it defines done-ness instead of activity
+- it leaves room for the model to choose an efficient path
+- it still gives concrete success criteria
+
+Transferable principle:
+- prompt the destination unless the route is genuinely fragile
+
+## Case 12: creative drafting invented unsupported claims
+
+Real failure pattern:
+- a copywriting prompt encouraged polish but did not protect factual claims
+
+Bad shape:
+- "Write a punchy launch blurb that makes the product sound like the market leader."
+
+Better shape:
+- "Write a concise launch blurb using only provided facts for product capabilities, customer claims, metrics, roadmap status, and competitive comparisons. You may make the language vivid, but use placeholders or labeled assumptions for missing specifics."
+
+Why the better shape works:
+- it separates creative phrasing from evidence-backed claims
+- it prevents stronger-sounding but unsupported facts
+
+Transferable principle:
+- drafting prompts need factual boundaries when the prose can create false confidence
+
+## Case 13: validation was requested but not made real
+
+Real failure pattern:
+- the prompt asked the model to check its work without saying what checking means
+
+Bad shape:
+- "Make sure the implementation is correct before answering."
+
+Better shape:
+- "After changing code, run the most relevant available validation: targeted tests for changed behavior, type checks or lint when applicable, and a build check if the affected package has one. If validation cannot run, say why and name the next best evidence."
+
+Why the better shape works:
+- the model has a real check path
+- failures and missing validation become visible instead of hand-waved
+
+Transferable principle:
+- validation prompts should name concrete checks or recognition tests, not just ask for confidence
 
 ## How to use these examples safely
 

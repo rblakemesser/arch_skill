@@ -1,11 +1,17 @@
 ---
 name: prompt-authoring
-description: "Write, edit, refactor, or audit prompts so they stay intent-driven, section-correct, and anti-heuristic. Use when a prompt needs stronger commander's intent, cleaner section placement, safer refactoring without losing useful magic, or a findings-first audit."
+description: "Write, edit, refactor, or audit prompts and reusable prompt contracts so they match the user's intent, prompt shape, evidence needs, constraints, stop rules, and output expectations without becoming brittle or overbuilt. Use for casual prompt-writing asks, system/agent/reviewer prompts, prompt repair, anti-heuristic refactors, and findings-first prompt audits; use $skill-authoring for skill packages."
 ---
 
 # Prompt Authoring
 
 Use this skill when the work is prompt authoring or prompt repair, not generic writing.
+
+The user does not need to name a mode, prompt type, or formal input shape.
+Treat casual requests like "write me a prompt that does this" as first-class
+prompt-authoring work: infer the prompt shape, make reasonable assumptions,
+write or repair the prompt, and only ask when missing information would
+materially change the result or create real risk.
 
 ## Install
 
@@ -17,7 +23,8 @@ make install
 
 ## When to use
 
-- The user wants a new system prompt, skill prompt, agent prompt, reviewer prompt, or reusable prompt contract.
+- The user wants a new prompt, system prompt, skill prompt, agent prompt, reviewer prompt, or reusable prompt contract.
+- The user describes a job in plain language and wants a prompt that will make a model do it well.
 - The user wants `SKILL.md`, skill references, or bundled agent prompts written with prompt-quality discipline.
 - The user wants to strengthen an existing prompt without rewriting its entire personality.
 - The user wants a prompt refactored so brittle heuristics become examples, rationale, or litmus tests.
@@ -27,48 +34,58 @@ make install
 
 - The task is ordinary copy editing, summarization, or product-spec writing rather than prompt design.
 - The user only needs a sentence polished, not a prompt contract repaired.
-- The prompt text or binding brief is unavailable and cannot be inspected.
+- The task is skill packaging, runtime metadata, trigger boundaries, install behavior, or validation of a skill package; use `$skill-authoring` instead.
+- An existing prompt must be edited or audited, but the prompt text is unavailable.
 
 ## Non-negotiables
 
 - Push back against heuristic and myopic prompt design aggressively.
+- Do not make the user classify the prompt. Infer the job from normal language and use prompt-type doctrine only as an internal lens.
+- If several prompt shapes apply, blend the useful guidance instead of forcing a choice.
+- Do not block casual prompt-writing asks because optional details are missing. Make the best reasonable prompt, then name assumptions briefly if they matter.
+- Do not inflate a small one-shot prompt into a full reusable contract unless the artifact needs durable sections, examples, validation, or runtime boundaries.
 - Keep commander’s intent mission-level; push concrete behaviors lower into success/failure, recognition tests, process, and examples.
 - Teach principles and recognition tests, not keyword lists, lookup tables, or canned action menus.
 - Treat skill prose as prompt prose. Keep it intent-driven and anti-heuristic; leave packaging, trigger metadata, and runtime boundaries to `$skill-authoring`.
 - Fix the right section instead of smearing new guidance across the whole prompt.
 - Preserve useful prompt magic during refactors by extracting the durable principle and demoting brittle heuristics into examples, rationale, or litmus tests.
 - Work only from the prompt and the references listed here; do not assume hidden supporting material.
-- If the prompt or needed context is missing, stop and say so instead of inventing context.
+- If an edit or audit needs missing prompt text, ask for that text. If a creation ask gives a useful brief, proceed from the brief instead of inventing blockers.
 
 ## First move
 
-1. Classify the job as `author`, `edit`, `refactor`, or `audit`.
+1. Infer the job from the user's natural language: create, patch, restructure, or audit. Do not ask the user to choose a lane.
 2. Read `references/prompt-pattern-contract.md`.
-3. Read the smallest additional reference that matches the job:
-   - `references/workflow-and-modes.md` for mode routing and output expectations
+3. Silently identify the prompt shape or blended shapes: reusable contract, personality/collaboration, outcome-first task, evidence/retrieval, creative drafting, formatting/audience, tool-use/workflow, validation, runtime communication, or implementation planning.
+4. Read the smallest additional reference that matches the job:
+   - `references/workflow-and-modes.md` for internal work-lane routing and output expectations
+   - `references/prompt-types-and-selection.md` when the prompt is not just a reusable agent, skill, reviewer, or workflow contract
    - `references/high-leverage-sections.md` for system context, quality bar, output contracts, and rationale patterns
    - `references/edit-refactor-audit.md` for repair loops, litmus tests, and section-targeting
    - `references/examples-and-anti-examples.md` when you need grounded examples or want to sanity-check framing
 
 ## Workflow
 
-1. Lock the single job and the desired outcome before touching wording.
-2. Keep commander’s intent and success/failure higher than process mechanics.
-3. Make the rich sections carry real weight: system context, quality bar, output contract, and error handling should teach stakes and judgment, not just fill space.
-4. Place or repair sections in preferred-pattern order rather than patching opportunistically.
-5. Use examples and rationale to illustrate the principle, never to replace the principle.
-6. Run the anti-heuristic and hidden-context checks before returning.
+1. Lock the user's real job and desired outcome before touching wording.
+2. Choose the lightest prompt shape that can work. Use a full sectioned contract only when durability, reuse, tools, validation, or risk justifies it.
+3. Blend prompt-type guidance when the job needs it, such as personality plus evidence rules plus stop conditions.
+4. Keep commander’s intent and success/failure higher than process mechanics.
+5. Make the rich sections carry real weight: system context, quality bar, output contract, evidence policy, stop rules, and error handling should teach stakes and judgment, not just fill space.
+6. Place or repair sections in preferred-pattern order rather than patching opportunistically.
+7. Use examples and rationale to illustrate the principle, never to replace the principle.
+8. Run the anti-heuristic, overbuild, and hidden-context checks before returning.
 
 ## Output expectations
 
-- `author`: return the finished prompt, plus only the shortest note needed to explain any important assumption.
-- `edit`: return the patched prompt and a short explanation of which section changed and why.
-- `refactor`: return the rewritten prompt and a short note on what useful behavior was preserved versus relocated.
-- `audit`: return findings first. Name the issue, why it is risky, and exactly which section should change.
+- `author` / create: return the finished prompt, plus only the shortest note needed to explain any important assumption.
+- `edit` / patch: return the patched prompt and a short explanation of which section changed and why.
+- `refactor` / restructure: return the rewritten prompt and a short note on what useful behavior was preserved versus relocated.
+- `audit` / review: return findings first. Name the issue, why it is risky, and exactly which section should change.
 
 ## Reference map
 
-- `references/workflow-and-modes.md` — choose the right mode and keep the output shape honest.
+- `references/workflow-and-modes.md` — choose the internal work lane and keep the output shape honest without making users name modes.
+- `references/prompt-types-and-selection.md` — use prompt types as internal lenses for general-purpose asks, blended prompt shapes, evidence rules, drafting guardrails, runtime communication, validation, and stop behavior.
 - `references/prompt-pattern-contract.md` — the contract for section order, ownership, and anti-pattern bans.
 - `references/high-leverage-sections.md` — how to make system context, quality bar, schema, and rationale sections actually teach.
 - `references/edit-refactor-audit.md` — how to repair prompts without flattening them.

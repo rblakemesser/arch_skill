@@ -9,6 +9,7 @@ Use this file when the prompt needs richness, not just correct section order. Th
 - Output contract, validation, and reject handling
 - Mentored process and autonomy
 - Rationale fields
+- Evidence, stop rules, validation, and audience lenses
 - Examples that teach reasoning
 - Richness check
 
@@ -162,7 +163,112 @@ Litmus tests:
 - does the rationale show options considered, why they were rejected, and what was verified?
 - would the rationale help debug a wrong answer later?
 
-## 6) Examples that teach reasoning
+## 6) Evidence, stop rules, validation, and audience lenses
+
+Not every prompt needs every lens. Add these only when they change the result.
+
+### Evidence and retrieval
+
+Use when factual claims must come from sources, retrieved context, records,
+policies, files, or tool output.
+
+Good shape:
+
+```markdown
+Use the provided policy and account data for eligibility claims. If required
+evidence is missing, ask for the smallest missing field instead of guessing.
+Retrieve more only when the current evidence cannot answer the user's core
+question or would leave an important factual claim unsupported.
+```
+
+Bad shape:
+- "Search thoroughly."
+- "Cite sources when relevant."
+
+Litmus tests:
+- does the prompt say which claims need support?
+- does it say when enough evidence is enough?
+- does it distinguish missing evidence from evidence of absence?
+
+### Stop rules
+
+Use when the model might loop, over-search, over-plan, or stop too early.
+
+Good shape:
+
+```markdown
+Stop once you can answer the core request with enough evidence for the factual
+claims and a clear note for any remaining uncertainty.
+```
+
+Bad shape:
+- "Do exhaustive research."
+- "Minimize tool calls."
+
+Litmus tests:
+- does the stop rule define done-ness instead of activity?
+- does it preserve correctness over artificial loop minimization?
+
+### Validation
+
+Use when the model can actually inspect, test, render, calculate, or otherwise
+check the output.
+
+Good shape:
+
+```markdown
+Before finalizing, run the most relevant available check for the changed
+behavior. If no check can run, say why and give the next best evidence.
+```
+
+Bad shape:
+- "Make sure it works."
+- "Double-check everything."
+
+Litmus tests:
+- does the prompt name a real check or recognition test?
+- does it say what to do when validation fails or cannot run?
+
+### Personality and collaboration
+
+Use when the assistant's user experience matters over multiple turns.
+
+Good shape:
+
+```markdown
+Be direct, calm, and practical. Prefer progress over clarification when the
+request is clear enough to attempt. Ask only when the missing answer would
+materially change the work or create risk.
+```
+
+Bad shape:
+- "Be friendly and helpful."
+- "Ask questions before answering."
+
+Litmus tests:
+- does the prompt separate how the assistant sounds from how it works?
+- does it define when to ask, assume, act, and stop?
+
+### Formatting and audience
+
+Use when reader fit is the main quality lever.
+
+Good shape:
+
+```markdown
+Write for a senior business audience. Keep the answer under 400 words. Preserve
+the requested structure and do not add new claims.
+```
+
+Bad shape:
+- "Make it clear."
+- "Improve the writing."
+
+Litmus tests:
+- does the prompt say what to preserve?
+- does formatting serve the reader instead of becoming ceremony?
+
+## 7) Examples that teach reasoning
 
 Examples should teach how to think, not become the hidden rulebook.
 
@@ -178,11 +284,12 @@ Bad examples:
 - are so specific that they become the answer key
 - only show final shape without explaining the reasoning
 
-## 7) Richness check
+## 8) Richness check
 
 Ask these before you ship:
 - If you removed the examples, would the principle still survive?
 - If you removed the process, would the prompt still explain why the work matters?
 - Does the quality bar describe a genuinely useful answer, not just a formatted one?
+- Are evidence, stop rules, validation, personality, and formatting present only where they matter?
 - Can a downstream reader tell what must be validated?
 - Are rationale fields present where choice quality or verification really matters?

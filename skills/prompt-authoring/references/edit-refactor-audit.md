@@ -15,6 +15,12 @@ Use this file when the prompt already exists and the job is to diagnose, repair,
 | The model makes important choices but the prompt gives no way to inspect them | rationale is missing where verification matters | `Output contract`, `Examples` |
 | Prompt depends on files or docs the model cannot open | phantom context | `Inputs & ground truth`; bundle the needed context or remove the dependency |
 | Refactor removed behavior that used to help | useful magic got deleted instead of relocated | restore the principle, then re-home the brittle text as examples or litmus tests |
+| Prompt asks the user to choose a prompt type, mode, or schema before doing useful work | internal diagnosis leaked into the user workflow | `First move`, `Workflow`, and `prompt-types-and-selection.md` |
+| A simple prompt ask became a giant reusable contract | overbuilt shape | collapse to role, goal, context, instructions, output, and stop rules |
+| A grounded answer prompt keeps making things up | evidence policy is missing or too vague | `Inputs & ground truth`, `Tools & calling rules`, `Output contract`, and stop rules |
+| A creative prompt invents stronger facts than the source supports | drafting freedom and factual claims are not separated | creative drafting guidance and `Inputs & ground truth` |
+| A tool or coding prompt says "check your work" but never verifies anything | validation is generic rather than executable | `Output contract`, validation instructions, and error handling |
+| The prompt searches, plans, or reasons forever | stop rules define activity instead of done-ness | stop rules, `Process`, and `Output contract` |
 
 ## Refactor-without-losing-magic loop
 
@@ -40,6 +46,12 @@ Ask these before you change anything:
 10. Is the quality bar vivid enough that "great" and "bad" output are meaningfully different?
 11. Could a reviewer validate the output and reject logic without guessing?
 12. Should any high-stakes choice include a rationale field or verification note?
+13. Is the prompt asking the user to classify the job when the model could infer it?
+14. Is the prompt as small as the job allows, or did a lightweight ask become a full contract?
+15. Does the prompt define evidence, source, and citation behavior where factual claims matter?
+16. Does the prompt separate creative phrasing from unsupported factual invention?
+17. Does the prompt define a real stop condition?
+18. Does validation name an available check, recognition test, or fallback report?
 
 ## Edit discipline
 
@@ -60,6 +72,9 @@ Prefer findings like:
 - "The examples are functioning as an action menu; extract the principle and keep the examples as illustrations only."
 - "The headings are present, but system context and quality bar are too thin to teach why this work matters."
 - "The prompt names output fields but does not define how a reviewer would know the answer is valid."
+- "The prompt leaks internal prompt-type selection to the user; infer the shape and write the prompt directly."
+- "The prompt says to cite sources but never defines which claims require evidence or when retrieval should stop."
+- "The prompt asks for creativity without separating sourced facts from permissible framing."
 
 Avoid findings like:
 - "This feels off."

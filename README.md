@@ -36,7 +36,7 @@ Other shipped skills are:
 - `wait` — one-shot delay-then-resume controller for Codex and Claude Code that sleeps inside the installed `Stop` hook for a parsed duration (`30m`, `1h30m`, `90s`, `2d`) and then injects a literal resume prompt back into the same thread exactly once. Use this for plain "wait N and continue" work. For condition re-checking use `delay-poll`; for recurring or scheduled work use `/loop` or `schedule`.
 - `agent-definition-auditor` — cold-reader scoring and findings for `AGENTS.md`, `CLAUDE.md`, `SKILL.md`, `SOUL.md`, system prompts, and other agent-definition markdown
 - `agents-md-authoring` — writes, edits, refactors, and audits concise repo-present `AGENTS.md` files
-- `prompt-authoring` — writes, edits, refactors, and audits reusable prompt contracts
+- `prompt-authoring` — writes, edits, refactors, and audits prompts and reusable prompt contracts
 - `skill-authoring` — writes, edits, refactors, and audits prompt-first reusable agent skill packages
 - `figma-best-practices` — prompt-only Figma file-craft doctrine for creating, auditing, or repairing structurally honest Figma files, libraries, variables, components, Dev Mode prep, Code Connect mapping, and Make/Sites/Buzz/Slides/MCP readiness
 - `eli10` — answers in maximum-readability ELI10 style: plain speech, right-layer explanation, emoji scan markers, exact technical facts, root cause before symptom, no fake memory, renderer-aware tables when they improve understanding, and decision briefs only when the user must choose
@@ -361,7 +361,7 @@ Use when the user wants to write, edit, refactor, or audit a repo-root or path-l
 
 ### `prompt-authoring`
 
-Use when the user wants to write, edit, refactor, or audit a reusable prompt contract so it stays intent-driven, section-correct, and anti-heuristic.
+Use when the user wants to write, edit, refactor, or audit a prompt or reusable prompt contract so it fits the user's intent, evidence needs, constraints, stop rules, and output shape without becoming brittle or overbuilt. The user does not need to name a prompt type or mode; the skill infers the shape from normal language.
 
 ### `skill-authoring`
 
@@ -373,7 +373,7 @@ Use when the user wants to create, audit, or repair a Figma file, component libr
 
 ### `eli10`
 
-Use when the user wants any answer, explanation, plan, review, recommendation, or status update in ELI10/ELI16 maximum-readability style. The skill leads with the point, explains at the right layer, uses emoji scan markers where helpful, defines jargon on first use, preserves exact commands/metrics/file names, avoids fake memory, and does not add next steps unless asked. It uses renderer-aware tables only when they improve understanding: native Markdown tables in Claude, and a bundled self-contained `uv`/`rich` Unicode table helper in Codex. It uses the decision-brief contract only when the answer is asking the user to choose. Use `prompt-authoring` for reusable prompt contracts and `skill-authoring` for skill packages.
+Use when the user wants any answer, explanation, plan, review, recommendation, or status update in ELI10/ELI16 maximum-readability style. The skill leads with the point, explains at the right layer, uses emoji scan markers where helpful, defines jargon on first use, preserves exact commands/metrics/file names, avoids fake memory, and does not add next steps unless asked. It uses renderer-aware tables only when they improve understanding: native Markdown tables in Claude, and a bundled self-contained `uv`/`rich` Unicode table helper in Codex. It uses the decision-brief contract only when the answer is asking the user to choose. Use `prompt-authoring` for prompts and reusable prompt contracts and `skill-authoring` for skill packages.
 
 ### `pr-authoring`
 
