@@ -1,7 +1,7 @@
 interface:
   display_name: "Figma Best Practices"
-  short_description: "Apply modern Figma file-craft doctrine"
-  default_prompt: "Use $figma-best-practices to create, audit, or repair a Figma file or design-system library so it is structurally honest, tokenized, componentized, semantically named, and ready for Dev Mode, Code Connect, Make, Sites, Buzz, Slides, and MCP consumers."
+  short_description: "Apply Figma file-craft and fidelity audit doctrine"
+  default_prompt: "Use $figma-best-practices to author, review, or repair Figma files, component libraries, variables, handoff surfaces, and source-backed app/Figma fidelity audits. Keep the skill prompt-only and adaptive; ground file-craft, duplicate/stale, screenshot/reference, Dev Mode, Code Connect, Make/MCP readiness, and app/source parity claims in owned evidence."
 
 policy:
   allow_implicit_invocation: true

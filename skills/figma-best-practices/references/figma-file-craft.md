@@ -522,12 +522,42 @@ a generation. Use version history and named versions instead.
 
 ## File structure and naming
 
+### Organizational stack
+
+Figma organization is layered. Do not make one layer do another layer's job.
+
+- Team/project: owns audience, permissions, and broad work buckets such as
+  product surface, feature/status, or design stage.
+- File: owns one coherent source-of-truth scope, such as a product area,
+  platform, library, or evidence pack.
+- Index page: owns the file-native map, conventions, page ownership, and links
+  to deeper docs.
+- Page: owns a work type or durable category, such as foundations,
+  components, patterns, evidence, sandbox, or archive.
+- Section: owns a canvas region, review unit, handoff unit, or shippable scope.
+- Frame: owns the actual design surface and can help create useful Assets-panel
+  hierarchy.
+- Component name, properties, description, and Dev Resources: own search,
+  swap menus, code mapping, and source links.
+- External docs: own audits, source maps, worklogs, decision records, and long
+  explanations.
+
+This follows the grain of Figma itself: pages organize files, sections group
+canvas areas and Ready for Dev scopes, the Assets tab reflects file/page/frame
+structure plus component names, component descriptions participate in search,
+and Dev Resources link code or documentation to the relevant layer.
+
+The anti-pattern is using the canvas as a dumping ground because it is visible.
+If the information is not visual selection guidance, implementation callout, or
+source anchor, it belongs in a component description, Dev Resource, comment, or
+external doc.
+
 ### Pages
 
 A library file should read itself at a glance. A strong structure is:
 
 - Cover first, because it controls the thumbnail
-- Getting Started or About
+- Index second, because it tells people and agents what goes where
 - Release Notes
 - Foundations or Tokens for visual reference
 - Icons, or a separate icon library if large
@@ -539,10 +569,124 @@ A library file should read itself at a glance. A strong structure is:
 
 Hidden internal pages are prefixed with `_` or `.`.
 
+The `Index` page is the one accepted text-heavy page in a durable Figma file.
+It should be named exactly `Index` and placed immediately after `Cover`. If the
+file has no cover page, make `Index` the first page.
+
+`Index` owns:
+
+- file purpose, owner, last reviewed date, and canonical external docs
+- page map: page name, page type, purpose, owner/status, what belongs there,
+  and what must not be placed there
+- file-wide canvas chrome standard: page background, section fill, annotation
+  type style, spacing, and section naming
+- naming conventions for pages, sections, frames, components, variants,
+  variables, and evidence pages
+- documentation placement rules: canvas labels, component descriptions, Dev
+  Resources, annotations, comments, and external docs
+- maintenance rules: when to update the Index and which changes make it stale
+
+`Index` must not own:
+
+- audit reports
+- duplicate indexes
+- source maps
+- acceptance matrices
+- worklogs
+- generated proof dumps
+- long historical narratives
+
+Those belong in external docs and may be linked from the Index. The Index is a
+map and contract, not a storage room.
+
+Agents working in a real Figma file must read the `Index` page before changing
+the file. If they add, remove, rename, reorder, or repurpose any page, or if
+they change file-wide chrome or naming conventions, updating `Index` is part of
+the same change. If they cannot edit the file, they should report the required
+Index update in the handoff.
+
+Use page splits when a page becomes hard to scan at zoomed-out scale. Platform,
+device, or flow variants can share a page when the same humans need them
+together. If there are hundreds of frames per platform, or different teams own
+the handoff, split them into separate pages or files.
+
+Dates belong on evidence, archive, or snapshot pages. Durable component,
+foundation, and pattern pages should not carry dates, phase labels, author
+names, or status in the page name.
+
 Cover thumbnails at 1920x1080 should show file name, owner, status, version,
 and last update. Use a status indicator color system on the cover and Dev Mode
 statuses on sections. Avoid status emoji in page names because page-name churn
 can create unnecessary unpublished-change noise.
+
+### Canvas chrome and annotations
+
+Canvas chrome means the Figma page or section surface around mockups. It is not
+the product UI being designed.
+
+Use one file-wide chrome standard:
+
+- Page or canvas background: one neutral background across the file. Default to
+  `#F5F7FA` unless the existing design system already defines a neutral canvas
+  chrome token.
+- Top-level section fill: one neutral section color across reusable component,
+  foundation, evidence, sandbox, and archive pages. Default to `#FFFFFF`.
+- Section title/header treatment: one style, one spacing rhythm, and one
+  predictable source/status line pattern where source context is needed.
+- Annotation text: one annotation family and style. Default to `Inter Regular`
+  at `12px` with `16px` line height, plus `Inter Semi Bold` at `14px` or
+  `16px` only for short labels.
+- Annotation color: one quiet neutral color. Default to `#4B5563` for note
+  text and a darker neutral for section labels.
+
+Do not use Figma page backgrounds, section fills, or annotation fonts to show
+phase, author, work status, dark mode, product theme, or source category. Those
+ideas belong in names, descriptions, Dev Mode status, docs, or the product UI
+inside a mockup frame.
+
+Dark mode and brand color are allowed inside the designed product surfaces. They
+should not leak into the canvas chrome. A dark mobile screen belongs inside a
+screen frame with the product background. It does not justify changing that
+page's section fill to dark while the rest of the file is light.
+
+Keep canvas text scarce:
+
+- short section labels
+- compact source anchors
+- tiny visual labels for examples or screenshots
+- component descriptions and Dev Resources for source detail
+
+Move everything else to Markdown or the source system. If a note needs more
+than two short lines, about `160` characters, or a list of evidence, it is not a
+Figma annotation. It is a repo doc, a component description, or a Dev Resource.
+
+The zoomed-out test is simple: a component-library file should look like one
+clean system from page to page. Color variation should come from the mockups,
+screenshots, or components being inspected, not from random page backgrounds,
+section fills, note fonts, or report blobs.
+
+### Documentation placement ladder
+
+Use the smallest Figma-native documentation surface that can carry the truth
+without dirtying the canvas.
+
+1. Layer and component names: use for structural meaning and search.
+2. Canvas labels: use for short visual grouping only.
+3. Component descriptions: use for one to three sentences of usage guidance,
+   source identity, keywords, and a link to deeper docs.
+4. Dev Resources: use for source code, Storybook, issue tracker, or external
+   documentation links. Resources on main components propagate to instances.
+5. Dev Mode annotations: use for implementation-critical callouts, accessibility
+   notes, interaction notes, and measurements tied to a specific design.
+6. Comments: use for transient discussion and review, not durable doctrine.
+7. Repo docs or documentation sites: use for audits, duplicate indexes, source
+   maps, acceptance matrices, worklogs, migration notes, and long rationale.
+
+On-canvas documentation is not a substitute for source truth. A component page
+can show a small do/don't example if the example is visual. It should not host a
+paragraph library, report appendix, changelog wall, or generated agent receipt.
+The `Index` page is the exception for file-native conventions, but it still
+links to long docs instead of copying them.
 
 ### Sections, frames, and groups
 
@@ -555,6 +699,16 @@ can create unnecessary unpublished-change noise.
   art cases where bounds should auto-fit.
 - Convert groups created by imports or pasted external material into frames
   immediately.
+
+Sections should not overlap, and direct children should not sit outside their
+owning section. Treat overlap and overflow as structural defects, not visual
+preferences. If a section is marked Ready for Dev, later edits can change its
+handoff status, so section scope should be intentional and stable.
+
+Use frames inside sections when you need Assets-panel hierarchy, device frames,
+examples, or contained UI structure. Do not rely on visual proximity alone to
+create organization; Figma's search, Assets panel, Dev Mode, and MCP readers
+need names and hierarchy.
 
 ### Layer naming
 
@@ -763,6 +917,16 @@ screenshot repair flows, also read `figma-mcp-agent-gotchas.md`. Tool success
 does not prove file success; the agent must verify actual node state, image
 fills, bounds, component properties, and target screenshots.
 
+When a Figma component or library claims parity with production code, tokens,
+assets, screenshots, or runtime behavior, also read
+`figma-source-backed-parity.md`. Generated local components and imported
+screenshots are evidence until they are source-mapped, named, and verified as
+canonical system artifacts.
+
+When the task is an audit, duplicate/stale review, app/source match, or
+evidence-ranked finding set, also read `figma-audit-toolkit.md`. When the task
+claims visual or pixel fidelity, also read `figma-visual-fidelity.md`.
+
 Figma exports and MCP asset URLs are reference surfaces unless intentionally
 promoted into a product-owned asset pipeline. Map exported values to the
 receiving code tokens, assets, or component APIs instead of treating generated
@@ -816,21 +980,42 @@ Library operations:
 
 File structure:
 
+- Does each organizational layer do its own job: project, file, page, section,
+  frame, component naming, description, Dev Resource, and repo doc?
 - Is the cover first and informative?
+- Is there a maintained `Index` page immediately after the cover, or first when
+  the file has no cover?
+- Does `Index` accurately list every page and explain what belongs there and
+  what does not?
 - Do pages communicate purpose?
+- Do page backgrounds, top-level section fills, section labels, and annotation
+  text follow one file-wide chrome standard?
 - Are shippable units wrapped in sections?
+- Are section bounds honest: no top-level section overlap and no children
+  outside their owning section?
+- Does Assets-panel discoverability work through stable file/page/frame
+  hierarchy, slash component names, clear component properties, and searchable
+  descriptions?
 - Are layers semantically named?
 - Has imported material been cleaned, converted, tokenized, and renamed?
+- Are long reports, worklogs, source maps, duplicate indexes, and acceptance
+  matrices kept out of Figma and linked from repo docs or Dev Resources?
+- Was `Index` updated for any page, naming, chrome, or convention change?
 
 Downstream readiness:
 
 - Is Dev Mode scoped to ready sections?
 - Are annotations reserved for non-visual requirements?
 - Do component properties map to code props where Code Connect matters?
+- Are component descriptions, Dev Resources, source links, and Ready for Dev
+  status sufficient for handoff and future audits?
 - Will Make, Sites, Buzz, Slides, and MCP see structure rather than a painting?
 - If MCP/API tools touched the file, did the agent verify returned node IDs,
   loaded page context, font-loaded text edits, image fills, component property
   placement, bounds/overlap, and screenshots of the actual target artifact?
+- If the file claims production parity, does each reusable component name its
+  source code, token, asset, screenshot, or product-decision anchor, and were
+  approximate generated artifacts removed from reusable component surfaces?
 - If Figma exports informed implementation, are exported code and MCP asset URLs
   kept reference-only unless moved through the product's normal asset pipeline?
 
@@ -849,6 +1034,11 @@ Downstream readiness:
 - mega-components that should be decomposed
 - detach-and-modify as a normal workflow
 - hardcoded hexes and magic-number spacing
+- random page backgrounds or top-level section fills per page, phase, theme,
+  author, or status
+- mixed annotation fonts or oversized canvas notes
+- audit reports, duplicate indexes, source maps, acceptance matrices, or agent
+  worklogs dumped onto the Figma canvas
 - flat or kebab-only variable names that destroy hierarchy
 - color-named semantic tokens
 - component tokens referencing primitives directly
@@ -860,9 +1050,18 @@ Downstream readiness:
 - publishing without a real change description
 - long-running branches
 - status emoji in page names
+- durable component/foundation pages named with dates, author tags, phase
+  markers, or temporary status notes
+- using canvas labels as the primary documentation system
+- creating text-heavy report pages other than the maintained `Index`
+- letting `Index` go stale after page, naming, chrome, or convention changes
+- relying on visual proximity instead of section/frame hierarchy, names, and
+  component descriptions
 - pasted raw images for every slide
 - fixed-width top-level Sites sections
 - accepting AI-generated output without reviewing structure, names, and tokens
 - treating MCP/API success, metadata, or upload hashes as proof without reading
   back node state and checking screenshots
+- preserving generated approximate components or variants as reusable system
+  assets after a source-backed replacement exists
 - importing Figma export code or short-lived MCP asset URLs into runtime code
