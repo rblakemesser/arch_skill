@@ -134,6 +134,10 @@ class ArchEpicAutoModeTests(unittest.TestCase):
         self.assertIn("--settings", worker_argv)
         self.assertIn('{"disableAllHooks":true}', worker_argv)
         self.assertIn("stream-json", worker_argv)
+        self.assertEqual(
+            worker_argv[worker_argv.index("stream-json") + 1],
+            "--verbose",
+        )
         self.assertIn("--include-partial-messages", worker_argv)
         self.assertIn("--include-hook-events", worker_argv)
         self.assertIn("--model", worker_argv)
@@ -142,6 +146,10 @@ class ArchEpicAutoModeTests(unittest.TestCase):
         self.assertIn("xhigh", worker_argv)
         self.assertIn("--json-schema", critic_argv)
         self.assertIn("stream-json", critic_argv)
+        self.assertEqual(
+            critic_argv[critic_argv.index("stream-json") + 1],
+            "--verbose",
+        )
         self.assertIn("claude-sonnet-4-6", critic_argv)
 
     def test_default_auto_monitoring_constants_are_long_running(self):

@@ -300,6 +300,7 @@ delegations:
 ```bash
 claude -p \
   --output-format stream-json \
+  --verbose \
   --include-partial-messages \
   --include-hook-events \
   --dangerously-skip-permissions \
@@ -321,6 +322,9 @@ checks. For fresh-resumable runs, also write the final result event's
 or a fresh-resumable run has no session id, treat the run as malformed and
 preserve the run directory.
 
+`--verbose` is required by the Claude CLI when `--output-format stream-json` is
+used. Do not omit it from fresh or resumed Claude delegation commands.
+
 ## Claude Resume
 
 Use this shape to resume an explicit Claude session:
@@ -328,6 +332,7 @@ Use this shape to resume an explicit Claude session:
 ```bash
 claude -p \
   --output-format stream-json \
+  --verbose \
   --include-partial-messages \
   --include-hook-events \
   --dangerously-skip-permissions \

@@ -182,6 +182,7 @@ Use this shape for a Claude consult:
 ```bash
 claude -p \
   --output-format stream-json \
+  --verbose \
   --include-partial-messages \
   --include-hook-events \
   --dangerously-skip-permissions \
@@ -197,6 +198,7 @@ Flag meanings:
 
 - `-p` runs non-interactively and exits.
 - `--output-format stream-json` emits live JSONL events to `events.jsonl`.
+- `--verbose` is required by the Claude CLI when `stream-json` output is used.
 - `--include-partial-messages` and `--include-hook-events` preserve progress
   and tool/hook activity for long consults.
 - `--dangerously-skip-permissions` gives the child realistic local access. Use

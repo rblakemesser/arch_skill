@@ -31,6 +31,7 @@ this reference is the single place the exact mechanics live.
 claude \
   -p \
   --output-format stream-json \
+  --verbose \
   --include-partial-messages \
   --include-hook-events \
   --dangerously-skip-permissions \
@@ -74,6 +75,7 @@ never `payload.get(...)` directly on stdout JSON.
 claude \
   -p \
   --output-format stream-json \
+  --verbose \
   --include-partial-messages \
   --include-hook-events \
   --dangerously-skip-permissions \
@@ -101,6 +103,7 @@ hand-crafted invocation must do the same.
 claude \
   -p \
   --output-format stream-json \
+  --verbose \
   --include-partial-messages \
   --include-hook-events \
   --dangerously-skip-permissions \
@@ -203,6 +206,9 @@ observational StepVerdict semantically.
 - `--output-format stream-json` on Claude and `--json` on Codex are unrelated
   flags with similar purpose: both preserve live JSONL events, but their event
   shapes differ. Treat them differently in the parser.
+- `--verbose` is required by the Claude CLI when `--output-format stream-json`
+  is used. Add it to every Claude stream-json step, resume, diagnostic, critic,
+  and smoke-test command.
 
 ## Verification block
 
@@ -212,19 +218,19 @@ behavior does not depend on model choice.
 
 ```
 # 1 Claude step
-claude -p --output-format stream-json --include-partial-messages \
+claude -p --output-format stream-json --verbose --include-partial-messages \
   --include-hook-events --dangerously-skip-permissions \
   --settings '{"disableAllHooks":true}' --model haiku \
   "Say PING." | tee /tmp/smoke/claude-step.events.jsonl | tail -n 1 | jq '.session_id,.result'
 
 # 2 Claude resume (reuse id from step 1; must run from same cwd as step 1)
-claude -p --output-format stream-json --include-partial-messages \
+claude -p --output-format stream-json --verbose --include-partial-messages \
   --include-hook-events --dangerously-skip-permissions \
   --settings '{"disableAllHooks":true}' --model haiku -r <ID> \
   "Say PONG." | tee /tmp/smoke/claude-resume.events.jsonl | tail -n 1 | jq '.session_id,.result'
 
 # 3 Claude critic
-claude -p --output-format stream-json --include-partial-messages \
+claude -p --output-format stream-json --verbose --include-partial-messages \
   --include-hook-events --dangerously-skip-permissions \
   --settings '{"disableAllHooks":true}' --model haiku \
   --json-schema '{"type":"object","additionalProperties":false,"required":["verdict"],"properties":{"verdict":{"enum":["pass","fail"]}}}' \

@@ -121,6 +121,7 @@ active monitoring path.
 ```bash
 claude -p \
   --output-format stream-json \
+  --verbose \
   --include-partial-messages \
   --include-hook-events \
   --dangerously-skip-permissions \
@@ -135,12 +136,14 @@ claude -p \
 The final `type=result` event contains the result text and `session_id`. Keep
 that `session_id` for resume. Run Claude resumes from the same working
 directory as the first turn.
+`--verbose` is required by the Claude CLI when `stream-json` output is used.
 
 ## Claude: Resume Turn
 
 ```bash
 claude -p \
   --output-format stream-json \
+  --verbose \
   --include-partial-messages \
   --include-hook-events \
   --dangerously-skip-permissions \

@@ -164,6 +164,167 @@ class SubprocessRunner(unittest.TestCase):
             self.assertEqual((out_dir / "exit_code").read_text(encoding="utf-8"), "0\n")
 
 
+class ClaudeInvocationFlags(unittest.TestCase):
+    def _run_and_capture_argv(self, args_list: list[str]) -> list[str]:
+        old_run_subprocess = rs._run_subprocess
+        captured: dict[str, list[str]] = {}
+
+        def fake_run(argv, stdout_stream_path, out_dir, cwd=None, stamp_prefix=None):
+            captured["argv"] = argv
+            stdout = json.dumps(_RESULT_EVENT)
+            stdout_stream_path.write_text(stdout, encoding="utf-8")
+            return 0, stdout
+
+        parser = rs._build_parser()
+        args = parser.parse_args(args_list)
+        try:
+            rs._run_subprocess = fake_run
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(args.func(args), 0)
+        finally:
+            rs._run_subprocess = old_run_subprocess
+        return captured["argv"]
+
+    def assert_claude_stream_json_verbose(self, argv: list[str]) -> None:
+        self.assertIn("--output-format", argv)
+        self.assertIn("stream-json", argv)
+        self.assertEqual(argv[argv.index("stream-json") + 1], "--verbose")
+
+    def test_step_spawn_adds_verbose_to_claude_stream_json(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            run_dir = root / "run"
+            target = root / "target"
+            run_dir.mkdir()
+            target.mkdir()
+            (run_dir / "state.json").write_text("{}\n", encoding="utf-8")
+            prompt = root / "prompt.md"
+            prompt.write_text("do the step\n", encoding="utf-8")
+
+            argv = self._run_and_capture_argv(
+                [
+                    "step-spawn",
+                    "--run-dir", str(run_dir),
+                    "--target-repo", str(target),
+                    "--prompt-file", str(prompt),
+                    "--model", "haiku",
+                    "--effort", "low",
+                    "--runtime", "claude",
+                    "--step-n", "1",
+                    "--try-k", "1",
+                ]
+            )
+
+        self.assert_claude_stream_json_verbose(argv)
+
+    def test_step_resume_adds_verbose_to_claude_stream_json(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            run_dir = root / "run"
+            target = root / "target"
+            run_dir.mkdir()
+            target.mkdir()
+            (run_dir / "state.json").write_text("{}\n", encoding="utf-8")
+            prompt = root / "repair.md"
+            prompt.write_text("repair the step\n", encoding="utf-8")
+
+            argv = self._run_and_capture_argv(
+                [
+                    "step-resume",
+                    "--run-dir", str(run_dir),
+                    "--target-repo", str(target),
+                    "--prompt-file", str(prompt),
+                    "--model", "haiku",
+                    "--effort", "low",
+                    "--runtime", "claude",
+                    "--step-n", "1",
+                    "--try-k", "2",
+                    "--session-id", "session-1",
+                ]
+            )
+
+        self.assert_claude_stream_json_verbose(argv)
+
+    def test_step_diagnose_adds_verbose_to_claude_stream_json(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            run_dir = root / "run"
+            target = root / "target"
+            run_dir.mkdir()
+            target.mkdir()
+            (run_dir / "state.json").write_text("{}\n", encoding="utf-8")
+            prompt = root / "diagnose.md"
+            prompt.write_text("diagnose the step\n", encoding="utf-8")
+
+            argv = self._run_and_capture_argv(
+                [
+                    "step-diagnose",
+                    "--run-dir", str(run_dir),
+                    "--target-repo", str(target),
+                    "--prompt-file", str(prompt),
+                    "--model", "haiku",
+                    "--effort", "low",
+                    "--runtime", "claude",
+                    "--step-n", "1",
+                    "--try-k", "2",
+                    "--session-id", "session-1",
+                    "--round-k", "1",
+                    "--with-step-m", "1",
+                ]
+            )
+
+        self.assert_claude_stream_json_verbose(argv)
+
+    def test_critic_spawn_adds_verbose_to_claude_stream_json(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            run_dir = root / "run"
+            target = root / "target"
+            run_dir.mkdir()
+            target.mkdir()
+            (run_dir / "state.json").write_text("{}\n", encoding="utf-8")
+            prompt = root / "critic.md"
+            prompt.write_text("judge the step\n", encoding="utf-8")
+            schema_file = root / "schema.json"
+            schema_file.write_text(
+                json.dumps(
+                    {
+                        "type": "object",
+                        "additionalProperties": False,
+                        "required": list(_PASS_VERDICT.keys()),
+                        "properties": {
+                            "step_n": {"type": "integer"},
+                            "verdict": {"enum": ["pass", "fail", "abstain"]},
+                            "checks": {"type": "array", "items": {"type": "object"}},
+                            "observed_breach": {"type": ["string", "null"]},
+                            "evidence_pointers": {"type": "array", "items": {"type": "string"}},
+                            "contract_clauses_implicated": {"type": "array", "items": {"type": "string"}},
+                            "summary": {"type": "string"},
+                            "abstain_reason": {"type": ["string", "null"]},
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            argv = self._run_and_capture_argv(
+                [
+                    "critic-spawn",
+                    "--run-dir", str(run_dir),
+                    "--target-repo", str(target),
+                    "--prompt-file", str(prompt),
+                    "--model", "haiku",
+                    "--effort", "low",
+                    "--runtime", "claude",
+                    "--schema-file", str(schema_file),
+                    "--step-n", "1",
+                    "--try-k", "1",
+                ]
+            )
+
+        self.assert_claude_stream_json_verbose(argv)
+
+
 class CodexSchemaNormalization(unittest.TestCase):
     def test_optional_schema_fields_become_required_nullable(self):
         schema = {

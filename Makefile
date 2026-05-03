@@ -153,6 +153,10 @@ agents_install_skill:
 		rm -rf $(AGENTS_SKILLS_DIR)/$$shared; \
 		cp -R skills/$$shared $(AGENTS_SKILLS_DIR)/$$shared; \
 	done
+	@for item in $(SKILLS) $(SHARED_DIRS); do \
+		find $(AGENTS_SKILLS_DIR)/$$item \( -name build -o -name prompts -o -name __pycache__ \) -type d -prune -exec rm -rf {} +; \
+		find $(AGENTS_SKILLS_DIR)/$$item -name '*.pyc' -delete; \
+	done
 
 clean_codex_skill_mirror:
 	@for skill in $(REMOVED_SKILLS) $(SKILLS); do \
@@ -173,6 +177,10 @@ claude_install_skill:
 	@for shared in $(SHARED_DIRS); do \
 		rm -rf $(CLAUDE_SKILLS_DIR)/$$shared; \
 		cp -R skills/$$shared $(CLAUDE_SKILLS_DIR)/$$shared; \
+	done
+	@for item in $(CLAUDE_SKILLS) $(SHARED_DIRS); do \
+		find $(CLAUDE_SKILLS_DIR)/$$item \( -name build -o -name prompts -o -name __pycache__ \) -type d -prune -exec rm -rf {} +; \
+		find $(CLAUDE_SKILLS_DIR)/$$item -name '*.pyc' -delete; \
 	done
 
 claude_install_hook:
@@ -196,6 +204,10 @@ gemini_install_skill:
 		rm -rf $(GEMINI_SKILLS_DIR)/$$shared; \
 		cp -R skills/$$shared $(GEMINI_SKILLS_DIR)/$$shared; \
 	done
+	@for item in $(GEMINI_SKILLS) $(SHARED_DIRS); do \
+		find $(GEMINI_SKILLS_DIR)/$$item \( -name build -o -name prompts -o -name __pycache__ \) -type d -prune -exec rm -rf {} +; \
+		find $(GEMINI_SKILLS_DIR)/$$item -name '*.pyc' -delete; \
+	done
 
 verify_install: verify_agents_install verify_codex_install verify_claude_install verify_hook_runner $(VERIFY_GEMINI)
 	@echo "OK: active skill surface installed for agents, Claude Code, and requested Gemini targets; one arch_skill Codex hook and one arch_skill Claude hook installed from ~/.agents/skills"
@@ -211,6 +223,10 @@ ensure_installed:
 verify_agents_install:
 	@for skill in $(SKILLS); do \
 		test -f $(AGENTS_SKILLS_DIR)/$$skill/SKILL.md; \
+	done
+	@for item in $(SKILLS) $(SHARED_DIRS); do \
+		if find $(AGENTS_SKILLS_DIR)/$$item \( -name build -o -name prompts -o -name __pycache__ \) -type d -print -quit | grep -q .; then echo "ERROR: source/build internals installed under $(AGENTS_SKILLS_DIR)/$$item"; exit 1; fi; \
+		if find $(AGENTS_SKILLS_DIR)/$$item -name '*.pyc' -print -quit | grep -q .; then echo "ERROR: Python bytecode installed under $(AGENTS_SKILLS_DIR)/$$item"; exit 1; fi; \
 	done
 	@for skill in $(REMOVED_SKILLS); do \
 		test ! -d $(AGENTS_SKILLS_DIR)/$$skill; \
@@ -232,6 +248,10 @@ verify_claude_install:
 	@for skill in $(CLAUDE_SKILLS); do \
 		test -f $(CLAUDE_SKILLS_DIR)/$$skill/SKILL.md; \
 	done
+	@for item in $(CLAUDE_SKILLS) $(SHARED_DIRS); do \
+		if find $(CLAUDE_SKILLS_DIR)/$$item \( -name build -o -name prompts -o -name __pycache__ \) -type d -print -quit | grep -q .; then echo "ERROR: source/build internals installed under $(CLAUDE_SKILLS_DIR)/$$item"; exit 1; fi; \
+		if find $(CLAUDE_SKILLS_DIR)/$$item -name '*.pyc' -print -quit | grep -q .; then echo "ERROR: Python bytecode installed under $(CLAUDE_SKILLS_DIR)/$$item"; exit 1; fi; \
+	done
 	@for skill in $(NON_CLAUDE_SKILLS); do \
 		test ! -d $(CLAUDE_SKILLS_DIR)/$$skill; \
 	done
@@ -249,6 +269,10 @@ verify_claude_install:
 verify_gemini_install:
 	@for skill in $(GEMINI_SKILLS); do \
 		test -f $(GEMINI_SKILLS_DIR)/$$skill/SKILL.md; \
+	done
+	@for item in $(GEMINI_SKILLS) $(SHARED_DIRS); do \
+		if find $(GEMINI_SKILLS_DIR)/$$item \( -name build -o -name prompts -o -name __pycache__ \) -type d -print -quit | grep -q .; then echo "ERROR: source/build internals installed under $(GEMINI_SKILLS_DIR)/$$item"; exit 1; fi; \
+		if find $(GEMINI_SKILLS_DIR)/$$item -name '*.pyc' -print -quit | grep -q .; then echo "ERROR: Python bytecode installed under $(GEMINI_SKILLS_DIR)/$$item"; exit 1; fi; \
 	done
 	@for skill in $(NON_GEMINI_SKILLS); do \
 		test ! -d $(GEMINI_SKILLS_DIR)/$$skill; \
@@ -287,6 +311,7 @@ remote_install:
 		ssh $(HOST) "rm -rf ~/.agents/skills/$$shared"; \
 		scp -r skills/$$shared $(HOST):~/.agents/skills/; \
 	done
+	@ssh $(HOST) "for item in $(SKILLS) $(SHARED_DIRS); do if [ -d ~/.agents/skills/\$$item ]; then find ~/.agents/skills/\$$item \( -name build -o -name prompts -o -name __pycache__ \) -type d -prune -exec rm -rf {} +; find ~/.agents/skills/\$$item -name '*.pyc' -delete; fi; done"
 	@for skill in $(REMOVED_SKILLS) $(SKILLS); do \
 		ssh $(HOST) "rm -rf ~/.codex/skills/$$skill"; \
 	done
@@ -301,6 +326,7 @@ remote_install:
 		ssh $(HOST) "rm -rf ~/.claude/skills/$$shared"; \
 		scp -r skills/$$shared $(HOST):~/.claude/skills/; \
 	done
+	@ssh $(HOST) "for item in $(CLAUDE_SKILLS) $(SHARED_DIRS); do if [ -d ~/.claude/skills/\$$item ]; then find ~/.claude/skills/\$$item \( -name build -o -name prompts -o -name __pycache__ \) -type d -prune -exec rm -rf {} +; find ~/.claude/skills/\$$item -name '*.pyc' -delete; fi; done"
 	@ssh $(HOST) "python3 ~/.agents/skills/arch-step/scripts/upsert_claude_stop_hook.py --settings-file ~/.claude/settings.json --skills-dir ~/.agents/skills"
 	@ssh $(HOST) "python3 ~/.agents/skills/arch-step/scripts/upsert_claude_session_start_hook.py --settings-file ~/.claude/settings.json --skills-dir ~/.agents/skills"
 	@if [ "$(NO_GEMINI)" != "1" ]; then \
@@ -315,4 +341,5 @@ remote_install:
 			ssh $(HOST) "rm -rf ~/.gemini/skills/$$shared"; \
 			scp -r skills/$$shared $(HOST):~/.gemini/skills/; \
 		done; \
-	fi
+		ssh $(HOST) "for item in $(GEMINI_SKILLS) $(SHARED_DIRS); do if [ -d ~/.gemini/skills/\$$item ]; then find ~/.gemini/skills/\$$item \( -name build -o -name prompts -o -name __pycache__ \) -type d -prune -exec rm -rf {} +; find ~/.gemini/skills/\$$item -name '*.pyc' -delete; fi; done"; \
+		fi

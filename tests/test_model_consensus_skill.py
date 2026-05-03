@@ -79,6 +79,7 @@ class ModelConsensusSkillTests(unittest.TestCase):
             "--disable codex_hooks",
             "codex exec resume",
             "--output-format stream-json",
+            "--verbose",
             "--include-partial-messages",
             "--include-hook-events",
             "--settings '{\"disableAllHooks\":true}'",
