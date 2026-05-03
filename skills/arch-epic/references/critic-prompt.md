@@ -70,20 +70,25 @@ work.
 ### 2. scope_not_cut
 For each Section 7 phase, verify every checklist item and every
 exit criterion is completed per the worklog. A missing, skipped,
-parked, or narrowed item is a fail even if an agent wrote a Decision
-Log note.
+narrowed, or silently removed item is a fail even if an agent wrote a
+Decision Log note. A requirement explicitly assigned to a named later
+sub-plan is preserved epic scope, not a current-sub-plan failure.
 
 ### 3. no_orphaned_discoveries
-Scan the worklog and Decision Log for discovery-signal phrases:
-"we also needed to", "turns out", "had to add", "blocked until",
-"surprised by", "worked around". For each hit:
+Compare the worklog and Decision Log against the approved sub-plan. A
+discovery candidate is any fact showing that implementation encountered a
+required surface, dependency, behavior, constraint, or handoff that was not
+represented in the approved sub-plan when work began. Do not rely on exact
+phrases. Infer candidates from the relationship between approved scope,
+implementation evidence, Section 7, Epic Requirement Coverage, and the
+Decision Log. For each candidate:
 - If the discovery was added to the plan AND implemented AND
   recorded in Decision Log: no action, it was managed correctly.
 - If the discovery was implemented silently (no Decision Log
   entry): fail — silent scope expansion.
 - If the discovery was noted but left open and is required for the
-  approved North Star, Section 7, gate, or raw epic goal, add a
-  `discovered_items[]` entry with
+  approved North Star, Section 7, gate, or raw epic goal, and it has no
+  named later owner, add a `discovered_items[]` entry with
   `scope_relationship: required_for_approved_scope`.
   Pick a scope-preserving `recommendation`:
     - extend_current: small enough to fit inside this sub-plan's
@@ -92,6 +97,9 @@ Scan the worklog and Decision Log for discovery-signal phrases:
 - If the discovery is only a harmless improvement idea and not
   required for approved scope, ignore it. Do not report nice-to-have
   observations as scope changes.
+- If the discovery is required but explicitly assigned to a named later
+  sub-plan, pass the current sub-plan on that point and cite the later
+  owner in evidence.
 
 ### 4. audit_clean
 Confirm `arch_skill:block:implementation_audit` exists with

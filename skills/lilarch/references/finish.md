@@ -19,7 +19,7 @@ Mark the doc complete only when:
 
 - the intended code changes exist
 - obvious call sites are updated
-- required deletes happened or are explicitly deferred in the doc
+- required deletes happened or are assigned to an explicit named follow-up in the doc
 - any new tooling for agent-backed behavior is explicitly justified by the doc rather than invented during finish mode
 - verification evidence is recorded
 

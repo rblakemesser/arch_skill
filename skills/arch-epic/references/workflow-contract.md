@@ -42,8 +42,9 @@ determinism happens.
    pending/null.
 3. Write the epic doc: frontmatter (with hashes), TL;DR in plain
    English, draft Decomposition per `decomposition-principles.md`
-   (3–7 sub-plans typically, one sentence each, ordering by
-   dependency then risk, gates as assertions not tasks).
+   (one sentence each, ordering by dependency then risk, gates as
+   assertions not tasks, count chosen from proof boundaries rather than
+   a preset range).
 4. Append one Orchestration Log entry: `Goal captured.
    Decomposition drafted (<N> sub-plans). Awaiting user approval.`
 5. End turn. Surface the Decomposition and ask the user to approve
@@ -322,9 +323,10 @@ Log entry. End turn. Next turn re-enters `run`.
 - User chooses `extend_current` but the item would violate the
   sub-plan's North Star (the item truly doesn't belong). Flag the
   mismatch, ask to reconfirm.
-- User asks to remove, park, or postpone approved scope. Explain that
-  arch-epic does not have a scope-reduction path; the scope-preserving
-  choices are extend_current, new_sub_plan, or blocked.
+- User asks to remove approved scope or postpone it without a named owner and
+  gate. Explain that arch-epic does not have a scope-reduction path; the
+  scope-preserving choices are extend_current, new_sub_plan, named later
+  ownership, or blocked.
 
 ## Mode: `summary`
 

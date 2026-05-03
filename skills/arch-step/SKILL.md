@@ -39,12 +39,12 @@ The primary object is one canonical full-arch plan doc. Commands exist to move t
 - Correctness and approved intent outrank speed, scope trimming, or "minimum implementation."
 - The agent has no authority to cut requested behavior, acceptance criteria, or required implementation work unless the user or the governing plan already marked that item out of scope.
 - Cutting, downgrading, deferring, or "simplifying away" approved behavior, acceptance criteria, or phase obligations is a hard stop. Surface to the user with what you want to cut, why, what Section 0 / TL;DR / Section 7 say about it, and the exact approval you need. Do not proceed until the user explicitly approves; record the approved cut in the Decision Log using the `Scope cut (user-approved)` shape.
-- Section 7 phases should split work into coherent self-contained units, with the most fundamental units first and later phases clearly building on earlier ones.
-- If two valid decompositions exist, bias toward more, smaller coherent phases rather than fewer blended phases.
+- Section 7 uses the depth-first doctrine in `skills/_shared/depth-first-planning.md`: protect the full destination map, prove the first real working slice through the highest-risk seam, then expand along named axes.
+- Phase boundaries are proof boundaries. Phase count is an outcome of dependency edges, proof gates, reversibility or migration boundaries, and user-review boundaries; split only when a phase blends separately provable work.
 - A phase is not complete while any checklist item or exit criterion in that phase remains unmet.
 - For modern Section 7 docs, `Work` is explanatory only. Every required phase obligation must live in `Checklist (must all be done)` or `Exit criteria (all required)`, and fresh audit must validate both before a phase can stay complete.
 - During `implement` and `implement-loop`, the approved plan stays authoritative for requirements, scope, acceptance criteria, and phase obligations. Execution may record progress truth, but it may not rewrite the plan to make unfinished work disappear.
-- During `implement` and `implement-loop`, execution scope is the full approved Section 7 frontier in order: start from the earliest incomplete or reopened phase and continue through later reachable phases until that frontier is done or a real blocker stops progress.
+- During `implement` and `implement-loop`, execution scope is the current approved ordered implementation frontier: the earliest incomplete or reopened phase plus later phases whose prerequisites and proof gates are reachable in this implementation arc. Named later expansion is not current missing work until its proof gate is due; silent removal from the destination map is still a scope cut.
 - Credible proof supports continued implementation. It does not justify stopping after one local fix, one phase, or one convenient subset while later approved phases are still reachable.
 - If the doc is materially non-canonical, repair only the safe owned portion or route to `reformat`.
 - Keep one planning source of truth. Do not create sidecar plan docs or competing checklists.
@@ -56,7 +56,7 @@ The primary object is one canonical full-arch plan doc. Commands exist to move t
 - Use repo evidence first. Ask only for true product, UX, external-constraint, access, or doc-path gaps.
 - Before asking the user any plan-shaping question, consult approved intent on the plan doc: Section 0 (North Star), TL;DR, and the Section 7 phase frontier. Only ask when intent plus repo evidence genuinely leave two credible branches. Record intent-derived resolutions in the Decision Log using the `Intent-derived` shape.
 - If repo evidence cannot settle a plan-shaping decision, ask the user instead of guessing, defaulting, or parking the choice as a pseudo-complete plan.
-- Before hardening target architecture or Section 7, inspect adjacent surfaces tied to the same contract family, source of truth, migration boundary, or parity story. Include them now, explicitly defer or exclude them, or ask the exact blocker question when repo truth and approved intent do not settle the disposition.
+- Before hardening target architecture or Section 7, inspect adjacent surfaces tied to the same contract family, source of truth, migration boundary, or parity story. Include them now, assign them to a named later phase, explicitly exclude them, or ask the exact blocker question when repo truth and approved intent do not settle the disposition.
 - Compatibility posture is a first-class plan decision separate from `fallback_policy`. Resolve whether the change preserves the existing contract, performs a clean cutover, or uses an explicitly approved timeboxed bridge. Do not silently assume backward compatibility just because it feels safer.
 - When the changed behavior is agent- or LLM-driven, inspect current prompt surfaces, runtime or agent configuration, native model capabilities, and existing tool/file/context exposure before designing. If that capability picture is still unclear after inspection, ask narrowly instead of assuming the agent cannot do it.
 - For agent-backed systems, prefer prompt engineering, grounding/context shaping, and better use of native capabilities before custom harnesses, wrappers, parsers, OCR stacks, fuzzy matchers, or deterministic sidecars.
@@ -65,7 +65,7 @@ The primary object is one canonical full-arch plan doc. Commands exist to move t
 - When porting agent instructions, prompt doctrine, or other instruction-bearing content, preserve explicit operational structure by default. Do not silently condense ordered steps, conditions, hard negatives, or escalation logic unless the artifact records why that condensation is safe and keeps the source text recoverable.
 - Default to fail-loud boundaries, hard cutover, and explicit deletes. Runtime shims are forbidden unless the plan explicitly approves them.
 - `auto-plan` is one command. It either runs a real bounded planning sequence or fails loud. Prompt-only chaining does not count as the feature.
-- `implement-loop` is one command. It either runs a real full-frontier implement-then-audit controller or fails loud. Prompt-only repetition does not count as the feature.
+- `implement-loop` is one command. It either runs a real implementation-frontier implement-then-audit controller or fails loud. Prompt-only repetition does not count as the feature.
 - Git is the history for retired live truth surfaces. Do not preserve dead competing code paths, stale live docs, or stale comments for posterity. Delete them. If a touched doc, comment, or instruction still matters after the change, update it to current reality in the same run.
 - Broader docs audit, consolidation, and final plan/worklog retirement after a clean full-arch code audit belong to `arch-docs`, not to extra hidden `arch-step` commands.
 - Core commands apply scope-triage and convergence rules even when helper commands are not run.
@@ -200,7 +200,7 @@ Workflow:
 
 #### `implement-loop` / `auto-implement`
 
-`implement-loop` is a full-frontier delivery controller; `auto-implement` is an exact synonym resolving to the same behavior. State lives at `.codex/implement-loop-state.<SESSION_ID>.json` (Codex) or `.claude/arch_skill/implement-loop-state.<SESSION_ID>.json` (Claude Code).
+`implement-loop` is an implementation-frontier delivery controller; `auto-implement` is an exact synonym resolving to the same behavior. State lives at `.codex/implement-loop-state.<SESSION_ID>.json` (Codex) or `.claude/arch_skill/implement-loop-state.<SESSION_ID>.json` (Claude Code).
 
 Workflow:
 
@@ -211,7 +211,7 @@ Workflow:
 `arch-step`-specific rules:
 
 - User-facing invocation: `$arch-step implement-loop <DOC_PATH>` or `$arch-step auto-implement <DOC_PATH>`. Do not introduce a second command, mode, or control surface.
-- Implementation covers the full approved Section 7 frontier in order, from the earliest incomplete or reopened phase through later reachable phases.
+- Implementation covers the current approved ordered implementation frontier in order: the earliest incomplete or reopened phase plus later phases whose prerequisites and proof gates are reachable in this implementation arc.
 - Execution does not rewrite requirements, scope, acceptance criteria, or phase obligations mid-coding. If the plan itself needs to change, stop and repair the plan instead of continuing on a rewritten story.
 - The parent implementation pass may ship code and sync plan/worklog truth, but only the fresh `audit-implementation` child may author the authoritative audit outcome, emit the `arch-docs` handoff, or clear loop state.
 
@@ -252,6 +252,7 @@ Prefer not to need user feedback — approved plan intent and repo evidence shou
 
 - `references/artifact-contract.md` - canonical full-arch plan artifact, exact section shape, frontmatter, block inventory, and worklog contract
 - `references/shared-doctrine.md` - cross-cutting doctrine: question policy, alignment checks, evidence, SSOT, scope defaults, and consistency repair
+- `skills/_shared/depth-first-planning.md` - destination map, first working slice, expansion map, proof gates, scope-cut distinction, and failure-mode recognition tests
 - `references/section-quality.md` - purpose, strong/weak bar, trust rules, and failure modes for each section and supporting block
 - `references/arch-new.md` - bootstrap the canonical artifact and stop for North Star confirmation
 - `references/arch-reformat.md` - convert an existing doc into the canonical artifact without losing meaning
@@ -266,7 +267,7 @@ Prefer not to need user feedback — approved plan intent and repo evidence shou
 - `references/arch-consistency-pass.md` - end-to-end cold-read consistency review before implementation
 - `references/arch-review-gate.md` - local idiomatic and completeness review
 - `references/arch-implement.md` - implementation, worklog, and completion discipline
-- `references/arch-implement-loop.md` - full-frontier implement/audit loop, required ensure-install step, and loop-state contract
+- `references/arch-implement-loop.md` - implementation-frontier implement/audit loop, required ensure-install step, and loop-state contract
 - `references/arch-audit-implementation.md` - code-completeness audit and phase reopening
 - `references/status.md` - compact artifact-first status rules
 - `references/advance.md` - full checklist, next-command selection, and optional one-step execution

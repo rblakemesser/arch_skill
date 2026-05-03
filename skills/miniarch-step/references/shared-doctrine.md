@@ -102,11 +102,12 @@ If a question is still necessary, say where you looked first and ask the exact b
 - Common adjacent surfaces include sibling formats, readers and writers, embedded examples, fixtures, generated artifacts, mirrored config, live docs, and agent instructions.
 - For each adjacent surface, classify one truthful disposition:
   - include now
-  - explicitly defer
+  - assign to a named later phase
   - explicitly out of scope
   - blocker question
 - If repo truth plus approved intent make the disposition obvious, decide it without asking.
 - Do not silently leave a sibling surface contradictory just because the user did not spell it out.
+- A named later phase preserves the destination map; an unnamed deferral is an unresolved decision, not a disposition.
 
 ## Compatibility posture
 

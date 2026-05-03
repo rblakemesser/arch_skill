@@ -9,7 +9,7 @@ metadata:
 
 Wraps `$arch-step` to orchestrate goals too big for one canonical plan.
 The skill takes a prose goal, proposes a plain-English decomposition
-(3–7 sub-plans, one sentence each), gets user approval, and then drives
+whose count follows proof gates rather than a preset range, gets user approval, and then drives
 each sub-plan through arch-step's `new` → `auto-plan` → `implement-loop`
 → `audit-implementation` arc. After each sub-plan completes, a fresh
 Claude or Codex critic subprocess inspects the shipped work for scope
@@ -128,16 +128,17 @@ Must never happen:
   that via arch-step's implement-loop in interactive mode or spawned
   implementation workers in automatic mode.
 - Scope reduction. The epic scope is the epic scope. If the critic
-  sees a dropped, narrowed, parked, or moved requirement from the raw
+  sees a dropped, narrowed, or silently removed requirement from the raw
   goal, approved Decomposition, North Star, Epic Requirement Coverage,
   Section 7, acceptance criteria, or verification obligations, the
-  sub-plan fails. Agent-written Decision Log entries are evidence, not
-  approval to reduce scope.
+  sub-plan fails. A requirement assigned to a named later sub-plan is
+  preserved scope, not a failure for the current sub-plan. Agent-written
+  Decision Log entries are evidence, not approval to reduce scope.
 - Auto-acting on materially-different-path detections without user
   approval. Material scope discoveries always halt and preserve scope
   through `extend_current` or `new_sub_plan`. There is no automatic
-  defer/drop path and no supported scope-reduction lane inside
-  arch-epic auto mode.
+  drop path and no supported scope-reduction lane inside arch-epic auto
+  mode.
 - Letting critics author repair steps. Critics report verdict,
   failed checks, evidence, and scope discoveries only. The parent
   routes the result, and the resumed planner or implementation worker
@@ -182,8 +183,9 @@ Must never happen:
    asked for automatic end-to-end execution, defer execution choices
    to the automatic role-table gate after decomposition approval.
 4. Read `references/decomposition-principles.md`. Draft the
-   Decomposition (3–7 sub-plans, one-sentence descriptions,
-   assertion-style gates, dependency-then-risk ordering).
+   Decomposition (one-sentence descriptions, assertion-style gates,
+   dependency-then-risk ordering, and count chosen from real proof
+   boundaries rather than a target range).
 5. Read `references/epic-doc-contract.md`. Write the epic doc.
 6. Surface the Decomposition and ask the user to approve or adjust.
 
@@ -242,6 +244,9 @@ Detail per mode lives in `references/workflow-contract.md`.
 - `references/decomposition-principles.md` — when to split a goal
   into sub-plans. Prose reasoning with worked examples; no keyword
   tables.
+- `skills/_shared/depth-first-planning.md` — destination map, first
+  working slice, expansion map, proof gates, and scope-cut distinction
+  shared with arch-step and miniarch-step.
 - `references/arch-step-integration.md` — sub-plan Status →
   arch-step command mapping. What the skill invokes vs. what the
   hook drives vs. what the user does.

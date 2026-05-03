@@ -6,7 +6,7 @@
 - keep code, plan, and worklog aligned as the run proceeds
 - execute systematically against the authoritative checklist
 - finish with an honest `complete` or `partial` outcome
-- serve as the single full-frontier implementation pass used directly or inside `implement-loop`
+- serve as the single implementation-frontier pass used directly or inside `implement-loop`
 
 ## Execution North Star
 
@@ -28,6 +28,7 @@ By the end of the run:
 
 - `artifact-contract.md`
 - `shared-doctrine.md`
+- `skills/_shared/depth-first-planning.md`
 - `section-quality.md` for Sections 0, 5, 6, 7, 8, `WORKLOG_PATH`, and `implementation_audit`
 
 ## Inputs and `DOC_PATH` resolution
@@ -81,7 +82,7 @@ By the end of the run:
 ## Hard rules
 
 - read `DOC_PATH` fully before editing code
-- this command is a full ordered implementation run across the current approved Section 7 frontier; if the user wants hook-backed fresh auditing after each full-frontier run, use `implement-loop`
+- this command is an ordered implementation run across the current approved ordered implementation frontier; if the user wants hook-backed fresh auditing after each full implementation pass, use `implement-loop`
 - treat the doc as the authoritative spec and checklist
 - identify the canonical owner path before designing or extending a code path
 - if the work includes refactor, consolidation, or shared-path extraction, identify the preservation signal before editing code
@@ -158,7 +159,7 @@ This ledger is working memory, not a second plan doc. Write it down only when it
 
 ## Phase-by-phase execution loop
 
-Execute Section 7 in order from the earliest incomplete or reopened phase through later reachable phases.
+Execute Section 7 in order across the current approved ordered implementation frontier: the earliest incomplete or reopened phase plus later phases whose prerequisites and proof gates are reachable in this arc.
 
 For each phase:
 
@@ -172,7 +173,7 @@ For each phase:
 8. Update `DOC_PATH` and `WORKLOG_PATH` before moving on.
 
 Do not skip ahead just because the happy path works.
-Do not stop once one phase, one subset, or one local fix is green if later approved phases are still reachable.
+Do not stop once one phase, one subset, or one local fix is green if later approved phases are due in the current frontier.
 Do not start the next phase while the current phase still has hidden `still todo` items.
 
 ## Plan document update rules
@@ -241,7 +242,7 @@ At each phase boundary:
 ## Verification discipline
 
 - after each meaningful chunk, run the required credible programmatic evidence for the current phase claim
-- when `implement` is running inside `implement-loop`, do not hand control back to audit until the current full ordered implementation frontier is done or genuinely blocked and its claimed work has credible proof
+- when `implement` is running inside `implement-loop`, do not hand control back to audit until the current approved ordered implementation frontier is done or genuinely blocked and its claimed work has credible proof
 - prefer existing checks before new tests or harnesses
 - for agent-backed systems, new harnesses or scripts do not count as progress unless the plan justified them against prompt-first and capability-first alternatives
 - any refactor, consolidation, or shared-path extraction must run a preservation signal before the phase can be called complete

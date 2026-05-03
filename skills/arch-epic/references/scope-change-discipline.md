@@ -5,13 +5,13 @@ confirms code completion. Its unique job is to detect drift from approved
 epic scope and force a scope-preserving response.
 
 The rule is simple: the epic scope is the epic scope. Automatic mode must not
-cut, narrow, park, drop, or move approved scope out of the epic. If a
-requirement is present in the raw goal, approved Decomposition, sub-plan North
-Star, Epic Requirement Coverage, Section 7 checklist, exit criteria, or
-verification obligations, it must be implemented, carried by a named later
-sub-plan, extended into the current sub-plan, or reported as blocked. Agent
-judgment can choose where the work belongs; it cannot choose that the work no
-longer matters.
+cut, narrow, or silently remove approved scope from the epic. If a requirement
+is present in the raw goal, approved Decomposition, sub-plan North Star, Epic
+Requirement Coverage, Section 7 checklist, exit criteria, or verification
+obligations, it must be implemented now, carried by a named later sub-plan,
+extended into the current sub-plan, or reported as blocked. Agent judgment can
+choose where the work belongs; it cannot choose that the work no longer
+matters.
 
 This file teaches what to flag and what to ignore. The critic reads it. The
 orchestrator reads it too, because the orchestrator decides how to preserve
@@ -86,13 +86,15 @@ appear in `discovered_items[]`.
 - `new_sub_plan`: the item is a separate unit with its own North Star and
   should become a new arch-step sub-plan inserted into the epic.
 
-There is no `defer` recommendation. There is no `drop` recommendation. There is
-no `nice_to_have` classification.
+There is no `drop` recommendation. There is no `nice_to_have`
+classification. A current sub-plan may assign a requirement to a named later
+sub-plan only when that preserves the approved epic destination and the later
+owner is explicit.
 
 ## No Auto-Reduction Rule
 
-Automatic mode never auto-applies a scope disposition that reduces or parks
-scope. When the critic returns `verdict: scope_change_detected`, the
+Automatic mode never auto-applies a scope disposition that reduces scope.
+When the critic returns `verdict: scope_change_detected`, the
 orchestrator halts and asks the user how to preserve the approved scope:
 
 - extend the current sub-plan, or
@@ -135,7 +137,7 @@ applies it and resumes.
 
 ## What The Orchestrator Does Not Do
 
-- It does not park, drop, or treat approved scope as future work.
+- It does not drop approved scope or treat approved scope as unnamed future work.
 - It does not mark a sub-plan complete when approved requirements are missing.
 - It does not treat an agent-written Decision Log entry as scope-reduction
   approval.

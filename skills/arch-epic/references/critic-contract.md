@@ -65,8 +65,9 @@ shipped behavior.
 
 Check the sub-plan's Section 7 (phase plan) checklist items and
 Exit Criteria against the worklog. Any item that was dropped,
-marked "skipped," or never referenced in the worklog is a suspect
-scope cut.
+marked "skipped," silently removed, or never referenced in the worklog
+is a suspect scope cut. A requirement explicitly assigned to a named
+later sub-plan is preserved epic scope, not a current-sub-plan failure.
 
 Evidence source: Section 7 of the DOC_PATH (phase plan and exit
 criteria), the WORKLOG_PATH, and the Decision Log inside the
@@ -75,16 +76,22 @@ sub-plan doc.
 Fail pattern: phase 2 had an exit criterion "migration script
 tested against staging data"; worklog never mentions the test. Fail.
 
-Pass pattern: every phase's checklist items and exit criteria are
-visibly completed in the worklog. If an item cannot be completed, the
-verdict must be `scope_change_detected` or `incomplete`, not pass.
+Pass pattern: every current phase's checklist items and exit criteria are
+visibly completed in the worklog, and every approved requirement not due
+in this sub-plan has a named later owner. If an item cannot be completed
+and has no named later owner, the verdict must be `scope_change_detected`
+or `incomplete`, not pass.
 
 ### 3. `no_orphaned_discoveries`
 
-Read the worklog and Decision Log looking for language that signals
-an unplanned discovery: "we also needed to", "turns out we had to
-add", "this was blocked until we did X", "surprised by", "had to
-work around". Every such mention is a candidate. Classify each:
+Read the worklog and Decision Log against the approved sub-plan. A
+discovery candidate is any fact showing that implementation encountered a
+required surface, dependency, behavior, constraint, or handoff that was not
+represented in the approved sub-plan when work began. Do not rely on a
+phrase list. Infer the discovery from the relationship between approved
+scope, what implementation says became necessary, and what is now recorded
+in Section 7, Epic Requirement Coverage, or the Decision Log. Classify each
+candidate:
 
 - If the discovery was added to the phase plan and implemented, and
   the Decision Log records the change: fine. Not orphaned.
@@ -93,8 +100,10 @@ work around". Every such mention is a candidate. Classify each:
   implementation exists but the decomposition does not reflect it.
 - If the discovery was called out but left unresolved ("we'll need
   X eventually, punting for now"): this is a `discovered_items[]`
-  entry only if X is required for approved scope. If X is a harmless
-  observation that is not required for the approved North Star, ignore it.
+  entry only if X is required for approved scope and has no named later
+  owner. If X is assigned to a named later sub-plan, treat it as
+  preserved scope. If X is a harmless observation that is not required
+  for the approved North Star, ignore it.
 
 Evidence source: worklog text, Decision Log text, North Star.
 

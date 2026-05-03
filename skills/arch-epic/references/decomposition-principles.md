@@ -66,7 +66,7 @@ WebAuthn with a shared second-factor registry and also refactor the
 session store"), that is a signal to split again, not a signal to keep
 writing.
 
-## Ordering: dependency first, risk next
+## Ordering: dependency first, risk next, proof always
 
 Sub-plans are ordered by dependency and then by risk.
 
@@ -79,6 +79,14 @@ first. Scary means high uncertainty, novel territory, likely to surface
 a new requirement during implementation. If it blows up, it blows up
 early and you can adjust the decomposition before a lot of downstream
 work depends on it.
+
+Proof means: the first sub-plan should make one real piece of the final
+system work through the canonical owner path, not build a broad shell of
+every future feature. The epic keeps the full destination map, but each
+sub-plan should deliver a truth later sub-plans can rely on: an API that
+serves real data, a migration path that is proven on one owner path, a
+prompt contract that handles one representative workflow, or a verified
+integration seam. Later sub-plans expand along named axes from that proof.
 
 Example — ordering by dependency:
 > Sub-plan 1: Design and ship the v2 search API contract.
@@ -124,21 +132,30 @@ the user can reject fuzzy gates before any real work begins.
 
 ## How many sub-plans?
 
-Typical: three to seven. That number fits on a screen, a reader can
-hold the whole map in their head, and each sub-plan is weighty enough
-to justify arch-step's canonical plan discipline.
+Sub-plan count is an outcome, not a target. The right number is the
+smallest ordered set whose entries each have a clear North Star, a
+falsifiable gate, and a handoff that does not force the reader to inspect
+a sibling plan's internals.
 
-Fewer than three: consider whether `arch-epic` is even the right skill.
-A two-sub-plan epic is sometimes legitimate (shared system + its
-consumer), but a one-sub-plan "epic" is just an `$arch-step` plan with
-extra ceremony around it — send the user there directly.
+A two-sub-plan epic is legitimate when there are two real proof
+boundaries, such as "ship the shared system" and "migrate the first
+consumer." A one-sub-plan "epic" is usually just an `$arch-step` plan with
+extra ceremony around it; send the user there directly unless the single
+sub-plan still needs epic-level orchestration around models, critics, or
+repos.
 
-More than seven: the decomposition is probably too fine. Each
-`$arch-step` plan already has its own Section 7 phase discipline, which
-breaks a sub-plan into smaller ordered phases inside its own canonical
-doc. If you find yourself proposing ten sub-plans, look for sub-plans
-that share a surface and fold them back together, letting arch-step's
-phases carry the weight.
+A long decomposition is allowed when the product genuinely has many
+independent proof gates, but it is a warning to inspect for fake splits.
+Each `$arch-step` plan already has its own Section 7 phase discipline,
+which breaks a sub-plan into smaller ordered phases inside its own
+canonical doc. If a proposed sub-plan cannot be described without a
+sibling's internals, or if it proves nothing until combined with a
+neighbor, fold it back together and let Section 7 carry that sequencing.
+
+Do not add sub-plans just to make the list look thorough. Do not merge
+sub-plans just to keep the list short. The count follows dependency
+edges, proof gates, user-review boundaries, repo boundaries, and
+reversibility or migration boundaries.
 
 ## Announcing the decomposition to the user
 

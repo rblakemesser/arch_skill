@@ -187,6 +187,14 @@ A numbered list of sub-plans. Each entry has:
   compact: current role, latest worker artifact, latest critic verdict,
   or `not started`. Do not copy child transcripts into the epic doc.
 
+The decomposition count follows proof boundaries, not a preferred range.
+Each sub-plan should prove a state later sub-plans can rely on. The first
+sub-plan should usually make one real piece of the final system work
+through the highest-risk owner path; later sub-plans expand along named
+axes. If a requirement is intentionally not owned by the current sub-plan,
+the decomposition or Epic Requirement Coverage must name the later owner
+instead of treating it as dropped or vague future work.
+
 Example:
 
 ```markdown

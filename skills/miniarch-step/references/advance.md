@@ -88,7 +88,7 @@ Choose exactly one next move using this precedence:
    - `deep-dive`
    - `phase-plan`
    - `implement` by default
-   - `implement-loop` when the user explicitly wants the full-frontier delivery loop to a clean audit
+   - `implement-loop` when the user explicitly wants the implementation-frontier delivery loop to a clean audit
    - `audit-implementation`
 9. if the code audit is clean and the feature still needs docs cleanup, hand off to `Use $arch-docs`
 10. if all required stages are complete and the live feature residue is already retired, say there is no required next move

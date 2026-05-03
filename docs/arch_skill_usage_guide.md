@@ -261,7 +261,7 @@ Install removes stale pre-skill command surfaces, removed skill packages, older 
 
 ### `arch-step`
 
-Use for broad or ambiguity-heavy full-arch planning, continuation, implementation, helper-assisted hardening, full-frontier implement/audit delivery, or implementation audit.
+Use for broad or ambiguity-heavy full-arch planning, continuation, implementation, helper-assisted hardening, implementation-frontier implement/audit delivery, or implementation audit.
 
 Examples:
 
@@ -280,19 +280,19 @@ Practical rule:
 - If the ask names a full-arch command, the live answer is also `arch-step`.
 - `arch-step` may widen internal refactor scope to converge on one tested path and remove duplicate truth, but it must not invent extra product functionality while doing it.
 - If capability-first analysis shows the main lever is prompt repair, `arch-step` should say so plainly and point to `prompt-authoring`.
-- Before Section 7 hardens, `arch-step` should inspect adjacent surfaces tied to the same contract family, source of truth, migration boundary, or parity story, such as sibling formats, readers/writers, examples, fixtures, mirrored config, generated artifacts, or live docs. It should include them now, explicitly defer or exclude them, or ask one exact blocker question instead of silently leaving them contradictory.
+- Before Section 7 hardens, `arch-step` should inspect adjacent surfaces tied to the same contract family, source of truth, migration boundary, or parity story, such as sibling formats, readers/writers, examples, fixtures, mirrored config, generated artifacts, or live docs. It should include them now, assign them to a named later phase, explicitly exclude them, or ask one exact blocker question instead of silently leaving them contradictory.
 - Compatibility posture is separate from `fallback_policy`: the plan should say whether it preserves the existing contract, performs a clean cutover, or uses an explicitly approved timeboxed bridge.
 - `arch-step status` is the concise readout.
 - `arch-step advance` owns the full checklist and exact next-command selection.
 - `arch-step consistency-pass` is the optional end-to-end cold-read helper before implementation. In Codex it uses two parallel explorer reads, and `auto-plan` includes it automatically after `phase-plan`. When it runs, `Decision: proceed to implement? yes` is only legal if the artifact is decision-complete and has no unresolved plan-shaping decisions left.
 - `arch-step auto-plan` is the explicit bounded planning controller after North Star approval. `DOC_PATH` is the planning ledger and the armed controller state lives under `.codex/` in Codex or `.claude/arch_skill/` in Claude Code. On a fresh doc, the parent pass runs only `research`, then ends its turn. On reruns, the installed Stop hook reads the doc and feeds `deep-dive` pass 1, `deep-dive` pass 2, `phase-plan`, or `consistency-pass` from the first incomplete stage it finds, then stops and says the doc is decision-complete and ready for `implement-loop`. If a real unresolved decision remains, `auto-plan` must stop and ask the user the exact blocker question; the Stop hook clears controller state.
 - `arch-step` does not get to silently cut approved behavior, acceptance criteria, or required implementation work because the agent wants to narrow scope on its own. If repo evidence cannot settle a plan-shaping choice, it must ask the user instead of guessing.
-- Section 7 phase plans should split work into one coherent self-contained unit per phase, with the most fundamental units first and later phases clearly building on earlier ones.
-- When two decompositions are both valid, `arch-step` should prefer more, smaller phases than fewer blended phases.
+- Section 7 phase plans should protect the full destination map while building depth-first: first prove one real path through the canonical owner path and highest-risk seam, then expand along named axes.
+- Phase count follows proof gates, dependency edges, reversibility or migration boundaries, and user-review boundaries rather than a preset number.
 - New phase plans should use an explicit `Checklist (must all be done)` plus `Exit criteria (all required)` so a phase cannot be called complete while required obligations are still implicit.
-- `arch-step implement-loop` is the explicit full-frontier controller when the user wants repeated implement then audit passes until the audit is clean or a real blocker stops the run.
+- `arch-step implement-loop` is the explicit implementation-frontier controller when the user wants repeated implement then audit passes until the audit is clean or a real blocker stops the run.
 - `arch-step auto-implement` is an exact user-facing synonym for `implement-loop`.
-- In that controller, implementation scope is the full approved Section 7 frontier in order. It must arm loop state before implementation work, resume from the earliest incomplete or reopened phase, continue through later reachable phases, and only then hand control to fresh audit unless a real blocker stops progress.
+- In that controller, implementation scope is the current approved ordered implementation frontier: the earliest incomplete or reopened phase plus later phases whose prerequisites and proof gates are reachable in this arc. Named later expansion is not current missing work until its proof gate is due; silent removal from the destination map is still a scope cut.
 - After a clean full-arch code audit, `arch-step` hands off to `arch-docs` for docs cleanup using the finished artifact as context.
 - In Codex, the user still invokes only `auto-plan`, `implement-loop`, or `auto-implement`; the last two are the same controller. Every arm runs `arch_controller_stop_hook.py --ensure-installed --runtime <codex|claude>` first; the installer is idempotent and flock-guarded and writes the canonical `Stop` entry (and the `SessionStart` entry on Claude). If `--ensure-installed` fails loud, repair the named prerequisite and rerun.
 - Do not run the Stop hook yourself for any of those controllers. After the controller is armed, just end the turn and let the installed Stop hook run.
@@ -314,9 +314,9 @@ Practical rule:
 
 - If the task no longer fits `lilarch`, but does not need `arch-step`'s broader helper surface, use `miniarch-step`.
 - `miniarch-step auto-plan` is the planning controller for the trimmed surface. `DOC_PATH` is the planning ledger and the armed controller state lives under `.codex/` in Codex or `.claude/arch_skill/` in Claude Code. On a fresh doc, the parent pass runs only `research`, then ends its turn. On reruns, the installed Stop hook reads the doc and feeds `deep-dive` or `phase-plan` from the first incomplete stage it finds, then stops and says the doc is decision-complete and ready for `implement-loop`.
-- `miniarch-step implement-loop` is the explicit full-frontier controller when the user wants repeated implement then audit passes until the audit is clean or a real blocker stops the run.
+- `miniarch-step implement-loop` is the explicit implementation-frontier controller when the user wants repeated implement then audit passes until the audit is clean or a real blocker stops the run.
 - `miniarch-step auto-implement` is an exact user-facing synonym for `implement-loop`.
-- In that controller, implementation scope is the full approved Section 7 frontier in order. It must arm runtime-local controller state under `.codex/` in Codex or `.claude/arch_skill/` in Claude Code before implementation work, resume from the earliest incomplete or reopened phase, continue through later reachable phases, and only then hand control to fresh audit unless a real blocker stops progress. In Codex, that fresh miniarch audit child runs with `gpt-5.4-mini` at `xhigh` reasoning effort.
+- In that controller, implementation scope is the current approved ordered implementation frontier: the earliest incomplete or reopened phase plus later phases whose prerequisites and proof gates are reachable in this arc. It must arm runtime-local controller state under `.codex/` in Codex or `.claude/arch_skill/` in Claude Code before implementation work, then hand control to fresh audit only after that frontier is done or genuinely blocked. In Codex, that fresh miniarch audit child runs with `gpt-5.4-mini` at `xhigh` reasoning effort.
 - After a clean code audit, `miniarch-step` hands off to `arch-docs` for docs cleanup using the finished artifact as context.
 - Every arm runs `arch_controller_stop_hook.py --ensure-installed --runtime <codex|claude>` first; the installer is idempotent and flock-guarded and writes the canonical `Stop` entry (and the `SessionStart` entry on Claude). If `--ensure-installed` fails loud, repair the named prerequisite and rerun.
 - Do not run the Stop hook yourself for any of those controllers. After the controller is armed, just end the turn and let the installed Stop hook run.

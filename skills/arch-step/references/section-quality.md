@@ -251,9 +251,11 @@ Purpose:
 
 Strong when:
 
-- the plan is foundational-first
-- each phase owns one coherent self-contained unit that later phases clearly build upon
-- when two decompositions are both valid, the plan prefers more phases than fewer
+- the plan protects the destination map while building depth-first
+- the first phase is a real working slice through the canonical owner path and highest-risk seam, not a breadth-first shell or unused foundation
+- each phase owns one coherent unit with a proof gate that later phases can rely on
+- later phases expand along named axes instead of silently dropping scope or treating expansion as current failure
+- phase count follows proof gates, dependency edges, reversibility or migration boundaries, and user-review boundaries rather than a preset number
 - each phase has goal, work, checklist, verification, docs/comments when needed, exit criteria, and rollback
 - each phase passes an obligation sweep so required work does not hide outside the authoritative phase-exit surface
 - `Checklist` is exhaustive enough that required work cannot hide behind a vague phase summary

@@ -122,7 +122,7 @@ Inspect:
 
 Grade:
 
-- `strong` when the authoritative phased plan exists, remains the single execution checklist, each phase owns one coherent self-contained unit, the decomposition is foundational-first and biases toward more phases than fewer when both are valid, each phase has concrete work, an explicit exhaustive checklist, verification, exhaustive exit criteria, and rollback, refactor-heavy phases name preservation checks, adjacent-surface and cutover or preservation work are explicit, touched live docs/comments that would otherwise go stale are either deleted or rewritten in the plan, and the checklist contains no unresolved branches or "decide later" language
+- `strong` when the authoritative phased plan exists, remains the single execution checklist, protects the destination map, starts with a real working slice through the canonical owner path and highest-risk seam, expands later work along named axes, chooses phase count from proof gates rather than a preset range, gives each phase concrete work, an explicit exhaustive checklist, verification, exhaustive exit criteria, and rollback, names preservation checks for refactor-heavy phases, makes adjacent-surface and cutover or preservation work explicit, deletes or rewrites touched live docs/comments that would otherwise go stale in the plan, and contains no unresolved branches or "decide later" language
 - `decent` when present but one or more phases are thin
 - `weak` when generic, incomplete, blends coherent units into oversized phases, omits or underspecifies phase checklists, strands required obligations outside the authoritative phase-exit surface, uses vague or non-auditable exit criteria, mixes product creep into ship-blocking work, leaves touched live docs/comments cleanup implicit, or still contains unresolved execution choices
 - `missing` when absent
@@ -197,7 +197,7 @@ Choose the command that most improves artifact completeness or core-flow progres
    - `deep-dive`
    - `phase-plan`
    - `implement` by default
-   - `implement-loop` when the user explicitly wants the full-frontier delivery loop to a clean audit
+   - `implement-loop` when the user explicitly wants the implementation-frontier delivery loop to a clean audit
    - `audit-implementation`
 9. if the code audit is clean and the feature still needs docs cleanup, hand off to `Use $arch-docs`
 10. if all required stages are complete and the live feature residue is already retired, say there is no required next move

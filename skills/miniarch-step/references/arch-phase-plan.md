@@ -10,6 +10,7 @@
 
 - `artifact-contract.md`
 - `shared-doctrine.md`
+- `skills/_shared/depth-first-planning.md`
 - `section-quality.md` for Sections 5, 6, 7, and 8
 
 ## Reads for alignment
@@ -41,9 +42,9 @@
 - do not assume backward compatibility by default; the phase plan must encode the chosen preservation, clean-cutover, or approved-bridge story explicitly
 - do not turn helper blocks into competing execution checklists
 - do not leave the authoritative checklist holding unresolved branches, `if needed` work, or alternative execution paths
-- split Section 7 into the best sequence of coherent self-contained units, optimizing for phases that are fully understood, credibly testable, compliance-complete, and safe to build on later
-- earlier phases should establish the most fundamental owner paths, contracts, prompt surfaces, or migration prerequisites, and later phases should clearly build on that foundation
-- if two decompositions are both valid, bias toward more phases than fewer
+- split Section 7 into a depth-first sequence: protect the full destination map, prove the first real working slice through the canonical owner path and highest-risk seam, then expand along named axes
+- earlier phases should establish proof gates that later phases can rely on; "fundamental" means risk-bearing seam, owner path, contract, prompt surface, migration posture, or verification shape, not an unused foundation layer
+- phase count is an outcome, not a target; split only when a phase blends separately provable units, and merge units that prove nothing until combined
 - `Work` explains the coherent unit; for modern docs it is explanatory only and must not carry standalone obligations
 - `Checklist` is the exhaustive must-do list inside that phase
 - `Exit criteria` must name the exhaustive concrete done-state that auditing will validate, not summary vibes or restated goals
@@ -61,9 +62,10 @@ Before writing the phase plan:
 ## Quality bar
 
 - Section 7 must stay the one authoritative execution checklist
-- the plan must be foundational-first
-- each phase should own one coherent self-contained unit of work that later phases can build upon
-- if two decompositions are both valid, the plan should prefer more phases than fewer
+- the plan must preserve the destination map while building depth-first
+- the first working slice must be narrow but real: it proves one end-to-end path through the canonical owner path and highest-risk seam on real inputs
+- later phases must name the expansion axis they widen and the proof gate that makes that widening safe
+- phase count must follow proof gates, dependency edges, reversibility or migration boundaries, and user-review boundaries rather than a preset number
 - each phase must have goal, work, checklist, verification, docs/comments when needed, exit criteria, and rollback
 - each phase must pass an obligation sweep so required work cannot hide outside the authoritative phase-exit surface
 - `Checklist` must be exhaustive enough that the implementer cannot escape required work by claiming the phase is "basically done"
@@ -79,6 +81,7 @@ Before writing the phase plan:
 - required cleanup, deletes, and touched doc/comment reality-sync work should not be buried
 - phases must name the actual chosen work to do, not conditional or alternate branches the agent would have to choose between later
 - if a phase contains multiple coherent units that could be built and verified separately, split it
+- weak phase plans include final-form Phase 1, fake foundations, layer-cake sequencing, preset phase count, everything-everywhere checklists, expansion treated as cut, cut hidden as expansion, or toy MVP slices
 
 ## Placement and update rules
 
@@ -97,7 +100,7 @@ Use this block shape:
 <!-- arch_skill:block:phase_plan:start -->
 # Depth-First Phased Implementation Plan (authoritative)
 
-> Rule: systematic build, foundational first; split Section 7 into the best sequence of coherent self-contained units, optimizing for phases that are fully understood, credibly testable, compliance-complete, and safe to build on later. If two decompositions are both valid, bias toward more phases than fewer. `Work` explains the unit and is explanatory only for modern docs. `Checklist (must all be done)` is the authoritative must-do list inside the phase. `Exit criteria (all required)` names the exhaustive concrete done conditions the audit must validate. Resolve adjacent-surface dispositions and compatibility posture before writing the checklist. Before a phase is valid, run an obligation sweep and move every required promise from architecture, call-site audit, migration notes, delete lists, verification commitments, docs/comments propagation, approved bridges, and required helper follow-through into `Checklist` or `Exit criteria`. The authoritative checklist must name the actual chosen work, not unresolved branches or "if needed" placeholders. Refactors, consolidations, and shared-path extractions must preserve existing behavior with credible evidence proportional to the risk. For agent-backed systems, prefer prompt, grounding, and native-capability changes before new harnesses or scripts. No fallbacks/runtime shims - the system must work correctly or fail loudly (delete superseded paths). If a bridge is explicitly approved, timebox it and include removal work; otherwise plan either clean cutover or preservation work directly. Prefer programmatic checks per phase; defer manual/UI verification to finalization. Avoid negative-value tests and heuristic gates (deletion checks, visual constants, doc-driven gates, keyword or absence gates, repo-shape policing). Also: document new patterns/gotchas in code comments at the canonical boundary (high leverage, not comment spam).
+> Rule: depth-first implementation protects the full destination while proving the path early. Treat TL;DR, Section 0, Sections 5-6, and approved decisions as the destination map: they preserve final known scope, not a Phase 1 checklist. Section 7 should choose the first working slice that proves one real path through the canonical owner path, highest-risk seam, compatibility or migration posture, and verification shape. Later phases expand along named axes from that proof. Phase boundaries are proof gates: each phase must create evidence that later work can safely rely on. Before a phase plan is valid, run an obligation sweep and either place required work in the current phase, assign it to a named later phase in the expansion map, or stop for an explicit user decision; do not hide unresolved branches. Phase count is an outcome of dependency edges, proof gates, reversibility or migration boundaries, and user-review boundaries; split only when a phase blends separately provable units. `Work` explains the unit and is explanatory only for modern docs. `Checklist (must all be done)` is the authoritative must-do list inside the phase. `Exit criteria (all required)` names the exhaustive concrete done conditions the audit must validate. Refactors, consolidations, and shared-path extractions must preserve existing behavior with credible evidence proportional to the risk. For agent-backed systems, prefer prompt, grounding, and native-capability changes before new harnesses or scripts. No fallbacks/runtime shims - the system must work correctly or fail loudly (delete superseded paths). If a bridge is explicitly approved, timebox it and include removal work; otherwise plan either clean cutover or preservation work directly. Prefer programmatic checks per phase; defer manual/UI verification to finalization. Avoid negative-value tests and heuristic gates (deletion checks, visual constants, doc-driven gates, keyword or absence gates, repo-shape policing). Also: document new patterns/gotchas in code comments at the canonical boundary (high leverage, not comment spam).
 
 ## Phase 1 — <most fundamental coherent unit>
 

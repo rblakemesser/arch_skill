@@ -2,12 +2,12 @@
 
 ## What this command does
 
-- run the current implementation plan through one full ordered implementation frontier per loop cycle
+- run the current implementation plan through one ordered implementation frontier per loop cycle
 - arm the repo-local loop state needed for fresh auditing
 - arm loop state before implementation work starts so the live loop cannot be forgotten mid-run
 - require each implementation pass to prove its claimed phase work before fresh auditing
 - run a fresh `audit-implementation` pass when the active host runtime reaches a stop point and have it exhaustively validate the authoritative phase-exit contract
-- repeat that full-frontier implement, prove, then audit cycle until the audit is clean or a real blocker stops progress
+- repeat that implement, prove, then audit cycle until the audit is clean or a real blocker stops progress
 - keep the code, `DOC_PATH`, and `WORKLOG_PATH` aligned after each implementation pass, then let the fresh audit child author the authoritative audit block
 
 ## Delivery North Star
@@ -31,6 +31,7 @@ User-facing invocation is `implement-loop` or `auto-implement`. `auto-implement`
 
 - `artifact-contract.md`
 - `shared-doctrine.md`
+- `skills/_shared/depth-first-planning.md`
 - `section-quality.md` for Sections 0, 5, 6, 7, 8, `WORKLOG_PATH`, and `implementation_audit`
 - `arch-implement.md`
 - `arch-audit-implementation.md`
@@ -98,12 +99,13 @@ Lifecycle:
 
 ## Hard rules
 
-- this command is a full-frontier controller over `implement` and `audit-implementation`; do not invent a second planning surface or second audit format
+- this command is an implementation-frontier controller over `implement` and `audit-implementation`; do not invent a second planning surface or second audit format
+- the current approved ordered implementation frontier is the earliest incomplete or reopened phase plus later phases whose prerequisites and proof gates are reachable in this loop cycle
 - `implement-loop` is one command; if the required runtime continuation support is absent or disabled, fail loud
 - each cycle must run `implement` first and `audit-implementation` second against the same `DOC_PATH`
 - `implement-loop` must not continue from a plan that is not decision-complete
 - `implement-loop` runs against the same approved plan; the implementation side may not rewrite requirements, scope, acceptance criteria, or phase obligations while the loop is active
-- before handing control back to fresh audit, the implementation pass must finish the current reachable ordered plan frontier or hit a real blocker, and the claimed phase work must have credible programmatic proof
+- before handing control back to fresh audit, the implementation pass must finish the current approved ordered implementation frontier or hit a real blocker, and the claimed phase work must have credible programmatic proof
 - for modern Section 7 docs, fresh audit must validate both `Checklist (must all be done)` and `Exit criteria (all required)` before any phase can stay complete or the loop can finish clean
 - in Codex, the fresh audit pass after an implementation stop point owns the continue-versus-stop decision
 - inside `implement-loop`, only the fresh `audit-implementation` child may write or replace `arch_skill:block:implementation_audit`, conclude the controller is clean, write the `arch-docs` handoff, or delete the armed implement-loop state
@@ -123,7 +125,7 @@ Lifecycle:
 2. Run arm-time ensure-install (`arch_controller_stop_hook.py --ensure-installed --runtime <codex|claude>`). It fails loud on drift; do not proceed unless it returns 0.
 3. Build or refresh the compact implementation ledger from Section 7, Section 6, migration notes, and touched live docs/comments/instructions.
 4. Resolve the active runtime controller state path, then create or refresh the armed miniarch-step implement-loop state for the current session and `DOC_PATH`.
-5. Run one truthful implementation pass using the `implement` contract, starting from the earliest incomplete or reopened phase and continuing through the remaining approved phases in order until the current reachable frontier is done or genuinely blocked. Run the required credible proof along the way, but do not stop just because one local fix is green.
+5. Run one truthful implementation pass using the `implement` contract, starting from the earliest incomplete or reopened phase and continuing through later phases whose prerequisites and proof gates are reachable in this cycle. Run the required credible proof along the way, but do not stop just because one local fix is green.
 6. Sync `DOC_PATH` and `WORKLOG_PATH` to the resulting execution truth and proof signals, but do not replace `arch_skill:block:implementation_audit`, write clean-handoff language from the parent implementation pass, or rewrite requirements, scope, acceptance criteria, or phase obligations to fit partial code.
 7. If the implementation pass stops before the run naturally stops, update the plan and worklog truthfully as awaiting fresh audit, leave the armed miniarch-step implement-loop state in place, and let fresh `audit-implementation` author the authoritative audit outcome.
 8. Otherwise let the installed runtime try to stop. The Stop hook should:
@@ -131,7 +133,7 @@ Lifecycle:
    - launch a fresh `audit-implementation` child pass when the loop is active
    - allow stop when the audit is clean
    - inject a continuation prompt when the audit finds missing code
-9. On each hook-driven continuation, read the refreshed audit findings, resume from the earliest reopened or incomplete phase, continue linearly through the remaining approved phases, prove the claimed work as you go, update execution truth, and keep the loop armed while awaiting the next fresh audit.
+9. On each hook-driven continuation, read the refreshed audit findings, resume from the earliest reopened or incomplete phase, continue linearly through the current approved ordered implementation frontier, prove the claimed work as you go, update execution truth, and keep the loop armed while awaiting the next fresh audit.
 10. If a fresh audit concludes that the next pass would be speculative, blocked, or materially unchanged from the last failed audit, let the fresh audit path clear the armed miniarch-step implement-loop state, stop, and report that state plainly.
 
 ## Fresh-audit requirement
@@ -152,7 +154,7 @@ Fresh means the audit should not rely on remembered implementation intent from t
 - tests, logs, builds, and other evidence surfaces
 - the `audit-implementation` contract
 
-Clean means the fresh audit validated the authoritative checklist and the authoritative exit criteria for the reachable ordered frontier. Broad implementation confidence, local green checks, or parent-pass summaries are not enough.
+Clean means the fresh audit validated the authoritative checklist and the authoritative exit criteria for the current approved ordered implementation frontier. Broad implementation confidence, local green checks, or parent-pass summaries are not enough.
 
 ## Console contract
 
