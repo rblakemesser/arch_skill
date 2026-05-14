@@ -1,76 +1,13 @@
-# ELI10 Renderer-Aware Tables
+# ELI10 Tables
 
-Use this reference when an ELI10 answer has compact grid-shaped information and
-the renderer matters.
+Use this reference when an ELI10 answer has compact grid-shaped information.
 
 Tables are not proof of clarity. A table helps only when the cells stay short
-and the reader can scan the whole row without reconstructing wrapped text.
-
-## Renderer Split
-
-- **Claude / Claude Code:** use native Markdown tables for compact tables.
-  Claude renders Markdown tables cleanly.
-- **Codex:** avoid Markdown pipe tables for important information. Generate a
-  Unicode table with `scripts/render_codex_table.py` and place it in a fenced
-  `text` block.
-- **Unknown renderer:** default to bullets, key/value blocks, or short labeled
-  sections.
-
-Do not use the Codex Unicode renderer in Claude unless the user explicitly asks
-for Codex-compatible output.
-
-## Codex Helper
-
-Preferred command:
-
-```bash
-uv --quiet run --script skills/eli10/scripts/render_codex_table.py
-```
-
-Direct command:
-
-```bash
-python3 skills/eli10/scripts/render_codex_table.py
-```
-
-The direct command re-execs through `uv --quiet run --script` when `rich` is
-not importable in the active Python environment.
-
-Example input:
-
-```json
-{
-  "title": "Metric Snapshot",
-  "columns": [
-    {"key": "metric", "label": "Metric"},
-    {"key": "value", "label": "Value", "justify": "right", "kind": "number"},
-    {"key": "meaning", "label": "Meaning"}
-  ],
-  "rows": [
-    {"metric": "AIVAT lift", "value": "+3.2", "meaning": "RTS won after noise reduction"},
-    {"metric": "CI width", "value": "8.4", "meaning": "Evidence is still noisy"}
-  ]
-}
-```
-
-Codex output:
-
-```text
-                   Metric Snapshot
-╭────────────┬───────┬───────────────────────────────╮
-│ Metric     │ Value │ Meaning                       │
-├────────────┼───────┼───────────────────────────────┤
-│ AIVAT lift │  +3.2 │ RTS won after noise reduction │
-│ CI width   │   8.4 │ Evidence is still noisy       │
-╰────────────┴───────┴───────────────────────────────╯
-```
-
-If the script returns `NO_TABLE:`, respect it. The rejection means the table is
-likely to make the answer harder to read.
+and the reader can scan each row without reconstructing wrapped text.
 
 ## Good Table Uses
 
-Use tables for compact, repeated shapes:
+Use native table rendering directly for compact, repeated shapes:
 
 - option comparisons with short labels
 - metric snapshots with numeric values
@@ -78,67 +15,21 @@ Use tables for compact, repeated shapes:
 - small status grids
 - short good/bad contrasts
 
-### Good: Claude Native Markdown
-
-Use this in Claude:
+Good:
 
 ```markdown
 | Choice | Best For | Risk |
 |---|---|---|
-| Markdown table | Claude answers | Bad in Codex |
-| Rich Unicode | Codex answers | Only for short cells |
-| Bullets | Long explanations | Less compact |
+| Table | Short comparisons | Wraps if cells get long |
+| Bullets | Explanations | Less compact |
+| Sections | Root causes | More vertical space |
 ```
 
-### Good: Codex Unicode Table
+Why it works:
 
-Use this in Codex:
-
-```text
-                         Option Fit
-╭────────────────┬───────────────────┬──────────────────────╮
-│ Choice         │ Best For          │ Risk                 │
-├────────────────┼───────────────────┼──────────────────────┤
-│ Markdown table │ Claude answers    │ Bad in Codex         │
-│ Rich Unicode   │ Codex answers     │ Only for short cells │
-│ Bullets        │ Long explanations │ Less compact         │
-╰────────────────┴───────────────────┴──────────────────────╯
-```
-
-### Good: Split Logical Tables
-
-When there are two separate meanings, split them.
-
-Good:
-
-```text
-✅ Keep
-- Metrics: short repeated values.
-- Status: one-word states.
-
-⚠️ Avoid
-- Long explanations: they wrap.
-- Proof paths: they belong after the meaning.
-```
-
-Also acceptable in Codex when each table stays small:
-
-```json
-{
-  "tables": [
-    {
-      "title": "Keep",
-      "columns": ["Case", "Why"],
-      "rows": [["Metrics", "Short repeated values"]]
-    },
-    {
-      "title": "Avoid",
-      "columns": ["Case", "Why"],
-      "rows": [["Long prose", "Wraps into unreadable blocks"]]
-    }
-  ]
-}
-```
+- each cell is a label or short phrase
+- each row can be read in one glance
+- the table compares things instead of carrying the whole explanation
 
 ## Bad Table Uses
 
@@ -147,21 +38,18 @@ The table looks organized, but the reader still has to untangle wrapped prose.
 
 ### Bad: Dense Audit Matrix
 
-This is the canonical bad case:
-
-```text
-| Area | File / Symbol | Pattern to adopt | Why (drift prevented) | Proposed scope (include/defer/exclude/blocker question) |
+```markdown
+| Area | File / Symbol | Pattern to adopt | Why | Scope |
 |---|---|---|---|---|
 | Shared per-kind doctrine | shared/prompts/playable_kind_selection_contract/AGENTS.prompt | One shared contract emitted into every kind skill | Prevents 32 packages from drifting on evidence posture, label-shim language, and "not good for" semantics | include |
 ```
 
 Why it fails:
 
-- five dense columns
+- too many dense columns
 - long path-like cells
 - long prose cells
 - rationale and decision state crammed into the same row
-- Codex wrapping destroys the row boundary
 - the user has to reconstruct the meaning from broken visual layout
 
 Better ELI10 shape:
@@ -180,27 +68,9 @@ Pattern Consolidation Sweep
 - MCP playable-author contexts: read as adjacent evidence only.
   Why: useful for contradictions, but too wide for this pass.
 
-❌ Exclude unless factual drift is found
-- Runtime schemas/renderers: preserve runtime truth.
-  Why: prompt work should not smuggle product changes.
-
 Proof:
 - Put long paths here, after the meaning.
 ```
-
-If a table is still useful, split it by decision:
-
-```text
-Include Now
-╭──────────────────────────┬──────────────────────────────╮
-│ Area                     │ Move                         │
-├──────────────────────────┼──────────────────────────────┤
-│ Shared per-kind doctrine │ Emit one shared contract     │
-│ Hard-kind skills         │ Add selection-fit sections   │
-╰──────────────────────────┴──────────────────────────────╯
-```
-
-Then keep paths and long rationale outside the table.
 
 ### Bad: Root Cause Forced Into A Table
 
@@ -229,67 +99,28 @@ The simulator window can be visible before the worker sees the exact "booted and
 Net: the visible symptom was Android opening; the root cause was the worker's readiness check.
 ```
 
-### Bad: Long Commands In Cells
+### Bad: Long Commands Or Paths In Cells
 
 Bad:
 
 ```markdown
 | Step | Command | Why |
 |---|---|---|
-| Verify | uv --quiet run --script skills/eli10/scripts/render_codex_table.py --self-test | Confirms renderer setup |
+| Verify | npx skills check | Confirms the skill package still validates |
 ```
 
 Better:
 
-Verify the renderer:
+Verify the skill package:
 
 ```bash
-uv --quiet run --script skills/eli10/scripts/render_codex_table.py --self-test
+npx skills check
 ```
 
-Why: confirms `uv` can install `rich` and the table renderer works.
-
-### Bad: Path Wall Table
-
-Bad:
-
-```markdown
-| File | Meaning | Action |
-|---|---|---|
-| skills/eli10/scripts/render_codex_table.py | Owns Codex-safe rendering and uv bootstrap | Edit |
-| skills/eli10/references/table-rendering.md | Owns examples and anti-examples | Edit |
-```
-
-Better:
-
-```text
-The split is simple:
-
-✅ Runtime helper:
-`skills/eli10/scripts/render_codex_table.py` owns Codex-safe rendering.
-
-✅ Teaching reference:
-`skills/eli10/references/table-rendering.md` owns examples and anti-examples.
-```
+Why: confirms the changed skill surface still validates.
 
 Use path tables only when the paths are short and the table has no prose-heavy
-cells.
-
-## Rejection Rules To Remember
-
-For Codex, the helper rejects:
-
-- more than five columns
-- columns that would become too narrow
-- cells with newlines
-- cells that behave like paragraphs
-- cells that would wrap beyond two lines
-- more than twelve rows in one table
-- Markdown pipe-table input
-- dense audit matrices
-
-These are not arbitrary style rules. They are there because a bad table makes
-the user read the formatting instead of the idea.
+cells. If the path is the evidence, put it after the meaning.
 
 ## Final Check
 
@@ -298,8 +129,8 @@ Before using a table, ask:
 - Can the reader understand each row in one glance?
 - Are the cells short labels, values, or phrases?
 - Is this a real comparison, not an explanation pretending to be a comparison?
-- Would bullets be clearer?
-- Is the renderer Claude, Codex, or unknown?
+- Would bullets or short sections be clearer?
+- Are long strings, paths, commands, or sentences forcing the table to wrap?
 
-Net: if the table makes the answer feel clever but harder to read, do not use
-the table.
+Net: if the table makes the answer feel organized but harder to read, do not
+use the table.

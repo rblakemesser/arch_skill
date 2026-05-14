@@ -599,7 +599,6 @@ to read.
 Weak shape:
 
 - forces long paths, rationale, and decisions into one wide table
-- uses Markdown pipe tables in Codex for important information
 - lets wrapped cells destroy the row boundary
 - treats visual structure as understanding
 

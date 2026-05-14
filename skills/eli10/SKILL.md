@@ -1,6 +1,6 @@
 ---
 name: eli10
-description: "Answer or rewrite user-facing responses in ELI10/ELI16 maximum-readability style: reduce reader working-memory load, lead with the point, preserve exact technical truth, define load-bearing jargon, explain mechanisms plainly, put meaning before proof, avoid baby talk and fake memory, and use scan markers or renderer-aware tables only when they clarify. Use for `$eli10`, ELI10/ELI16, plain-English asks, readable plans, reviews, status, recommendations, explanations, or rewrites. This is a response style, not the task owner."
+description: "Answer or rewrite user-facing responses in ELI10/ELI16 maximum-readability style: reduce reader working-memory load, lead with the point, preserve exact technical truth, define load-bearing jargon, explain mechanisms plainly, put meaning before proof, avoid baby talk and fake memory, and use scan markers or tables only when they clarify. Use for `$eli10`, ELI10/ELI16, plain-English asks, readable plans, reviews, status, recommendations, explanations, or rewrites. This is a response style, not the task owner."
 metadata:
   short-description: "Answer with maximum-readability ELI10 style"
 ---
@@ -13,11 +13,6 @@ memory on the idea, not on parsing the sentence.
 
 This skill changes how the answer is written. It does not change which
 underlying skill, repo workflow, tool, or safety rule owns the work.
-
-The package has one narrow deterministic helper:
-`scripts/render_codex_table.py` renders short Unicode tables for Codex when
-native Markdown tables would be hard to read. Do not add more machinery for a
-readability problem that prompt guidance can solve.
 
 ## Mission
 
@@ -63,8 +58,7 @@ Weak `eli10` output:
   this style is active.
 - The answer must be exact code, JSON, YAML, a schema, command output, or
   quoted text. Keep exact material exact and use `eli10` prose only around it.
-- The user needs a general table generator rather than a readable answer. The
-  bundled script exists only to make compact Codex tables readable.
+- The user needs a general table generator rather than a readable answer.
 - The domain requires formal caveats or source grounding, such as legal,
   medical, financial, security, or scientific guidance. Explain plainly, but do
   not remove required uncertainty or safety boundaries.
@@ -153,40 +147,20 @@ Use these markers only when they improve scanability:
 Do not use every marker in every answer. One or two well-placed markers are
 better than visual noise.
 
-## Renderer-Aware Tables
+## Tables
 
 Use tables as a readability tool, not as a default answer shape.
-
-- **Claude / Claude Code:** use native Markdown tables for compact short-cell
-  comparisons.
-- **Codex:** do not use Markdown pipe tables for important information. Use
-  `scripts/render_codex_table.py` for compact tables, then place the rendered
-  Unicode output in a fenced `text` block.
-- **Unknown renderer:** prefer bullets, key/value blocks, or short sections
-  unless the user explicitly asks for a table.
 
 Use a table for compact grid-shaped information: short option comparisons,
 metric snapshots, before/after contrasts, status grids, or short good/bad
 contrasts.
 
-Do not use a table for root-cause explanations, long prose, long paths, long
+Use native table rendering directly. There is no special Codex table path.
+
+Avoid tables for root-cause explanations, long prose, long paths, long
 commands, or audit matrices where the reader has to reconstruct meaning from
-wrapped cells.
-
-For Codex tables:
-
-```bash
-uv --quiet run --script skills/eli10/scripts/render_codex_table.py
-```
-
-Direct Python invocation is also allowed:
-
-```bash
-python3 skills/eli10/scripts/render_codex_table.py
-```
-
-If the script returns `NO_TABLE:`, respect it. Use grouped bullets, labeled
-sections, key/value blocks, or smaller logical tables.
+wrapped cells. If cells need full sentences or long strings, use grouped
+bullets, key/value blocks, or short sections instead.
 
 ## Workflow
 
@@ -221,7 +195,7 @@ Required behavior:
   tradeoff.
 - Use bullets or short sections when multiple moving parts would otherwise
   blur together.
-- Use renderer-aware tables only for compact grid-shaped information.
+- Use tables only for compact grid-shaped information.
 - End with `Net:` when a root cause, plan, tradeoff, risk, or recommendation
   needs a closing synthesis.
 
@@ -282,7 +256,7 @@ choice is real. Hard-stop escape for one-way or destructive confirmations:
       remain exact.
 - [ ] The shape matches the turn: action turns act, explanations do not add
       action tails, decisions use decision-brief format, and tables only appear
-      when the renderer can make them clearer.
+      when they make the content easier to scan.
 
 ## Output Expectations
 
@@ -304,11 +278,8 @@ choice is real. Hard-stop escape for one-way or destructive confirmations:
 - `references/response-patterns.md` - rich examples and anti-examples for
   root-cause explanations, system-level reframing, jargon, dense phrase
   rewrites, action tails, path/citation walls, status, plans, and decisions.
-- `references/table-rendering.md` - renderer-aware table rules, Codex helper
-  usage, Claude-native Markdown guidance, and good/bad examples.
-- `scripts/render_codex_table.py` - self-contained `uv` script that renders
-  short Unicode tables for Codex and rejects table shapes that would be less
-  readable than grouped prose.
+- `references/table-rendering.md` - table readability guidance and good/bad
+  examples.
 
 Load references when the answer is high-friction, the user asks for a rewrite,
 the user is correcting a prior explanation, or you need an example to preserve
