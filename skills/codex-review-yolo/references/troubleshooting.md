@@ -35,7 +35,10 @@ Common failure modes when invoking codex exec for review, and what to do.
 
 ## Codex output is short / evasive
 
-- Prompt too thin. Re-draft with: explicit review goal, authoritative artifacts, claims or completion targets, numbered list of what to check, and tooling hints. See `prompt-template.md`.
+- Prompt too thin. Re-draft with: explicit review goal, working directory,
+  user-named artifacts or target paths, hard constraints, verdict block, and any
+  tooling hints the child cannot discover from local evidence. See
+  `prompt-template.md`.
 - If codex says "I cannot verify without more context", provide that context explicitly in the prompt — don't expect it to ask for it.
 
 ## Codex reads stale files

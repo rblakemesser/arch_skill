@@ -9,7 +9,7 @@ Use this file when the prompt needs richness, not just correct section order. Th
 - Output contract, validation, and reject handling
 - Mentored process and autonomy
 - Rationale fields
-- Evidence, stop rules, validation, and audience lenses
+- Evidence, completion rules, validation, and audience lenses
 - Examples that teach reasoning
 - Richness check
 
@@ -107,7 +107,7 @@ The process section should teach the model how to think through the job and what
 Make it do real work:
 - use a numbered sequence
 - tell the model what to inspect, compare, validate, and repair
-- encourage one more obvious in-scope improvement before stopping
+- encourage one more obvious in-scope improvement before returning
 - prefer heal-and-retry loops over premature rejection
 
 Good shape:
@@ -163,7 +163,7 @@ Litmus tests:
 - does the rationale show options considered, why they were rejected, and what was verified?
 - would the rationale help debug a wrong answer later?
 
-## 6) Evidence, stop rules, validation, and audience lenses
+## 6) Evidence, Completion Rules, Validation, And Audience Lenses
 
 Not every prompt needs every lens. Add these only when they change the result.
 
@@ -190,15 +190,18 @@ Litmus tests:
 - does it say when enough evidence is enough?
 - does it distinguish missing evidence from evidence of absence?
 
-### Stop rules
+### Completion rules
 
-Use when the model might loop, over-search, over-plan, or stop too early.
+Use when the model might loop, over-search, over-plan, or finish before the
+intended outcome is real.
 
 Good shape:
 
 ```markdown
-Stop once you can answer the core request with enough evidence for the factual
-claims and a clear note for any remaining uncertainty.
+Finish only once you can answer the core request with enough evidence for the
+factual claims and a clear note for any remaining uncertainty. For execution
+work, ordinary uncertainty should drive the next source read, test,
+instrumentation, or repair, not a non-completion report.
 ```
 
 Bad shape:
@@ -206,7 +209,7 @@ Bad shape:
 - "Minimize tool calls."
 
 Litmus tests:
-- does the stop rule define done-ness instead of activity?
+- does the completion rule define done-ness instead of activity?
 - does it preserve correctness over artificial loop minimization?
 
 ### Validation
@@ -218,7 +221,7 @@ Good shape:
 
 ```markdown
 Before finalizing, run the most relevant available check for the changed
-behavior. If no check can run, say why and give the next best evidence.
+behavior. If the obvious check is unavailable, use the next best evidence path.
 ```
 
 Bad shape:
@@ -227,7 +230,7 @@ Bad shape:
 
 Litmus tests:
 - does the prompt name a real check or recognition test?
-- does it say what to do when validation fails or cannot run?
+- does it say what to do when validation fails or the obvious validation path is unavailable?
 
 ### Personality and collaboration
 
@@ -247,7 +250,7 @@ Bad shape:
 
 Litmus tests:
 - does the prompt separate how the assistant sounds from how it works?
-- does it define when to ask, assume, act, and stop?
+- does it define when to ask, assume, act, and call the work done?
 
 ### Formatting and audience
 
@@ -290,6 +293,6 @@ Ask these before you ship:
 - If you removed the examples, would the principle still survive?
 - If you removed the process, would the prompt still explain why the work matters?
 - Does the quality bar describe a genuinely useful answer, not just a formatted one?
-- Are evidence, stop rules, validation, personality, and formatting present only where they matter?
+- Are evidence, completion rules, validation, personality, and formatting present only where they matter?
 - Can a downstream reader tell what must be validated?
 - Are rationale fields present where choice quality or verification really matters?

@@ -1,6 +1,6 @@
 ---
 name: fresh-consult
-description: "Invoke one or more fresh Claude/Codex subprocesses for prompt-engineered second opinions with clean context. Use when the user or another skill asks for a cold read, parallel consults, external consult, flow consistency audit, completion-claim check, readability/confusion check, or general second opinion from Claude/Codex. Ask once if runtime, model, effort, or consult target is missing; run hook-suppressed and unsandboxed; report each child result back. Do NOT use for deterministic code-review coverage (`code-review`), Codex `-p yolo` reviews (`codex-review-yolo`), ordered subprocess orchestration (`stepwise`/`arch-epic`), or implementation/fixing (`agent-delegate`)."
+description: "Invoke one or more fresh Claude/Codex subprocesses for prompt-engineered second opinions with clean context. Use when the user or another skill asks for a cold read, parallel consults, external consult, flow consistency audit, completion check, readability/confusion check, or general second opinion from Claude/Codex. Ask once if runtime, model, effort, or consult target is missing; run hook-suppressed and unsandboxed; report each child result back. Do NOT use for deterministic code-review coverage (`code-review`), Codex `-p yolo` reviews (`codex-review-yolo`), ordered subprocess orchestration (`stepwise`/`arch-epic`), or implementation/fixing (`agent-delegate`)."
 metadata:
   short-description: "Fresh Claude/Codex second opinion with clean context"
 ---
@@ -43,8 +43,8 @@ controllers, state machines, parsers, or install-time automation.
 
 ## Non-Negotiables
 
-- Resolve each consult objective, the authoritative artifacts, and the work root
-  before launching child processes.
+- Resolve each consult objective, exact user-named artifacts or target paths,
+  hard constraints, and the work root before launching child processes.
 - Runtime, model, and effort must be known. If any are missing or ambiguous,
   ask one consolidated question before invoking.
 - Treat model text as intent, not a fuzzy alias. Preserve exact family and
@@ -57,8 +57,10 @@ controllers, state machines, parsers, or install-time automation.
 - For explicit parallel consults, create one group directory under
   `/tmp/fresh-consult/` and one ordinary child run directory per consult. Do not
   add a controller, detached monitor, or new runner surface.
-- Brief the child like a colleague walking in cold: include objective, paths,
-  claims, what to inspect, and the report contract.
+- Brief the child like a colleague walking in cold: include the raw consult ask,
+  work root, exact user-named artifacts or target paths, hard constraints, and
+  the report contract. The child chooses what evidence to inspect beyond those
+  inputs.
 - Do not paste secrets into prompts. If a token is needed, source it into the
   child environment and tell the child which environment variable to read.
 - Do not ask the child to fix the issues it finds. Report back to the parent;
@@ -71,8 +73,8 @@ controllers, state machines, parsers, or install-time automation.
 1. Read `references/model-and-invocation.md`.
 2. Read `references/consult-prompt-and-output.md`.
 3. Identify the consult objective or parallel consult objectives, work root,
-   artifacts, explicit claims, and requested runtime/model/effort from the
-   user's words.
+   exact user-named artifacts or target paths, hard constraints, and requested
+   runtime/model/effort from the user's words.
 4. If runtime/model/effort or consult target is incomplete, ask one question
    that names exactly what is missing and what it controls.
 5. Confirm the selected CLI exists with `command -v codex` or
@@ -83,8 +85,9 @@ controllers, state machines, parsers, or install-time automation.
 
 ## Workflow
 
-1. **Shape the consult.** State the decision or question the child must answer,
-   the bar for success, and the authoritative files, commits, docs, or claims.
+1. **Shape the consult.** State the user's question, the bar for a useful
+   answer, the work root, and the exact artifacts or target paths the user
+   named.
 2. **Resolve execution.** Map the raw model phrase to
    `runtime=<claude|codex>`, `model=<runnable id>`, and `effort=<level>`.
    Announce the mapping before execution.

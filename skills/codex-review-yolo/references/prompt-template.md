@@ -1,71 +1,44 @@
 # Review Prompt Template
 
-Use this skeleton when drafting a namespaced prompt file such as `$PROMPT_PATH`. Fill every `<...>` placeholder; delete any section that genuinely doesn't apply (but default to keeping them).
+Use this skeleton when drafting a namespaced prompt file such as `$PROMPT_PATH`.
+Fill every `<...>` placeholder.
 
 ## Skeleton
 
 ```markdown
-You are performing an independent review of <what — one phrase, e.g. "Phase B completion of the Seller Portal rollout">. The requester wants a skeptical external audit before <merge | ship | execute | share | mark-complete>. Be skeptical. Read the artifacts directly. If the work is not approved, say so plainly.
+You are performing an independent review of <one-line subject>. The requester
+wants a skeptical external audit before <next step>. Read the artifacts
+directly. If the work is not approved, say so plainly.
 
-# Review goal
+# Review Goal
 
 - Requested decision: <what approval means here>
 - Standard for approval: <the bar codex should apply>
+- Working directory: <absolute path>
 
-# What to audit
+# User-Named Artifacts Or Target Paths
 
-Working directory: <absolute path>
+- <path | commit | branch | doc | command to inspect current state>
+- <path | commit | branch | doc | command to inspect current state>
 
-## Primary artifacts
-- <path | commit | branch | checklist | doc> — <why it matters>
-- <path | commit | branch | checklist | doc> — <why it matters>
+# Hard Constraints
 
-## Supporting artifacts (if applicable)
-- <path | commit | branch | checklist | doc> — <why it matters>
-- <path | commit | branch | checklist | doc> — <why it matters>
+- <review-only, token/env handling, local boundary, or "none">
 
-## Scope notes (if applicable)
-- <local-only note, repo relationship, or boundary>
+# How To Work
 
-# Claims / expected outcomes / completion targets
+Read the named artifacts directly. Then inspect whatever nearby repo, docs,
+tests, command output, or local evidence you judge necessary to decide whether
+the review goal is met. Report evidence-backed findings only.
 
-## Explicit claims (if provided)
-
-1. <claim 1, specific, verifiable>
-2. <claim 2>
-3. ...
-
-## Expected outcomes or checklist items (if provided)
-
-1. <outcome 1 or completion item>
-2. <outcome 2>
-3. ...
-
-If neither subsection applies, say: "No explicit claims or checklist were provided; inspect the artifact directly."
-
-# What I want you to check
-
-Please do ALL of the following. Read files directly from the filesystem — don't trust the supplied claims or summaries.
-
-1. **<concern 1>.** <what to look at, where to look>
-2. **<concern 2>.** <...>
-...
-N. **Anything else you notice.** Unused imports, broken contract, security concerns, red flags.
-
-# Tooling hints (if applicable)
-
-- For Figma verification: use `https://api.figma.com/v1/files/<KEY>/nodes?ids=...` with header `X-Figma-Token: $FIGMA_ACCESS_TOKEN` (already in env).
-- For CircleCI config parsing: `ruby -r yaml -e 'YAML.load_file(".circleci/config.yml")'`.
-- For <other external system>: <endpoint + auth pattern>
-
-# How to report
+# How To Report
 
 End with a final verdict block:
 
     VERDICT: approve / approve-with-notes / not-approved
     BLOCKING: <list blocking issues, or "none">
     NON-BLOCKING: <list notable issues that can wait>
-    ACCURACY OF CLAIMS / COMPLETION: <concise assessment>
+    ASSESSMENT: <one paragraph on whether the artifact meets the review goal>
 
 Be direct. I want the real assessment, not reassurance.
 ```
@@ -78,30 +51,33 @@ These are examples, not a mandatory menu. Adapt the skeleton to the actual revie
 
 If the artifact is a single uncommitted diff rather than commits:
 
-- In "Primary artifacts", list "Uncommitted diff in <branch>; see `git diff HEAD`".
-- In "what to check", tell codex: "Run `git diff HEAD` to see the diff".
+- In "User-Named Artifacts Or Target Paths", list "Uncommitted diff in
+  <branch>; run `git diff HEAD` from the working directory."
 
 ### Example: implementation completion audit
 
-If the user wants an external audit of whether a plan phase or implementation checklist was actually completed:
+If the user wants an external audit of whether a plan phase or implementation
+checklist was actually completed:
 
 - In "Review goal", define the approval bar in terms of completion, not shipping.
-- In "Expected outcomes or checklist items", list the phase goals or acceptance items you want audited.
-- In "what to check", ask codex to compare the implemented artifacts against those outcomes and call out any claimed-but-missing work.
+- In "User-Named Artifacts Or Target Paths", list the user-named plan,
+  checklist, branch, commit, or diff that defines the completion target.
 
 ### Example: plan / design doc review
 
 If the artifact is a plan doc (not code):
 
-- In "What to audit", list the doc paths and the specific sections in scope.
-- In "What I want you to check", focus on: logical consistency, hidden dependencies, missing preconditions, blast radius of each step, reversibility, and whether the plan actually earns approval for execution.
+- In "User-Named Artifacts Or Target Paths", list the doc path and any
+  user-named sections in scope.
+- In "Review Goal", state the approval decision the doc needs to earn.
 - Keep the generic verdict block unchanged.
 
 ### Example: cross-repo / submodule review
 
 When both a super-repo commit and a submodule commit need to be audited together:
 
-- In "What to audit", list both. Explicitly note which commits belong to which repo.
+- In "User-Named Artifacts Or Target Paths", list both. Explicitly note which
+  commits belong to which repo.
 - Tell codex: "The submodule lives at `services/<name>`; `git -C services/<name> log` is how you read its history."
 
 ## Anti-patterns

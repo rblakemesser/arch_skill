@@ -81,7 +81,9 @@ Typical asks:
 
 What to do:
 1. Read the prompt as-written before proposing fixes.
-2. Call out heuristic drift, wrong-layer content, weak commander’s intent, bad examples, phantom context, missing evidence policy, missing stop rules, or overbuilt prompt shape.
+2. Call out heuristic drift, wrong-layer content, weak commander’s intent, bad
+   examples, phantom context, missing evidence policy, weak completion rules, or
+   overbuilt prompt shape.
 3. Point each finding to the exact section or lens that should change.
 
 What to return:

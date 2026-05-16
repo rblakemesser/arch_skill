@@ -35,7 +35,7 @@ Good goal prompts teach judgment:
 - which shortcuts would create a false success
 - what evidence proves done
 - when outside signoff is required
-- when to stop and ask instead of silently deciding
+- how to keep moving when the path is unclear without silently cutting scope
 
 Weak goal prompts either under-specify the result or over-specify the source
 material. Both create guessing. A tiny "fix it properly" goal makes the agent
@@ -72,7 +72,7 @@ The `/goal` owns:
 - the few workflow rules that matter
 - likely shortcuts to avoid
 - evidence and signoff gates
-- stop rules
+- completion and persistence rules
 
 The source material owns:
 
@@ -115,14 +115,16 @@ source truth.
 8. Define proof: tests, artifacts, inspections, generated outputs, screenshots,
    review receipts, or final report details.
 9. Add signoff when requested or when the work should not self-certify.
-10. Add a stop rule for true blockers, missing source truth, scope cuts, or
-    unresolved model disagreement.
+10. For execution and repair goals, add persistence rules for uncertainty: read
+    deeper source truth, form sharper theories, build disproof tests, instrument
+    the real path, use required reviewers to choose the next move, and keep
+    repairing until the desired state is real.
 11. Compress. If a sentence restates the source doc instead of changing
     execution, remove it.
 
 Do not ask the user to choose a prompt type. Infer the blend. Codex `/goal`
 prompts usually combine outcome-first task prompting, evidence policy,
-validation, tool-use rules, and runtime stop behavior.
+validation, tool-use rules, and completion behavior.
 
 ## Signoff as part of done
 
@@ -144,8 +146,9 @@ Good signoff names:
   receipts, or test outputs;
 - model and effort when known;
 - non-leading rule: do not provide the expected verdict;
-- done rule: the reviewer agrees, or the final report names the smallest
-  unresolved objection.
+- done rule: the reviewer agrees the goal is satisfied. If review rejects the
+  result, its objection becomes the next repair input, not the ending, unless
+  the user explicitly requested a planning-only or review-only artifact.
 
 Bad signoff:
 
@@ -156,7 +159,7 @@ Get another model to review it.
 Good signoff:
 
 ```text
-Use `$codex-review-yolo` as a blind review of the final diff and receipts. Do not provide the expected verdict. Done requires agreement or a final report naming the exact unresolved objection.
+Use `$codex-review-yolo` as a blind review of the final diff and receipts. Do not provide the expected verdict. Done requires reviewer agreement that the goal is satisfied; if review rejects the result, use that objection to keep fixing and rerun review.
 ```
 
 Good delegated testing:
@@ -180,7 +183,9 @@ Use [source truth paths/names] as controlling source truth. Treat [weak or stale
 
 Do not [likely bad shortcuts].
 
-Done means [evidence, validation, report, and signoff gate]. Stop and ask only if [true blocker or scope decision].
+When the path is unclear, keep moving by reading source truth, forming sharper theories, adding tests or instrumentation, and using required review to choose the next repair.
+
+Done means [the intended outcome works], [evidence], [validation], [report], and [signoff gate].
 ```
 
 Use this shape when a rich source doc already exists:
@@ -192,13 +197,15 @@ The doc owns [doctrine/examples/fixtures/validation details]. This goal only nam
 
 Use [owner skills/files/tools] for implementation. Do not [likely overfit/bypass/manual proof path].
 
-Done means [validation], [signoff], and [final report evidence]. Stop only for [missing source, unavailable exact model/tool, or real scope conflict].
+When evidence is thin or contradictory, deepen the proof instead of narrowing the goal: inspect the owner path, add focused tests, and use review/consensus to choose the next repair.
+
+Done means [the outcome in the source doc works], [validation], [signoff], and [final report evidence].
 ```
 
 Use a compact one-paragraph goal when the task is small:
 
 ```text
-/goal [Outcome] in [repo/workspace]. Source truth: [sources]. Do not [likely wrong shortcut]. Done means [proof plus review/signoff if required]. Stop only for [true blocker].
+/goal [Outcome] in [repo/workspace]. Source truth: [sources]. Do not [likely wrong shortcut]. Keep investigating and repairing through the owning path until [outcome] works. Done means [proof plus review/signoff if required].
 ```
 
 Do not force all labels into every goal. If a field does not change behavior,
@@ -219,9 +226,9 @@ The doc is controlling source truth for doctrine, bad Track 4 examples, thought 
 
 Use `$skill-authoring` and `$prompt-authoring` for reusable skill/prompt edits. Edit source prompts/skills, not generated `build/SKILL.md`. Use Track 4 bad copy and the doc's thought exercises only as evaluation fixtures.
 
-Do not hardcode Track 4, hand-write final learner copy as proof, bypass PokerKB/owner skills, add keyword detectors, or lead reviewers toward the desired verdict.
+Do not hardcode Track 4, hand-write final learner copy as proof, bypass PokerKB/owner skills, add keyword detectors, lead reviewers toward the desired verdict, or treat reviewer rejection as a finish line.
 
-Done means generated outputs are refreshed through repo commands, validation runs, bad examples and thought exercises are tested without answer leakage, GPT-5.5 X-High and `$agent-delegate` Opus 4.7 xhigh independently sign off or name exact blockers, and the final report lists changed files, commands, artifacts, signoff results, and risks.
+Done means generated outputs are refreshed through repo commands, validation runs, bad examples and thought exercises are tested without answer leakage, GPT-5.5 X-High and `$agent-delegate` Opus 4.7 xhigh independently sign off that the goal is satisfied, and the final report lists changed files, commands, artifacts, signoff results, and risks. If review rejects the result, use the objection to keep fixing and rerun validation.
 ```
 
 Why this works: one path carries the full doctrine. The goal carries mission,
@@ -237,9 +244,9 @@ The target state is learner-facing behavior that is actually correct, preserves 
 
 Use current owner skill readbacks, live/current psmobile surfaces when relevant, and repo quality-review requirements as source truth. Treat old reports, stale worklogs, and backfill artifacts as context only.
 
-If the owner skill is wrong, fix that skill under `$skill-authoring` and `$prompt-authoring` instead of bypassing it. Do not use heuristic scripts, smart backfills, raw JSON patching into a plausible shape, softened requirements, or fake receipts.
+If the owner skill is wrong, fix that skill under `$skill-authoring` and `$prompt-authoring` instead of bypassing it. Do not use heuristic scripts, smart backfills, raw JSON patching into a plausible shape, softened requirements, fake receipts, or a diagnosis-only ending.
 
-Done means the original failure is shown, the owner-path fix is implemented, validation or review is rerun, and exact receipts are reported. Stop only for a real scope decision or an owner path that cannot be determined from repo truth.
+When the owner path is unclear, inspect repo truth until it is clear enough to act. Done means the original failure is shown, the owner-path fix is implemented, validation or review is rerun, and exact receipts prove the behavior is correct.
 ```
 
 Why this works: it turns "fix it properly" into a visible owner-path quality
@@ -256,11 +263,15 @@ Use `$model-consensus` with `opus 4.7 max` and `gpt 5.5 xhigh` to decide the pla
 
 Do not substitute a manual phase design when models disagree, hide final scope as "later," force a preset phase count, or write a breadth-first Phase 1 that touches everything without proving the risky path.
 
-Done means the repo contains model prompts/outputs, consensus synthesis, epic decomposition, and implementation-ready sub-plan docs. Each sub-plan needs outcome, owner path, proof gate, expansion path, and stop condition. Both models must agree or the final doc names the smallest unresolved decision.
+Done means the repo contains model prompts/outputs, consensus synthesis, epic decomposition, and implementation-ready sub-plan docs. Each sub-plan needs outcome, owner path, proof gate, expansion path, and completion condition. Both models must agree on the plan shape; if they disagree, continue the consensus loop until the disagreement is reduced to a user-owned product choice.
 ```
 
 Why this works: it names the planning destination and the depth-first quality
 bar without copying the whole pack.
+
+Planning-only goals are the exception: if the user asked only for a plan,
+the artifact may surface a remaining user-owned product choice. Execution and
+repair goals should not use that shape.
 
 ### Cross-layer diagnosis
 
@@ -307,6 +318,10 @@ staying small enough to paste into `/goal`.
 - A source-truth line that treats stale artifacts as equal to live owner paths.
 - A review line that is not part of done.
 - A consensus line that does not define convergence.
+- A signoff line that makes reviewer rejection or model disagreement sound like
+  a valid ending for execution work instead of the next repair input.
+- A goal that lets the agent finish with a diagnosis, refusal, narrow report, or
+  obstacle summary when the user asked for the system to work.
 - A forbidden-shortcuts list so broad that it becomes a brittle rulebook.
 - A goal that asks the agent to use a named skill but not what that skill is
   meant to preserve.
@@ -325,5 +340,8 @@ staying small enough to paste into `/goal`.
 - Are tool and workflow rules present only where they change behavior?
 - Does signoff, when present, define reviewer inputs and the acceptance gate?
 - Does done require evidence the agent can actually produce?
-- Is there a stop rule for true blockers or scope decisions?
+- Could an agent honestly finish this goal without the desired system state
+  becoming real? If yes, rewrite.
+- If the path is unclear, does the goal teach the next evidence, test, review,
+  or repair move instead of offering non-completion language?
 - Would this still work for a similar workflow the examples did not mention?

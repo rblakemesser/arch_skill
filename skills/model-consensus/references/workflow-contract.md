@@ -41,15 +41,6 @@ Keep both forms:
 - `raw_goal`: the user's words
 - `goal_brief`: a faithful, prompt-authoring-quality restatement
 
-Choose the prompt mode:
-
-- `open investigation`: the user wants a cross-check, second-opinion dialogue,
-  root-cause theory, broad review, or "read everything" style investigation.
-- `architecture plan`: the user wants a design, migration, implementation
-  plan, placement decision, or duplicate-path reduction.
-- `concept`: the user wants two models to reason about a non-repo product,
-  strategy, or idea.
-
 The goal brief may clarify:
 
 - desired output type
@@ -59,11 +50,9 @@ The goal brief may clarify:
 - constraints and non-goals
 - whether one participant should be adversarial
 
-The goal brief must not introduce a solution, preferred architecture, or hidden
-implementation strategy that the user did not ask for. In open investigation
-mode, it also must not introduce parent-invented hypotheses, failure layers,
-ranked theories, broad path inventories, or open questions that point the
-children toward the parent's guess.
+The goal brief must not introduce the caller's diagnosis or investigation map.
+It should preserve the user's ask, exact user-named inputs, hard constraints,
+desired output, and participant choices.
 
 ## Phase 2: Resolve Participants
 
@@ -115,8 +104,7 @@ Start two fresh, resumable sessions. Give both models:
 
 - the raw goal and goal brief
 - the participant roles
-- prompt mode
-- repo root and mode-specific evidence obligations, if applicable
+- repo root and evidence obligations when a repo or workspace is involved
 - the quality bar
 - the output contract
 

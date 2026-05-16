@@ -13,8 +13,8 @@ Parent behavior:
 
 - resolve and announce both model mappings
 - create `.arch_skill/model-consensus/resumable-planner-<timestamp>/`
-- prompt both models to read the repo instructions, planner owner files,
-  existing session-resume doctrine, and proof surfaces
+- prompt both models to start from the user's target and identify the repo
+  instructions, owner files, existing patterns, and proof surfaces they need
 - collect independent first passes
 - exchange critiques until both sign off or expose the smallest unresolved
   decision
@@ -35,8 +35,8 @@ Parent behavior:
   otherwise
 - tell the adversary to find simpler alternatives and resist kitchen-sink
   compromise
-- require both models to inspect install owners, README install docs, Makefile
-  lists, stale-surface cleanup, and verification tests
+- require both models to identify the install owners, docs, and verification
+  surfaces that decide the answer
 - stop when both agree on one retirement path or report the unresolved
   compatibility decision
 
@@ -50,17 +50,6 @@ for docs/FAILURE_PLAN.md and start a new doc with every theory for why this
 path is producing uniform results. I want them to read everything, including
 the research, and build fast traps to prove where the bug starts.
 ```
-
-Bad parent behavior:
-
-- creates a long child prompt that lists every suspected source file
-- buckets the problem into parent-invented layers before the models read
-  anything
-- asks parent-authored "open questions" that already imply likely causes
-- makes both children react to the parent's frame instead of discovering their
-  own evidence path
-
-Good parent behavior:
 
 - resolves and announces the model mappings
 - records the raw goal, the named doc path, repo root, desired new docs output,
@@ -95,7 +84,7 @@ Do not produce:
 
 ```text
 The final plan includes Model A's plugin architecture, Model B's event bus, a
-new config system, optional adapters, a migration engine, and three future
+new config system, adapter layers, a migration engine, and three future
 extensions.
 ```
 

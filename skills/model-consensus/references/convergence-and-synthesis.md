@@ -105,7 +105,7 @@ Requirement Coverage
 <brief mapping from hard requirements to plan elements>
 
 Repo Grounding
-<paths and patterns that shaped the result, if applicable>
+<paths and patterns that shaped the result, or "not repo-backed">
 
 Rejected Alternatives
 <short list with reasons>

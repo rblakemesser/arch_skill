@@ -46,6 +46,7 @@ instead of guessing.>
 - Work root: <absolute path>
 - Allowed write scope: <paths, file families, or "repo-wide if needed for this task">
 - Constraints: <commands, style rules, no-go areas, deadlines, or "none">
+- User-named inputs: <paths, failing command, repro steps, doc section, issue, or "none">
 
 # Required Local Instructions
 
@@ -54,11 +55,6 @@ Before editing, read the applicable local instructions, including any
 instructions. If a local instruction conflicts with this prompt, report the
 conflict before proceeding unless the conflict can be resolved by using the more
 specific repo instruction.
-
-# Authoritative Artifacts
-
-- <path, command output, doc section, issue, or plan> - <why it matters>
-- <path, command output, doc section, issue, or plan> - <why it matters>
 
 # Capabilities And Boundaries
 
@@ -86,7 +82,8 @@ You must not:
 
 Please do all of the following:
 
-1. Read the local instructions and authoritative artifacts.
+1. Read the local instructions and user-named inputs, then inspect whatever repo
+   evidence is needed to complete the task.
 2. Inspect the current repo state before editing.
 3. Implement the smallest change that satisfies the success bar.
 4. Use installed skills only when they directly improve the delegated work.

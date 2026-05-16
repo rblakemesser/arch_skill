@@ -8,7 +8,7 @@ Codex output is long prose by default. The verdict block at the end of the revie
 VERDICT: approve | approve-with-notes | not-approved
 BLOCKING: <bullets or "none">
 NON-BLOCKING: <bullets or "none">
-ACCURACY OF CLAIMS / COMPLETION: <one paragraph>
+ASSESSMENT: <one paragraph>
 ```
 
 ## Field semantics
@@ -19,7 +19,8 @@ ACCURACY OF CLAIMS / COMPLETION: <one paragraph>
   - `not-approved` — there is at least one blocking issue in `BLOCKING`.
 - **BLOCKING** — issues that prevent approval for this review objective. For file-based reviews, each bullet names the file + line + the specific fix. For plan or completion audits, each bullet names the unmet outcome, section, or acceptance item.
 - **NON-BLOCKING** — observations that can wait (e.g., "Phase B will re-touch this file, defer the rename"). Still report them so they're captured.
-- **ACCURACY OF CLAIMS / COMPLETION** — codex's direct assessment of whether the explicit claims, checklist items, or completion targets you provided match the artifacts. If you did not provide any explicit claims or completion targets, codex should say that plainly instead of inventing them.
+- **ASSESSMENT** — codex's direct assessment of whether the artifact meets the
+  requested review goal, based on the evidence it inspected.
 
 ## Parsing
 
@@ -32,7 +33,7 @@ When reporting back:
 1. Lead with the VERDICT, verbatim.
 2. Quote the BLOCKING bullets — do not paraphrase. Paraphrasing loses nuance.
 3. Summarize NON-BLOCKING if there are many; list verbatim if there are few.
-4. Always include the ACCURACY line, especially if codex flagged a claim-to-artifact or completion-to-artifact mismatch.
+4. Always include the ASSESSMENT line.
 5. Note the full final-output file path so the user can read the long-form reasoning.
 
 ## When codex doesn't produce the block

@@ -52,19 +52,17 @@ patterns when the task is architectural, and avoids kitchen-sink plans.
 - The parent agent must not solve the problem itself. It may restate the goal,
   enforce the process, ask for missing model choices, request repo evidence,
   and synthesize only what the child sessions actually agreed on.
-- Preserve child discovery freedom. The parent may record the raw goal, resolved
-  model mapping, explicit constraints, desired output, and user-named artifacts.
-  It must not add parent-invented hypotheses, failure-layer taxonomies, ranked
-  theories, broad path inventories, or "open questions" that imply where the
-  answer probably lives before the child sessions have investigated.
+- Preserve child discovery freedom. The parent records the raw goal, resolved
+  model mapping, explicit constraints, desired output, and exact user-named
+  artifacts. The child models choose the evidence path and frame the
+  investigation themselves.
 - Preserve the user's raw goal. Use prompt-authoring discipline to create a
   faithful goal brief that clarifies success criteria without injecting a
   solution.
-- Choose the child-prompt mode before writing the brief. Use open cross-check /
-  investigation mode when the user asks for second opinions, root-cause
-  discovery, failure analysis, "read everything," or "figure out why." Use
-  architecture / implementation-plan mode when the user asks where work should
-  live, how to design a change, or how to avoid duplicate paths.
+- For repo-backed work, start children from the raw goal and exact user-named
+  inputs. If the user wants a plan, the children should find the existing owner
+  path before proposing where work belongs. If the user wants an investigation,
+  the children should choose and cite the evidence trail themselves.
 - Ask once for missing model choices. Each participant needs runtime, runnable
   model id or exact model phrase, and effort. If the user names shorthand such
   as "gpt 5.5 xhigh" or "Claude Opus 4.7 high", resolve it with the shared
@@ -97,25 +95,22 @@ Read these references before invoking children:
 
 Then:
 
-1. Capture the raw user goal and the desired mode: collaborative or
-   adversarial, plus open cross-check / investigation or architecture /
-   implementation-plan.
+1. Capture the raw user goal and whether the user asked for ordinary
+   collaboration or adversarial critique.
 2. Build a faithful goal brief using prompt-authoring discipline. Clarify the
-   goal, constraints, success criteria, and explicit non-goals without adding
-   your own solution, theory, file map, or investigation frame.
+   goal, constraints, desired output, and exact user-named inputs without adding
+   the caller's diagnosis or investigation frame.
 3. Resolve the two participant execution choices. Ask one concise question if
    any runtime/model/effort choice is missing or ambiguous.
 4. Create a per-run artifact directory by hand, for example
    `.arch_skill/model-consensus/<slug>-<timestamp>/`. Store prompts, final
    replies, event streams, and a short run index there. Do not create a script.
-5. If repo-backed, make the first child prompt require real evidence. For open
-   investigation mode, tell the models to start from user-named artifacts and
-   independently choose what else to read. For architecture mode, require named
-   `path:line` evidence for canonical owners, patterns to adopt, duplicate
-   pathways, and tests/proof surfaces.
-6. Before launching children, run the contamination check from
-   `references/prompt-contracts.md`. If the prompt contains parent-invented
-   theories, buckets, or path lists, simplify it before execution.
+5. If repo-backed, make the first child prompt require real evidence. Tell the
+   models to start from user-named artifacts or symptoms, then choose and cite
+   whatever code, docs, research, tests, commands, or local evidence they need.
+6. Before launching children, reread the prompt. If it contains caller-written
+   diagnosis or a caller-selected investigation map that is not in the user's
+   ask, delete that material.
 
 ## Workflow
 

@@ -56,8 +56,9 @@ automation.
 
 ## Non-Negotiables
 
-- Resolve each delegated task, success bar, authoritative artifacts, work root,
-  allowed write scope, and delegation mode before launching child processes.
+- Resolve each delegated task, success bar, work root, allowed write scope,
+  constraints, delegation mode, and exact user-named inputs before launching
+  child processes.
 - Runtime, model, and effort must be known. If any are missing or ambiguous,
   ask one consolidated question before invoking.
 - Delegation mode is one of `fresh-one-shot`, `fresh-resumable`, or `resume`.
@@ -83,9 +84,10 @@ automation.
   `/tmp/agent-delegate/` and one ordinary child run directory per worker. Do
   not add a controller, detached monitor, separate worktree, or merge layer.
 - Brief the child like a capable colleague walking in cold: include the task,
-  paths, success criteria, constraints, allowed write scope, and report
-  contract. For resume prompts, state the new instruction or evidence and what
-  remains unchanged from the original delegation.
+  success criteria, work root, allowed write scope, constraints, exact
+  user-named inputs, and report contract. For resume prompts, state the new
+  instruction or evidence and what remains unchanged from the original
+  delegation.
 - Tell the child to read local instructions such as `AGENTS.md` before editing
   covered files.
 - In parallel groups, tell each child it is not alone in the codebase, must not
@@ -106,7 +108,7 @@ automation.
 1. Read `references/model-and-invocation.md`.
 2. Read `references/delegate-prompt-and-output.md`.
 3. Identify the delegated task or parallel delegated tasks, success bar, work
-   root, authoritative artifacts, allowed write scope, constraints, and
+   root, exact user-named inputs, allowed write scope, constraints, and
    requested runtime/model/effort from the user's words.
 4. Identify the delegation mode. Use `fresh-one-shot` unless the caller
    explicitly asks for a resumable worker or to resume a previous delegate.
@@ -122,7 +124,8 @@ automation.
 ## Workflow
 
 1. **Shape the delegation.** State the concrete work, allowed write scope,
-   success bar, constraints, and authoritative files, commits, docs, or claims.
+   success bar, constraints, and exact user-named inputs such as paths, failing
+   commands, repro steps, or docs.
 2. **Resolve execution.** Map the raw model phrase to
    `runtime=<claude|codex>`, `model=<runnable id>`, and `effort=<level>`.
    Announce the mapping before execution.

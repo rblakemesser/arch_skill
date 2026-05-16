@@ -551,7 +551,7 @@ Examples:
 
 ### `fresh-consult`
 
-Use when the user or another skill wants one or more clean-context second opinions from fresh Claude or Codex subprocesses on concrete artifacts, completion claims, flow consistency questions, or readability/confusion checks. It is prompt-only: it writes consult prompts, runs the selected local CLI hook-suppressed and unsandboxed, captures each child `prompt.md`, `final.txt`, `events.jsonl`, and `stderr.log` under `/tmp/fresh-consult/...`, and reports each child verdict back to the parent.
+Use when the user or another skill wants one or more clean-context second opinions from fresh Claude or Codex subprocesses on concrete artifacts, completion checks, flow consistency questions, or readability/confusion checks. It is prompt-only: it writes consult prompts, runs the selected local CLI hook-suppressed and unsandboxed, captures each child `prompt.md`, `final.txt`, `events.jsonl`, and `stderr.log` under `/tmp/fresh-consult/...`, and reports each child verdict back to the parent.
 
 The user supplies runtime, model, and effort, or the skill asks once before invoking. Runtime can be inferred only from unambiguous model families such as `gpt-5.5` for Codex or `Claude Opus 4.7` for Claude. Exact model versions are preserved; there is no silent downgrade, provider switch, or effort substitution.
 
@@ -566,7 +566,7 @@ Examples:
 
 Practical rule:
 
-- Use `fresh-consult` for general Claude/Codex second opinions, parallel consults, cold reads, consistency audits, and completion checks.
+- Use `fresh-consult` for general Claude/Codex second opinions, parallel consults, cold reads, consistency audits, and completion checks. Give the child the user's ask, exact user-named artifacts, hard constraints, and report contract; let it choose what evidence to inspect.
 - Use `agent-delegate` when the fresh child should implement, edit, investigate-and-fix, run commands, or use installed skills in the shared worktree.
 - Use `code-review` for the deterministic full code-review product with Codex lens fan-out and coverage guarantees.
 - Use `codex-review-yolo` when the user specifically asks for the existing Codex `-p yolo` pattern.
@@ -599,7 +599,7 @@ Use when the user wants two selected Claude/Codex models to cross-check, critiqu
 
 The user supplies runtime/model/effort for both participants, or the skill asks once. Shorthand such as `gpt 5.5 xhigh` or `Claude Opus 4.7 high` follows the shared model-resolution doctrine: exact versions are preserved, `codex debug models` is used when Codex availability matters, and ambiguous IDs fail loud instead of silently downgrading.
 
-For repo-backed investigations, root-cause work, and "read everything" cross-checks, both participants must read real evidence before agreeing, but the parent does not pre-select the theory map. It records the raw goal, exact user-named artifacts, desired output, and hard constraints, then tells the child models to choose and cite the code, docs, research, tests, commands, and local evidence they need. Do not seed them with parent-invented hypotheses, failure-layer taxonomies, broad path inventories, or leading open questions.
+For repo-backed investigations, root-cause work, and "read everything" cross-checks, both participants must read real evidence before agreeing. The parent records the raw user goal, exact user-named artifacts, desired output, and hard constraints. The child models choose and cite the code, docs, research, tests, commands, and local evidence they need.
 
 For architecture or implementation-plan work, both participants must inspect canonical owner paths, repo conventions, adjacent patterns to adopt, duplicate or drifting pathways, and tests/proof surfaces. This keeps the dialogue focused on one existing way of doing the work whenever possible instead of creating a second bug path.
 

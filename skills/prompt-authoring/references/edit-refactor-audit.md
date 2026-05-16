@@ -16,11 +16,12 @@ Use this file when the prompt already exists and the job is to diagnose, repair,
 | Prompt depends on files or docs the model cannot open | phantom context | `Inputs & ground truth`; bundle the needed context or remove the dependency |
 | Refactor removed behavior that used to help | useful magic got deleted instead of relocated | restore the principle, then re-home the brittle text as examples or litmus tests |
 | Prompt asks the user to choose a prompt type, mode, or schema before doing useful work | internal diagnosis leaked into the user workflow | `First move`, `Workflow`, and `prompt-types-and-selection.md` |
-| A simple prompt ask became a giant reusable contract | overbuilt shape | collapse to role, goal, context, instructions, output, and stop rules |
-| A grounded answer prompt keeps making things up | evidence policy is missing or too vague | `Inputs & ground truth`, `Tools & calling rules`, `Output contract`, and stop rules |
+| A simple prompt ask became a giant reusable contract | overbuilt shape | collapse to role, goal, context, instructions, output, and completion rules |
+| A grounded answer prompt keeps making things up | evidence policy is missing or too vague | `Inputs & ground truth`, `Tools & calling rules`, `Output contract`, and completion rules |
 | A creative prompt invents stronger facts than the source supports | drafting freedom and factual claims are not separated | creative drafting guidance and `Inputs & ground truth` |
 | A tool or coding prompt says "check your work" but never verifies anything | validation is generic rather than executable | `Output contract`, validation instructions, and error handling |
-| The prompt searches, plans, or reasons forever | stop rules define activity instead of done-ness | stop rules, `Process`, and `Output contract` |
+| The prompt searches, plans, or reasons forever | completion rules define activity instead of done-ness | completion rules, `Process`, and `Output contract` |
+| A goal prompt lets the agent finish with a diagnosis of non-completion | execution intent was softened into a report contract | mission, `Success / failure`, `/goal` persistence language, and `Output contract` |
 
 ## Refactor-without-losing-magic loop
 
@@ -36,7 +37,7 @@ Ask these before you change anything:
 
 1. What is the single job?
 2. Does commander’s intent describe the desired outcome or just a sequence of moves?
-3. Would a strong human owner still see one obvious in-scope move left before stopping?
+3. Would a strong human owner still see one obvious in-scope move left before returning?
 4. Are any sections doing work that belongs higher or lower in the prompt?
 5. Are the examples teaching reasoning, or are they secretly the rules?
 6. Are there keyword lists, lookup tables, or brittle mappings?
@@ -50,8 +51,9 @@ Ask these before you change anything:
 14. Is the prompt as small as the job allows, or did a lightweight ask become a full contract?
 15. Does the prompt define evidence, source, and citation behavior where factual claims matter?
 16. Does the prompt separate creative phrasing from unsupported factual invention?
-17. Does the prompt define a real stop condition?
-18. Does validation name an available check, recognition test, or fallback report?
+17. Does the prompt define real done-ness?
+18. Does validation name an available check, recognition test, or next-best evidence path?
+19. For execution or repair prompts, could the agent honestly finish without the desired state becoming real?
 
 ## Edit discipline
 
@@ -72,8 +74,9 @@ Prefer findings like:
 - "The examples are functioning as an action menu; extract the principle and keep the examples as illustrations only."
 - "The headings are present, but system context and quality bar are too thin to teach why this work matters."
 - "The prompt names output fields but does not define how a reviewer would know the answer is valid."
+- "The goal prompt lets a hard investigation turn into a non-completion report; rewrite mission, success/failure, and proof so the agent keeps driving through source truth, tests, and repair."
 - "The prompt leaks internal prompt-type selection to the user; infer the shape and write the prompt directly."
-- "The prompt says to cite sources but never defines which claims require evidence or when retrieval should stop."
+- "The prompt says to cite sources but never defines which claims require evidence or when more retrieval would change the answer."
 - "The prompt asks for creativity without separating sourced facts from permissible framing."
 
 Avoid findings like:

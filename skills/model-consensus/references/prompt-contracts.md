@@ -17,44 +17,26 @@ Every child prompt should make clear:
 
 Use prompt-authoring discipline to create the goal brief.
 
-Required sections:
+Use these sections:
 
 ```text
 Raw Goal
 Resolved Participants
 User-Named Inputs
-Desired Output
 Hard Constraints
-Success Criteria
-Non-Goals
-Discovery Freedom
+Desired Output
 ```
 
 Rules:
 
 - Preserve user language where it carries intent.
 - Clarify ambiguity without choosing an implementation.
-- Do not add a solution, library, pattern, path, hypothesis, failure-layer
-  taxonomy, ranked theory, or diagnostic question that the user did not name.
 - `User-Named Inputs` means artifacts the user explicitly gave, plus exact
   path resolution needed to open those artifacts. It is not a parent-selected
   reading list.
-- `Discovery Freedom` must tell child models that they may choose the evidence
-  surface they need and reject the parent framing if evidence points elsewhere.
+- Do not add the caller's diagnosis, preferred solution, file map, or
+  investigation frame.
 - Keep the brief short enough to reuse in every child prompt.
-
-## Contamination Check
-
-Before launching child sessions, read the prompt and ask:
-
-- Did I add a hypothesis the user did not state?
-- Did I tell the models where the cause probably lives?
-- Did I turn user intent into a taxonomy?
-- Did I require files that the children should choose for themselves?
-- Could this prompt make both models agree with me instead of each other?
-
-If yes, remove that material or mark it only as a user-named input when the user
-actually named it.
 
 ## First-Pass Prompt
 
@@ -75,29 +57,27 @@ Authoritative Inputs
 - Raw goal: <raw_goal>
 - Faithful goal brief: <goal_brief>
 - Your role: <collaborator|adversary>
-- Prompt mode: <open investigation|architecture plan|concept>
 - Work root: <path or none>
 - Explicit user constraints: <constraints>
 
 Evidence Grounding
 If a work root is provided, read real evidence before proposing or agreeing.
-Start with user-named artifacts, then independently choose the code, docs,
+Start with user-named artifacts or symptoms, then choose the code, docs,
 research, tests, commands, or other local evidence needed for the goal. Cite
-paths, and use line numbers when exact evidence matters. Do not limit yourself
-to the parent brief if a better evidence trail appears.
+what you inspected and why it mattered.
 
 Quality Bar
 Prefer the smallest answer that satisfies every hard requirement and survives
-evidence. Reject kitchen-sink compromise. If this is an investigation, separate
-evidence-backed theories from guesses and name fast falsifiers. If this is an
-architecture plan, reuse existing pathways when possible and justify any new
-path from repo evidence.
+evidence. Reject kitchen-sink compromise. For planning work, check where the
+work already belongs before proposing a new path. For investigation work,
+separate evidence-backed conclusions from guesses and name the fastest proof or
+falsifier.
 
 Output Contract
 Return:
 - concise proposed answer or plan
-- evidence read, if applicable
-- existing paths/patterns to adopt, if applicable
+- evidence read when a repo or workspace is involved
+- existing paths/patterns to adopt when planning repo work
 - alternatives rejected and why
 - risks or open questions
 - what you would need from the other model to converge
@@ -107,34 +87,6 @@ Stop Instead Of Continuing If
 - the requested model role is unclear
 - repo access is required but unavailable
 - you cannot substantiate repo claims from files
-```
-
-## Architecture Prompt Add-On
-
-Use this only when the prompt mode is architecture or implementation planning:
-
-```text
-Architecture Grounding
-Identify canonical owner paths, patterns to adopt, parallel or drifting
-implementations, tests or proof surfaces, and the smallest place this work
-should live. The goal is to minimize new pathways and converge on one way of
-doing the work where possible. If you propose a new path, explain why the
-existing path cannot absorb the requirement.
-```
-
-## Open Investigation Prompt Add-On
-
-Use this when the user wants a cross-check, root-cause investigation,
-failure-analysis plan, broad review, or second-opinion dialogue:
-
-```text
-Open Investigation Grounding
-Do not assume the parent has identified the right files, layers, theories, or
-failure categories. Start from the user-named artifact or symptom, then choose
-your own evidence path through code, docs, research, tests, command output, and
-local history as needed. Your first pass should report what you inspected, what
-you ruled out, what remains plausible, and the fastest evidence that would
-separate the plausible explanations.
 ```
 
 ## Critique Prompt
@@ -166,9 +118,9 @@ Return:
 - whether you are ready to sign off
 ```
 
-## Adversarial Prompt Add-On
+## Adversarial Role Prompt
 
-Use this when the user asks for adversarial mode or when one model is assigned
+Use this when the user asks for adversarial critique or when one model is assigned
 the adversary role:
 
 ```text

@@ -5,7 +5,7 @@ These are adapted from real failures already seen in this repo, but rewritten as
 ## Table of contents
 
 - Case 1: commander's intent collapsed into procedure
-- Case 2: one acceptable local move was mistaken for the stop line
+- Case 2: one acceptable local move was mistaken for the completion line
 - Case 3: examples hardened into a hidden action menu
 - Case 4: wrong-layer edits flattened the prompt
 - Case 5: phantom context
@@ -18,6 +18,7 @@ These are adapted from real failures already seen in this repo, but rewritten as
 - Case 12: creative drafting invented unsupported claims
 - Case 13: validation was requested but not made real
 - Case 14: goal prompt became a form or competing source of truth
+- Case 15: execution goal softened into a non-completion report
 - How to use these examples safely
 
 ## Case 1: commander’s intent collapsed into procedure
@@ -38,23 +39,23 @@ Why the better shape works:
 Transferable principle:
 - commander’s intent should describe the improved world state, not the menu of moves
 
-## Case 2: one acceptable local move was mistaken for the stop line
+## Case 2: one acceptable local move was mistaken for the completion line
 
 Real failure pattern:
 - the prompt rewarded the first locally correct move even when one more obvious in-scope improvement was still left
 
 Bad shape:
-- "Once you produce a correct answer, stop."
+- "Once you produce a correct answer, finish."
 
 Better shape:
-- "After the first acceptable move, ask whether one more obvious in-scope improvement would materially strengthen the result before stopping."
+- "After the first acceptable move, ask whether one more obvious in-scope improvement would materially strengthen the result before returning."
 
 Why the better shape works:
 - it preserves autonomy
-- it teaches stop-line judgment instead of a brittle stopping rule
+- it teaches completion-line judgment instead of a brittle finish rule
 
 Transferable principle:
-- prompts should teach when to stop, not just how to start
+- prompts should teach what done means, not just how to start
 
 ## Case 3: examples hardened into a hidden action menu
 
@@ -193,7 +194,7 @@ Bad shape:
 - "Which mode should I use: personality, retrieval, drafting, validation, or workflow?"
 
 Better shape:
-- "Infer the needed shape from the brief. If the user asks for a friendly assistant that searches docs and cites sources, write one prompt that blends collaboration style, retrieval rules, citation behavior, and stop conditions."
+- "Infer the needed shape from the brief. If the user asks for a friendly assistant that searches docs and cites sources, write one prompt that blends collaboration style, retrieval rules, citation behavior, and completion conditions."
 
 Why the better shape works:
 - the taxonomy stays internal
@@ -212,7 +213,7 @@ Bad shape:
 - "First inspect every input, then list all possible actions, then compare each option, then choose, then write a summary, then verify the summary."
 
 Better shape:
-- "Resolve the user's issue end to end. Success means the decision is made from available evidence, allowed actions are completed, missing required facts are requested narrowly, and the final answer states what was done and what remains blocked."
+- "Resolve the user's issue end to end. Success means the decision is made from available evidence, allowed actions are completed, missing required facts are requested narrowly, and the final answer states what was done and what evidence supports it."
 
 Why the better shape works:
 - it defines done-ness instead of activity
@@ -249,7 +250,7 @@ Bad shape:
 - "Make sure the implementation is correct before answering."
 
 Better shape:
-- "After changing code, run the most relevant available validation: targeted tests for changed behavior, type checks or lint when applicable, and a build check if the affected package has one. If validation cannot run, say why and name the next best evidence."
+- "After changing code, run the most relevant available validation: targeted tests for changed behavior, type checks or lint when applicable, and a build check if the affected package has one. If the obvious validation path is unavailable, use the next best evidence."
 
 Why the better shape works:
 - the model has a real check path
@@ -284,7 +285,7 @@ Better shape:
   source truth for doctrine, examples, fixtures, and validation details; do not
   restate it or create a second plan. Done requires the implementation,
   validation against the named fixtures, non-leading signoff, and a final report
-  with changed files, commands, artifacts, blockers, and risks."
+  with changed files, commands, artifacts, signoff result, and risks."
 
 Why the better shape works:
 - the mission is visible before mechanics
@@ -301,8 +302,44 @@ Transferable principle:
 - when a source doc exists, the goal should point to it and define acceptance,
   not duplicate it
 
+## Case 15: execution goal softened into a non-completion report
+
+Real failure pattern:
+- a user asked for a system to work, but the prompt author added language that
+  made a diagnosis, refusal, disagreement, or obstacle summary look like a valid
+  ending
+- review or model consensus was framed as a way to certify non-completion rather
+  than a way to choose the next experiment or repair
+
+Bad shape:
+- "Diagnose why RTS fails and finish if the issue is rare, hard to reproduce, or
+  reviewers disagree."
+- "Done means either the work is fixed or the final report names a precise
+  non-completion reason."
+
+Better shape:
+- "Make RTS work on this class of hands. H0050 is the probe, not the prize. Use
+  source truth, whole-hand replay, theory-disproving tests, instrumentation,
+  paper-aligned algorithm checks, and model consensus to choose the next repair.
+  A refusal, rarity claim, narrow diagnosis, or reviewer objection is not done;
+  it becomes the next evidence packet. Done means the production path is
+  repaired, focused tests pass, and reviewers agree the engine-quality fix
+  satisfies the goal."
+
+Why the better shape works:
+- the desired world state stays operational
+- uncertainty creates the next action instead of an ending
+- review and consensus drive the search instead of narrowing it up front
+- the proof gate requires the system to work, not just the report to sound
+  precise
+
+Transferable principle:
+- execution goals should make non-completion language hard to use. If the user
+  wants the system working, done means the system works and the evidence proves
+  it.
+
 ## How to use these examples safely
 
 - Prefer the principle over the wording.
 - If you borrow an example, say why it works.
-- If the example starts feeling like a lookup table, stop and extract the higher-level rule instead.
+- If the example starts feeling like a lookup table, extract the higher-level rule instead.

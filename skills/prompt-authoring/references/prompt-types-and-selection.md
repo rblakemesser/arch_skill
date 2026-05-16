@@ -11,7 +11,7 @@ write the prompt.
 ## First rule: infer, blend, and move
 
 Most real prompts combine several shapes. A support assistant prompt might need
-personality, tool-use rules, evidence rules, and stop conditions. A launch-copy
+personality, tool-use rules, evidence rules, and completion conditions. A launch-copy
 prompt might need creative drafting guardrails, audience constraints, and
 source-backed claim rules.
 
@@ -31,7 +31,7 @@ Bad behavior:
 - asking the user to pick a prompt type before doing useful work
 - turning the type list into keyword triggers
 - inflating every ask into a full system prompt
-- blocking because optional product details are missing
+- delaying useful work because optional product details are missing
 - treating examples as a finite menu of allowed prompt shapes
 
 ## Lightweight shape for ordinary prompts
@@ -48,7 +48,7 @@ Context: [the facts, audience, sources, or constraints that matter].
 Instructions:
 - [the few behaviors that change quality]
 - [evidence, tool, or safety rules when needed]
-- [stop condition when needed]
+- [completion condition when needed]
 
 Output: [format, length, tone, or fields].
 ```
@@ -85,7 +85,7 @@ time.
 
 Usually needs:
 - tone, warmth, formality, directness, humor, and polish level
-- collaboration style: when to ask, when to assume, when to act, when to stop
+- collaboration style: when to ask, when to assume, when to act, and what counts as done
 - uncertainty behavior
 - correction behavior
 - boundaries for empathy, confidence, and proactivity
@@ -110,21 +110,24 @@ Usually needs:
 - constraints and side-effect limits
 - available context or sources
 - output shape
-- stop rules
+- completion rules
 
 Common failures:
 - process steps are over-specified and narrow the model's search
 - strict words like "always" and "never" are used for judgment calls
 - the prompt describes activity but not done-ness
-- there is no fallback behavior when evidence is missing
+- evidence gaps turn into report-only endings instead of sharper action
 
 Prefer the destination over the route. Use exact sequences only when the
 sequence itself is fragile, safety-critical, or part of the product contract.
 
 Codex `/goal` prompts are a common outcome-first variant. They usually also
-need evidence, validation, tool-use, and stop-rule lenses because the goal may
+need evidence, validation, tool-use, and persistence lenses because the goal may
 guide many future turns. When writing one, use `codex-goal-prompts.md`; keep it
-as a compact mission brief, not a fixed schema or duplicated plan doc. The hard
+as a compact mission brief, not a fixed schema or duplicated plan doc. Execution
+and repair goals must make non-completion unattractive: unclear evidence should
+lead to deeper source reading, sharper tests, instrumentation, review, and
+repair, not a tidy explanation of why the outcome was not achieved. The hard
 cap is 4,000 characters, complex goals should usually stay around 2,000-3,000,
 and rich source docs should be referenced by path instead of restated.
 
@@ -137,7 +140,7 @@ Usually needs:
 - what claims need support
 - what counts as acceptable evidence
 - how to cite or refer to sources
-- when to retrieve more and when to stop
+- when more retrieval would change the answer
 - what to do when evidence is missing
 - a rule against turning absence of evidence into a false negative
 
@@ -147,7 +150,7 @@ Common failures:
 - missing evidence becomes an invented answer
 - the prompt does not distinguish "not found" from "not true"
 
-Write retrieval budgets as stop rules, not as a fixed number of tool calls.
+Write retrieval budgets as evidence-completion rules, not as a fixed number of tool calls.
 
 ## 5) Creative drafting prompts
 
@@ -220,7 +223,7 @@ Use when the model can verify its output before finalizing.
 Usually needs:
 - the checks that matter for the artifact
 - when validation is required versus best-effort
-- what to do if validation cannot run
+- what to do when the obvious validation path is unavailable
 - what failure should change before the final answer
 - what residual risk to report
 
@@ -231,7 +234,7 @@ Common failures:
 - the prompt does not say when enough validation is enough
 
 Name concrete checks when the environment makes them knowable. Otherwise,
-describe the recognition test and fallback reporting.
+describe the recognition test and the next-best evidence path.
 
 ## 9) Runtime communication prompts
 
@@ -265,7 +268,7 @@ Usually needs:
 - affected resources, files, APIs, or systems when known
 - data flow or state transitions when relevant
 - validation commands or checks
-- failure behavior and open questions
+- failure behavior and user-owned decisions
 - privacy, security, or migration constraints when they matter
 
 Common failures:
@@ -281,13 +284,13 @@ ceremony when the implementation is straightforward.
 
 When a prompt has multiple needs, compose the minimum useful pieces:
 
-- personality + retrieval: tone and collaboration style plus source and stop
-  rules
+- personality + retrieval: tone and collaboration style plus source and
+  evidence-completion rules
 - creative drafting + evidence: clear factual boundaries plus room for good
   prose
 - tool-use + validation: action rules plus concrete checks before finalizing
 - Codex `/goal`: compact desired world state plus source truth pointers,
-  quality bar, evidence, signoff, and stop rule
+  quality bar, evidence, signoff, and persistence rules
 - formatting + audience: reader context plus structure and length limits
 - reusable contract + examples: durable sections plus examples that teach
   reasoning
@@ -299,7 +302,7 @@ for the user's job, not like a taxonomy dump.
 
 - Did the user have to classify their ask? If yes, simplify.
 - Did the prompt include only the structure that changes behavior?
-- Are evidence, stop rules, tools, validation, personality, and formatting
+- Are evidence, completion rules, tools, validation, personality, and formatting
   present only where they matter?
 - Does the prompt state done-ness, not just activity?
 - Are examples and types teaching judgment rather than replacing it?

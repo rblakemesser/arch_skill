@@ -33,6 +33,10 @@ Claude Code, and Gemini.
 - Do not delete user work, untracked files, or repo changes unless the user
   explicitly asks for that exact cleanup. If you are not sure whether a file
   came from your own run, leave it alone and ask.
+- Treat changes outside your intentional edit scope as user-owned, even if they
+  appear while you are working. Do not reverse-apply, restore, checkout, or
+  "clean up" those files to tidy your diff. If a command rewrites unrelated
+  tracked files, report the exact paths and ask before undoing them.
 - Do not make shipped skills depend on archived command files at runtime.
 - Do not revive archived command surfaces as part of the live runtime.
 - Skill doctrine must be self-contained. Do not explain it with historical

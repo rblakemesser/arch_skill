@@ -1,35 +1,37 @@
 ---
 name: codex-review-yolo
-description: "Invoke the local codex CLI with profile `yolo` (gpt-5.4 xhigh, fast tier) to get an independent, context-free review of a substantial artifact or claimed completion state — diffs, commit stacks, implementation-plan completion, docs, or cross-repo changes. Use when the user says \"have codex review\", \"get a second opinion from codex\", \"audit completion of this plan with codex -p yolo\", or asks for an external/fresh-eyes review. Do NOT use for: asking codex to write code (this is review-only), generic LLM-as-judge evaluations where codex adds nothing, or any case where there is no concrete artifact, claims list, or completion target to inspect."
+description: "Invoke the local codex CLI with profile `yolo` (gpt-5.4 xhigh, fast tier) to get an independent, context-free review of a substantial artifact or completion state: diffs, commit stacks, implementation-plan completion, docs, or cross-repo changes. Use when the user says \"have codex review\", \"get a second opinion from codex\", \"audit completion of this plan with codex -p yolo\", or asks for an external/fresh-eyes review. Do NOT use for: asking codex to write code (this is review-only), generic LLM-as-judge evaluations where codex adds nothing, or any case where there is no concrete artifact or completion target to inspect."
 metadata:
   short-description: "Request an independent review from codex -p yolo"
 ---
 
 # codex-review-yolo
 
-Use this skill when the user wants an independent review from the locally-installed `codex` CLI using profile `yolo`. The artifact can be code, a doc, a plan, a rollout, or a claimed completion state. The value is that codex runs as a separate agent with zero session history — it must read the artifacts itself, so its verdict is genuinely independent.
+Use this skill when the user wants an independent review from the locally-installed `codex` CLI using profile `yolo`. The artifact can be code, a doc, a plan, a rollout, or a completion state. The value is that codex runs as a separate agent with zero session history — it must read the artifacts itself, so its verdict is genuinely independent.
 
-This skill is intentionally narrow in mechanism, not in review subject. It teaches the invocation pattern, the prompt shape that makes codex actually read the authoritative artifacts, and how to consume the verdict. It does not wrap every possible codex use case.
+This skill is intentionally narrow in mechanism, not in review subject. It teaches the invocation pattern, the prompt shape that makes codex read the named artifacts directly, and how to consume the verdict. It does not wrap every possible codex use case.
 
 ## When to use
 
 - User says any of: "review with codex", "audit this with codex", "get a second opinion from codex", "run codex -p yolo", "have codex audit my work".
 - User has just finished non-trivial work (diff, multi-commit change, implementation-plan phase, design doc, rollout) and wants fresh eyes before a next step such as merge, ship, execute, share, or mark-complete.
 - User wants an adversarial / skeptical review from a model that doesn't share your blind spots.
-- User wants an external audit of whether explicit claims, checklist items, or completion targets were actually met.
+- User wants an external audit of whether a concrete artifact is ready or a
+  user-named completion target was actually met.
 
 ## When not to use
 
 - The user wants codex to *write* code, not review it. This skill is review-only.
 - The user wants a quick yes/no on a one-line change — the setup cost exceeds the value.
-- The user has not yet produced a concrete artifact, claims list, or completion target to review. Don't spin up codex on vapor.
+- The user has not yet produced a concrete artifact or completion target to
+  review. Don't spin up codex on vapor.
 - `codex` is not installed on the host — `which codex` returns nothing. Stop and tell the user.
 
 ## Non-negotiables
 
 - **Run codex with `-p yolo` explicitly.** The profile carries gpt-5.4 + xhigh reasoning + fast service tier + `danger-full-access` sandbox. Any other profile changes the contract.
 - **Use `codex exec` (non-interactive), not `codex` (interactive TUI).** You are orchestrating, not babysitting a session.
-- **Brief codex like a colleague who just walked in.** It has no memory of your session. Name the review goal, the authoritative artifacts, any claims or completion targets, and what you want checked.
+- **Brief codex like a colleague who just walked in.** It has no memory of your session. Name the review goal, work root, exact user-named artifacts or target paths, hard constraints, and the verdict contract.
 - **Require a structured verdict block at the end.** Without it, codex drifts into narrative and you cannot act on the result.
 - **Treat the prompt examples as examples.** Adapt the sections to the actual review objective instead of cargo-culting one review mode.
 - **Never pass secrets in the prompt.** If codex needs `FIGMA_ACCESS_TOKEN` or similar, source `.env` into the codex env and instruct codex to read it from the environment.
@@ -44,7 +46,9 @@ This skill is intentionally narrow in mechanism, not in review subject. It teach
 ## First move
 
 1. Confirm `codex` exists and the `yolo` profile is defined: `which codex && grep -A2 '^\[profiles.yolo\]' ~/.codex/config.toml`.
-2. Identify the exact review objective and authoritative artifacts: commit SHA(s), branch, file paths, doc paths, checklist items, or plan phases. Write them down in the prompt.
+2. Identify the exact review objective and user-named artifacts or target paths:
+   commit SHA(s), branch, file paths, doc paths, commands to inspect current
+   state, or plan phases. Write them down in the prompt.
 3. Create a namespaced run directory once and reuse it for every file in that invocation. Example:
 
    ```bash
@@ -68,11 +72,9 @@ This skill is intentionally narrow in mechanism, not in review subject. It teach
 A good prompt for codex review has these sections, in this order:
 
 1. **Role + posture.** One line. "You are auditing X. Be skeptical. If the work is wrong, say so plainly."
-2. **Review objective + ground truth.** State what approval means for this review and point codex at the authoritative artifacts. Be specific — codex has no context.
-3. **Claims / expected outcomes / completion targets.** Summarize the claims, checklist items, or expected outcomes you want audited. If there are none, say that explicitly.
-4. **What to check.** Numbered list. Each item names a specific concern and where codex should look.
-5. **Tooling hints.** If codex needs external APIs (e.g. Figma REST), tell it the endpoint shape and where the token lives (env var, not inline value).
-6. **Verdict block requirement.** Demand a specific footer format so the result is machine-ish-readable.
+2. **Review objective and work root.** State what approval means for this review and where codex should run.
+3. **User-named artifacts or target paths.** Point codex at the concrete artifacts the user named.
+4. **Verdict block requirement.** Demand a specific footer format so the result is machine-ish-readable.
 
 See `references/prompt-template.md` for the full skeleton.
 

@@ -11,51 +11,30 @@ question:
 
 ```markdown
 You are performing an independent fresh consult on <one-line subject>.
-You have no prior chat context. Read the artifacts directly from disk and be
-skeptical. Your job is to answer the consult question for the parent agent, not
-to fix files.
+You have no prior chat context. Read the artifacts directly from disk. Your job
+is to answer the user's ask for the parent agent, not to fix files.
 
-# Consult Question
+# User Ask
 
-- Question: <the exact thing to decide>
-- Success bar: <what would make the answer pass/approve/ready>
+<quote the user's ask when practical; otherwise give a faithful one-paragraph
+restatement without adding the caller's own framing>
+
+# Working Context
+
 - Work root: <absolute path>
+- User-named artifacts or target paths:
+  - <path, commit, branch, doc, or "none">
+- Hard constraints: <read-only limits, runtime constraints, or "none">
 
-# Parallel Group
+# Your Job
 
-- Group: <group objective, or "none">
-- Child id: <stable child id, or "single">
-- Sibling consults: <short names of sibling questions, or "none">
+Read the user-named artifacts or target paths directly. Then inspect whatever
+nearby repo, docs, research, tests, command output, or local evidence you judge
+necessary to answer the user's ask. Report what you read and what answer the
+evidence supports.
 
-<For parallel groups only: Answer only this child's consult question. Sibling
-consults may inspect related artifacts, but you should not coordinate with them
-or wait for them.>
-
-# Authoritative Artifacts
-
-- <path, commit, branch, or doc section> - <why it matters>
-- <path, commit, branch, or doc section> - <why it matters>
-
-# Claims Or Completion Targets
-
-If explicit claims, checklist items, or completion targets exist, audit them:
-
-1. <claim or target>
-2. <claim or target>
-
-If there are no explicit claims, say so and inspect the artifact directly.
-
-# What To Check
-
-Please do all of the following:
-
-1. Read the authoritative artifacts directly.
-2. Check whether the consult question is answered by the artifacts.
-3. Identify contradictions, missing steps, unclear ordering, stale claims, or
-   completion gaps relevant to the consult.
-4. Separate blocking issues from non-blocking notes.
-5. Do not edit files, run formatters, arm hooks, coordinate with sibling
-   consults, or start another controller.
+Do not edit files, run formatters, arm hooks, coordinate with sibling consults,
+or start another controller.
 
 # Report Contract
 
@@ -77,7 +56,7 @@ SUMMARY FOR PARENT: <one concise paragraph>
 - `fail` - at least one blocking issue prevents approval or confidence.
 - `inconclusive` - the child could not inspect enough evidence to answer.
 
-`BLOCKING` issues must name the file, heading, command, claim, or checklist item
+`BLOCKING` issues must name the file, heading, command, artifact, or decision
 that fails. For code or repo-backed consults, cite line numbers when practical.
 
 `EVIDENCE READ` is required. A consult that does not say what it inspected is
