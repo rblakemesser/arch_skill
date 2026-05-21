@@ -1,7 +1,8 @@
 # AGENTS.md
 
-This repo ships installable agent skills. `skills/` is the live runtime
-surface. `Makefile` plus `README.md` own the install surface for Codex,
+This repo ships installable agent skills. `skills/` is the main live runtime
+surface. `Makefile` may also install explicitly listed vendored skills from
+`vendor/`; `Makefile` plus `README.md` own the install surface for Codex,
 Claude Code, and Gemini.
 
 ## Build And Verify
@@ -39,6 +40,9 @@ Claude Code, and Gemini.
   tracked files, report the exact paths and ask before undoing them.
 - Do not make shipped skills depend on archived command files at runtime.
 - Do not revive archived command surfaces as part of the live runtime.
+- Do not edit vendored plugin packages unless the task is explicitly updating
+  that vendor source; route repo-specific install behavior through `Makefile`
+  and docs instead.
 - Skill doctrine must be self-contained. Do not explain it with historical
   backstory or the skill development process itself. The only exception is a
   coordinator skill whose job is to explain how other skills fit together.
@@ -99,6 +103,9 @@ Claude Code, and Gemini.
   or expose the smallest unresolved decision, including adversarial
   simplification. The parent agent orchestrates directly; do not introduce a
   deterministic runner, script, controller, or harness layer.
+- Use `$thermo-nuclear-code-quality-review` only when the user explicitly wants
+  a thermonuclear, code-judo, or especially harsh maintainability review. Use
+  `$code-review` for ordinary code review requests.
 
 ## Writing And Replies
 
@@ -122,3 +129,5 @@ Claude Code, and Gemini.
 - `docs/arch_skill_usage_guide.md` for workflow selection and intended usage.
 - `skills/<slug>/SKILL.md` for the runtime contract of a specific shipped
   skill.
+- `vendor/cursor/plugins/cursor-team-kit/` for the vendored MIT Cursor Team Kit
+  package that supplies `thermo-nuclear-code-quality-review`.

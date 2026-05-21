@@ -8,9 +8,17 @@ REMOVED_SKILLS := arch-skill arch-plan codemagic-builds customerio
 SHARED_DIRS := _shared
 # `SKILLS` is the active agents/Codex surface. Claude mirrors it; Gemini omits
 # Stop-hook and code-review-runner skills.
-SKILLS := arch-step miniarch-step arch-docs arch-mini-plan lilarch bugs-flow audit-loop comment-loop audit-loop-sim goal-loop north-star-investigation arch-flow arch-skills-guide arch-loop delay-poll wait agent-definition-auditor agents-md-authoring prompt-authoring skill-authoring figma-best-practices fal-ai-tools eli10 pr-authoring commit-history-authoring skill-flow amir-publish codex-review-yolo fresh-consult agent-delegate agent-history model-consensus contact-sheet-builder code-review stepwise arch-epic codex-cleanup
-CLAUDE_SKILLS := arch-step miniarch-step arch-docs arch-mini-plan lilarch bugs-flow audit-loop comment-loop audit-loop-sim goal-loop north-star-investigation arch-flow arch-skills-guide arch-loop delay-poll wait agent-definition-auditor agents-md-authoring prompt-authoring skill-authoring figma-best-practices fal-ai-tools eli10 pr-authoring commit-history-authoring skill-flow amir-publish codex-review-yolo fresh-consult agent-delegate agent-history model-consensus contact-sheet-builder code-review stepwise arch-epic codex-cleanup
-GEMINI_SKILLS := arch-step miniarch-step arch-docs arch-mini-plan lilarch bugs-flow audit-loop comment-loop audit-loop-sim goal-loop north-star-investigation arch-flow arch-skills-guide agent-definition-auditor agents-md-authoring prompt-authoring skill-authoring figma-best-practices fal-ai-tools eli10 pr-authoring commit-history-authoring skill-flow amir-publish codex-review-yolo fresh-consult agent-delegate model-consensus contact-sheet-builder stepwise arch-epic codex-cleanup
+SKILLS := arch-step miniarch-step arch-docs arch-mini-plan lilarch bugs-flow audit-loop comment-loop audit-loop-sim goal-loop north-star-investigation arch-flow arch-skills-guide arch-loop delay-poll wait agent-definition-auditor agents-md-authoring prompt-authoring skill-authoring figma-best-practices fal-ai-tools eli10 pr-authoring commit-history-authoring skill-flow amir-publish codex-review-yolo fresh-consult agent-delegate agent-history model-consensus contact-sheet-builder code-review stepwise arch-epic codex-cleanup thermo-nuclear-code-quality-review
+CLAUDE_SKILLS := arch-step miniarch-step arch-docs arch-mini-plan lilarch bugs-flow audit-loop comment-loop audit-loop-sim goal-loop north-star-investigation arch-flow arch-skills-guide arch-loop delay-poll wait agent-definition-auditor agents-md-authoring prompt-authoring skill-authoring figma-best-practices fal-ai-tools eli10 pr-authoring commit-history-authoring skill-flow amir-publish codex-review-yolo fresh-consult agent-delegate agent-history model-consensus contact-sheet-builder code-review stepwise arch-epic codex-cleanup thermo-nuclear-code-quality-review
+GEMINI_SKILLS := arch-step miniarch-step arch-docs arch-mini-plan lilarch bugs-flow audit-loop comment-loop audit-loop-sim goal-loop north-star-investigation arch-flow arch-skills-guide agent-definition-auditor agents-md-authoring prompt-authoring skill-authoring figma-best-practices fal-ai-tools eli10 pr-authoring commit-history-authoring skill-flow amir-publish codex-review-yolo fresh-consult agent-delegate model-consensus contact-sheet-builder stepwise arch-epic codex-cleanup thermo-nuclear-code-quality-review
+CURSOR_TEAM_KIT_SKILLS_DIR := vendor/cursor/plugins/cursor-team-kit/skills
+VENDORED_CURSOR_TEAM_KIT_SKILLS := thermo-nuclear-code-quality-review
+LOCAL_SKILLS := $(filter-out $(VENDORED_CURSOR_TEAM_KIT_SKILLS),$(SKILLS))
+LOCAL_CLAUDE_SKILLS := $(filter-out $(VENDORED_CURSOR_TEAM_KIT_SKILLS),$(CLAUDE_SKILLS))
+LOCAL_GEMINI_SKILLS := $(filter-out $(VENDORED_CURSOR_TEAM_KIT_SKILLS),$(GEMINI_SKILLS))
+VENDORED_SKILLS := $(filter $(VENDORED_CURSOR_TEAM_KIT_SKILLS),$(SKILLS))
+VENDORED_CLAUDE_SKILLS := $(filter $(VENDORED_CURSOR_TEAM_KIT_SKILLS),$(CLAUDE_SKILLS))
+VENDORED_GEMINI_SKILLS := $(filter $(VENDORED_CURSOR_TEAM_KIT_SKILLS),$(GEMINI_SKILLS))
 NON_CLAUDE_SKILLS := $(filter-out $(CLAUDE_SKILLS),$(SKILLS))
 NON_GEMINI_SKILLS := $(filter-out $(GEMINI_SKILLS),$(SKILLS))
 # Prompt-era command files are no longer runtime sources; these names drive
@@ -146,8 +154,11 @@ agents_install_skill:
 	@for skill in $(REMOVED_SKILLS) $(SKILLS); do \
 		rm -rf $(AGENTS_SKILLS_DIR)/$$skill; \
 	done
-	@for skill in $(SKILLS); do \
+	@for skill in $(LOCAL_SKILLS); do \
 		cp -R skills/$$skill $(AGENTS_SKILLS_DIR)/$$skill; \
+	done
+	@for skill in $(VENDORED_SKILLS); do \
+		cp -R $(CURSOR_TEAM_KIT_SKILLS_DIR)/$$skill $(AGENTS_SKILLS_DIR)/$$skill; \
 	done
 	@for shared in $(SHARED_DIRS); do \
 		rm -rf $(AGENTS_SKILLS_DIR)/$$shared; \
@@ -171,8 +182,11 @@ claude_install_skill:
 	@for skill in $(REMOVED_SKILLS) $(SKILLS); do \
 		rm -rf $(CLAUDE_SKILLS_DIR)/$$skill; \
 	done
-	@for skill in $(CLAUDE_SKILLS); do \
+	@for skill in $(LOCAL_CLAUDE_SKILLS); do \
 		cp -R skills/$$skill $(CLAUDE_SKILLS_DIR)/$$skill; \
+	done
+	@for skill in $(VENDORED_CLAUDE_SKILLS); do \
+		cp -R $(CURSOR_TEAM_KIT_SKILLS_DIR)/$$skill $(CLAUDE_SKILLS_DIR)/$$skill; \
 	done
 	@for shared in $(SHARED_DIRS); do \
 		rm -rf $(CLAUDE_SKILLS_DIR)/$$shared; \
@@ -194,8 +208,13 @@ gemini_install_skill:
 	@for skill in $(REMOVED_SKILLS) $(SKILLS); do \
 		rm -rf $(GEMINI_SKILLS_DIR)/$$skill; \
 	done
-	@for skill in $(GEMINI_SKILLS); do \
+	@for skill in $(LOCAL_GEMINI_SKILLS); do \
 		cp -R skills/$$skill $(GEMINI_SKILLS_DIR)/$$skill; \
+	done
+	@for skill in $(VENDORED_GEMINI_SKILLS); do \
+		cp -R $(CURSOR_TEAM_KIT_SKILLS_DIR)/$$skill $(GEMINI_SKILLS_DIR)/$$skill; \
+	done
+	@for skill in $(GEMINI_SKILLS); do \
 		f=$(GEMINI_SKILLS_DIR)/$$skill/SKILL.md; \
 		tmp=$$f.tmp; \
 		awk 'NR==1 && $$0=="---" {front=1; next} front && $$0=="---" {front=0; next} !front {print}' "$$f" > "$$tmp" && mv "$$tmp" "$$f"; \
@@ -304,8 +323,11 @@ remote_install:
 	@for skill in $(REMOVED_SKILLS) $(SKILLS); do \
 		ssh $(HOST) "rm -rf ~/.agents/skills/$$skill"; \
 	done
-	@for skill in $(SKILLS); do \
+	@for skill in $(LOCAL_SKILLS); do \
 		scp -r skills/$$skill $(HOST):~/.agents/skills/; \
+	done
+	@for skill in $(VENDORED_SKILLS); do \
+		scp -r $(CURSOR_TEAM_KIT_SKILLS_DIR)/$$skill $(HOST):~/.agents/skills/; \
 	done
 	@for shared in $(SHARED_DIRS); do \
 		ssh $(HOST) "rm -rf ~/.agents/skills/$$shared"; \
@@ -319,8 +341,11 @@ remote_install:
 	@for skill in $(REMOVED_SKILLS) $(SKILLS); do \
 		ssh $(HOST) "rm -rf ~/.claude/skills/$$skill"; \
 	done
-	@for skill in $(CLAUDE_SKILLS); do \
+	@for skill in $(LOCAL_CLAUDE_SKILLS); do \
 		scp -r skills/$$skill $(HOST):~/.claude/skills/; \
+	done
+	@for skill in $(VENDORED_CLAUDE_SKILLS); do \
+		scp -r $(CURSOR_TEAM_KIT_SKILLS_DIR)/$$skill $(HOST):~/.claude/skills/; \
 	done
 	@for shared in $(SHARED_DIRS); do \
 		ssh $(HOST) "rm -rf ~/.claude/skills/$$shared"; \
@@ -333,8 +358,11 @@ remote_install:
 		for skill in $(REMOVED_SKILLS) $(SKILLS); do \
 			ssh $(HOST) "rm -rf ~/.gemini/skills/$$skill"; \
 		done; \
-		for skill in $(GEMINI_SKILLS); do \
+		for skill in $(LOCAL_GEMINI_SKILLS); do \
 			scp -r skills/$$skill $(HOST):~/.gemini/skills/; \
+		done; \
+		for skill in $(VENDORED_GEMINI_SKILLS); do \
+			scp -r $(CURSOR_TEAM_KIT_SKILLS_DIR)/$$skill $(HOST):~/.gemini/skills/; \
 		done; \
 		ssh $(HOST) "for skill in $(GEMINI_SKILLS); do f=~/.gemini/skills/\$$skill/SKILL.md; tmp=\$$f.tmp; awk 'NR==1 && $$0==\"---\" {front=1; next} front && $$0==\"---\" {front=0; next} !front {print}' \"\$$f\" > \"\$$tmp\" && mv \"\$$tmp\" \"\$$f\"; done"; \
 		for shared in $(SHARED_DIRS); do \

@@ -42,6 +42,7 @@ Other shipped skills:
 - `model-consensus`
 - `contact-sheet-builder`
 - `code-review`
+- `thermo-nuclear-code-quality-review`
 - `stepwise`
 
 Examples in this guide use Codex `$skill` notation. In Claude Code, invoke the same skill as `/skill`.
@@ -100,8 +101,11 @@ Default local path:
 - `~/.agents/skills/model-consensus/`
 - `~/.agents/skills/contact-sheet-builder/`
 - `~/.agents/skills/code-review/`
+- `~/.agents/skills/thermo-nuclear-code-quality-review/`
 - `~/.agents/skills/stepwise/`
 - `~/.agents/skills/arch-epic/`
+
+The vendored maintainability rubric is also installed at `~/.claude/skills/thermo-nuclear-code-quality-review/` for Claude Code and `~/.gemini/skills/thermo-nuclear-code-quality-review/` for Gemini.
 
 Codex reads the same installed skills from `~/.agents/skills/`. `make install` also writes one arch_skill-managed Codex `Stop` hook through `~/.codex/hooks.json` pointing at `~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py --runtime codex`, writes one arch_skill-managed Claude Code `Stop` hook plus one `SessionStart` hook through `~/.claude/settings.json` pointing at the same installed runner with `--runtime claude`, and removes older `~/.codex/skills/<skill>` mirrors from previous installs. Every loop-skill arm also reruns `arch_controller_stop_hook.py --ensure-installed --runtime <codex|claude>` so the canonical hook entries cannot drift between runs; drift is fail-loud at dispatch with the exact repair command.
 
@@ -140,6 +144,7 @@ Installed skills:
   - `model-consensus`
   - `contact-sheet-builder`
   - `code-review`
+  - `thermo-nuclear-code-quality-review`
   - `stepwise`
   - `arch-epic`
 - Claude Code:
@@ -175,6 +180,7 @@ Installed skills:
   - `model-consensus`
   - `contact-sheet-builder`
   - `code-review`
+  - `thermo-nuclear-code-quality-review`
   - `stepwise`
   - `arch-epic`
 - Gemini:
@@ -206,12 +212,13 @@ Installed skills:
   - `agent-delegate`
   - `model-consensus`
   - `contact-sheet-builder`
+  - `thermo-nuclear-code-quality-review`
   - `stepwise`
   - `arch-epic`
 
 Install removes stale pre-skill command surfaces, removed skill packages, older Codex skill mirrors, and source/build internals from installed skill packages. It installs one repo-managed Codex `Stop` hook in `~/.codex/hooks.json` pointing at `~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py --runtime codex` and one repo-managed Claude Code `Stop` hook plus one `SessionStart` hook in `~/.claude/settings.json` pointing at the same installed runner with `--runtime claude`. Every loop-skill arm also reruns `arch_controller_stop_hook.py --ensure-installed --runtime <codex|claude>` so the canonical hook entries cannot drift between runs. Those entries back `arch-step` automatic controllers, `arch-docs auto`, `audit-loop auto`, `comment-loop auto`, `audit-loop-sim auto`, `arch-loop`, and `delay-poll`.
 
-`arch-loop`, `delay-poll`, and `wait` are installed on Codex and Claude Code because both runtimes have a native `Stop` hook surface. Gemini still has no hook-backed auto-controller surface, so none of those three are installed there. `arch-loop` evaluator turns additionally always shell out to fresh unsandboxed Codex `gpt-5.4` `xhigh` for the external verdict, mirroring the `code-review` exception: the Claude host can arm and drive the loop, but the evaluator subprocess itself must always be Codex. `contact-sheet-builder` is installed on all three skill surfaces and requires Python with Pillow at runtime. `figma-best-practices`, `fresh-consult`, `agent-delegate`, and `model-consensus` are prompt-only and installed on all three skill surfaces, but subprocess skills still require the selected local `claude` or `codex` CLI to exist on the host at invocation time. `fresh-consult` is read-only and can run multiple fresh children when explicitly requested; `agent-delegate` may write to the shared worktree when invoked with an allowed write scope and can run multiple fresh workers when explicitly requested. `code-review` is installed on the agents/Codex and Claude Code surfaces only; Claude may host the Stop hook, but the review subprocess itself always shells out to fresh Codex.
+`arch-loop`, `delay-poll`, and `wait` are installed on Codex and Claude Code because both runtimes have a native `Stop` hook surface. Gemini still has no hook-backed auto-controller surface, so none of those three are installed there. `arch-loop` evaluator turns additionally always shell out to fresh unsandboxed Codex `gpt-5.4` `xhigh` for the external verdict, mirroring the `code-review` exception: the Claude host can arm and drive the loop, but the evaluator subprocess itself must always be Codex. `contact-sheet-builder` is installed on all three skill surfaces and requires Python with Pillow at runtime. `figma-best-practices`, `fresh-consult`, `agent-delegate`, `model-consensus`, and `thermo-nuclear-code-quality-review` are prompt-only and installed on all three skill surfaces, but subprocess skills still require the selected local `claude` or `codex` CLI to exist on the host at invocation time. `thermo-nuclear-code-quality-review` is sourced unchanged from the vendored Cursor Team Kit plugin at `vendor/cursor/plugins/cursor-team-kit/skills/`; only that skill package is installed, not Cursor Team Kit agents or rules. `fresh-consult` is read-only and can run multiple fresh children when explicitly requested; `agent-delegate` may write to the shared worktree when invoked with an allowed write scope and can run multiple fresh workers when explicitly requested. `code-review` is installed on the agents/Codex and Claude Code surfaces only; Claude may host the Stop hook, but the review subprocess itself always shells out to fresh Codex.
 
 ## Shared conventions
 
@@ -670,6 +677,24 @@ Practical rule:
 - Use `agent-delegate` when the user wants a fresh Claude/Codex worker to make changes rather than review them.
 - Use `codex-review-yolo` when the user wants a narrower, more interactive `-p yolo` fresh-eyes consult on a specific artifact rather than a full lens-by-lens review.
 - Gemini is intentionally not supported; the skill package is never installed on Gemini because the runner always launches fresh Codex subprocesses.
+
+### `thermo-nuclear-code-quality-review`
+
+Use when the user explicitly asks for a thermo-nuclear / thermonuclear review, a code-judo review, an especially harsh maintainability review, or a strict audit of structural quality, file sprawl, spaghetti branching, abstraction boundaries, and codebase health.
+
+This is a vendored Cursor Team Kit rubric installed from `vendor/cursor/plugins/cursor-team-kit/skills/thermo-nuclear-code-quality-review/`. It has no local runner, no Stop-hook controller, and no subprocess requirement. The installer copies only this skill package; Cursor Team Kit agents and rules are not installed.
+
+Examples:
+
+- `Use $thermo-nuclear-code-quality-review on this diff`
+- `Run a thermonuclear maintainability review`
+- `Use the code-judo quality rubric on this PR`
+
+Practical rule:
+
+- Use `thermo-nuclear-code-quality-review` only when the user wants this unusually strict maintainability rubric.
+- Use `code-review` for ordinary code review requests and deterministic lens coverage.
+- Use `codex-review-yolo` or `fresh-consult` for broader fresh-eyes second opinions.
 
 ## Full-arch doc conventions
 
