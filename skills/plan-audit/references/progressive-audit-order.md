@@ -49,8 +49,10 @@ For repo-backed plans, list the code and contract surfaces the plan depends on:
 - comparable existing patterns
 - side doors and alternate entrypoints
 
-Split broad read-only code mapping across parallel agents when the user asks
-for that or local instructions allow it.
+Split broad read-only code mapping across native subagents or parallel-agent
+features provided by the current coding harness whenever available. Record the
+reason if native subagents are unavailable, prohibited by local instructions, or
+unnecessary because the audit is too small to split.
 
 ## 6. Read All Relevant Code
 

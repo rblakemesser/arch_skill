@@ -12,8 +12,11 @@ It does not write a new plan or broaden the requested boundary.
 - Use `$agent-delegate` to launch and resume implementation workers.
 - Write worker, arbiter, and repair prompts with prompt-authoring discipline.
 - Put this line in every implementation, repair, verification, arbiter, and
-  consult child prompt: `Maximize parallelism by using parallel agents. Do not
-  invoke skills that spawn subagents.`
+  consult child prompt: "Maximize parallelism with native subagents or
+  parallel-agent features provided by your current coding harness. Do not
+  manually spawn separate coding-harness executables, or invoke skills whose
+  main effect is to shell out to `codex`, `claude`, or `agent`, from inside
+  this child prompt unless the parent explicitly assigns that action."
 - Inspect worker reports, changed files, and proof after every batch.
 - Batch review, test, integration, and worker findings before dispatching
   follow-up work.

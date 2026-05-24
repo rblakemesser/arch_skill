@@ -55,15 +55,19 @@ For repo-backed plans:
 - Unknown relevant-code areas are named explicitly.
 - The plan is not approved while relevant-code coverage is unknown.
 
-## Parallel Read Quality
+## Native Subagent Read Quality
 
-- Parallel read-only agents were considered for broad code reading.
-- Parallel agents, when used, had non-overlapping scopes.
+- Native subagents or parallel-agent features were used for broad independent
+  audit slices when available.
+- If native subagents were not used, the audit records the reason: unavailable,
+  prohibited by local instructions, or too small to split.
+- Native subagents, when used, had non-overlapping scopes.
 - Child reports included exact files, symbols, and evidence.
 - Parent synthesis spot-checked child evidence.
 - Child output did not become the verdict by itself.
-- Local instructions allowed the child-agent use, or the user explicitly asked
-  for it.
+- External harness-spawning skills were not used for ordinary acceleration.
+- Any external child-agent or delegation skill use was explicitly assigned and
+  allowed by local instructions.
 
 ## Architecture Quality
 

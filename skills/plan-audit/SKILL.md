@@ -51,8 +51,11 @@ ledger beside the plan, not a state machine and not a second plan.
   `<PLAN_STEM>_PLAN_AUDIT.md` beside the plan.
 - For inline plans with no file path, return the audit in chat; suggest a
   persistent audit log only when the user wants repeat-audit tracking.
-- Use parallel read-only agents for broad code reading when the user asks for
-  them or local instructions allow them. The parent still owns synthesis.
+- Use native subagents or parallel-agent features provided by the current
+  coding harness for broad repo-backed audits whenever available. Treat this as
+  required acceleration for independent read-only audit slices unless local
+  instructions prohibit it or the audit is too small to split. The parent still
+  owns synthesis.
 - Do not mark ambiguity or constraint questions resolved until a decision owner
   resolves them and the plan carries the decision through.
 - Findings must include consequence, evidence, and the concrete plan repair.
@@ -70,7 +73,7 @@ ledger beside the plan, not a state machine and not a second plan.
    - `references/review-lenses.md` for lens definitions
    - `references/audit-log-contract.md` for sidecar ledger rules
    - `references/proper-audit-checklist.md` before a readiness verdict
-   - `references/child-prompt-contract.md` before parallel read-only children
+   - `references/child-prompt-contract.md` before native subagent prompts
    - `references/output-contract.md` before final output
 
 ## Workflow
@@ -83,7 +86,8 @@ ledger beside the plan, not a state machine and not a second plan.
    outcome.
 4. For repo-backed plans, map and read all relevant code: owner paths, callers,
    comparable patterns, legacy paths, side doors, contracts, tests, docs,
-   prompts, and generated artifacts.
+   prompts, and generated artifacts. Use native subagents for broad independent
+   read-only slices when available.
 5. Run the required lenses from `references/review-lenses.md`.
 6. Challenge the plan for simpler architecture, fewer live concepts, better
    ownership, depth-first proof, delete work, and drift-proof coupling.
@@ -114,6 +118,6 @@ constraint question remains unresolved or uncaptured in the plan.
 - `references/progressive-audit-order.md` - ordered pass for using the skill
 - `references/audit-log-contract.md` - sidecar audit log shape and loop rules
 - `references/proper-audit-checklist.md` - final "was this audited properly" check
-- `references/child-prompt-contract.md` - read-only child prompts for broad audits
+- `references/child-prompt-contract.md` - native subagent prompts for broad audits
 - `references/output-contract.md` - final verdict and finding format
 - `references/examples.md` - examples and anti-examples that teach judgment

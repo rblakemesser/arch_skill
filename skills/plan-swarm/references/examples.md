@@ -103,8 +103,11 @@ workers may be editing sibling slices, so do not revert unfamiliar changes.
 You may inspect adjacent owning code and make task-relevant edits needed to
 complete this slice.
 
-Maximize parallelism by using parallel agents. Do not invoke skills that spawn
-subagents.
+Maximize parallelism with native subagents or parallel-agent features provided
+by your current coding harness. Do not manually spawn separate coding-harness
+executables, or invoke skills whose main effect is to shell out to `codex`,
+`claude`, or `agent`, from inside this child prompt unless the parent explicitly
+assigns that action.
 
 Verification intent: run the plan-required and slice-local checks that prove the
 QA adapter boundary. Do not run the full suite unless repo evidence shows this
@@ -135,8 +138,11 @@ Likely fix path: start at the service/session call boundary and the overlay
 save tests. This is a hint, not a script; inspect the owning code and choose
 the cleanest implementation that satisfies the phase contract.
 
-Maximize parallelism by using parallel agents. Do not invoke skills that spawn
-subagents.
+Maximize parallelism with native subagents or parallel-agent features provided
+by your current coding harness. Do not manually spawn separate coding-harness
+executables, or invoke skills whose main effect is to shell out to `codex`,
+`claude`, or `agent`, from inside this child prompt unless the parent explicitly
+assigns that action.
 
 Verification intent: cover the accepted findings and any adjacent behavior your
 repair plausibly affects. Reuse already-passing proof unless your repair touched
@@ -160,8 +166,11 @@ Do not run default-all tests unless the plan, changed surface, review evidence,
 or stale prior proof makes them necessary. Do not edit source unless the
 verification slice explicitly asks for a repair.
 
-Maximize parallelism by using parallel agents. Do not invoke skills that spawn
-subagents.
+Maximize parallelism with native subagents or parallel-agent features provided
+by your current coding harness. Do not manually spawn separate coding-harness
+executables, or invoke skills whose main effect is to shell out to `codex`,
+`claude`, or `agent`, from inside this child prompt unless the parent explicitly
+assigns that action.
 
 End with the required plan-swarm worker footer.
 ```

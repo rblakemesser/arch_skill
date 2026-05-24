@@ -1,8 +1,14 @@
 # Child Prompt Contract
 
-Use this only when the audit is large enough to justify read-only child
-reviewers, and only when the user ask and local instructions allow child-agent
-use. Do not turn this into a required delegation workflow.
+Use this for broad repo-backed audits that have multiple independent read-only
+lenses or code areas. Native subagents or parallel-agent features provided by
+the current coding harness are the preferred acceleration path and should be
+treated as required whenever available.
+
+Do not replace native subagents by manually spawning separate coding-harness
+executables, or by invoking skills whose main effect is to shell out to
+`codex`, `claude`, or `agent`, unless the parent explicitly assigns that
+action. Do not turn this into an external delegation workflow.
 
 The parent owns synthesis and verdict. Children provide bounded evidence.
 
@@ -32,11 +38,14 @@ For every finding include:
 - coverage limits
 ```
 
-When the runtime supports native parallel agents, add:
+When the runtime supports native subagents or parallel-agent features, add:
 
 ```text
-Maximize parallelism by using parallel agents. Do not invoke skills that spawn
-subagents.
+Maximize parallelism with native subagents or parallel-agent features provided
+by your current coding harness. Do not manually spawn separate coding-harness
+executables, or invoke skills whose main effect is to shell out to `codex`,
+`claude`, or `agent`, from inside this child prompt unless the parent explicitly
+assigns that action.
 ```
 
 ## Code-Coverage Mapper
@@ -112,12 +121,13 @@ sink of possible improvements.
 
 ## Parent Use Rules
 
-- Use `fresh-consult` for cold read-only model opinions when that skill is
-  available and allowed.
+- Use native subagents first for broad independent read-only audit slices.
+- Do not use external harness-spawning skills for ordinary audit acceleration.
+- Use `fresh-consult` or `agent-delegate` only when the user explicitly asks for
+  external model or CLI execution, the parent assigns that action, and local
+  instructions allow it.
 - Use `agent-delegate` only for concrete read-only local command tasks with
   write scope `none`.
-- Do not use child agents if local instructions prohibit delegation without
-  explicit user permission.
 - Spot-check child evidence before presenting it as verified truth.
 - Keep child transcripts out of the final answer unless they are short. Link
   or summarize artifacts instead.

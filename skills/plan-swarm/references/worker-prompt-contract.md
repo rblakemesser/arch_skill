@@ -16,8 +16,11 @@ move fast without turning them into brittle checklist executors.
   and any scarce verification lease.
 - Freedom: workers may inspect adjacent owning code and make necessary
   task-relevant edits.
-- Native parallelism: `Maximize parallelism by using parallel agents. Do not
-  invoke skills that spawn subagents.`
+- Native parallelism: "Maximize parallelism with native subagents or
+  parallel-agent features provided by your current coding harness. Do not
+  manually spawn separate coding-harness executables, or invoke skills whose
+  main effect is to shell out to `codex`, `claude`, or `agent`, from inside
+  this child prompt unless the parent explicitly assigns that action."
 - Parent hints: likely fix paths, suspected files, and evidence to inspect are
   advisory, not a script. The worker still owns the implementation judgment.
 - Constraint: do not broaden product scope, push, stash, or revert unrelated

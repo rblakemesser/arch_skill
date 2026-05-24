@@ -78,8 +78,11 @@ without treating Git history as PR-ready.
 - Workers are prompted like capable engineers, not micromanaged checklist
   executors.
 - Every child prompt, including implementation, repair, verification, arbiter,
-  and consult prompts, tells the child: `Maximize parallelism by using parallel
-  agents. Do not invoke skills that spawn subagents.`
+  and consult prompts, tells the child: "Maximize parallelism with native
+  subagents or parallel-agent features provided by your current coding harness.
+  Do not manually spawn separate coding-harness executables, or invoke skills
+  whose main effect is to shell out to `codex`, `claude`, or `agent`, from
+  inside this child prompt unless the parent explicitly assigns that action."
 - The parent commits freely. If the run inherits a dirty worktree, assume it is
   likely resumed plan work and create an initial checkpoint unless there is a
   concrete safety issue such as secrets, obvious machine-local junk, or files
