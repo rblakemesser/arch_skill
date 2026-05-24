@@ -53,11 +53,10 @@ Claude Code, and Gemini.
   such as command syntax, parsing, templating, validation, or API calls. Do not
   make a skill a thin wrapper around a script, runner, controller, or harness
   that owns the workflow or removes the agent's reasoning.
-- Author skills with direct positive instructions. Say what the agent should
-  do, then stop. Do not turn simple guidance into exhaustive negative lists,
-  redundant conditions, defensive cross-checks, or over-prompted edge-case
-  handling; use `Do not` only for real safety, data-loss, install/runtime, or
-  repeated-failure boundaries.
+- Author skills as direct v1 agent guidance. Include only the requested
+  workflow: the job, key context to inspect, expected output, and verification
+  to run. Leave out invented checks, conditions, refusal paths, cross-checks,
+  edge-case policy, and exception lists.
 - Do not write unit tests that lock skill doctrine to exact wording. Avoid
   tests that read `skills/<slug>/SKILL.md`, skill reference docs, prompt
   doctrine, or usage docs only to assert phrase or regex presence/absence.
