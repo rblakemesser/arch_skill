@@ -14,6 +14,8 @@ Parent setup note:
 Implementation: Cursor Agent, model composer-2.5-fast, max parallel 4.
 Review: Codex gpt-5.4 xhigh unless user asks for the same runtime.
 Artifacts: docs/PACKS/example-plan_plan_swarm/phase-14/.
+Git: commit dirty resume state first if present; commit meaningful worker
+batches and final report locally. No push or PR unless explicitly asked.
 ```
 
 ## Progress Update
@@ -95,8 +97,9 @@ workers may be editing sibling slices, so do not revert unfamiliar changes.
 You may inspect adjacent owning code and make task-relevant edits needed to
 complete this slice.
 
-Do not broaden product scope, commit, push, stash, or run the full suite unless
-the parent assigns that verification resource.
+Do not broaden product scope, push, stash, or run the full suite unless the
+parent assigns that verification resource. The parent owns commit checkpoints
+unless this prompt explicitly assigns you one.
 
 End with the required plan-swarm worker footer.
 ```

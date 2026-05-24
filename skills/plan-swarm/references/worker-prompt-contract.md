@@ -13,8 +13,9 @@ move fast without turning them into brittle checklist executors.
 - Success bar: behavior, tests, owner boundaries, cleanup, and proof needed.
 - Freedom: workers may inspect adjacent owning code and make necessary
   task-relevant edits.
-- Constraint: do not broaden product scope, commit, push, stash, or revert
-  unrelated work.
+- Constraint: do not broaden product scope, push, stash, or revert unrelated
+  work. Parent owns commit checkpoints unless this worker prompt explicitly
+  assigns you one.
 
 ## Avoid
 

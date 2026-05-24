@@ -1,6 +1,6 @@
 ---
 name: plan-swarm
-description: "Prompt-first implementation swarm orchestrator for finishing a named phase or phase range from an existing plan document. The parent agent extracts the phase contract, decomposes it into independently delegable work slices, uses agent-delegate to run/resume parallel Codex, Claude, or Cursor Agent workers, coordinates scarce verification manually, writes worklogs next to the plan, and gates completion through delegated arbiter plus thermonuclear review. Do NOT use for creating plans, one-shot delegation, strict ordered processes, or review-only work."
+description: "Prompt-first implementation swarm orchestrator for finishing a named phase or phase range from an existing plan document. The parent agent extracts the phase contract, decomposes it into independently delegable work slices, runs/resumes parallel workers through agent-delegate, commits local checkpoints freely, coordinates scarce verification manually, writes worklogs next to the plan, and gates completion through delegated arbiter plus thermonuclear review. Do NOT use for creating plans, one-shot delegation, strict ordered processes, review-only work, pushes, PRs, or worktrees."
 metadata:
   short-description: "Parallel plan-phase implementation orchestrator"
 ---
@@ -20,7 +20,8 @@ dependency, collision, or scarce-resource constraints.
 This is a prompt-first orchestration skill. The parent agent is the
 orchestrator: it reasons about the phase, launches and resumes workers through
 existing capabilities such as `$agent-delegate`, inspects the real worktree,
-and keeps the human worklogs current.
+keeps the human worklogs current, and commits local progress checkpoints
+without treating Git history as PR-ready.
 
 ## Use When
 
@@ -42,8 +43,8 @@ and keeps the human worklogs current.
 - The user only wants one child worker. Use `$agent-delegate`.
 - The user only wants a review or second opinion. Use `$fresh-consult` or
   `$code-review`.
-- The user wants worktrees, commits, pushes, PRs, or detached workers. Those
-  are not v1 defaults and require an explicit separate ask.
+- The user wants worktrees, pushes, PRs, or detached workers. Those are not v1
+  defaults and require an explicit separate ask.
 
 ## Non-Negotiables
 
@@ -58,6 +59,16 @@ and keeps the human worklogs current.
   same as implementation.
 - Workers are prompted like capable engineers, not micromanaged checklist
   executors.
+- The parent commits freely. If the run inherits a dirty worktree, assume it is
+  likely resumed plan work and create an initial checkpoint unless there is a
+  concrete safety issue such as secrets, obvious machine-local junk, or files
+  clearly unrelated to the repo.
+- Commit after meaningful worker batches, accepted repairs, review cleanup, and
+  final phase reporting. Prefer a messy local checkpoint over blocking on Git
+  ceremony; the user can squash, reorder, or clean history before a PR.
+- Parent owns commits by default. Workers do not push, stash, revert unrelated
+  work, or independently commit unless the parent explicitly assigns one worker
+  a commit checkpoint.
 - Parent coordinates scarce verification resources; workers do not all run the
   full suite at once.
 - Parent gives periodic and user-requested Markdown table updates from the
@@ -80,10 +91,12 @@ and keeps the human worklogs current.
    implementation policy, review policy, and max parallelism.
 5. Read the active phase plus plan-level Definition of Done items relevant to
    owner boundaries, validation, persistence, cleanup, and review.
-6. Write a compact phase contract and swarm ledger next to the plan before
+6. Inspect `git status` and commit an initial/resume checkpoint for tracked
+   changes and likely relevant untracked files before launching workers.
+7. Write a compact phase contract and swarm ledger next to the plan before
    launching workers.
-7. Send the first progress update with the required tables.
-8. Launch independent workers with `$agent-delegate`, then keep the ledger,
+8. Send the first progress update with the required tables.
+9. Launch independent workers with `$agent-delegate`, then keep the ledger,
    worklogs, session ids, proof, and review triage current by hand.
 
 ## Workflow
@@ -95,15 +108,18 @@ and keeps the human worklogs current.
    constraints can safely support.
 4. After each batch, inspect worker reports, changed files, resource use, and
    repo state before launching more work.
-5. Update the ledger and send a table update whenever workers launch, finish,
+5. Commit local progress after meaningful worker batches or repairs, and record
+   checkpoint hashes in the ledger.
+6. Update the ledger and send a table update whenever workers launch, finish,
    block, retry, hit an issue, or move into review/repair.
-6. Route valid gaps back to workers, usually by resuming the related session.
-7. Launch an observation-only arbiter to compare implementation against the
+7. Route valid gaps back to workers, usually by resuming the related session.
+8. Launch an observation-only arbiter to compare implementation against the
    phase contract and architectural cleanliness.
-8. Run thermonuclear maintainability review. Triage findings as accepted,
+9. Run thermonuclear maintainability review. Triage findings as accepted,
    rejected, or deferred.
-9. Repair accepted findings, verify proportionally, write the final phase
-   report, and stop at the requested boundary.
+10. Repair accepted findings, verify proportionally, write the final phase
+    report, commit the final phase checkpoint, and stop at the requested
+    boundary.
 
 ## Progress Updates
 
@@ -152,7 +168,7 @@ Report compactly:
 - difficulties, retries, issues, and next recovery action
 - verification commands and proof gaps
 - arbiter and thermonuclear findings triage
-- files changed and worklog paths
+- files changed, worklog paths, and commit checkpoints
 - next action
 
 ## Reference Map

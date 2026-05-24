@@ -12,6 +12,8 @@ It does not write a new plan or broaden the requested boundary.
 - Use `$agent-delegate` to launch and resume implementation workers.
 - Write worker, arbiter, and repair prompts with prompt-authoring discipline.
 - Inspect worker reports, changed files, and proof after every batch.
+- Commit local progress checkpoints freely, including dirty inherited work that
+  looks like resumed plan work.
 - Coordinate expensive validation so workers do not stampede the same resource.
 - Decide whether a review finding is accepted, rejected, or deferred.
 - Decide whether to resume a worker, spawn fresh, pause, or ask the user.
@@ -28,15 +30,33 @@ wording check.
 
 1. Intake: plan path, phase, stop boundary, work root, implementation policy,
    review policy, and max parallelism.
-2. Phase contract: source-of-truth requirements and proof obligations.
-3. Swarm ledger: independent/dependent slices, likely collisions, scarce
+2. Initial/resume checkpoint: inspect `git status` and commit tracked changes
+   plus likely relevant untracked files before worker launch. Skip only
+   concrete safety issues such as secrets, obvious machine-local junk, or files
+   clearly unrelated to the repo.
+3. Phase contract: source-of-truth requirements and proof obligations.
+4. Swarm ledger: independent/dependent slices, likely collisions, scarce
    resources, assigned workers, session ids, and proof needed.
-4. Implementation batches: launch independent slices in parallel through
+5. Implementation batches: launch independent slices in parallel through
    `$agent-delegate`.
-5. Merge/evidence check: read worker reports and inspect repo state.
-6. Arbiter loop: delegated observation-only review against the phase contract.
-7. Thermonuclear gate: strict maintainability review and triage.
-8. Final report: evidence, findings, remaining gaps, and stop at boundary.
+6. Merge/evidence checkpoint: read worker reports, inspect repo state, and
+   commit meaningful landed progress.
+7. Arbiter loop: delegated observation-only review against the phase contract.
+8. Thermonuclear gate: strict maintainability review and triage.
+9. Repair checkpoint: commit accepted review repairs after verification.
+10. Final report: evidence, findings, remaining gaps, final local commit
+    checkpoint, and stop at boundary.
+
+## Git Posture
+
+Local commits are normal plan-swarm checkpoints, not polished PR history. Bias
+toward getting useful work committed instead of pausing for Git ceremony. The
+user can squash, reorder, or clean commits before opening a PR.
+
+The parent agent owns commits by default. Parallel workers should not race to
+commit unless the parent explicitly assigns one worker a commit checkpoint.
+Never push, open PRs, stash, or revert unrelated work unless the user asks for
+that exact operation.
 
 ## Stop Discipline
 

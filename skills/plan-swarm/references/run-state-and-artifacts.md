@@ -20,11 +20,13 @@ coordination notes, not a second plan and not machine-owned state.
 `swarm-ledger.md` tracks:
 
 - plan path and start hash
+- initial/resume dirty-worktree checkpoint commit when one was created
 - active phase and stop boundary
 - implementation and review policy
 - slices, dependencies, likely collisions, and proof needed
 - worker runtime/model, session id, status, and worklog path
 - scarce verification assignments
+- batch, repair, review-cleanup, and final phase commit checkpoints
 - arbiter and thermonuclear review status
 - accepted, rejected, and deferred review findings
 - retries, issues, attempted responses, results, and next actions
@@ -32,6 +34,11 @@ coordination notes, not a second plan and not machine-owned state.
 - latest `Progress Snapshot` tables
 
 The ledger must not contain secrets.
+
+Commit checkpoint entries should include the commit hash, short message, and
+why it was taken, such as `resume dirty tree`, `batch landed`,
+`accepted-review-repair`, or `final phase report`. The ledger does not need a
+perfect commit narrative; it just needs enough breadcrumbs to recover progress.
 
 ## Progress Snapshot
 
