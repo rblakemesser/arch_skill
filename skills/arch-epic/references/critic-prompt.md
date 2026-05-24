@@ -73,6 +73,7 @@ exit criterion is completed per the worklog. A missing, skipped,
 narrowed, or silently removed item is a fail even if an agent wrote a
 Decision Log note. A requirement explicitly assigned to a named later
 sub-plan is preserved epic scope, not a current-sub-plan failure.
+A missing, skipped, parked, or narrowed item is a fail.
 
 ### 3. no_orphaned_discoveries
 Compare the worklog and Decision Log against the approved sub-plan. A

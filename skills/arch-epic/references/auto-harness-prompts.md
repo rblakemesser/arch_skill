@@ -39,6 +39,7 @@ Every child must:
 - preserve the approved epic goal and decomposition
 - treat approved epic scope as locked: no child may cut, narrow,
   drop, or silently remove a requirement from the epic destination
+- do not invent any defer/drop/out-of-scope compromise
 - preserve scope by naming the owner: current sub-plan, prior sub-plan,
   or named later sub-plan
 - work depth-first on exactly one active sub-plan
@@ -180,6 +181,7 @@ that attention is needed.
 - Do not cut, narrow, or drop approved behavior, acceptance criteria, or
   verification. Missing approved work is a blocker unless it is explicitly
   assigned to a named later sub-plan.
+- Missing approved work is a blocker, not a scope decision.
 
 ## Process
 1. Read Section 0, Epic Requirement Coverage, Section 7, verification plan, and
@@ -215,6 +217,11 @@ Return:
 - a needed decision is absent from the epic or sub-plan Decision Log
 - verification cannot run and no bounded unblock remains
 ```
+
+## Repair worker prompt
+
+Ordinary in-scope repair resumes the same planner or implementation worker
+session. This is a repair prompt shape, not a separate repair-worker role.
 
 ## Same-role continuation prompt
 

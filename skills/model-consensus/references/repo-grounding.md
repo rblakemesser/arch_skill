@@ -1,7 +1,8 @@
 # Repo Grounding
 
 For repo-backed work, consensus is invalid until both child models have read
-real evidence. The parent must not pre-select the answer surface for them.
+the code or other real evidence. The parent must not pre-select the answer
+surface for them.
 Start children from the user's exact artifact, symptom, or target path. The
 children choose the code, docs, research, tests, commands, and local artifacts
 needed to answer. When the user wants a plan, the children should identify the
@@ -59,7 +60,7 @@ Use `path:line` evidence when the exact location matters. If a model claims
 "the repo already has a pattern for this" or "the evidence points to this root
 cause" without naming the evidence, send it back for grounding.
 
-## Planning Pressure
+## Single-Path Pressure
 
 Use this section when the user asks for a plan, architecture, placement
 decision, or implementation direction.
@@ -75,7 +76,8 @@ Both models should ask:
 - Which future bug does this plan prevent by converging paths?
 
 The answer may still be "create a new path", but only after the existing path
-has been read and rejected for a stated reason.
+has been read and rejected for a stated reason. If you propose a new path,
+explain why the existing owner cannot absorb the work.
 
 ## Parent Checks
 

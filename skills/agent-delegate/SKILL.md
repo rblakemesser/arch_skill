@@ -1,18 +1,18 @@
 ---
 name: agent-delegate
-description: "Delegate one or more concrete tasks to Claude/Codex subprocesses with full local agent capabilities. Use when the user wants another agent, multiple agents, or parallel agents to implement, edit, investigate-and-fix, run commands, use installed skills, or resume one previously delegated same-runtime worker session when continuity is explicitly required. Fresh one-shot is the default; ask once if runtime, model, effort, work root, write scope, task, or resume handle is missing. Run hook-suppressed and unsandboxed in the shared worktree. Do NOT use for read-only second opinions (`fresh-consult`), deterministic reviews (`code-review`/`codex-review-yolo`), two-model plan convergence (`model-consensus`), ordered workflow orchestration (`stepwise`/`arch-epic`), or detached/background delegation."
+description: "Delegate one or more concrete tasks to Claude/Codex/Cursor Agent subprocesses with full local agent capabilities. Use when the user wants another agent, multiple agents, or parallel agents to implement, edit, investigate-and-fix, run commands, use installed skills, or resume one previously delegated same-runtime worker session when continuity is explicitly required. Fresh one-shot is the default; ask once if runtime, model, effort, work root, write scope, task, or resume handle is missing. Run hook-suppressed where supported and unsandboxed in the shared worktree. Do NOT use for read-only second opinions (`fresh-consult`), deterministic reviews (`code-review`/`codex-review-yolo`), two-model plan convergence (`model-consensus`), ordered workflow orchestration (`stepwise`/`arch-epic`), or detached/background delegation."
 metadata:
-  short-description: "Claude/Codex worker with opt-in resume"
+  short-description: "Claude/Codex/Cursor Agent worker with opt-in resume"
 ---
 
 # Agent Delegate
 
-Use this skill when the user wants one or more Claude or Codex subprocesses to
-do concrete tasks with normal local agent capabilities. Fresh one-shot
-delegation is the default: each child starts from disk and the delegation
-prompt, not from the current chat history. When the caller explicitly requires
-continuity for one worker, resume the same runtime's previously delegated
-worker session with a new, bounded prompt.
+Use this skill when the user wants one or more Claude, Codex, or Cursor Agent
+subprocesses to do concrete tasks with normal local agent capabilities. Fresh
+one-shot delegation is the default: each child starts from disk and the
+delegation prompt, not from the current chat history. When the caller
+explicitly requires continuity for one worker, resume the same runtime's
+previously delegated worker session with a new, bounded prompt.
 
 The child may read files, edit files, run commands, verify its work, and use
 installed skills when they fit the task.
@@ -27,6 +27,7 @@ automation.
 - "Run two parallel agents on these fixes."
 - "Delegate this refactor to Claude and report back."
 - "Use Codex to fix the docs drift and run the checks."
+- "Use Cursor Agent to implement this slice and report back."
 - "Spin up a fresh agent to investigate and repair this failing test."
 - "Have a child agent use `$skill-authoring` to patch this skill package."
 - "Resume the same delegated Claude session and continue with higher effort."
@@ -59,8 +60,9 @@ automation.
 - Resolve each delegated task, success bar, work root, allowed write scope,
   constraints, delegation mode, and exact user-named inputs before launching
   child processes.
-- Runtime, model, and effort must be known. If any are missing or ambiguous,
-  ask one consolidated question before invoking.
+- Runtime, model, and effort must be known. For Cursor Agent, effort is
+  encoded in the model id. If any value is missing or ambiguous, ask one
+  consolidated question before invoking.
 - Delegation mode is one of `fresh-one-shot`, `fresh-resumable`, or `resume`.
   Default to `fresh-one-shot`. Use `fresh-resumable` or `resume` only when the
   caller explicitly requires same-session continuity.
@@ -69,12 +71,13 @@ automation.
   "latest session" resume requests.
 - Treat model text as intent, not a fuzzy alias. Preserve exact family and
   numeric version; never silently substitute a nearby model.
-- Run the child hook-suppressed, unsandboxed, and in the shared worktree per
-  this repo's convention. Prompt boundaries define the task; the sandbox does
-  not.
+- Run the child hook-suppressed where the runtime supports it, unsandboxed, and
+  in the shared worktree per this repo's convention. Prompt boundaries define
+  the task; the sandbox does not.
 - Fresh one-shot runs may be stateless. Fresh-resumable runs must capture a
   session handle. Resume runs must use the same runtime as the captured handle:
-  Claude resumes through Claude, Codex resumes through Codex.
+  Claude resumes through Claude, Codex resumes through Codex, and Cursor Agent
+  resumes through Cursor Agent.
 - For a single delegation, create one namespaced run directory under
   `/tmp/agent-delegate/` and keep `prompt.md`, `final.txt`, `events.jsonl`,
   `stderr.log`, and `execution.json` there. For fresh-resumable and resume
@@ -115,8 +118,8 @@ automation.
 5. If runtime/model/effort, write scope, or a required resume handle is
    incomplete, ask one question that names exactly what is missing and what it
    controls.
-6. Confirm the selected CLI exists with `command -v codex` or
-   `command -v claude`.
+6. Confirm the selected CLI exists with `command -v codex`, `command -v
+   claude`, or `command -v agent`.
 7. Create the run directory or group directory and write each delegation prompt
    to its own `prompt.md`.
 8. Invoke each child with the exact command shape from the invocation reference.
@@ -127,7 +130,8 @@ automation.
    success bar, constraints, and exact user-named inputs such as paths, failing
    commands, repro steps, or docs.
 2. **Resolve execution.** Map the raw model phrase to
-   `runtime=<claude|codex>`, `model=<runnable id>`, and `effort=<level>`.
+   `runtime=<claude|codex|agent>`, `model=<runnable id>`, and
+   `effort=<level-or-encoded-in-model>`.
    Announce the mapping before execution.
 3. **Select single or parallel.** Use one child by default. Use a parallel group
    only when the user asks for parallel workers or gives multiple delegated

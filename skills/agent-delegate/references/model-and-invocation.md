@@ -1,17 +1,17 @@
 # Model And Invocation
 
 Use this reference to resolve what the user meant by "Claude", "Codex",
-"opus high", "gpt 5.5 xhigh", or similar phrasing, and to run the selected
-worker subprocess or explicit parallel group of worker subprocesses. Fresh
-one-shot is the default. Same-session resume is allowed only when the caller
-explicitly requires continuity for one worker.
+"Cursor Agent", "opus high", "gpt 5.5 xhigh", "composer-2.5-fast", or similar
+phrasing, and to run the selected worker subprocess or explicit parallel group
+of worker subprocesses. Fresh one-shot is the default. Same-session resume is
+allowed only when the caller explicitly requires continuity for one worker.
 
 ## Required Values
 
 Every delegation child needs:
 
 - `mode` - `fresh-one-shot`, `fresh-resumable`, or `resume`
-- `runtime` - `claude` or `codex`
+- `runtime` - `claude`, `codex`, or `agent`
 - `model` - the runnable CLI model identifier, or the previous session model
   when a resume intentionally reuses it
 - `effort` - the reasoning effort level, or the previous session effort when a
@@ -19,7 +19,8 @@ Every delegation child needs:
 
 Resume mode also needs either:
 
-- `session_id` - Claude `session_id` or Codex `thread_id`
+- `session_id` - Claude `session_id`, Codex `thread_id`, or Cursor Agent
+  `session_id`
 - `run_dir` - a previous `agent-delegate` run directory containing
   `session_id.txt` and `execution.json`
 
@@ -51,7 +52,8 @@ and announce the mapping before launch.
 
 Same-runtime is mandatory. Claude sessions resume through Claude with
 `-r <session_id>`. Codex threads resume through `codex exec resume
-<thread_id>`.
+<thread_id>`. Cursor Agent sessions resume through `agent -p --resume
+<session_id>`.
 
 Parallel delegation supports `fresh-one-shot` and `fresh-resumable`. Keep
 `resume` on the single-worker path; launching several resumed sessions at once
@@ -65,6 +67,11 @@ Infer runtime only when the user's wording makes it unambiguous:
 - `codex`, `gpt`, `gpt-5.5`, `gpt 5.5 high`, or `gpt-5.3-codex` implies
   `runtime=codex`.
 - `claude`, `opus`, `sonnet`, or `haiku` implies `runtime=claude`.
+- `agent`, `cursor`, `cursor agent`, or `cursor-agent` implies
+  `runtime=agent`. Cursor Agent may run model ids such as
+  `composer-2.5-fast`, `gpt-5.4-xhigh`, or
+  `claude-opus-4-7-thinking-xhigh`; the runtime name wins over the model
+  family token.
 - If the user names only an effort level, such as "xhigh", ask for runtime and
   model.
 - If the user says only "delegate this" or "have another agent do this", ask
@@ -92,6 +99,10 @@ Treat model text as intent, not a loose alias:
   `claude-opus-4-7` or `claude-sonnet-4-6`.
 - Family-only Claude aliases such as `opus`, `sonnet`, or `haiku` are allowed
   only when the user did not pin a version.
+- For Cursor Agent, use an exact runnable id from `agent models` or
+  `agent --list-models`. Do not map effort words across model families.
+  `composer-2.5-fast` is the default only when the caller's parent workflow
+  explicitly chooses Cursor Agent and owns that default.
 - Do not run paid trial prompts to discover whether a Claude model exists. Use
   the CLI help/config surface when available; otherwise ask.
 
@@ -111,6 +122,9 @@ exact-version preservation and fail-loud behavior.
 
 - Claude accepts `low`, `medium`, `high`, `xhigh`, and `max` via `--effort`.
 - Codex effort is passed as `-c model_reasoning_effort='"<level>"'`.
+- Cursor Agent does not expose a separate `--effort` flag in the local CLI.
+  Store effort as `encoded-in-model` or `encoded-in-model:<requested-effort>`
+  and pass only `--model "<resolved_agent_model>"`.
 - For Codex, confirm the selected model supports the requested effort when
   `codex debug models` is needed for model resolution.
 - If the effort is missing or the selected model does not support it, ask.
@@ -140,15 +154,15 @@ on the command line.
 
 `events.jsonl` is the live child stream. `stderr.log` is the diagnostic error
 stream. `final.txt` is the final assistant text: Codex writes it directly with
-`-o`; for Claude, copy the `result` text from the final `type=result` event
-after the process exits.
+`-o`; for Claude and Cursor Agent, copy the `result` text from the final
+`type=result` event after the process exits.
 
 Write `execution.json` before invocation with at least:
 
 ```json
 {
   "mode": "fresh-one-shot | fresh-resumable | resume",
-  "runtime": "claude | codex",
+  "runtime": "claude | codex | agent",
   "model": "<resolved model or reused-from-session>",
   "effort": "<resolved effort or reused-from-session>",
   "work_root": "<absolute path>",
@@ -200,10 +214,10 @@ Write `execution.json` before each child invocation with the normal fields plus:
 }
 ```
 
-Launch each child with the same Codex or Claude command shape below, using that
-child's paths. Record the shell PID and exit status in the child directory if
-the host shell makes that convenient, but do not introduce a script, controller,
-detached monitor, separate worktree, or merge layer.
+Launch each child with the same Codex, Claude, or Cursor Agent command shape
+below, using that child's paths. Record the shell PID and exit status in the
+child directory if the host shell makes that convenient, but do not introduce a
+script, controller, detached monitor, separate worktree, or merge layer.
 
 Do not block launch because siblings might touch nearby files. Brief every
 child that other workers may be editing the same repo, that unfamiliar changes
@@ -354,6 +368,64 @@ After Claude exits, write the final `result` text to `final.txt`. Write the
 returned `session_id` to `session_id.txt` when present; otherwise preserve the
 input session id in `session_id.txt`.
 
+## Cursor Agent Fresh
+
+Use this shape for both `fresh-one-shot` and `fresh-resumable` Cursor Agent
+delegations. Cursor Agent has no `--verbose` flag; that flag is Claude-only.
+
+```bash
+agent -p \
+  --force \
+  --sandbox disabled \
+  --output-format stream-json \
+  --trust \
+  --workspace "<work_root>" \
+  --model "<resolved_agent_model>" \
+  < "$PROMPT_PATH" \
+  > "$EVENTS_PATH" \
+  2> "$STDERR_PATH"
+```
+
+Cursor Agent does not have a documented hook-suppression flag. Do not invent
+one. Always pass `--output-format stream-json` explicitly because local help
+and official docs have disagreed on the print-mode default. Do not add
+`--verbose`; that flag is Claude-only.
+
+After Cursor Agent exits, read the final `type=result` event from
+`events.jsonl` and write its `result` text to `final.txt`. For
+fresh-resumable runs, also write the final result event's `session_id` to
+`session_id.txt`. If no result event exists after a zero exit, or a
+fresh-resumable run has no session id, treat the run as malformed and preserve
+the run directory.
+
+## Cursor Agent Resume
+
+Use this shape to resume an explicit Cursor Agent session. Cursor Agent has no
+`--verbose` flag; that flag is Claude-only.
+
+```bash
+agent -p \
+  --force \
+  --sandbox disabled \
+  --output-format stream-json \
+  --trust \
+  --workspace "<work_root>" \
+  --model "<resolved_agent_model>" \
+  --resume "<session_id>" \
+  < "$PROMPT_PATH" \
+  > "$EVENTS_PATH" \
+  2> "$STDERR_PATH"
+```
+
+Use `--resume <session_id>` only. Do not use `--continue`, `agent resume`,
+`agent ls`, or any latest-session selection. Do not use `--worktree` in this
+shared-worktree skill unless a future user explicitly asks for a worktree-based
+variant.
+
+After Cursor Agent exits, write the final `result` text to `final.txt`. Write
+the returned `session_id` to `session_id.txt` when present; otherwise preserve
+the input session id in `session_id.txt`.
+
 ## Monitoring Posture
 
 Delegated work is not instant. A normal repo-backed task commonly takes 5+
@@ -377,14 +449,15 @@ Fail loud and preserve the run directory when:
 - resume mode has no explicit session id or prior run directory
 - `session_id.txt` is missing, empty, or `UNRECOVERABLE` for a resume
 - the caller asks for cross-runtime resume
-- the caller asks for Claude `--continue`, Codex `--last`, or "latest" resume
-  selection
+- the caller asks for Claude `--continue`, Codex `--last`, Cursor Agent
+  `--continue`, `agent resume`, `agent ls`, or "latest" resume selection
 - the child exits non-zero
 - `final.txt` is empty
 - Claude exits without a final `type=result` event
+- Cursor Agent exits without a final `type=result` event
 - fresh-resumable Codex does not emit `thread.started`
 - the child omits the required status footer
 
-Do not silently fall back from Claude to Codex, Codex to Claude, one model to
+Do not silently fall back between Claude, Codex, and Cursor Agent, one model to
 another model, one effort level to another, foreground to detached execution,
 or shared-worktree execution to a separate worktree.

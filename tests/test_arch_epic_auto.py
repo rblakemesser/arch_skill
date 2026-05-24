@@ -62,6 +62,33 @@ class ArchEpicAutoModeTests(unittest.TestCase):
                 codex_models=["gpt-5.4", "gpt-5.4-mini"],
             )
 
+    def test_cursor_agent_model_resolves_with_encoded_effort(self):
+        resolved = self.model_resolution.resolve_execution_phrase(
+            "cursor agent composer-2.5-fast",
+            agent_models=["composer-2.5-fast"],
+        )
+
+        self.assertEqual(resolved.runtime, "agent")
+        self.assertEqual(resolved.model, "composer-2.5-fast")
+        self.assertEqual(resolved.effort, "encoded-in-model")
+
+    def test_cursor_agent_gpt_model_does_not_infer_codex_runtime(self):
+        resolved = self.model_resolution.resolve_execution_phrase(
+            "agent gpt-5.4-xhigh",
+            agent_models=["gpt-5.4-xhigh"],
+        )
+
+        self.assertEqual(resolved.runtime, "agent")
+        self.assertEqual(resolved.model, "gpt-5.4-xhigh")
+        self.assertEqual(resolved.effort, "encoded-in-model:xhigh")
+
+    def test_cursor_agent_resolution_refuses_model_substitution(self):
+        with self.assertRaises(self.model_resolution.ModelResolutionError):
+            self.model_resolution.resolve_execution_phrase(
+                "cursor agent composer-2.5-fast",
+                agent_models=["composer-2.5-slow"],
+            )
+
     def test_role_policy_defaults_to_long_run_monitoring_and_allows_same_as(self):
         policy = self.model_resolution.resolve_role_execution_policy(
             {

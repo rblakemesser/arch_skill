@@ -1,7 +1,7 @@
 interface:
   display_name: "Fresh Consult"
-  short_description: "Run clean Claude/Codex second-opinion subprocesses"
-  default_prompt: "Use $fresh-consult to run one or more clean-context Claude or Codex second opinions on this artifact, completion check, flow, or readability question, then report each verdict back with evidence and run directories."
+  short_description: "Run clean Claude/Codex/Cursor Agent second opinions"
+  default_prompt: "Use $fresh-consult to run one or more clean-context Claude, Codex, or Cursor Agent second opinions on this artifact, completion check, flow, or readability question, then report each verdict back with evidence and run directories."
 
 policy:
   allow_implicit_invocation: true

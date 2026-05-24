@@ -17,7 +17,7 @@ from dataclasses import dataclass
 from typing import Any
 
 
-VALID_RUNTIMES = {"claude", "codex"}
+VALID_RUNTIMES = {"agent", "claude", "codex"}
 VALID_EFFORTS = {"low", "medium", "high", "xhigh", "max"}
 
 _CLAUDE_FAMILIES = {"opus", "sonnet", "haiku"}
@@ -106,16 +106,44 @@ def discover_codex_models() -> list[str]:
     return sorted(candidates)
 
 
+def discover_agent_models() -> list[str]:
+    """Return model ids from the local Cursor Agent CLI when available."""
+
+    if shutil.which("agent") is None:
+        return []
+    candidates: set[str] = set()
+    for argv in (["agent", "models"], ["agent", "--list-models"]):
+        proc = subprocess.run(
+            argv,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            check=False,
+        )
+        if proc.returncode != 0:
+            continue
+        for token in re.findall(r"\b[a-z][a-z0-9]*(?:[-_.][a-z0-9]+)+\b", proc.stdout.lower()):
+            cleaned = token.strip("`'\",:;()[]{}")
+            if _looks_like_agent_model_id(cleaned):
+                candidates.add(cleaned)
+        if candidates:
+            break
+    return sorted(candidates)
+
+
 def resolve_execution_phrase(
     source_quote: str,
     *,
     codex_models: list[str] | None = None,
+    agent_models: list[str] | None = None,
 ) -> ResolvedExecution:
     """Resolve a compact user phrase into runtime/model/effort.
 
     Examples:
     - "Claude Opus 4.7 xhigh" -> claude / claude-opus-4-7 / xhigh
     - "codex gpt 5.4 mini high" -> codex / gpt-5.4-mini / high
+    - "cursor agent composer-2.5-fast" -> agent / composer-2.5-fast / encoded-in-model
 
     The function raises ModelResolutionError when a required value is missing
     or when exact-version-preserving model discovery is impossible.
@@ -130,22 +158,25 @@ def resolve_execution_phrase(
     runtime, runtime_source = _infer_runtime(lowered)
     if runtime is None:
         raise ModelResolutionError(
-            f"could not infer runtime from {raw!r}; name claude or codex"
+            f"could not infer runtime from {raw!r}; name claude, codex, or agent"
         )
-    if effort is None:
+    if effort is None and runtime != "agent":
         raise ModelResolutionError(
             f"could not infer effort from {raw!r}; use one of {sorted(VALID_EFFORTS)}"
         )
 
     if runtime == "claude":
         model = _resolve_claude_model(raw)
-    else:
+    elif runtime == "codex":
         model = _resolve_codex_model(raw, codex_models=codex_models)
+    else:
+        model = _resolve_agent_model(raw, agent_models=agent_models)
+        effort = f"encoded-in-model:{effort}" if effort else "encoded-in-model"
 
     return ResolvedExecution(
         runtime=runtime,
         model=model,
-        effort=effort,
+        effort=effort or "",
         runtime_source=runtime_source,
         model_source="explicit",
         effort_source="explicit",
@@ -161,6 +192,7 @@ def resolve_role_execution_policy(
     role_sources: dict[str, str],
     *,
     codex_models: list[str] | None = None,
+    agent_models: list[str] | None = None,
     poll_seconds: int = 180,
     quiet_floor_seconds: int = 900,
     stuck_floor_seconds: int = 1800,
@@ -217,6 +249,7 @@ def resolve_role_execution_policy(
                 block = resolve_execution_phrase(
                     phrase_clean,
                     codex_models=codex_models,
+                    agent_models=agent_models,
                 ).to_dict()
                 block["source"] = "user_table"
                 resolved[role] = block
@@ -252,9 +285,16 @@ def _extract_effort(lowered: str) -> str | None:
 def _infer_runtime(lowered: str) -> tuple[str | None, str]:
     has_codex = bool(re.search(r"\b(codex|openai|gpt)\b", lowered))
     has_claude = bool(re.search(r"\b(claude|anthropic|opus|sonnet|haiku)\b", lowered))
-    if has_codex and has_claude:
+    has_agent = bool(
+        re.search(r"\b(cursor(?:[-\s]+agent)?|cursor-agent|agent)\b", lowered)
+    )
+    if has_agent:
+        explicit_other_runtime = bool(re.search(r"\b(codex|openai|anthropic)\b", lowered))
+        if not explicit_other_runtime:
+            return "agent", "inferred_from_runtime_name"
+    if sum(bool(v) for v in [has_codex, has_claude, has_agent]) > 1:
         raise ModelResolutionError(
-            "execution phrase names both Claude and Codex families; split the roles"
+            "execution phrase names multiple runtime families; split the roles"
         )
     if has_codex:
         return "codex", "inferred_from_model_family"
@@ -315,6 +355,49 @@ def _resolve_codex_model(raw: str, *, codex_models: list[str] | None) -> str:
 
 def _same_codex_family_and_version(candidate: str, model: str) -> bool:
     return model == candidate
+
+
+def _looks_like_agent_model_id(token: str) -> bool:
+    return token.startswith(("composer-", "gpt-", "claude-", "sonnet-", "opus-", "haiku-"))
+
+
+def _resolve_agent_model(raw: str, *, agent_models: list[str] | None) -> str:
+    models = agent_models
+    if models is None:
+        models = discover_agent_models()
+    normalized_models = [model.lower() for model in models]
+    lowered = raw.lower()
+
+    for model in normalized_models:
+        if re.search(rf"(?<![a-z0-9_.-]){re.escape(model)}(?![a-z0-9_.-])", lowered):
+            return model
+
+    candidate = _extract_agent_model_candidate(lowered)
+    if candidate is None:
+        raise ModelResolutionError(
+            f"could not find a Cursor Agent model id in {raw!r}; use an exact id from `agent models`"
+        )
+
+    if not normalized_models:
+        return candidate
+    if candidate in normalized_models:
+        return candidate
+    raise ModelResolutionError(
+        f"{raw!r} did not match an available Cursor Agent model id; candidate was {candidate!r}"
+    )
+
+
+def _extract_agent_model_candidate(lowered: str) -> str | None:
+    if re.search(r"\bcomposer\b", lowered) and re.search(r"\b2(?:[.-]5)?\b", lowered) and re.search(r"\bfast\b", lowered):
+        return "composer-2.5-fast"
+
+    for token in re.findall(r"\b[a-z][a-z0-9]*(?:[-_.][a-z0-9]+)+\b", lowered):
+        token = token.strip("`'\",:;()[]{}")
+        if token == "cursor-agent":
+            continue
+        if _looks_like_agent_model_id(token):
+            return token
+    return None
 
 
 def _same_as_role(value: str) -> str | None:

@@ -47,10 +47,11 @@ Other shipped skills are:
 - `amir-publish` — personal shortcut for publishing this skills repo across Amir's usual machines
 - `codex-cleanup` — dry-run-first local cleanup skill for stale `~/.codex` state that relieves multi-instance SQLite/WAL and log bloat without touching live config or credentials
 - `codex-review-yolo` — external Codex `-p yolo` reviewer for substantial diffs, plans, docs, and completion checks, with live `--json` stream logs
-- `fresh-consult` — prompt-only fresh Claude/Codex second opinions for cold reads, parallel consults, flow consistency audits, completion checks, and readability/confusion checks; asks once for runtime/model/effort when missing and reports each child result back to the parent skill
-- `agent-delegate` — prompt-only Claude/Codex workers for delegated implementation, editing, investigation-and-fix, command execution, or installed-skill use in the shared worktree; fresh one-shot is the default, explicit parallel workers are supported when requested, explicit same-session resume is available for one worker when continuity is required, and the skill reports changed files, verification, blockers, session id when present, and run directories
+- `fresh-consult` — prompt-only fresh Claude/Codex/Cursor Agent second opinions for cold reads, parallel consults, flow consistency audits, completion checks, and readability/confusion checks; asks once for runtime/model/effort when missing and reports each child result back to the parent skill
+- `agent-delegate` — prompt-only Claude/Codex/Cursor Agent workers for delegated implementation, editing, investigation-and-fix, command execution, or installed-skill use in the shared worktree; fresh one-shot is the default, explicit parallel workers are supported when requested, explicit same-session resume is available for one worker when continuity is required, and the skill reports changed files, verification, blockers, session id when present, and run directories
+- `plan-swarm` — prompt-first implementation swarm orchestrator that extracts one phase contract from an existing plan, decomposes it into independently delegable slices, launches or resumes parallel Codex/Claude/Cursor Agent workers through `agent-delegate`, coordinates expensive verification manually, writes worklogs next to the plan, and closes only after arbiter and thermonuclear findings are triaged
 - `agent-history` — searches local Codex or Claude Code session history for prior prompts, goals, commands, corrections, tool use, and timelines from natural-language asks, using bundled read-only JSONL/SQLite helpers and concise evidence summaries
-- `model-consensus` — prompt-only parent-agent orchestration for two selected Claude/Codex model sessions to cross-check, critique, and converge on a plan, architecture, investigation, design, or concept until they agree or expose the smallest unresolved decision; preserves child discovery freedom for investigations and requires repo-backed participants to read real evidence before agreeing
+- `model-consensus` — prompt-only parent-agent orchestration for two selected Claude/Codex/Cursor Agent model sessions to cross-check, critique, and converge on a plan, architecture, investigation, design, or concept until they agree or expose the smallest unresolved decision; preserves child discovery freedom for investigations and requires repo-backed participants to read real evidence before agreeing
 - `contact-sheet-builder` — builds quick local contact sheet PNGs from existing images, folders, globs, or attached local image paths using a lean prompt contract plus one Pillow renderer; defaults to dense labeled sheets, dynamic near-native edge-to-edge canvas sizing, safe temp output, Preview opening on macOS, and concise receipts
 - `code-review` — deterministic general code-review skill that always shells out to fresh unsandboxed Codex `gpt-5.4` `xhigh` (with parallel `gpt-5.4-mini` `xhigh` review lenses) for diffs, branches, paths, or completion-claim audits; supports direct and hook-backed invocation, and keeps Codex as the reviewer even when Claude hosts the Stop hook
 - `thermo-nuclear-code-quality-review` — vendored Cursor Team Kit rubric for unusually strict maintainability reviews focused on code-judo simplification, 1k-line file growth, spaghetti branching, abstraction boundaries, and structural quality
@@ -128,6 +129,7 @@ Installed skills:
   - `~/.agents/skills/fresh-consult/`
   - `~/.agents/skills/agent-delegate/`
   - `~/.agents/skills/agent-history/`
+  - `~/.agents/skills/plan-swarm/`
   - `~/.agents/skills/model-consensus/`
   - `~/.agents/skills/contact-sheet-builder/`
   - `~/.agents/skills/code-review/`
@@ -167,6 +169,7 @@ Installed skills:
   - `~/.claude/skills/fresh-consult/`
   - `~/.claude/skills/agent-delegate/`
   - `~/.claude/skills/agent-history/`
+  - `~/.claude/skills/plan-swarm/`
   - `~/.claude/skills/model-consensus/`
   - `~/.claude/skills/contact-sheet-builder/`
   - `~/.claude/skills/code-review/`
@@ -202,6 +205,7 @@ Installed skills:
   - `~/.gemini/skills/codex-review-yolo/`
   - `~/.gemini/skills/fresh-consult/`
   - `~/.gemini/skills/agent-delegate/`
+  - `~/.gemini/skills/plan-swarm/`
   - `~/.gemini/skills/model-consensus/`
   - `~/.gemini/skills/contact-sheet-builder/`
   - `~/.gemini/skills/thermo-nuclear-code-quality-review/`
@@ -210,7 +214,7 @@ Installed skills:
 
 Codex reads the same installed skill surface from `~/.agents/skills/`. `make install` also removes stale pre-skill command surfaces, removed skill packages, older `~/.codex/skills/<skill>` mirrors, and local source/build internals so runtime routing stays unambiguous.
 
-`arch-loop`, `delay-poll`, and `wait` are installed on Codex and Claude Code because both runtimes have a native `Stop` hook surface; all three are omitted from Gemini because Gemini still has no hook-backed auto-controller surface and there is no way for the parsed duration, condition re-check, or evaluator-backed verdict to resume the same thread there. `arch-loop` evaluator turns additionally always shell out to fresh unsandboxed Codex `gpt-5.4` `xhigh` for the external verdict; the Claude host can arm and drive the loop, but the evaluator subprocess itself is always Codex, mirroring the `code-review` exception below. `agent-history` is installed on the agents/Codex and Claude Code surfaces because its v1 storage map covers Codex and Claude Code local history. `contact-sheet-builder` is installed on all three skill surfaces and requires Python with Pillow at runtime. `figma-best-practices`, `fal-ai-tools`, `fresh-consult`, `agent-delegate`, `model-consensus`, and `thermo-nuclear-code-quality-review` are prompt-only and are installed on all three skill surfaces, but subprocess skills still require the selected local `claude` or `codex` CLI to exist on the host at invocation time. `fresh-consult` and `model-consensus` report read-only or planning results; `fresh-consult` can run multiple fresh read-only children when explicitly requested. `agent-delegate` may write to the shared worktree when invoked with an allowed write scope, can run multiple fresh workers when explicitly requested, and may resume an explicit same-runtime delegated session when the caller requires continuity. `code-review` is installed on the agents/Codex and Claude Code surfaces only; the Claude host can trigger the skill, but the actual review subprocess always shells out to fresh Codex.
+`arch-loop`, `delay-poll`, and `wait` are installed on Codex and Claude Code because both runtimes have a native `Stop` hook surface; all three are omitted from Gemini because Gemini still has no hook-backed auto-controller surface and there is no way for the parsed duration, condition re-check, or evaluator-backed verdict to resume the same thread there. `arch-loop` evaluator turns additionally always shell out to fresh unsandboxed Codex `gpt-5.4` `xhigh` for the external verdict; the Claude host can arm and drive the loop, but the evaluator subprocess itself is always Codex, mirroring the `code-review` exception below. `agent-history` is installed on the agents/Codex and Claude Code surfaces because its v1 storage map covers Codex and Claude Code local history. `contact-sheet-builder` is installed on all three skill surfaces and requires Python with Pillow at runtime. `figma-best-practices`, `fal-ai-tools`, `fresh-consult`, `agent-delegate`, `model-consensus`, `plan-swarm`, and `thermo-nuclear-code-quality-review` are installed on all three skill surfaces, but subprocess skills still require the selected local `claude`, `codex`, or `agent` CLI to exist on the host at invocation time. `fresh-consult` and `model-consensus` report read-only or planning results; `fresh-consult` can run multiple fresh read-only children when explicitly requested. `agent-delegate` may write to the shared worktree when invoked with an allowed write scope, can run multiple fresh workers when explicitly requested, and may resume an explicit same-runtime delegated session when the caller requires continuity. `plan-swarm` is prompt-first: the parent agent coordinates parallel workers through `agent-delegate` and keeps human worklogs next to the plan. `code-review` is installed on the agents/Codex and Claude Code surfaces only; the Claude host can trigger the skill, but the actual review subprocess always shells out to fresh Codex.
 
 ### Remote install
 
@@ -420,9 +424,9 @@ Use when `~/.codex` is multi-GB, old session JSONL/log/cache files are bloated, 
 
 ### `fresh-consult`
 
-Use when the user or another skill wants one or more clean-context second opinions from fresh Claude or Codex subprocesses on concrete artifacts, completion checks, flow consistency questions, or readability/confusion checks. The skill is prompt-only: it writes consult prompts, runs the selected local CLI hook-suppressed and unsandboxed, captures each child `prompt.md`, `final.txt`, `events.jsonl`, and `stderr.log` under `/tmp/fresh-consult/...`, and reports each child verdict back to the parent.
+Use when the user or another skill wants one or more clean-context second opinions from fresh Claude, Codex, or Cursor Agent subprocesses on concrete artifacts, completion checks, flow consistency questions, or readability/confusion checks. The skill is prompt-only: it writes consult prompts, runs the selected local CLI hook-suppressed where supported and unsandboxed, captures each child `prompt.md`, `final.txt`, `events.jsonl`, and `stderr.log` under `/tmp/fresh-consult/...`, and reports each child verdict back to the parent.
 
-The user supplies runtime, model, and effort, or the skill asks once before invoking. Runtime can be inferred only from unambiguous model families such as `gpt-5.5` for Codex or `Claude Opus 4.7` for Claude. Exact model versions are preserved; there is no silent downgrade, provider switch, or effort substitution.
+The user supplies runtime, model, and effort, or the skill asks once before invoking. Runtime can be inferred only from unambiguous model families such as `gpt-5.5` for Codex, `Claude Opus 4.7` for Claude, or `Cursor Agent composer-2.5-fast` for Cursor Agent. Exact model versions are preserved; there is no silent downgrade, provider switch, or effort substitution. Cursor Agent effort is encoded in the model id.
 
 Consult children commonly take 5+ minutes; broad `xhigh` or `max` reads can reasonably take 20-40 minutes. Poll live streams every few minutes, not every few seconds.
 
@@ -430,19 +434,29 @@ Use `fresh-consult` for cold reads, parallel consults, consistency audits, compl
 
 ### `agent-delegate`
 
-Use when the user wants one or more Claude or Codex subprocesses to do concrete work in the current workspace: implementation, editing, investigation-and-fix, command execution, verification, installed-skill use, or explicit same-session continuation of a previous delegated worker. The skill is prompt-only: it writes delegation prompts, runs the selected local CLI hook-suppressed and unsandboxed in the shared worktree, captures each child `prompt.md`, `final.txt`, `events.jsonl`, `stderr.log`, and `execution.json` under `/tmp/agent-delegate/...`, then reports mode, status, changed files, verification, blockers, follow-up, session id when present, and run directories.
+Use when the user wants one or more Claude, Codex, or Cursor Agent subprocesses to do concrete work in the current workspace: implementation, editing, investigation-and-fix, command execution, verification, installed-skill use, or explicit same-session continuation of a previous delegated worker. The skill is prompt-only: it writes delegation prompts, runs the selected local CLI hook-suppressed where supported and unsandboxed in the shared worktree, captures each child `prompt.md`, `final.txt`, `events.jsonl`, `stderr.log`, and `execution.json` under `/tmp/agent-delegate/...`, then reports mode, status, changed files, verification, blockers, follow-up, session id when present, and run directories.
 
-Fresh one-shot is the default. When the caller explicitly requests parallel workers, `agent-delegate` creates a group directory and launches ordinary fresh child workers, then inspects repo state before reporting the combined result. When the caller explicitly requires continuity, `agent-delegate` can start a fresh-resumable worker or resume an explicit same-runtime session id / prior run directory. Claude resume uses `-r <session_id>` from the original work root; Codex resume uses `codex exec resume <thread_id>` and never `--last`. The skill does not resume "latest" sessions, cross runtimes, or use hook-backed controllers as a continuation strategy.
+Fresh one-shot is the default. When the caller explicitly requests parallel workers, `agent-delegate` creates a group directory and launches ordinary fresh child workers, then inspects repo state before reporting the combined result. When the caller explicitly requires continuity, `agent-delegate` can start a fresh-resumable worker or resume an explicit same-runtime session id / prior run directory. Claude resume uses `-r <session_id>` from the original work root; Codex resume uses `codex exec resume <thread_id>` and never `--last`; Cursor Agent resume uses `--resume <session_id>` and never `--continue`, `agent resume`, or `agent ls`. The skill does not resume "latest" sessions, cross runtimes, or use hook-backed controllers as a continuation strategy.
 
-The user supplies runtime, model, and effort, or the skill asks once before invoking. Runtime can be inferred only from unambiguous model families such as `gpt-5.5` for Codex or `Claude Opus 4.7` for Claude. Exact model versions are preserved; there is no silent downgrade, provider switch, effort substitution, detached fallback, separate-worktree fallback, or ambiguous resume fallback.
+The user supplies runtime, model, and effort, or the skill asks once before invoking. Runtime can be inferred only from unambiguous model families such as `gpt-5.5` for Codex, `Claude Opus 4.7` for Claude, or `Cursor Agent composer-2.5-fast` for Cursor Agent. Exact model versions are preserved; there is no silent downgrade, provider switch, effort substitution, detached fallback, separate-worktree fallback, or ambiguous resume fallback. Cursor Agent effort is encoded in the model id.
 
 Delegated children commonly take 5+ minutes; broad edits, verification, `xhigh`, or `max` can reasonably take 20-40 minutes. Poll live streams every few minutes, not every few seconds.
 
 Use `agent-delegate` for operational worker paths where children may write files, fresh by default and resumable only by explicit handle. Use `fresh-consult` for read-only second opinions and completion checks. Use `model-consensus` for two-model plan convergence. Use `stepwise` or `arch-epic` when subprocesses are part of an ordered workflow with manifests, critics, repair loops, or persistent orchestration.
 
+### `plan-swarm`
+
+Use when the user wants to implement one named phase or explicit phase range from an existing plan document as fast as possible without dropping the quality bar. The skill extracts a compact phase contract, decomposes the work into independently delegable slices, launches or resumes Codex, Claude, or Cursor Agent workers through `agent-delegate`, coordinates scarce verification manually, writes human worklogs next to the plan, and closes only after arbiter and thermonuclear findings are triaged.
+
+The parent agent owns orchestration: plan interpretation, decomposition, worker prompts, parallel delegation, session reuse, review triage, and completion judgment. Coordination stays readable in the phase contract, swarm ledger, worker logs, review notes, and final phase report next to the plan.
+
+Cursor Agent implementation defaults to `composer-2.5-fast` only when the user chooses Cursor Agent. Review runtime/model/effort must be explicit, or the user must say review should use the same execution policy. The skill does not create worktrees, commit, push, use latest-session resume, or continue beyond the requested phase boundary.
+
+Use `plan-swarm` for accelerated plan-doc-backed implementation. Use `agent-delegate` for one-off delegation, `stepwise` for strict ordered external processes, `arch-epic` for multi-plan epic decomposition, `fresh-consult` for read-only second opinions, and `code-review` for deterministic code-review findings.
+
 ### `model-consensus`
 
-Use when the user wants two selected Claude/Codex models to cross-check, critique, and iterate on a plan, architecture, investigation, design, or concept until they converge, or until they expose the smallest unresolved decision. The skill is prompt-only: the parent agent orchestrates directly, prepares prompt-authoring-quality briefs, launches resumable hook-suppressed child sessions, relays critiques, and reports only child-agreed material. It does not add a deterministic runner, script, controller, or harness layer.
+Use when the user wants two selected Claude, Codex, or Cursor Agent models to cross-check, critique, and iterate on a plan, architecture, investigation, design, or concept until they converge, or until they expose the smallest unresolved decision. The skill is prompt-only: the parent agent orchestrates directly, prepares prompt-authoring-quality briefs, launches resumable hook-suppressed child sessions where supported, relays critiques, and reports only child-agreed material. It does not add a deterministic runner, script, controller, or harness layer.
 
 For investigations, root-cause work, and "read everything" cross-checks, the parent preserves discovery freedom. It records the raw user goal, exact user-named artifacts, desired output, and hard constraints. The child models choose and cite the code, docs, research, tests, commands, and local evidence they need.
 
@@ -466,7 +480,7 @@ Review children commonly take 5+ minutes; xhigh synthesis or broad lens coverage
 
 Direct invocation runs the runner as a one-shot command. The skill also wires into the shared `arch-step` Stop-hook dispatcher so Codex and Claude Code can trigger the same runner via `.codex/code-review-state.<SESSION_ID>.json` or `.claude/arch_skill/code-review-state.<SESSION_ID>.json`. The Claude-host path is an intentional exception to the broader native-auto-loop direction: the Stop hook runs under Claude, but the review subprocess itself must always be Codex. Generic Claude auto-controllers stay Claude-native; `code-review` does not. `code-review` is review-only — it never edits the reviewed repo and never writes a "suggested patch" block.
 
-Use `code-review` when the user wants an automated finding-set with explicit coverage guarantees. Use `fresh-consult` when the user wants a general Claude/Codex second opinion without the code-review runner. Use `codex-review-yolo` when the user wants a narrower, more interactive `-p yolo` fresh-eyes consult on a specific artifact.
+Use `code-review` when the user wants an automated finding-set with explicit coverage guarantees. Use `fresh-consult` when the user wants a general Claude/Codex/Cursor Agent second opinion without the code-review runner. Use `codex-review-yolo` when the user wants a narrower, more interactive `-p yolo` fresh-eyes consult on a specific artifact.
 
 ### `thermo-nuclear-code-quality-review`
 

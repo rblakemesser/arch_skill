@@ -46,6 +46,13 @@ Claude Code, and Gemini.
 - Skill doctrine must be self-contained. Do not explain it with historical
   backstory or the skill development process itself. The only exception is a
   coordinator skill whose job is to explain how other skills fit together.
+- Skill authoring must preserve agent judgment. `skills/<slug>/SKILL.md` is
+  the runtime contract and should tell the agent how to inspect context, choose
+  actions, execute thoughtfully, and verify the result.
+- Scripts in a skill may only be narrow helpers for deterministic mechanics
+  such as command syntax, parsing, templating, validation, or API calls. Do not
+  make a skill a thin wrapper around a script, runner, controller, or harness
+  that owns the workflow or removes the agent's reasoning.
 - Keep changes in the smallest owning surface: reusable workflow doctrine in
   `skills/`, install behavior and stale-surface cleanup in `Makefile`, and
   deeper reference material in `docs/`.
@@ -89,20 +96,26 @@ Claude Code, and Gemini.
   (over-promotion, redundancy, dead skills, broken refs) with `path:line`
   evidence.
 - Use `$fresh-consult` when the user or another skill wants one or more
-  clean-context Claude or Codex second opinions on a concrete artifact,
+  clean-context Claude, Codex, or Cursor Agent second opinions on a concrete artifact,
   completion claim, flow consistency question, or readability/confusion check.
 - Use `$commit-history-authoring` when the user wants the current branch's
   local-only commit messages rewritten into informative history while
   preserving patches and commit boundaries by default.
-- Use `$agent-delegate` when the user wants one or more fresh Claude or Codex
-  subprocesses to do concrete work in the current workspace, including
+- Use `$agent-delegate` when the user wants one or more fresh Claude, Codex, or
+  Cursor Agent subprocesses to do concrete work in the current workspace, including
   implementation, editing, investigation-and-fix, command execution, or
   installed-skill use.
-- Use `$model-consensus` when the user wants two selected Claude/Codex models
-  to iterate on a plan, architecture, design, or concept until they converge
-  or expose the smallest unresolved decision, including adversarial
-  simplification. The parent agent orchestrates directly; do not introduce a
-  deterministic runner, script, controller, or harness layer.
+- Use `$plan-swarm` when the user wants to implement a named phase or phase
+  range from an existing plan document by having the parent agent decompose
+  the phase into independently delegable slices, launch or resume parallel
+  Codex, Claude, or Cursor Agent workers through `$agent-delegate`, coordinate
+  scarce verification manually, write worklogs next to the plan, and close only
+  after arbiter and thermonuclear findings are triaged.
+- Use `$model-consensus` when the user wants two selected Claude, Codex, or
+  Cursor Agent models to iterate on a plan, architecture, design, or concept
+  until they converge or expose the smallest unresolved decision, including
+  adversarial simplification. The parent agent orchestrates directly; do not
+  introduce a deterministic runner, script, controller, or harness layer.
 - Use `$thermo-nuclear-code-quality-review` only when the user explicitly wants
   a thermonuclear, code-judo, or especially harsh maintainability review. Use
   `$code-review` for ordinary code review requests.

@@ -1,14 +1,14 @@
 # Model And Invocation
 
-`model-consensus` invokes child models directly from the parent agent. It does
-not create a new runner script, model alias table, harness, or deterministic
-controller.
+`model-consensus` invokes Claude, Codex, or Cursor Agent child models directly
+from the parent agent. It does not create a new runner script, model alias
+table, harness, or deterministic controller.
 
 ## Required Participant Values
 
 Each participant needs:
 
-- `runtime`: `claude` or `codex`
+- `runtime`: `claude`, `codex`, or `agent`
 - `model`: runnable model id or exact model phrase
 - `effort`: `low`, `medium`, `high`, `xhigh`, or `max` when supported by the
   selected runtime/model
@@ -20,7 +20,7 @@ If any execution choice is missing or ambiguous, ask one consolidated question:
 Before I run model-consensus, I need the two participant choices. These are
 real external model sessions and can spend model budget. Please give
 runtime/model/effort for Model A and Model B, and say whether either should be
-adversarial.
+adversarial. For Cursor Agent, effort is encoded in the model id.
 ```
 
 ## Model Phrase Resolution
@@ -35,13 +35,19 @@ Follow the shared model-resolution doctrine:
   want `gpt-5.4`. This is an intent check, not an alias rule: do not rewrite
   the version yourself.
 - Infer runtime only from unambiguous family evidence: `gpt`/`codex` implies
-  Codex; `claude`/`opus`/`sonnet`/`haiku` implies Claude.
+  Codex; `claude`/`opus`/`sonnet`/`haiku` implies Claude; `agent`, `cursor`,
+  `cursor agent`, or `cursor-agent` implies Cursor Agent. Cursor Agent may
+  run `gpt-*` or `claude-*` model ids; the runtime name wins over the model
+  family token.
 - For Codex, inspect `codex debug models` when model availability matters and
   choose an available id with the same family and exact version.
 - For Claude family plus version, prefer
   `claude-<family>-<version-with-hyphens>`, such as `claude-opus-4-7`.
 - Family-only Claude aliases are allowed only when the user did not pin a
   version.
+- For Cursor Agent, use an exact runnable id from `agent models` or
+  `agent --list-models`. Cursor effort is encoded in model ids, so do not
+  invent a separate `--effort` flag.
 - Do not run paid trial prompts to discover Claude model availability.
 - If discovery is unavailable, ambiguous, or no exact match exists, ask for the
   runnable model id.
@@ -116,7 +122,8 @@ codex exec resume <thread_id> \
 ## Claude: First Turn
 
 Use `stream-json` for participant sessions so long repo-reading work has an
-active monitoring path.
+active monitoring path. Cursor Agent has no `--verbose` flag; that flag is
+Claude-only.
 
 ```bash
 claude -p \
@@ -159,6 +166,46 @@ claude -p \
 Use `-r <session_id>`, not "continue latest", because multiple child sessions
 may exist in the same repo.
 
+## Cursor Agent: First Turn
+
+Use `stream-json` for participant sessions so long repo-reading work has an
+active monitoring path. Cursor Agent has no `--verbose` flag; that flag is
+Claude-only.
+
+```bash
+agent -p \
+  --output-format stream-json \
+  --trust \
+  --workspace "<work_root>" \
+  --model "<resolved_agent_model>" \
+  < "$RUN_DIR/round-01/model-a-prompt.md" \
+  > "$RUN_DIR/round-01/model-a-events.jsonl" \
+  2> "$RUN_DIR/round-01/model-a-stderr.log"
+```
+
+The final `type=result` event contains the result text and `session_id`. Keep
+that `session_id` for resume. Always pass `--output-format` explicitly.
+Cursor Agent has no documented hook-suppression flag and no `--verbose` flag;
+do not invent either one.
+
+## Cursor Agent: Resume Turn
+
+```bash
+agent -p \
+  --output-format stream-json \
+  --trust \
+  --workspace "<work_root>" \
+  --model "<resolved_agent_model>" \
+  --resume "<session_id>" \
+  < "$RUN_DIR/round-02/model-a-prompt.md" \
+  > "$RUN_DIR/round-02/model-a-events.jsonl" \
+  2> "$RUN_DIR/round-02/model-a-stderr.log"
+```
+
+Use `--resume <session_id>`, not `--continue`, `agent resume`, or `agent ls`,
+because multiple child sessions may exist in the same repo. Do not add
+`--verbose`; that flag is Claude-only.
+
 ## Monitoring Posture
 
 Choose foreground or background intentionally:
@@ -180,6 +227,7 @@ Choose foreground or background intentionally:
   permission or input prompt.
 
 Failure is explicit: missing CLI, unresolved exact model, child non-zero exit,
-empty final result after process exit, or a child refusing the prompt contract.
-Do not silently switch runtimes, downgrade models, reduce effort, or replace a
-long-running child with the parent agent's own answer.
+empty final result after process exit, missing terminal result event, or a
+child refusing the prompt contract. Do not silently switch runtimes, downgrade
+models, reduce effort, or replace a long-running child with the parent agent's
+own answer.

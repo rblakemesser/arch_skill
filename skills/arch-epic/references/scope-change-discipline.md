@@ -5,6 +5,7 @@ confirms code completion. Its unique job is to detect drift from approved
 epic scope and force a scope-preserving response.
 
 The rule is simple: the epic scope is the epic scope. Automatic mode must not
+cut, narrow, park, drop, or move approved scope. Automatic mode must not
 cut, narrow, or silently remove approved scope from the epic. If a requirement
 is present in the raw goal, approved Decomposition, sub-plan North Star, Epic
 Requirement Coverage, Section 7 checklist, exit criteria, or verification
@@ -87,9 +88,9 @@ appear in `discovered_items[]`.
   should become a new arch-step sub-plan inserted into the epic.
 
 There is no `drop` recommendation. There is no `nice_to_have`
-classification. A current sub-plan may assign a requirement to a named later
-sub-plan only when that preserves the approved epic destination and the later
-owner is explicit.
+classification. There is no `defer` recommendation. A current sub-plan may
+assign a requirement to a named later sub-plan only when that preserves the
+approved epic destination and the later owner is explicit.
 
 ## No Auto-Reduction Rule
 
