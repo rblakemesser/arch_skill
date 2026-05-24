@@ -3,6 +3,11 @@
 Use this before calling a plan ready. This is a judgment checklist, not a
 checklist executor or deterministic readiness gate.
 
+For `implementation-audit` mode, use the proper implementation-audit checklist
+in `implementation-audit-mode.md`. That mode is code review against a plan: it
+does not run tests, ask for logs, verify CI, or investigate whether a
+completion claim is truthful.
+
 ## Artifact Setup
 
 - The plan artifact is resolved.

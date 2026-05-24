@@ -3,6 +3,12 @@
 Use this reference for the strict quality bar. It is doctrine for reviewer
 judgment, not a deterministic rubric.
 
+The same quality bar applies before and after implementation. Before
+implementation, use it to judge whether the plan will create the right code.
+After implementation, use `implementation-audit` mode to judge the code shape
+against the plan. That mode is code review only: it does not run tests, ask for
+logs, prove CI, or investigate whether a completion claim is truthful.
+
 ## Code Truth First
 
 A plan is not strong because it sounds complete. It is strong when its claims

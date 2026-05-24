@@ -1,16 +1,27 @@
 ---
 name: plan-audit
-description: "Audit any planning document format before implementation or execution to improve plan quality against repo truth. Use when the user wants a plan, PRD, migration plan, architecture plan, checklist, issue-body plan, inline plan, or design doc audited for North Star outcome clarity, explicit done-state requirements, real ambiguity, constraints, tiny-team simplicity, depth-first implementation risk, elegant architecture, existing-pattern fit, drift-proofing, side doors, required deletes, proof gaps, and bug-vector reduction. Not for writing the plan, implementing it, reviewing a code diff, or choosing the user's workflow."
+description: "Audit any planning document format before work starts, or run plan-backed implementation-audit code review after code exists. Use when the user wants a plan, PRD, migration plan, architecture plan, checklist, issue body, inline plan, or design doc audited for North Star clarity, done-state requirements, ambiguity, constraints, tiny-team simplicity, depth-first risk, elegant architecture, existing-pattern fit, drift-proofing, side doors, deletes, proof gaps, and bug-vector reduction; or wants implemented code reviewed against that plan for code shape, ownership, SSOT, side-door closure, drift, caller fit, and elegance. Not for writing plans, implementing code, generic diff/PR review, choosing workflows, running tests, proving CI, or spawning review harnesses."
 metadata:
-  short-description: "Generic quality audit for planning docs"
+  short-description: "Generic plan audit and plan-backed code review"
 ---
 
 # Plan Audit
 
 Use this skill to audit an existing planning artifact in whatever format it
-already uses. The job is to improve plan quality before work starts: make the
-plan clearer, safer, simpler, more complete, more code-grounded, and easier to
-implement without building the wrong thing.
+already uses. It has two modes:
+
+- `plan-readiness`: improve plan quality before work starts.
+- `implementation-audit`: review implemented code against the plan after code
+  exists.
+
+The plan-readiness job is to make the plan clearer, safer, simpler, more
+complete, more code-grounded, and easier to implement without building the
+wrong thing.
+
+The implementation-audit job is plan-backed code review: check whether the
+implemented code fits the plan's architecture and quality bar without adding
+duplicate truth, side doors, drift, bad caller shape, or unnecessary
+complexity.
 
 The skill audits plans. It does not dictate the user's workflow.
 
@@ -19,7 +30,8 @@ The skill audits plans. It does not dictate the user's workflow.
 This is a doctrine-only, prompt-first skill. It ships agent guidance,
 references, metadata, and examples. It must not become a deterministic harness,
 runner, controller, rule engine, scorer, checklist executor, grep gate,
-automated architecture validator, or script-backed readiness judge.
+automated architecture validator, test runner, proof collector, truth arbiter,
+or script-backed readiness judge.
 
 The checklists are judgment aids. The audit log is a durable Markdown review
 ledger beside the plan, not a state machine and not a second plan.
@@ -33,12 +45,16 @@ ledger beside the plan, not a state machine and not a second plan.
   code-grounded, or ready.
 - The user wants ambiguity, constraint, proof, side-door, delete, depth-first,
   drift, or existing-pattern risks found before work starts.
+- The user wants code already written for a plan reviewed against that plan's
+  promises, phase scope, owner path, side-door closure, drift risks, caller
+  shape, and elegance.
 
 ## Do Not Use When
 
 - The user wants the plan written from scratch.
 - The user wants implementation to start.
-- The user wants a code diff, branch, PR, or completed implementation reviewed.
+- The user wants a generic code diff, branch, or PR reviewed without a plan
+  artifact. Use `code-review` for that.
 - The user asks which workflow or skill to use.
 
 ## Non-Negotiables
@@ -59,6 +75,13 @@ ledger beside the plan, not a state machine and not a second plan.
 - Do not mark ambiguity or constraint questions resolved until a decision owner
   resolves them and the plan carries the decision through.
 - Findings must include consequence, evidence, and the concrete plan repair.
+- In `implementation-audit` mode, do not run unit tests, integration tests,
+  build commands, lint commands, or CI; do not ask for test logs; do not verify
+  whether tests really ran; and do not investigate whether a completion claim
+  is truthful.
+- In `implementation-audit` mode, accept supplied test-pass claims as context.
+  You may read changed test files as code when they matter to code review, but
+  test execution remains out of scope.
 
 ## First Move
 
@@ -67,8 +90,13 @@ ledger beside the plan, not a state machine and not a second plan.
 2. Read local instructions and repo context when the plan is repo-backed.
 3. Resolve the audit log path for non-trivial file-backed audits and read the
    existing audit log if present.
-4. Read `references/progressive-audit-order.md`.
-5. Read the smallest additional references needed for the scope:
+4. Decide the mode from the user's ask:
+   - `plan-readiness` for pre-implementation plan quality audit.
+   - `implementation-audit` for plan-backed code review after code exists.
+5. For `implementation-audit`, read
+   `references/implementation-audit-mode.md` and follow that mode contract.
+6. For `plan-readiness`, read `references/progressive-audit-order.md`.
+7. Read the smallest additional references needed for the scope:
    - `references/architecture-quality-canon.md` for the quality bar
    - `references/review-lenses.md` for lens definitions
    - `references/audit-log-contract.md` for sidecar ledger rules
@@ -77,6 +105,10 @@ ledger beside the plan, not a state machine and not a second plan.
    - `references/output-contract.md` before final output
 
 ## Workflow
+
+If the user asks for `implementation-audit`, use
+`references/implementation-audit-mode.md`. Do not use the plan-readiness
+workflow below.
 
 1. Audit the artifact in its native format.
 2. Extract the North Star, done-state requirements, requirements,
@@ -98,7 +130,10 @@ ledger beside the plan, not a state machine and not a second plan.
 
 Return a concise, findings-first audit:
 
-- verdict: `ready`, `not-ready`, `blocked-on-decision`, or `inconclusive`
+- plan-readiness verdict: `ready`, `not-ready`, `blocked-on-decision`, or
+  `inconclusive`
+- implementation-audit verdict: `approve`, `approve-with-notes`,
+  `not-approved`, or `scope-inconclusive`
 - plan artifact and audit log path when applicable
 - blocking findings first
 - non-blocking findings only when they matter
@@ -116,6 +151,7 @@ constraint question remains unresolved or uncaptured in the plan.
 - `references/architecture-quality-canon.md` - strict plan-quality and code-quality doctrine
 - `references/review-lenses.md` - required and conditional audit lenses
 - `references/progressive-audit-order.md` - ordered pass for using the skill
+- `references/implementation-audit-mode.md` - plan-backed code-review mode after implementation
 - `references/audit-log-contract.md` - sidecar audit log shape and loop rules
 - `references/proper-audit-checklist.md` - final "was this audited properly" check
 - `references/child-prompt-contract.md` - native subagent prompts for broad audits

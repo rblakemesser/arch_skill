@@ -7,6 +7,17 @@ repo-specific plan shapes.
 The order matters. Do not jump to style comments, workflow routing, or local
 code smells before proving the plan's target and repo truth.
 
+## Mode Gate
+
+If the user asks to review code already written for a plan, use
+`implementation-audit` mode and follow
+`references/implementation-audit-mode.md` instead of this plan-readiness order.
+
+Implementation-audit is code review against a plan. It does not run unit
+tests, integration tests, build commands, lint commands, or CI; it does not ask
+for test logs; and it does not investigate whether a completion claim is
+truthful.
+
 ## 1. Resolve The Plan Artifact
 
 - Resolve the plan source: file path, pasted plan, issue body, doc section,

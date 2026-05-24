@@ -12,6 +12,9 @@ action. Do not turn this into an external delegation workflow.
 
 The parent owns synthesis and verdict. Children provide bounded evidence.
 
+For `implementation-audit` children, use the implementation child contract
+below instead of the plan-readiness contract.
+
 ## Common Child Contract
 
 Every child prompt should include:
@@ -68,6 +71,46 @@ Expected output:
 - why each area is relevant
 - likely missing surfaces
 - blockers caused by unread relevant code
+
+## Implementation-Audit Child
+
+Use this child for one read-only code-review lens from
+`implementation-audit-mode.md`.
+
+Prompt:
+
+```text
+You are doing one read-only plan-audit implementation-audit lens.
+
+Work root: <repo/path>
+Plan artifact: <path>
+Audit log: <path or none>
+Requested scope: <full | through phase n | phase n | section>
+Audit lens: <lens name>
+
+Read repo code directly. Do not edit files. Do not fix code. Do not run tests.
+Do not ask for test logs or command output. Do not produce a second plan. Do
+not invent scope. Return only findings your lens owns. If the implementation
+is clean for your lens, say that plainly.
+
+For every finding include:
+- title
+- blocking or non-blocking
+- problem
+- why it matters
+- plan anchor
+- code anchor
+- required implementation repair
+- coverage limits
+
+Use native subagents or parallel-agent features provided by your current
+coding harness when helpful. Do not manually spawn separate coding-harness
+executables, or invoke skills whose main effect is to shell out to `codex`,
+`claude`, or `agent`, unless the parent explicitly assigns that action.
+```
+
+The parent must spot-check code anchors, dedupe findings, classify blockers,
+reject findings outside the requested scope, and own the final verdict.
 
 ## Lens Reviewer
 

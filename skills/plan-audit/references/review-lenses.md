@@ -3,6 +3,10 @@
 Use these lenses to split or structure the audit. They are not a checklist
 executor. Parent synthesis owns the verdict.
 
+For `implementation-audit` mode, use
+`implementation-audit-mode.md#implementation-lenses`. The lenses below are for
+plan-readiness audits before implementation.
+
 ## Required Lenses
 
 ### `outcome-north-star`

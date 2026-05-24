@@ -118,9 +118,11 @@ Claude Code, and Gemini.
 - Use `$plan-audit` when the user wants an existing planning artifact in any
   format audited before work starts for plan quality, outcome clarity, real
   ambiguity, constraints, repo/code truth, depth-first risk, side doors,
-  required deletes, drift-proofing, or proof gaps. It improves the plan; it
-  does not choose the user's workflow, write the plan, implement it, or review
-  code diffs.
+  required deletes, drift-proofing, or proof gaps; or when they want code
+  already written for a plan reviewed against that plan's architecture and
+  code-quality bar. Its `implementation-audit` mode is plan-backed code review
+  only: it does not run tests, ask for logs, prove CI, investigate honesty, or
+  replace `$code-review` for generic diffs and PRs.
 - Use `$plan-swarm` when the user wants to implement a named phase or phase
   range from an existing plan document by having the parent agent decompose
   the phase into independently delegable slices, launch or resume parallel

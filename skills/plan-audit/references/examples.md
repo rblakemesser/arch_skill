@@ -59,6 +59,37 @@ A clean audit can return `ready` when:
 - proof targets the highest-risk seam
 - the audit log is current when applicable
 
+## Blocking Implementation-Audit Pattern
+
+Finding: Phase 2 claims the old direct writer is replaced, but the old command
+still calls it directly.
+
+Why it matters: future callers can bypass the canonical owner, so the codebase
+still has two live write paths and fixes can drift.
+
+Required repair: route the old command through the canonical owner or delete
+the command if the plan made it obsolete.
+
+## Clean Implementation-Audit Pattern
+
+A clean implementation-audit can return `approve` when:
+
+- the requested scope is clear
+- relevant changed and unchanged code was read
+- old side doors in scope were searched
+- planned deletes and caller migrations are reflected in code
+- the canonical owner and SSOT are real in code
+- changed tests, if relevant, were reviewed only as code
+- no tests, builds, lint commands, or CI were run by the audit
+
+## Anti-Example: Test Execution Policing
+
+Bad finding: "CI logs were not attached, so the implementation is blocked."
+
+Why it is bad: `implementation-audit` is plan-backed code review. It accepts
+test-pass context when supplied, does not ask for logs, and does not make
+missing test output a blocker.
+
 ## Anti-Example: Fake Ambiguity
 
 Bad finding: "Should the code be maintainable?"

@@ -5,6 +5,8 @@ coverage limits or unresolved decisions.
 
 ## Verdicts
 
+Plan-readiness verdicts:
+
 - `ready`: The plan was audited properly, relevant code was read when needed,
   audit log is current when applicable, and no blocking findings remain.
 - `not-ready`: The plan has blocking quality, architecture, code-truth,
@@ -13,6 +15,15 @@ coverage limits or unresolved decisions.
   ambiguity, constraints, compatibility, scope, or proof before the plan can be
   repaired.
 - `inconclusive`: The audit could not inspect required plan or repo evidence.
+
+Implementation-audit code-review verdicts:
+
+- `approve`: No blocking code-review findings remain in the requested scope.
+- `approve-with-notes`: No blockers remain, but non-blocking code-quality,
+  architecture, drift, cleanup, or maintainability notes exist.
+- `not-approved`: Blocking code-review findings exist in the requested scope.
+- `scope-inconclusive`: The review target cannot be resolved or required code
+  surfaces cannot be read.
 
 ## Recommended Shape
 
@@ -120,3 +131,82 @@ Audit log: <path or not applicable>
   blocks plan readiness.
 - Do not turn the answer into workflow routing advice. The job is to improve
   the plan.
+
+## Implementation-Audit Shape
+
+Use this shape when the mode is `implementation-audit`:
+
+```markdown
+# Plan Implementation Audit Verdict
+
+VERDICT: approve | approve-with-notes | not-approved | scope-inconclusive
+Confidence: high | medium | low
+Mode: implementation-audit
+Scope reviewed: <full | through phase n | phase n | section>
+Plan artifact: <path>
+Audit log: <path or not applicable>
+Baseline reviewed: <worktree | diff | commit range | branch diff | unknown>
+Test/CI context: <accepted if supplied | not supplied | not reviewed by this mode>
+
+## Blocking Findings
+
+1. <finding title>
+   - Problem:
+   - Why it blocks code-review approval:
+   - Plan expects:
+   - Code reality:
+   - Anchors:
+     - <plan path:line or heading>
+     - <code path:line or symbol>
+   - Required implementation repair:
+   - Review lens:
+
+## Non-Blocking Findings
+
+<same shape, shorter>
+
+## Scope Review
+
+- Claimed scope:
+- Code reviewed:
+- Code blockers:
+- Test/CI assumptions accepted:
+- Phase status recommendations:
+
+## Architecture And Elegance
+
+- Canonical owner:
+- SSOT status:
+- Duplicate truth or parallel paths:
+- Simpler code-judo move:
+- Tiny-team maintainability risk:
+
+## Deletes, Side Doors, And Drift
+
+- Required deletes satisfied:
+- Old paths still live:
+- Side doors still callable:
+- Drift-prone shared dependencies:
+- Docs/prompts/examples/instructions drift:
+
+## Relevant Code Coverage
+
+- Code areas read:
+- Relevant code not yet read:
+- Native subagents/lenses run:
+- Coverage blockers:
+
+## Recommended Next Move
+
+<one exact implementation repair, plan reconciliation, or code-review step>
+```
+
+Implementation-audit rules:
+
+- Do not run unit tests, integration tests, build commands, lint commands, or
+  CI.
+- Do not ask for test logs or command output.
+- Do not block on missing test output, screenshots, or manual validation.
+- Do not investigate whether a completion claim is truthful.
+- Accept supplied test-pass claims as context and keep reviewing code.
+- Read changed test files only as code when relevant.

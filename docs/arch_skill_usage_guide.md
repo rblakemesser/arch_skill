@@ -699,6 +699,7 @@ Examples:
 Practical rule:
 
 - Use `code-review` when the user wants an automated finding-set with explicit coverage guarantees, including docs-drift and agent-surface checks.
+- Use `plan-audit implementation-audit` when the user wants prompt-first code review against a specific plan without running tests, proving CI, or launching the code-review runner.
 - Use `fresh-consult` when the user wants a general Claude/Codex/Cursor Agent second opinion without the code-review runner.
 - Use `agent-delegate` when the user wants a fresh Claude/Codex/Cursor Agent worker to make changes rather than review them.
 - Use `codex-review-yolo` when the user wants a narrower, more interactive `-p yolo` fresh-eyes consult on a specific artifact rather than a full lens-by-lens review.
