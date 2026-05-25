@@ -1,0 +1,7 @@
+interface:
+  display_name: "ChatGPT Web"
+  short_description: "Query logged-in ChatGPT through BrowserOS"
+  default_prompt: "Use $chatgpt-web to shape the user's ask with $prompt-authoring discipline when useful, then query the logged-in ChatGPT web UI through BrowserOS MCP. Default to ChatGPT Pro with Extended thinking when the user does not specify mode or effort, but respect explicit Instant, Thinking, Pro, Light, Standard, Extended, or Heavy requests. Support up to 10 attachments through BrowserOS file upload. Fail loudly if BrowserOS MCP is unavailable or ChatGPT is not already logged in. Do not use OpenAI API calls, scripts, runners, hidden harnesses, or automated login."
+
+policy:
+  allow_implicit_invocation: true

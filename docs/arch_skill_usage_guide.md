@@ -26,6 +26,7 @@ Other shipped skills:
 - `agent-definition-auditor`
 - `agents-md-authoring`
 - `prompt-authoring`
+- `chatgpt-web`
 - `skill-authoring`
 - `figma-best-practices`
 - `fal-ai-tools`
@@ -85,6 +86,7 @@ Default local path:
 - `~/.agents/skills/agent-definition-auditor/`
 - `~/.agents/skills/agents-md-authoring/`
 - `~/.agents/skills/prompt-authoring/`
+- `~/.agents/skills/chatgpt-web/`
 - `~/.agents/skills/skill-authoring/`
 - `~/.agents/skills/figma-best-practices/`
 - `~/.agents/skills/fal-ai-tools/`
@@ -132,6 +134,7 @@ Installed skills:
   - `agent-definition-auditor`
   - `agents-md-authoring`
   - `prompt-authoring`
+  - `chatgpt-web`
   - `skill-authoring`
   - `figma-best-practices`
   - `fal-ai-tools`
@@ -172,6 +175,7 @@ Installed skills:
   - `agent-definition-auditor`
   - `agents-md-authoring`
   - `prompt-authoring`
+  - `chatgpt-web`
   - `skill-authoring`
   - `figma-best-practices`
   - `fal-ai-tools`
@@ -212,6 +216,7 @@ Installed skills:
   - `agent-definition-auditor`
   - `agents-md-authoring`
   - `prompt-authoring`
+  - `chatgpt-web`
   - `skill-authoring`
   - `figma-best-practices`
   - `fal-ai-tools`
@@ -236,7 +241,7 @@ Installed skills:
 
 Install removes stale pre-skill command surfaces, removed skill packages, older Codex skill mirrors, old arch_skill-owned hook entries, and source/build internals from installed skill packages. It does not install new hooks.
 
-`arch-loop`, `delay-poll`, and `wait` are removed from the live installed surface; use native `/goal` for free-form completion and the host's native scheduling/reminder surface for timed waiting or polling. `agent-history` is installed on the agents/Codex and Claude Code surfaces because its storage map covers Codex and Claude Code local history. `contact-sheet-builder` is installed on all three skill surfaces and requires Python with Pillow at runtime. `figma-best-practices`, `fal-ai-tools`, `fresh-consult`, `agent-delegate`, `plan-audit`, `plan-implement`, `model-consensus`, `plan-swarm`, `codex-cleanup`, `exhaustive-code-review`, and `thermo-nuclear-code-quality-review` are installed on all three skill surfaces, but subprocess skills still require the selected local `claude`, `codex`, or `agent` CLI to exist on the host at invocation time. `thermo-nuclear-code-quality-review` is sourced unchanged from the vendored Cursor Team Kit plugin at `vendor/cursor/plugins/cursor-team-kit/skills/`; only that skill package is installed, not Cursor Team Kit agents or rules. `fresh-consult` is read-only and can run multiple fresh children when explicitly requested; `agent-delegate` may write to the shared worktree when invoked with an allowed write scope and can run multiple fresh workers when explicitly requested. `plan-implement` is prompt-first and local: it keeps plan-backed implementation state, proof freshness, and warm review aligned without external worker orchestration. `plan-swarm` is prompt-first: the parent agent coordinates parallel workers through `agent-delegate` and keeps human worklogs next to the plan. `exhaustive-code-review` is prompt-only and review-only: it maximizes native parallel agents, saves the review artifact under `/tmp/exhaustive-code-review/`, and does not dictate the user's workflow. `code-review` is installed on the agents/Codex and Claude Code surfaces only; its review subprocess always shells out to fresh Codex.
+`arch-loop`, `delay-poll`, and `wait` are removed from the live installed surface; use native `/goal` for free-form completion and the host's native scheduling/reminder surface for timed waiting or polling. `agent-history` is installed on the agents/Codex and Claude Code surfaces because its storage map covers Codex and Claude Code local history. `contact-sheet-builder` is installed on all three skill surfaces and requires Python with Pillow at runtime. `figma-best-practices`, `fal-ai-tools`, `chatgpt-web`, `fresh-consult`, `agent-delegate`, `plan-audit`, `plan-implement`, `model-consensus`, `plan-swarm`, `codex-cleanup`, `exhaustive-code-review`, and `thermo-nuclear-code-quality-review` are installed on all three skill surfaces, but subprocess skills still require the selected local `claude`, `codex`, or `agent` CLI to exist on the host at invocation time. `chatgpt-web` is prompt-only and requires BrowserOS MCP plus an already logged-in ChatGPT browser session; it does not automate login. `thermo-nuclear-code-quality-review` is sourced unchanged from the vendored Cursor Team Kit plugin at `vendor/cursor/plugins/cursor-team-kit/skills/`; only that skill package is installed, not Cursor Team Kit agents or rules. `fresh-consult` is read-only and can run multiple fresh children when explicitly requested; `agent-delegate` may write to the shared worktree when invoked with an allowed write scope and can run multiple fresh workers when explicitly requested. `plan-implement` is prompt-first and local: it keeps plan-backed implementation state, proof freshness, and warm review aligned without external worker orchestration. `plan-swarm` is prompt-first: the parent agent coordinates parallel workers through `agent-delegate` and keeps human worklogs next to the plan. `exhaustive-code-review` is prompt-only and review-only: it maximizes native parallel agents, saves the review artifact under `/tmp/exhaustive-code-review/`, and does not dictate the user's workflow. `code-review` is installed on the agents/Codex and Claude Code surfaces only; its review subprocess always shells out to fresh Codex.
 
 ## Shared conventions
 
@@ -481,6 +486,22 @@ Use when the user wants to write, edit, refactor, or audit a prompt or reusable 
 Examples:
 
 - `Use $prompt-authoring to refactor this prompt`
+
+### `chatgpt-web`
+
+Use when the user wants to ask ChatGPT, consult ChatGPT in the browser, get a
+ChatGPT web opinion, or run a prompt with optional local attachments through
+the logged-in ChatGPT UI using BrowserOS MCP. It shapes rough prompts with
+`prompt-authoring` discipline, verifies that BrowserOS is already logged in to
+ChatGPT, defaults to Pro with Extended thinking when no mode or effort is
+specified, respects explicit Instant/Thinking/Pro and
+Light/Standard/Extended/Heavy requests, and returns ChatGPT's answer with a
+short receipt. It is prose-only: no scripts, runners, harnesses, OpenAI API
+calls, or automated login.
+
+Examples:
+
+- `Use $chatgpt-web to ask ChatGPT for a Pro Extended second opinion on this plan`
 
 ### `skill-authoring`
 
