@@ -44,6 +44,7 @@ Other shipped skills:
 - `agent-history`
 - `model-consensus`
 - `contact-sheet-builder`
+- `exhaustive-code-review`
 - `code-review`
 - `stepwise`
 - `thermo-nuclear-code-quality-review`
@@ -102,6 +103,7 @@ Default local path:
 - `~/.agents/skills/agent-history/`
 - `~/.agents/skills/model-consensus/`
 - `~/.agents/skills/contact-sheet-builder/`
+- `~/.agents/skills/exhaustive-code-review/`
 - `~/.agents/skills/code-review/`
 - `~/.agents/skills/stepwise/`
 - `~/.agents/skills/arch-epic/`
@@ -148,6 +150,7 @@ Installed skills:
   - `agent-history`
   - `model-consensus`
   - `contact-sheet-builder`
+  - `exhaustive-code-review`
   - `code-review`
   - `stepwise`
   - `arch-epic`
@@ -187,6 +190,7 @@ Installed skills:
   - `agent-history`
   - `model-consensus`
   - `contact-sheet-builder`
+  - `exhaustive-code-review`
   - `code-review`
   - `stepwise`
   - `arch-epic`
@@ -225,13 +229,14 @@ Installed skills:
   - `plan-swarm`
   - `model-consensus`
   - `contact-sheet-builder`
+  - `exhaustive-code-review`
   - `stepwise`
   - `arch-epic`
   - `thermo-nuclear-code-quality-review`
 
 Install removes stale pre-skill command surfaces, removed skill packages, older Codex skill mirrors, old arch_skill-owned hook entries, and source/build internals from installed skill packages. It does not install new hooks.
 
-`arch-loop`, `delay-poll`, and `wait` are removed from the live installed surface; use native `/goal` for free-form completion and the host's native scheduling/reminder surface for timed waiting or polling. `agent-history` is installed on the agents/Codex and Claude Code surfaces because its storage map covers Codex and Claude Code local history. `contact-sheet-builder` is installed on all three skill surfaces and requires Python with Pillow at runtime. `figma-best-practices`, `fal-ai-tools`, `fresh-consult`, `agent-delegate`, `plan-audit`, `plan-implement`, `model-consensus`, `plan-swarm`, `codex-cleanup`, and `thermo-nuclear-code-quality-review` are installed on all three skill surfaces, but subprocess skills still require the selected local `claude`, `codex`, or `agent` CLI to exist on the host at invocation time. `thermo-nuclear-code-quality-review` is sourced unchanged from the vendored Cursor Team Kit plugin at `vendor/cursor/plugins/cursor-team-kit/skills/`; only that skill package is installed, not Cursor Team Kit agents or rules. `fresh-consult` is read-only and can run multiple fresh children when explicitly requested; `agent-delegate` may write to the shared worktree when invoked with an allowed write scope and can run multiple fresh workers when explicitly requested. `plan-implement` is prompt-first and local: it keeps plan-backed implementation state, proof freshness, and warm review aligned without external worker orchestration. `plan-swarm` is prompt-first: the parent agent coordinates parallel workers through `agent-delegate` and keeps human worklogs next to the plan. `code-review` is installed on the agents/Codex and Claude Code surfaces only; its review subprocess always shells out to fresh Codex.
+`arch-loop`, `delay-poll`, and `wait` are removed from the live installed surface; use native `/goal` for free-form completion and the host's native scheduling/reminder surface for timed waiting or polling. `agent-history` is installed on the agents/Codex and Claude Code surfaces because its storage map covers Codex and Claude Code local history. `contact-sheet-builder` is installed on all three skill surfaces and requires Python with Pillow at runtime. `figma-best-practices`, `fal-ai-tools`, `fresh-consult`, `agent-delegate`, `plan-audit`, `plan-implement`, `model-consensus`, `plan-swarm`, `codex-cleanup`, `exhaustive-code-review`, and `thermo-nuclear-code-quality-review` are installed on all three skill surfaces, but subprocess skills still require the selected local `claude`, `codex`, or `agent` CLI to exist on the host at invocation time. `thermo-nuclear-code-quality-review` is sourced unchanged from the vendored Cursor Team Kit plugin at `vendor/cursor/plugins/cursor-team-kit/skills/`; only that skill package is installed, not Cursor Team Kit agents or rules. `fresh-consult` is read-only and can run multiple fresh children when explicitly requested; `agent-delegate` may write to the shared worktree when invoked with an allowed write scope and can run multiple fresh workers when explicitly requested. `plan-implement` is prompt-first and local: it keeps plan-backed implementation state, proof freshness, and warm review aligned without external worker orchestration. `plan-swarm` is prompt-first: the parent agent coordinates parallel workers through `agent-delegate` and keeps human worklogs next to the plan. `exhaustive-code-review` is prompt-only and review-only: it maximizes native parallel agents, saves the review artifact under `/tmp/exhaustive-code-review/`, and does not dictate the user's workflow. `code-review` is installed on the agents/Codex and Claude Code surfaces only; its review subprocess always shells out to fresh Codex.
 
 ## Shared conventions
 
@@ -679,6 +684,29 @@ Practical rule:
 - Use Figma, slide, doc, PDF, or video tools when the requested artifact is not
   a local image contact sheet.
 
+### `exhaustive-code-review`
+
+Use when the user wants a prompt-only exhaustive code review over a branch,
+diff, path set, plan scope, or completion claim, and wants the review saved to
+disk. It maximizes native parallel agents, reviews touched files, changed
+hunks, abstractions, callers, side doors, tests/proof, docs, generated
+artifacts, prompts, config, and other live truth surfaces, then saves
+`target.md`, `coverage.md`, `findings.md`, and `verdict.md` under
+`/tmp/exhaustive-code-review/...`.
+
+Examples:
+
+- `Use $exhaustive-code-review on this full branch`
+- `Use $exhaustive-code-review on the current diff`
+- `Use $exhaustive-code-review for Phase 4 of docs/MY_PLAN.md`
+
+Practical rule:
+
+- Use `exhaustive-code-review` when coverage itself is the deliverable.
+- Use `code-review` for the deterministic Codex subprocess review product.
+- Use `plan-audit implementation-audit` for plan-backed code review.
+- Use `thermo-nuclear-code-quality-review` for maintainability-only review.
+
 ### `code-review`
 
 Use when the user wants a real, deterministic code review — on an uncommitted diff, a branch comparison, a commit range, an explicit path set, or a "is this approved plan phase actually complete?" completion-claim. `code-review` never makes the caller model the reviewer. It always shells out to a fresh unsandboxed Codex `gpt-5.4` `xhigh` synthesis subprocess, with parallel fresh Codex `gpt-5.4-mini` `xhigh` subprocesses for the required per-lens review coverage (`correctness`, `architecture`, `proof`, `docs-drift`, `security`, and a conditional `agent-linter` lens when the change touches agent-building or instruction-bearing surfaces).
@@ -697,6 +725,7 @@ Examples:
 Practical rule:
 
 - Use `code-review` when the user wants an automated finding-set with explicit coverage guarantees, including docs-drift and agent-surface checks.
+- Use `exhaustive-code-review` when the user wants prompt-only exhaustive coverage and a saved disk artifact without the Codex review runner.
 - Use `plan-audit implementation-audit` when the user wants prompt-first code review against a specific plan without running tests, proving CI, or launching the code-review runner.
 - Use `fresh-consult` when the user wants a general Claude/Codex/Cursor Agent second opinion without the code-review runner.
 - Use `agent-delegate` when the user wants a fresh Claude/Codex/Cursor Agent worker to make changes rather than review them.
