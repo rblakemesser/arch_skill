@@ -234,9 +234,9 @@ by the skill, not the user. Examples of what goes here:
 - User approved decomposition with adjustments: `<what changed>`.
 - Sub-plan N invoked: `$arch-step new <DOC_PATH>`.
 - Sub-plan N North Star approved by user.
-- Sub-plan N auto-plan armed.
+- Sub-plan N auto-plan started.
 - Sub-plan N auto-plan completed (consistency-pass clean).
-- Sub-plan N implement-loop armed.
+- Sub-plan N implement-loop started.
 - Sub-plan N implement-loop completed (arch-step audit COMPLETE).
 - Epic critic run on sub-plan N: verdict=`<pass|scope_change|incomplete>`.
 - Scope-change detected on sub-plan N: `<headline>`. Halted.

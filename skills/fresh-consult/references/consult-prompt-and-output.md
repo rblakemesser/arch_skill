@@ -35,8 +35,8 @@ evidence supports.
 
 Maximize parallelism by using parallel agents. Do not invoke skills that spawn subagents.
 
-Do not edit files, run formatters, arm hooks, coordinate with sibling consults,
-or start another controller.
+Do not edit files, run formatters, coordinate with sibling consults, or start
+another controller.
 
 # Report Contract
 

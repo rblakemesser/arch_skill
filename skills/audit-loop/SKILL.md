@@ -44,7 +44,7 @@ Use this skill when the job is to exhaustively map a codebase and its current pr
 - Unrelated dirty or untracked files are not a blocker. Leave them alone unless they directly conflict with the current risk front or make verification unsafe.
 - Default invocation with no mode is `run`.
 - `review` is docs-only.
-- `auto` is hook-backed in Codex and Claude Code and must fail loud when the active host runtime lacks the repo-managed `Stop` entry for the installed runner at `~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py` (Codex reads it from `~/.codex/hooks.json`; Claude Code reads it from `~/.claude/settings.json`). In Codex that also includes the `codex_hooks` feature gate.
+- `auto` is goal-mode friendly. In native goal mode, keep running `run` then `review` until no credible audit work remains or a real blocker stops it. Outside goal mode, run one bounded pass and name the exact next command.
 - No auto commits. Keep the ledger truthful without relying on git history.
 
 ## First move
@@ -55,7 +55,7 @@ Use this skill when the job is to exhaustively map a codebase and its current pr
    - `run`
    - `review`
    - `auto`
-4. Resolve repo root, root `.gitignore`, `_audit_ledger.md`, and the host-aware `auto` controller state path described in `references/audit-loop-controller.md`.
+4. Resolve repo root, root `.gitignore`, and `_audit_ledger.md`.
 5. Read the matching mode reference and `references/quality-bar.md`.
 
 ## Workflow
@@ -85,18 +85,21 @@ Use this skill when the job is to exhaustively map a codebase and its current pr
 
 ### 3) `auto`
 
-**Arm first, disarm never.** This skill is hook-owned for `auto`. The very first step of every invocation writes a session-scoped controller state file; the very last step of the parent turn is to end the turn. Parent turns do not run the Stop hook, do not delete state, and do not clean up early — the Stop hook is the only process that clears state, and it does so only on `CLEAN`, `BLOCKED`, or deadline. Core doctrine, arm-time ensure-install, session-id rules, conflict gate, staleness sweep, and manual recovery live in `skills/_shared/controller-contract.md`. The rules below describe only what is specific to `audit-loop auto`. State lives at `.codex/audit-loop-state.<SESSION_ID>.json` (Codex) or `.claude/arch_skill/audit-loop-state.<SESSION_ID>.json` (Claude Code); see `references/audit-loop-controller.md` for the state schema.
+`auto` is the repeated audit loop. Native goal mode supplies the repeated turns;
+this skill does not install or arm automation hooks.
 
 Workflow:
 
-1. **Arm**: run `arch_controller_stop_hook.py --ensure-installed --runtime <codex|claude>` → resolve session id → write state file → end the turn. The parent pass may run one truthful `run` pass (mapping-only is correct on the first turns) before ending. On Claude Code, resolve the session id first via `arch_controller_stop_hook.py --current-session`; abort with the tool's error message if it fails.
-2. **Body** (hook-owned): the Stop hook launches a fresh `review` pass in the active host runtime (Codex: `codex exec --ephemeral --disable codex_hooks --dangerously-bypass-approvals-and-sandbox`; Claude Code: `claude -p --settings '{"disableAllHooks":true}'`), reads the verdict from `_audit_ledger.md`, and on `CONTINUE` starts the next `$audit-loop` pass.
-3. **Disarm** (hook-owned): on `CLEAN`, the hook clears state, deletes `_audit_ledger.md`, and removes the `.gitignore` entry; on `BLOCKED`, the hook clears state and stops honestly.
+1. Run one truthful `run` pass. Mapping-only is correct on the first turns.
+2. Run a fresh `review` pass against `_audit_ledger.md` and current repo state.
+3. If review says `CONTINUE`, run the next `$audit-loop run` pass.
+4. In native goal mode, keep repeating until review says `CLEAN` or `BLOCKED`.
+5. Outside native goal mode, stop after one run/review cycle and print the next exact command.
 
 `audit-loop`-specific rules:
 
 - User-facing invocation is just `audit-loop auto`.
-- Dirty or untracked files are not a blocker. Do not refuse to arm only because the repo has unrelated dirty or untracked files.
+- Dirty or untracked files are not a blocker. Do not refuse to run only because the repo has unrelated dirty or untracked files.
 - `auto` must not degrade into a tiny-safe-fix treadmill or skip exhaustive mapping just to land a quick patch.
 - Do not auto-commit findings.
 
@@ -112,9 +115,9 @@ Workflow:
 
 ## Reference map
 
-- `references/ledger-contract.md` - root ledger shape, controller block, status vocabulary, and cleanup lifecycle
+- `references/ledger-contract.md` - root ledger shape, status vocabulary, and cleanup lifecycle
 - `references/shared-doctrine.md` - prioritization, fix discipline, and anti-patterns
 - `references/run.md` - mapping-aware audit or fix pass
 - `references/review.md` - fresh docs-only verdict pass
-- `references/audit-loop-controller.md` - audit-loop controller state schema and verdict source (core doctrine lives in `skills/_shared/controller-contract.md`)
+- `references/audit-loop-controller.md` - audit-loop auto status and verdict source
 - `references/quality-bar.md` - strong vs weak triage, findings, tests, and stop decisions

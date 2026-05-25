@@ -1,9 +1,8 @@
 # Invocation Reference
 
-Two supported invocations:
+Supported invocation:
 
 1. **Direct.** User invokes `$code-review` from Codex or Claude Code. The skill runs the Python runner, which shells out to Codex for every review subprocess.
-2. **Hook-backed.** User arms a `code-review` hook state for the current session, then the installed Stop hook drives the runner at each Stop event.
 
 Every review subprocess is **always a fresh Codex process** at `gpt-5.4` `xhigh`, unsandboxed by default. Claude (or any other caller) is never the reviewer.
 
@@ -30,7 +29,7 @@ Common flags:
 
 - `--objective "<free-form user objective>"` — optional; passed to the reviewer as `{objective}`.
 - `--output-root <dir>` — where the runner writes namespaced run directories. Default: `/tmp/code-review`.
-- `--run-dir <dir>` — explicit run directory; overrides `--output-root`. Useful for hook-driven runs where the dispatcher pre-computes the path.
+- `--run-dir <dir>` — explicit run directory; overrides `--output-root`.
 - `--host-runtime <codex|claude>` — optional; purely informational, recorded in the run manifest. Does NOT change reviewer identity.
 
 ## Codex subprocess flags (what the runner actually launches)
@@ -70,7 +69,7 @@ codex exec \
 Rationale for each flag:
 
 - `--ephemeral` — no session persistence; every review starts with fresh context.
-- `--disable codex_hooks` — prevent Stop-hook recursion when a hook-backed run spawns the review subprocess.
+- `--disable codex_hooks` — keep review subprocesses isolated from any local Codex hooks outside this package.
 - `--cd <repo_root>` — pin working directory to the reviewed repo.
 - `--dangerously-bypass-approvals-and-sandbox` — match the repo's existing pattern for fresh review/audit children. Intentionally unsafe outside hardened local environments; do not copy into untrusted contexts.
 - `--model` + `-c model_reasoning_effort` — pin exact model and reasoning effort regardless of profile state.
@@ -108,44 +107,6 @@ Rules:
 - Review children commonly take 5+ minutes; the xhigh synthesis or broad
   lens coverage can reasonably take 20-40 minutes. Poll stream logs every few
   minutes, not every few seconds, and treat stream growth as progress.
-
-## Hook-backed invocation
-
-The shared `skills/arch-step/scripts/arch_controller_stop_hook.py` dispatcher owns `code-review` as one of its controller families. State lives at:
-
-- Codex host: `.codex/code-review-state.<SESSION_ID>.json`
-- Claude host: `.claude/arch_skill/code-review-state.<SESSION_ID>.json`
-
-State file shape:
-
-```json
-{
-  "version": 1,
-  "command": "code-review",
-  "session_id": "<SESSION_ID>",
-  "repo_root": "<absolute path>",
-  "target": {
-    "mode": "uncommitted-diff | branch-diff | commit-range | paths | completion-claim",
-    "base": "<ref or sha>",
-    "head": "<ref or sha>",
-    "paths": ["<path>", "..."],
-    "claim_doc": "<docs/PLAN.md>",
-    "claim_phase": <n>
-  },
-  "objective": "<free-form or empty>",
-  "output_root": "<dir>",
-  "host_runtime": "codex | claude"
-}
-```
-
-The dispatcher:
-
-- resolves the state file per host runtime
-- validates session ownership
-- invokes the runner with the state-file fields as CLI arguments
-- forwards the run directory path and a verdict summary back to the Stop-hook JSON
-
-The Claude host case is an intentional exception to the broader native-auto-loop direction: the Stop hook runs under Claude, but the actual review subprocess is Codex. Generic Claude auto-controllers stay Claude-native; `code-review` does not.
 
 ## Default model and reasoning effort
 

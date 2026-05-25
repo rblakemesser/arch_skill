@@ -44,8 +44,8 @@ Every child must:
   or named later sub-plan
 - work depth-first on exactly one active sub-plan
 - leave compact, inspectable evidence
-- avoid nested controller commands such as `auto-plan`, `implement-loop`,
-  `arch-loop`, `delay-poll`, or `wait`
+- avoid nested automatic continuation commands such as `auto-plan` or
+  `implement-loop`
 - avoid broad repo rewrites unrelated to the active sub-plan
 
 ## Sub-plan planner prompt
@@ -94,8 +94,8 @@ final artifact in the first few minutes as failure.
   `docs/<TITLE>_<DATE>.md` path; arch-epic groups sub-plan docs under
   `docs/epic/<EPIC_SLUG_WITH_DATE>/PHASE_<NN>_<SUBPLAN_SLUG>_<YYYY-MM-DD>.md`.
 - Do not start the next sub-plan.
-- Do not arm `auto-plan`, `implement-loop`, `arch-loop`, or any Stop-hook
-  controller. Apply the arch-step doctrine directly from the references.
+- Do not invoke `auto-plan`, `implement-loop`, or any nested automatic
+  continuation command. Apply the arch-step doctrine directly from the references.
 - Do not narrow, drop, or mark an approved epic requirement out of scope. The
   epic scope is the epic scope. A requirement can move later only when Epic
   Requirement Coverage names the later sub-plan owner.
@@ -177,7 +177,7 @@ that attention is needed.
 - Work inside the target repo only.
 - Implement the active sub-plan depth-first.
 - Do not rewrite the plan to make partial work look complete.
-- Do not arm nested controllers.
+- Do not invoke nested automatic continuation commands.
 - Do not cut, narrow, or drop approved behavior, acceptance criteria, or
   verification. Missing approved work is a blocker unless it is explicitly
   assigned to a named later sub-plan.
@@ -258,7 +258,7 @@ movement. If you need to stop, say why instead of going silent.
 - Keep working only inside the active sub-plan.
 - Do not add constraints beyond the user request, epic doc, sub-plan doc, and
   critic evidence.
-- Do not arm nested controllers.
+- Do not invoke nested automatic continuation commands.
 - Do not alter the approved North Star, Epic Requirement Coverage, or Section 7
   to make unfinished work disappear. Same-scope clarifications are allowed only
   when they preserve approved scope and are recorded honestly.

@@ -1,6 +1,6 @@
 ---
 name: arch-epic
-description: "Orchestrate a goal too large for one `$arch-step` plan by decomposing it into approved ordered sub-plans, then running them depth-first through interactive arch-step handoffs or an explicit automatic harness mode. Use when the user asks to break up and run a multi-plan epic, continue an existing epic, resume from an epic doc, or automatically implement the approved epic end to end. Automatic mode uses role-based planner, implementation worker, and critic choices; planner and implementation sessions are resumable, while critics are fresh and observation-only. Critic failures resume the same role session instead of spawning a separate repair worker. Not for a single architecture plan (`$arch-step`), one-pass mini plan (`$arch-mini-plan`), small feature (`$lilarch`), generic completion loops (`$arch-loop`), read-only status (`$arch-flow`), or foreign-repo step orchestration (`$stepwise`)."
+description: "Orchestrate a goal too large for one `$arch-step` plan by decomposing it into approved ordered sub-plans, then running them depth-first through interactive arch-step handoffs or an explicit automatic harness mode. Use when the user asks to break up and run a multi-plan epic, continue an existing epic, resume from an epic doc, or automatically implement the approved epic end to end. Automatic mode uses role-based planner, implementation worker, and critic choices; planner and implementation sessions are resumable, while critics are fresh and observation-only. Critic failures resume the same role session instead of spawning a separate repair worker. Not for a single architecture plan (`$arch-step`), one-pass mini plan (`$arch-mini-plan`), small feature (`$lilarch`), read-only status (`$arch-flow`), or foreign-repo step orchestration (`$stepwise`)."
 metadata:
   short-description: "Multi-plan orchestrator wrapping arch-step with decomposition approval, progressive North-Star gates, and a per-sub-plan scope-drift critic"
 ---
@@ -27,10 +27,10 @@ decomposition, arch-epic asks for a role-based execution table:
 `epic_planner`, `implementation_worker`, and `critic`.
 It resolves shorthand such as `opus 4.7 xhigh` or `gpt 5.5 high` to
 runnable model IDs using the shared resolver doctrine, pins the resolved
-policy, then drives sub-plans depth-first with spawned hook-suppressed
-Claude/Codex harnesses. Automatic workers apply arch-step doctrine directly
-from disk; they do not arm nested `auto-plan`, `implement-loop`, or
-`arch-loop` controllers.
+policy, then drives sub-plans depth-first with spawned child harnesses whose
+hooks are disabled for subprocess isolation. Automatic workers apply arch-step
+doctrine directly from disk; they do not invoke nested `auto-plan`,
+`implement-loop`, or other automatic continuation commands.
 
 Automatic planner and implementation worker sessions are resumable. If a
 fresh critic finds in-scope unfinished work, arch-epic resumes the same
@@ -45,7 +45,7 @@ mode. In automatic mode, spawned critics check North Star and Epic
 Requirement Coverage gates instead of asking the user on every sub-plan.
 
 Resume is the only mode — every `$arch-epic` invocation re-reads the
-epic doc and arch-step state from disk and picks up where things left
+epic doc and sub-plan docs from disk and picks up where things left
 off. "Continue my epic", "pick up where we left off", "keep going on
 <project>" all work.
 
@@ -72,12 +72,11 @@ change requires the user.
 
 ## When not to use
 
-- Single architecture plan: use `$arch-step`.
+- Single architecture plan, including single-plan automatic planning through
+  implementation: use `$arch-step full-auto` or `$miniarch-step full-auto`.
 - One-pass mini plan that hands off to implement: use `$arch-mini-plan`.
 - 1–3 phase feature flow: use `$lilarch`.
 - Open-ended optimization with bet-and-learn iteration: use `$goal-loop`.
-- Requirement-satisfaction loop against a free-form auditor: use
-  `$arch-loop`.
 - Read-only routing across arch artifacts: use `$arch-flow`.
 - Stepped orchestration in a foreign repo with a per-step critic: use
   `$stepwise`.
@@ -170,7 +169,7 @@ Must never happen:
 - Heuristic keyword mapping for decomposition. Interpretation is
   prose reasoning, taught by `references/decomposition-principles.md`.
 - A second "resume" command. The user types what they type; the
-  skill figures it out from the epic doc + arch-step state files.
+  skill figures it out from the epic doc + sub-plan docs.
 
 ## First move
 
@@ -201,8 +200,7 @@ Detail per mode lives in `references/workflow-contract.md`.
    set `status: active`.
 3. **`run`** — main orchestration pass. Routes per
    `references/arch-step-integration.md` to the next arch-step
-   command for the first non-complete sub-plan, or waits for a
-   hook-backed controller, or runs the critic.
+   command for the first non-complete sub-plan or runs the critic.
 4. **`resume-scope-change`** — epic is `halted` after a critic
    flagged a scope change; user has replied with their preservation
    decision. Apply `extend_current` or `new_sub_plan`, log, resume.
@@ -249,7 +247,7 @@ Detail per mode lives in `references/workflow-contract.md`.
   shared with arch-step and miniarch-step.
 - `references/arch-step-integration.md` — sub-plan Status →
   arch-step command mapping. What the skill invokes vs. what the
-  hook drives vs. what the user does.
+  user or native goal-mode continuation does.
 - `references/scope-change-discipline.md` — approved scope lock,
   materially-different path vs noise, and preservation-only scope
   decisions.
@@ -266,7 +264,7 @@ Detail per mode lives in `references/workflow-contract.md`.
   model shorthand resolution, exact-version preservation, and ask-once
   discipline.
 - `references/resume-semantics.md` — how the skill re-derives state
-  each turn from the epic doc + arch-step controller state files.
+  each turn from the epic doc + sub-plan docs.
 - `references/examples.md` — worked examples: happy path,
   scope-change insertion, harmless observations ignored.
 

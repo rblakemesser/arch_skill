@@ -1,6 +1,6 @@
 ---
 name: stepwise
-description: "Run an ordered multi-step process inside a target repo with one fresh Claude or Codex worker session per step, an independent observational critic, and a Stepwise-owned diagnose-and-repair loop that talks to struggling sessions, walks upstream when inputs are suspect, and repairs at root cause. Use for named process execution with strict step ordering and evidence. Do NOT use for requirement loops (arch-loop), plan-doc implementation (arch-step), bet-and-learn optimization (goal-loop), one-shot reviews, or single-turn work."
+description: "Run an ordered multi-step process inside a target repo with one fresh Claude or Codex worker session per step, an independent observational critic, and a Stepwise-owned diagnose-and-repair loop that talks to struggling sessions, walks upstream when inputs are suspect, and repairs at root cause. Use for named process execution with strict step ordering and evidence. Do NOT use for plan-doc implementation (arch-step), bet-and-learn optimization (goal-loop), one-shot reviews, or single-turn work."
 metadata:
   short-description: "Diagnostic multi-step orchestrator with critics"
 ---
@@ -31,7 +31,7 @@ break.
 
 ## When not to use
 
-- Requirement-satisfaction loop against an auditor -> `$arch-loop`.
+- Free-form requirement loops with no step manifest -> native `/goal`.
 - Plan-doc-backed implementation of a fixed architecture plan -> `$arch-step`.
 - Bet-and-learn optimization, one bet per iteration with worklog ->
   `$goal-loop`.
@@ -98,7 +98,7 @@ break.
   capacity is exhausted.
 - Fabricated step completion, claim without artifact or transcript evidence,
   fails the step regardless of profile.
-- Do not use `/loop`, `ScheduleWakeup`, `delay-poll`, or any wait-helper to
+- Do not use `/loop`, `ScheduleWakeup`, or any wait-helper to
   bridge step or critic subprocess runs. This skill's execution model is
   foreground `Bash` calls to `run_stepwise.py`. If a subprocess genuinely
   outlasts the shell timeout, use the shell's background support and wait for

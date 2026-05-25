@@ -125,25 +125,25 @@ class CommitHistoryAuthoringTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as td:
             temp = TempRepo(Path(td))
             temp.commit("app.txt", "one\n", "WIP")
-            git(temp.work, "push", "origin", "HEAD:refs/heads/feature/history")
+            git(temp.work, "push", "origin", "HEAD:refs/heads/shared/history")
+            git(temp.work, "fetch", "origin", "shared/history:refs/remotes/origin/shared/history")
             result = run_script("inspect", "--repo", str(temp.work), repo=temp.work, check=False)
             self.assertEqual(result.returncode, 2)
             self.assertIn("remote ref", result.stderr)
 
-    def test_upstream_ahead_is_refused(self) -> None:
+    def test_current_branch_remote_ahead_is_refused(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             temp = TempRepo(Path(td))
-            temp.commit("app.txt", "feature\n", "WIP")
-            git(temp.work, "checkout", "main")
-            (temp.work / "main.txt").write_text("new main\n", encoding="utf-8")
-            git(temp.work, "add", "main.txt")
-            git(temp.work, "commit", "-m", "Advance main")
-            git(temp.work, "push", "origin", "main")
-            git(temp.work, "checkout", "feature/history")
+            local_head = temp.commit("app.txt", "feature\n", "WIP")
+            git(temp.work, "push", "origin", "HEAD:refs/heads/feature/history")
+            temp.commit("app.txt", "remote-only\n", "Remote ahead")
+            git(temp.work, "push", "origin", "HEAD:refs/heads/feature/history")
+            git(temp.work, "fetch", "origin", "feature/history:refs/remotes/origin/feature/history")
+            git(temp.work, "reset", "--hard", local_head)
 
             result = run_script("inspect", "--repo", str(temp.work), repo=temp.work, check=False)
             self.assertEqual(result.returncode, 2)
-            self.assertIn("upstream origin/main is ahead", result.stderr)
+            self.assertIn("current branch remote origin/feature/history is ahead", result.stderr)
 
     def test_merge_commit_is_refused(self) -> None:
         with tempfile.TemporaryDirectory() as td:

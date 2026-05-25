@@ -1,6 +1,6 @@
 ---
 name: arch-docs
-description: "Aggressively retire stale repo documentation with the DGTFO loop: ground every topic against current code, treat old point-in-time docs as delete candidates by default, fold durable truth into real evergreen homes, and only keep or author standalone docs when current readers genuinely need them. Use when stale worklogs, implementation docs, misleading `living` docs, outdated READMEs, dead migration notes, or explicit hook-backed `auto` docs cleanup in Codex or Claude Code need a code-grounded delete-first pass. Not for generic copy editing, open-ended aspirational doc authoring, or speculative taxonomy redesign."
+description: "Aggressively retire stale repo documentation with the DGTFO loop: ground every topic against current code, treat old point-in-time docs as delete candidates by default, fold durable truth into real evergreen homes, and only keep or author standalone docs when current readers genuinely need them. Use when stale worklogs, implementation docs, misleading `living` docs, outdated READMEs, dead migration notes, or explicit native goal-mode `auto` docs cleanup need a code-grounded delete-first pass. Not for generic copy editing, open-ended aspirational doc authoring, or speculative taxonomy redesign."
 metadata:
   short-description: "Delete-first docs audit and retirement"
 ---
@@ -15,7 +15,7 @@ Use this skill when the code is stable enough to ground documentation against cu
 - A repo needs topic-first cleanup where one topic may be spread across several files and several files may overlap on the same topic.
 - A full-arch plan and worklog should be treated as context, mined for durable truth, and then retired or transformed into evergreen docs.
 - The user wants to run the DGTFO loop directly in a repo with no requirement that an arch plan already exists.
-- The user explicitly wants `arch-docs auto` in Codex or Claude Code and expects real hook-backed continuation with a fresh external evaluation after each pass.
+- The user explicitly wants `arch-docs auto` and expects native goal-mode continuation with a fresh review after each pass.
 
 ## When not to use
 
@@ -50,7 +50,7 @@ Use this skill when the code is stable enough to ground documentation against cu
 - Do not make a dead doc look current by editing freshness metadata alone. If the body was not materially re-grounded against current code in the same pass, the doc is still stale and should usually be deleted or folded forward.
 - Before deleting any bounded batch of docs, stage those docs and create a backup git commit first. Stage only the docs in that delete batch, not unrelated dirty files elsewhere in the repo.
 - Default behavior is one grounded docs-health pass. `auto` is the only explicit public mode.
-- `auto` is hook-backed in Codex and Claude Code; if the installed runtime support is absent or disabled, fail loud instead of pretending prompt repetition is automation.
+- `auto` is goal-mode friendly. In native goal mode, keep running pass then review until the docs cleanup is clean or a real blocker stops it. Outside goal mode, run one bounded pass and name the exact next command.
 - If the backup commit for a delete batch cannot be created, stop instead of deleting.
 - If code truth is still unstable, external doc sources are required but unavailable, or the next pass would become speculative or materially unchanged, stop and say so plainly.
 - Do not use age alone as the whole verdict. Use history and current code as evidence, but keep the 30-day presumption strong: old point-in-time docs should earn survival, not the other way around.
@@ -97,13 +97,16 @@ Use this skill when the code is stable enough to ground documentation against cu
 
 ### 2) `auto`
 
-**Arm first, disarm never.** This skill is hook-owned for `auto`. The very first step of every invocation writes a session-scoped controller state file; the very last step of the parent turn is to end the turn. Parent turns do not run the Stop hook, do not delete state, and do not clean up early — the Stop hook is the only process that clears state, and it does so only on `CLEAN`, `BLOCKED`, or deadline. Core doctrine, arm-time ensure-install, session-id rules, conflict gate, staleness sweep, and manual recovery live in `skills/_shared/controller-contract.md`. The rules below describe only what is specific to `arch-docs auto`. State lives at `.codex/arch-docs-auto-state.<SESSION_ID>.json` (Codex) or `.claude/arch_skill/arch-docs-auto-state.<SESSION_ID>.json` (Claude Code); see `references/arch-docs-controller.md` for the state schema.
+`auto` is the repeated DGTFO loop. Native goal mode supplies the repeated turns;
+this skill does not install or arm automation hooks.
 
 Workflow:
 
-1. **Arm**: run `arch_controller_stop_hook.py --ensure-installed --runtime <codex|claude>` → resolve session id → write state file → end the turn. The parent pass may run one grounded default DGTFO pass before ending. On Claude Code, resolve the session id first via `arch_controller_stop_hook.py --current-session`; abort with the tool's error message if it fails.
-2. **Body** (hook-owned): the Stop hook launches a fresh external evaluator (see `references/internal-evaluator.md`) against the ledger and current code. On `CONTINUE`, the hook starts the next `$arch-docs` pass.
-3. **Disarm** (hook-owned): on `CLEAN` or `BLOCKED`, the hook clears state; on `CLEAN` the ledger lifecycle in `references/pass.md` applies.
+1. Run one grounded default DGTFO pass.
+2. Run a fresh review/evaluator pass against the ledger and current code.
+3. If review says more useful cleanup remains, run the next DGTFO pass.
+4. In native goal mode, keep repeating until review says `CLEAN` or a real blocker stops the run.
+5. Outside native goal mode, stop after one pass plus review and print the next exact command.
 
 `arch-docs`-specific rules:
 
@@ -112,7 +115,7 @@ Workflow:
 - Keep sweeping while obviously dated docs, stale surviving docs, confusing docs, missing required public-repo docs, or missing grounded evergreen docs still remain.
 - In this repo family, keep treating point-in-time docs older than 30 days as presumptively stale until the pass records explicit code-grounded current-reader value for each survivor.
 - A pass that mainly refreshed labels like `Status: LIVING` or `Last verified` without materially re-grounding the body is still a stale-doc pass that needs more delete-first cleanup.
-- Stop blocked when the evaluator says the next pass would become speculative, taxonomy-imposing, disconnected from a narrowed scope, or materially unchanged.
+- Stop blocked when the review says the next pass would become speculative, taxonomy-imposing, disconnected from a narrowed scope, or materially unchanged.
 
 ## Output expectations
 
@@ -130,5 +133,5 @@ Workflow:
 - `references/canonical-home-judgment.md` - resolve repo posture, public-repo baseline docs, and split-versus-expand decisions for new docs
 - `references/cleanup-rules.md` - deletion bias, canonical-home rules, working-doc retirement, and link-repair rules
 - `references/pass.md` - the default DGTFO pass contract and ledger shape
-- `references/arch-docs-controller.md` - arch-docs auto-controller state schema and verdict source (core doctrine lives in `skills/_shared/controller-contract.md`)
-- `references/internal-evaluator.md` - suite-only read-only evaluator contract used by the Stop-hook child run
+- `references/arch-docs-controller.md` - arch-docs auto loop status and verdict source
+- `references/internal-evaluator.md` - suite-only read-only evaluator contract

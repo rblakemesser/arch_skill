@@ -103,7 +103,7 @@ automation.
 - Do not ask the child to commit, push, open PRs, rewrite history, stash, or
   revert unrelated work unless the delegated task explicitly requires that
   exact operation.
-- Do not use hook-backed controllers as a continuation strategy. This skill is
+- Do not use external continuation controllers as a strategy. This skill is
   a foreground subprocess path, not an ordered workflow runner.
 - If the child changed files or reports a blocker, inspect the repo state before
   presenting the result as fact.

@@ -2,17 +2,17 @@
 
 The skill invokes `$arch-step` commands as slash commands in the
 orchestrator's own session. It does NOT shell out to `claude -p` or
-`codex exec` for arch-step work — that would spawn parallel
-controllers and collide with the session-scoped state arch-step
-relies on. arch-step runs in the same session as `arch-epic`.
+`codex exec` for interactive arch-step work. arch-step runs in the
+same session as `arch-epic`, so native goal-mode continuation can see
+the same plan truth.
 
 That rule applies to interactive mode. Automatic mode is a separate
 explicit lane: spawned workers do not invoke `$arch-step auto-plan`,
-`implement-loop`, or any hook-backed controller. Instead, the worker
-prompt points at arch-step's reference files and tells the child to apply
-the doctrine directly against the sub-plan DOC_PATH. This avoids nested
-controller state collisions while still preserving arch-step's artifact
-and quality contract.
+`implement-loop`, or any other automatic continuation command. Instead,
+the worker prompt points at arch-step's reference files and tells the
+child to apply the doctrine directly against the sub-plan DOC_PATH. This
+avoids nested continuation while still preserving arch-step's artifact and
+quality contract.
 
 This reference maps sub-plan Status to the exact arch-step command
 the skill issues next. It is the operational cheat sheet the
@@ -63,44 +63,27 @@ to log: `Sub-plan N North Star approved by user.`
 Next action:
 1. Invoke `$arch-step auto-plan <DOC_PATH>`.
 2. Update Status to `planning`.
-3. Append to log: `Sub-plan N auto-plan armed.`
-4. End the turn. arch-step's `auto-plan` is hook-backed; the Stop
-   hook will drive research → deep-dive → phase-plan →
-   consistency-pass across subsequent turns.
+3. Append to log: `Sub-plan N auto-plan started.`
+4. In native goal mode, let `$arch-step auto-plan` continue through
+   research, two deep-dive passes, phase-plan, and consistency-pass.
+   Outside goal mode, stop after the bounded pass and resume this mapping
+   on the next user turn.
 
 ### Status `planning`
 
-Check the auto-plan controller state file at:
-- Codex: `.codex/auto-plan-state.<SESSION_ID>.json`
-- Claude Code: `.claude/arch_skill/auto-plan-state.<SESSION_ID>.json`
+Read the sub-plan's DOC_PATH and look for `arch_skill:block:consistency_pass`
+with `Decision-complete: yes` and `Decision: proceed to implement? yes`.
+If present, planning is done. Update Status to `implementing`, invoke
+`$arch-step implement-loop <DOC_PATH>`, append to log:
+`Sub-plan N auto-plan completed. Sub-plan N implement-loop started.`
 
-If the state file exists: do nothing. The hook is running. End the
-turn.
-
-If the state file is absent: auto-plan completed. Read the
-sub-plan's DOC_PATH and look for `arch_skill:block:consistency_pass`
-with `Decision-complete: yes`. If present, the planning is done.
-Update Status to `implementing` and invoke `$arch-step implement-loop <DOC_PATH>`.
-Append to log: `Sub-plan N auto-plan completed. Sub-plan N implement-loop armed.`
-End the turn.
-
-If the state file is absent but there is no consistency-pass block
-or `Decision-complete: no`: something is off. Do NOT silently
-advance. Surface to the user: auto-plan ended without reaching
-completion. Ask whether to re-run `$arch-step auto-plan`, intervene
-manually, or halt.
+If the consistency-pass block is absent or not ready, invoke
+`$arch-step auto-plan <DOC_PATH>` again in goal mode, or report the exact
+next bounded command outside goal mode. Do not silently advance.
 
 ### Status `implementing`
 
-Check the implement-loop controller state file at:
-- Codex: `.codex/implement-loop-state.<SESSION_ID>.json`
-- Claude Code: `.claude/arch_skill/implement-loop-state.<SESSION_ID>.json`
-
-If the state file exists: do nothing. The hook is running. End the
-turn.
-
-If the state file is absent: implement-loop completed. Read the
-sub-plan's DOC_PATH and look for
+Read the sub-plan's DOC_PATH and look for
 `arch_skill:block:implementation_audit` with `Verdict (code): COMPLETE`.
 
 If COMPLETE: run the epic critic (see `critic-contract.md` and
@@ -111,12 +94,12 @@ Apply per the `Critic verdict` rules below.
 If the audit block is present but says something other than COMPLETE
 (NOT COMPLETE, reopened phases): do NOT run the epic critic. This is
 an arch-step-level completion issue. Surface to the user with the
-audit's reported blockers. The user decides whether to re-arm
-implement-loop or intervene.
+audit's reported blockers. The user decides whether to rerun
+implement-loop, continue in goal mode, or intervene.
 
 If the audit block is absent entirely: implement-loop ended without
-writing the audit. Same as the planning edge case — surface, do not
-silently advance.
+writing the audit. Run or request `$arch-step implement-loop <DOC_PATH>`;
+do not silently advance.
 
 ### Critic verdict: `pass`
 
@@ -142,7 +125,7 @@ silently advance.
 Rare — arch-step's audit normally catches incomplete work before
 the critic runs. When it happens: halt. Set `status: halted`,
 update sub-plan Status back to `implementing`, append log, ask the
-user whether to re-arm implement-loop or investigate manually.
+user whether to rerun implement-loop or investigate manually.
 
 ## What arch-epic does NOT invoke
 
@@ -153,7 +136,7 @@ user whether to re-arm implement-loop or investigate manually.
   doc and set Status to `pending` manually.
 - `$arch-step research`, `deep-dive`, `external-research`,
   `phase-plan`, `consistency-pass`, `review-gate` as individual
-  commands — those are handled by `auto-plan`'s hook. The skill
+  commands — those are handled by `auto-plan`. The skill
   does not sequence them manually.
 - Helper commands: `plan-enhance`, `fold-in`, `overbuild-protector`.
   Users invoke those ad hoc per sub-plan if they want the extra
@@ -161,6 +144,10 @@ user whether to re-arm implement-loop or investigate manually.
 - `$arch-step advance` — the skill routes from Status, not from
   arch-step's advance router. Two routers would disagree and the
   user would not know which won.
+- `$arch-step full-auto` — single-plan full-auto belongs to `arch-step`
+  itself. `arch-epic` already owns the multi-plan routing layer, so it
+  invokes or observes the underlying `new`, `auto-plan`, and
+  `implement-loop` transitions directly in interactive mode.
 - `$arch-step status` as part of the loop — only if the user
   explicitly asks "what does arch-step think of sub-plan N?", in
   which case the skill relays the answer without acting on it.
@@ -196,16 +183,15 @@ observation-only evidence. Critics do not prescribe repair steps.
 ## Cross-runtime parity
 
 Everything above works identically on Claude Code and Codex because
-`$arch-step`'s `auto-plan` and `implement-loop` controllers ship
-for both runtimes with their Stop hooks. The state file paths
-differ (`.codex/` vs `.claude/arch_skill/`); the skill checks both
-paths when looking for a live controller.
+`$arch-step`'s `auto-plan` and `implement-loop` commands are native
+goal-mode friendly in both runtimes. The epic skill checks sub-plan doc
+truth rather than external automation state.
 
 ## When in doubt, surface
 
 The decision tree above covers the common paths. Anything unusual
-(state file present but doc contents contradict, missing audit
-block, multiple controllers armed on the same session, etc.)
+(doc contents contradict, missing audit block, status says planning while
+the plan is already ready, etc.)
 surfaces to the user. The skill does not hide exceptions. If you
 find yourself tempted to paper over a weird state with an assumption,
 don't — print what you see, name your best hypothesis, and ask.

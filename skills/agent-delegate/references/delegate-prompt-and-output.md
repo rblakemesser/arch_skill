@@ -72,7 +72,7 @@ You must not:
 1. Commit, push, create pull requests, rewrite history, or stash changes unless
    the task explicitly asks for that exact operation.
 2. Revert unrelated work or user changes.
-3. Start hook-backed controllers, detached background workers, or nested
+3. Start external continuation controllers, detached background workers, or nested
    orchestration workflows as a continuation strategy.
 4. Expand beyond the allowed write scope unless the task is impossible without
    it; if that happens, stop and report the blocker.
@@ -156,7 +156,7 @@ Do not:
 - Use this skill for a read-only cold read. Use `$fresh-consult`.
 - Ask the child to keep working asynchronously after the parent returns.
 - Hide missing context behind parent summaries. Point at ground truth.
-- Ask the child to use hook-backed controllers or ordered subprocess workflows
+- Ask the child to use external continuation controllers or ordered subprocess workflows
   as part of this foreground delegation path.
 - Block parallel launch because sibling write scopes might overlap. Handle real
   conflicts from evidence after they happen.

@@ -1,15 +1,15 @@
-.PHONY: install install_skill agents_install_skill clean_codex_skill_mirror codex_install_hook claude_install_skill claude_install_hook gemini_install gemini_install_skill verify_install verify_agents_install verify_codex_install verify_claude_install verify_hook_runner verify_gemini_install remote_install clean_codex_stale_surfaces clean_claude_stale_surfaces clean_gemini_stale_surfaces ensure_installed
+.PHONY: install install_skill agents_install_skill clean_codex_skill_mirror clean_installed_hooks clean_codex_installed_hooks clean_claude_installed_hooks claude_install_skill gemini_install gemini_install_skill verify_install verify_agents_install verify_codex_install verify_claude_install verify_gemini_install remote_install clean_codex_stale_surfaces clean_claude_stale_surfaces clean_gemini_stale_surfaces
 
 # Purge removed packages from installed skill dirs before copying the active set.
-REMOVED_SKILLS := arch-skill arch-plan codemagic-builds customerio
+REMOVED_SKILLS := arch-skill arch-plan codemagic-builds customerio arch-loop delay-poll wait
 # Shared doctrine directories that ship alongside the named skills. Multiple
-# SKILL.md files reference paths like `skills/_shared/controller-contract.md`,
+# SKILL.md files reference shared planning/model-resolution files,
 # so these dirs must land in every install root next to the per-skill dirs.
 SHARED_DIRS := _shared
 # `SKILLS` is the active agents/Codex surface. Claude mirrors it; Gemini omits
-# Stop-hook and code-review-runner skills.
-SKILLS := arch-step miniarch-step arch-docs arch-mini-plan lilarch bugs-flow audit-loop comment-loop audit-loop-sim goal-loop north-star-investigation arch-flow arch-skills-guide arch-loop delay-poll wait agent-definition-auditor agents-md-authoring prompt-authoring skill-authoring figma-best-practices fal-ai-tools eli10 pr-authoring commit-history-authoring skill-flow amir-publish codex-review-yolo fresh-consult agent-delegate plan-audit plan-implement plan-swarm agent-history model-consensus contact-sheet-builder code-review stepwise arch-epic codex-cleanup thermo-nuclear-code-quality-review
-CLAUDE_SKILLS := arch-step miniarch-step arch-docs arch-mini-plan lilarch bugs-flow audit-loop comment-loop audit-loop-sim goal-loop north-star-investigation arch-flow arch-skills-guide arch-loop delay-poll wait agent-definition-auditor agents-md-authoring prompt-authoring skill-authoring figma-best-practices fal-ai-tools eli10 pr-authoring commit-history-authoring skill-flow amir-publish codex-review-yolo fresh-consult agent-delegate plan-audit plan-implement plan-swarm agent-history model-consensus contact-sheet-builder code-review stepwise arch-epic codex-cleanup thermo-nuclear-code-quality-review
+# direct code-review-runner skills.
+SKILLS := arch-step miniarch-step arch-docs arch-mini-plan lilarch bugs-flow audit-loop comment-loop audit-loop-sim goal-loop north-star-investigation arch-flow arch-skills-guide agent-definition-auditor agents-md-authoring prompt-authoring skill-authoring figma-best-practices fal-ai-tools eli10 pr-authoring commit-history-authoring skill-flow amir-publish codex-review-yolo fresh-consult agent-delegate plan-audit plan-implement plan-swarm agent-history model-consensus contact-sheet-builder code-review stepwise arch-epic codex-cleanup thermo-nuclear-code-quality-review
+CLAUDE_SKILLS := arch-step miniarch-step arch-docs arch-mini-plan lilarch bugs-flow audit-loop comment-loop audit-loop-sim goal-loop north-star-investigation arch-flow arch-skills-guide agent-definition-auditor agents-md-authoring prompt-authoring skill-authoring figma-best-practices fal-ai-tools eli10 pr-authoring commit-history-authoring skill-flow amir-publish codex-review-yolo fresh-consult agent-delegate plan-audit plan-implement plan-swarm agent-history model-consensus contact-sheet-builder code-review stepwise arch-epic codex-cleanup thermo-nuclear-code-quality-review
 GEMINI_SKILLS := arch-step miniarch-step arch-docs arch-mini-plan lilarch bugs-flow audit-loop comment-loop audit-loop-sim goal-loop north-star-investigation arch-flow arch-skills-guide agent-definition-auditor agents-md-authoring prompt-authoring skill-authoring figma-best-practices fal-ai-tools eli10 pr-authoring commit-history-authoring skill-flow amir-publish codex-review-yolo fresh-consult agent-delegate plan-audit plan-implement plan-swarm model-consensus contact-sheet-builder stepwise arch-epic codex-cleanup thermo-nuclear-code-quality-review
 CURSOR_TEAM_KIT_SKILLS_DIR := vendor/cursor/plugins/cursor-team-kit/skills
 VENDORED_CURSOR_TEAM_KIT_SKILLS := thermo-nuclear-code-quality-review
@@ -100,7 +100,7 @@ INSTALL_GEMINI := gemini_install
 VERIFY_GEMINI := verify_gemini_install
 endif
 
-install: clean_codex_stale_surfaces clean_claude_stale_surfaces install_skill claude_install_skill claude_install_hook $(INSTALL_GEMINI)
+install: clean_codex_stale_surfaces clean_claude_stale_surfaces clean_installed_hooks install_skill claude_install_skill $(INSTALL_GEMINI)
 
 clean_codex_stale_surfaces:
 	@mkdir -p ~/.codex/prompts/_backup
@@ -147,7 +147,7 @@ clean_gemini_stale_surfaces:
 	rmdir "$$prompt_backup" 2>/dev/null || true; \
 	rmdir "$$command_backup" 2>/dev/null || true
 
-install_skill: agents_install_skill clean_codex_skill_mirror codex_install_hook
+install_skill: agents_install_skill clean_codex_skill_mirror
 
 agents_install_skill:
 	mkdir -p $(AGENTS_SKILLS_DIR)
@@ -167,6 +167,8 @@ agents_install_skill:
 	@for item in $(SKILLS) $(SHARED_DIRS); do \
 		find $(AGENTS_SKILLS_DIR)/$$item \( -name build -o -name prompts -o -name __pycache__ \) -type d -prune -exec rm -rf {} +; \
 		find $(AGENTS_SKILLS_DIR)/$$item -name '*.pyc' -delete; \
+		find $(AGENTS_SKILLS_DIR)/$$item -name 'upsert_*hook.py' -delete; \
+		find $(AGENTS_SKILLS_DIR)/$$item -name 'arch_controller_stop_hook.py' -delete; \
 	done
 
 clean_codex_skill_mirror:
@@ -174,8 +176,14 @@ clean_codex_skill_mirror:
 		rm -rf $(CODEX_SKILLS_DIR)/$$skill; \
 	done
 
-codex_install_hook:
-	@python3 skills/arch-step/scripts/upsert_codex_stop_hook.py --hooks-file "$(CODEX_HOOKS_FILE)" --skills-dir "$(AGENTS_SKILLS_DIR)"
+clean_installed_hooks: clean_codex_installed_hooks clean_claude_installed_hooks
+
+clean_codex_installed_hooks:
+	@python3 skills/arch-step/scripts/upsert_codex_stop_hook.py --remove --hooks-file "$(CODEX_HOOKS_FILE)" --skills-dir "$(AGENTS_SKILLS_DIR)"
+
+clean_claude_installed_hooks:
+	@python3 skills/arch-step/scripts/upsert_claude_stop_hook.py --remove --settings-file "$(CLAUDE_SETTINGS_FILE)" --skills-dir "$(AGENTS_SKILLS_DIR)"
+	@python3 skills/arch-step/scripts/upsert_claude_session_start_hook.py --remove --settings-file "$(CLAUDE_SETTINGS_FILE)" --skills-dir "$(AGENTS_SKILLS_DIR)"
 
 claude_install_skill:
 	mkdir -p $(CLAUDE_SKILLS_DIR)
@@ -195,11 +203,9 @@ claude_install_skill:
 	@for item in $(CLAUDE_SKILLS) $(SHARED_DIRS); do \
 		find $(CLAUDE_SKILLS_DIR)/$$item \( -name build -o -name prompts -o -name __pycache__ \) -type d -prune -exec rm -rf {} +; \
 		find $(CLAUDE_SKILLS_DIR)/$$item -name '*.pyc' -delete; \
+		find $(CLAUDE_SKILLS_DIR)/$$item -name 'upsert_*hook.py' -delete; \
+		find $(CLAUDE_SKILLS_DIR)/$$item -name 'arch_controller_stop_hook.py' -delete; \
 	done
-
-claude_install_hook:
-	@python3 skills/arch-step/scripts/upsert_claude_stop_hook.py --settings-file "$(CLAUDE_SETTINGS_FILE)" --skills-dir "$(AGENTS_SKILLS_DIR)"
-	@python3 skills/arch-step/scripts/upsert_claude_session_start_hook.py --settings-file "$(CLAUDE_SETTINGS_FILE)" --skills-dir "$(AGENTS_SKILLS_DIR)"
 
 gemini_install: clean_gemini_stale_surfaces gemini_install_skill
 
@@ -226,18 +232,12 @@ gemini_install_skill:
 	@for item in $(GEMINI_SKILLS) $(SHARED_DIRS); do \
 		find $(GEMINI_SKILLS_DIR)/$$item \( -name build -o -name prompts -o -name __pycache__ \) -type d -prune -exec rm -rf {} +; \
 		find $(GEMINI_SKILLS_DIR)/$$item -name '*.pyc' -delete; \
+		find $(GEMINI_SKILLS_DIR)/$$item -name 'upsert_*hook.py' -delete; \
+		find $(GEMINI_SKILLS_DIR)/$$item -name 'arch_controller_stop_hook.py' -delete; \
 	done
 
-verify_install: verify_agents_install verify_codex_install verify_claude_install verify_hook_runner $(VERIFY_GEMINI)
-	@echo "OK: active skill surface installed for agents, Claude Code, and requested Gemini targets; one arch_skill Codex hook and one arch_skill Claude hook installed from ~/.agents/skills"
-
-verify_hook_runner:
-	@python3 $(AGENTS_SKILLS_DIR)/arch-step/scripts/arch_controller_stop_hook.py --doctor
-	@echo "OK: shared Stop-hook runner reports healthy wiring"
-
-ensure_installed:
-	@python3 $(AGENTS_SKILLS_DIR)/arch-step/scripts/arch_controller_stop_hook.py --ensure-installed --runtime claude
-	@python3 $(AGENTS_SKILLS_DIR)/arch-step/scripts/arch_controller_stop_hook.py --ensure-installed --runtime codex
+verify_install: verify_agents_install verify_codex_install verify_claude_install $(VERIFY_GEMINI)
+	@echo "OK: active skill surface installed for agents, Claude Code, and requested Gemini targets; no arch_skill hooks installed"
 
 verify_agents_install:
 	@for skill in $(SKILLS); do \
@@ -250,7 +250,12 @@ verify_agents_install:
 	@for skill in $(REMOVED_SKILLS); do \
 		test ! -d $(AGENTS_SKILLS_DIR)/$$skill; \
 	done
-	@test -f $(AGENTS_SKILLS_DIR)/_shared/controller-contract.md
+	@test -f $(AGENTS_SKILLS_DIR)/_shared/depth-first-planning.md
+	@test -f $(AGENTS_SKILLS_DIR)/_shared/model_resolution.py
+	@test ! -e $(AGENTS_SKILLS_DIR)/arch-step/scripts/arch_controller_stop_hook.py
+	@test ! -e $(AGENTS_SKILLS_DIR)/arch-step/scripts/upsert_codex_stop_hook.py
+	@test ! -e $(AGENTS_SKILLS_DIR)/arch-step/scripts/upsert_claude_stop_hook.py
+	@test ! -e $(AGENTS_SKILLS_DIR)/arch-step/scripts/upsert_claude_session_start_hook.py
 	@echo "OK: agents skills installed"
 
 verify_codex_install:
@@ -260,8 +265,8 @@ verify_codex_install:
 	@for skill in $(REMOVED_SKILLS) $(SKILLS); do \
 		test ! -d $(CODEX_SKILLS_DIR)/$$skill; \
 	done
-	@python3 skills/arch-step/scripts/upsert_codex_stop_hook.py --verify --hooks-file "$(CODEX_HOOKS_FILE)" --skills-dir "$(AGENTS_SKILLS_DIR)"
-	@echo "OK: one arch_skill Codex controller hook installed from ~/.agents/skills; stale command surfaces and old Codex skill mirrors removed"
+	@python3 skills/arch-step/scripts/upsert_codex_stop_hook.py --verify-absent --hooks-file "$(CODEX_HOOKS_FILE)" --skills-dir "$(AGENTS_SKILLS_DIR)"
+	@echo "OK: no arch_skill Codex hooks installed; stale command surfaces and old Codex skill mirrors removed"
 
 verify_claude_install:
 	@for skill in $(CLAUDE_SKILLS); do \
@@ -280,10 +285,15 @@ verify_claude_install:
 	@for skill in $(REMOVED_SKILLS); do \
 		test ! -d $(CLAUDE_SKILLS_DIR)/$$skill; \
 	done
-	@test -f $(CLAUDE_SKILLS_DIR)/_shared/controller-contract.md
-	@python3 skills/arch-step/scripts/upsert_claude_stop_hook.py --verify --settings-file "$(CLAUDE_SETTINGS_FILE)" --skills-dir "$(AGENTS_SKILLS_DIR)"
-	@python3 skills/arch-step/scripts/upsert_claude_session_start_hook.py --verify --settings-file "$(CLAUDE_SETTINGS_FILE)" --skills-dir "$(AGENTS_SKILLS_DIR)"
-	@echo "OK: Claude Code active skills installed; arch_skill Claude Stop + SessionStart hooks installed from ~/.agents/skills; stale command surfaces removed"
+	@test -f $(CLAUDE_SKILLS_DIR)/_shared/depth-first-planning.md
+	@test -f $(CLAUDE_SKILLS_DIR)/_shared/model_resolution.py
+	@test ! -e $(CLAUDE_SKILLS_DIR)/arch-step/scripts/arch_controller_stop_hook.py
+	@test ! -e $(CLAUDE_SKILLS_DIR)/arch-step/scripts/upsert_codex_stop_hook.py
+	@test ! -e $(CLAUDE_SKILLS_DIR)/arch-step/scripts/upsert_claude_stop_hook.py
+	@test ! -e $(CLAUDE_SKILLS_DIR)/arch-step/scripts/upsert_claude_session_start_hook.py
+	@python3 skills/arch-step/scripts/upsert_claude_stop_hook.py --verify-absent --settings-file "$(CLAUDE_SETTINGS_FILE)" --skills-dir "$(AGENTS_SKILLS_DIR)"
+	@python3 skills/arch-step/scripts/upsert_claude_session_start_hook.py --verify-absent --settings-file "$(CLAUDE_SETTINGS_FILE)" --skills-dir "$(AGENTS_SKILLS_DIR)"
+	@echo "OK: Claude Code active skills installed; no arch_skill Claude hooks installed; stale command surfaces removed"
 
 verify_gemini_install:
 	@for skill in $(GEMINI_SKILLS); do \
@@ -305,7 +315,12 @@ verify_gemini_install:
 	@for skill in $(REMOVED_SKILLS); do \
 		test ! -d $(GEMINI_SKILLS_DIR)/$$skill; \
 	done
-	@test -f $(GEMINI_SKILLS_DIR)/_shared/controller-contract.md
+	@test -f $(GEMINI_SKILLS_DIR)/_shared/depth-first-planning.md
+	@test -f $(GEMINI_SKILLS_DIR)/_shared/model_resolution.py
+	@test ! -e $(GEMINI_SKILLS_DIR)/arch-step/scripts/arch_controller_stop_hook.py
+	@test ! -e $(GEMINI_SKILLS_DIR)/arch-step/scripts/upsert_codex_stop_hook.py
+	@test ! -e $(GEMINI_SKILLS_DIR)/arch-step/scripts/upsert_claude_stop_hook.py
+	@test ! -e $(GEMINI_SKILLS_DIR)/arch-step/scripts/upsert_claude_session_start_hook.py
 	@echo "OK: Gemini active skills installed; stale command surfaces removed"
 
 remote_install:
@@ -333,11 +348,13 @@ remote_install:
 		ssh $(HOST) "rm -rf ~/.agents/skills/$$shared"; \
 		scp -r skills/$$shared $(HOST):~/.agents/skills/; \
 	done
-	@ssh $(HOST) "for item in $(SKILLS) $(SHARED_DIRS); do if [ -d ~/.agents/skills/\$$item ]; then find ~/.agents/skills/\$$item \( -name build -o -name prompts -o -name __pycache__ \) -type d -prune -exec rm -rf {} +; find ~/.agents/skills/\$$item -name '*.pyc' -delete; fi; done"
+	@ssh $(HOST) "python3 ~/.agents/skills/arch-step/scripts/upsert_codex_stop_hook.py --remove --hooks-file ~/.codex/hooks.json --skills-dir ~/.agents/skills"
+	@ssh $(HOST) "python3 ~/.agents/skills/arch-step/scripts/upsert_claude_stop_hook.py --remove --settings-file ~/.claude/settings.json --skills-dir ~/.agents/skills"
+	@ssh $(HOST) "python3 ~/.agents/skills/arch-step/scripts/upsert_claude_session_start_hook.py --remove --settings-file ~/.claude/settings.json --skills-dir ~/.agents/skills"
+	@ssh $(HOST) "for item in $(SKILLS) $(SHARED_DIRS); do if [ -d ~/.agents/skills/\$$item ]; then find ~/.agents/skills/\$$item \( -name build -o -name prompts -o -name __pycache__ \) -type d -prune -exec rm -rf {} +; find ~/.agents/skills/\$$item -name '*.pyc' -delete; find ~/.agents/skills/\$$item -name 'upsert_*hook.py' -delete; find ~/.agents/skills/\$$item -name 'arch_controller_stop_hook.py' -delete; fi; done"
 	@for skill in $(REMOVED_SKILLS) $(SKILLS); do \
 		ssh $(HOST) "rm -rf ~/.codex/skills/$$skill"; \
 	done
-	@ssh $(HOST) "python3 ~/.agents/skills/arch-step/scripts/upsert_codex_stop_hook.py --hooks-file ~/.codex/hooks.json --skills-dir ~/.agents/skills"
 	@for skill in $(REMOVED_SKILLS) $(SKILLS); do \
 		ssh $(HOST) "rm -rf ~/.claude/skills/$$skill"; \
 	done
@@ -351,9 +368,7 @@ remote_install:
 		ssh $(HOST) "rm -rf ~/.claude/skills/$$shared"; \
 		scp -r skills/$$shared $(HOST):~/.claude/skills/; \
 	done
-	@ssh $(HOST) "for item in $(CLAUDE_SKILLS) $(SHARED_DIRS); do if [ -d ~/.claude/skills/\$$item ]; then find ~/.claude/skills/\$$item \( -name build -o -name prompts -o -name __pycache__ \) -type d -prune -exec rm -rf {} +; find ~/.claude/skills/\$$item -name '*.pyc' -delete; fi; done"
-	@ssh $(HOST) "python3 ~/.agents/skills/arch-step/scripts/upsert_claude_stop_hook.py --settings-file ~/.claude/settings.json --skills-dir ~/.agents/skills"
-	@ssh $(HOST) "python3 ~/.agents/skills/arch-step/scripts/upsert_claude_session_start_hook.py --settings-file ~/.claude/settings.json --skills-dir ~/.agents/skills"
+	@ssh $(HOST) "for item in $(CLAUDE_SKILLS) $(SHARED_DIRS); do if [ -d ~/.claude/skills/\$$item ]; then find ~/.claude/skills/\$$item \( -name build -o -name prompts -o -name __pycache__ \) -type d -prune -exec rm -rf {} +; find ~/.claude/skills/\$$item -name '*.pyc' -delete; find ~/.claude/skills/\$$item -name 'upsert_*hook.py' -delete; find ~/.claude/skills/\$$item -name 'arch_controller_stop_hook.py' -delete; fi; done"
 	@if [ "$(NO_GEMINI)" != "1" ]; then \
 		for skill in $(REMOVED_SKILLS) $(SKILLS); do \
 			ssh $(HOST) "rm -rf ~/.gemini/skills/$$skill"; \
@@ -369,5 +384,5 @@ remote_install:
 			ssh $(HOST) "rm -rf ~/.gemini/skills/$$shared"; \
 			scp -r skills/$$shared $(HOST):~/.gemini/skills/; \
 		done; \
-		ssh $(HOST) "for item in $(GEMINI_SKILLS) $(SHARED_DIRS); do if [ -d ~/.gemini/skills/\$$item ]; then find ~/.gemini/skills/\$$item \( -name build -o -name prompts -o -name __pycache__ \) -type d -prune -exec rm -rf {} +; find ~/.gemini/skills/\$$item -name '*.pyc' -delete; fi; done"; \
+		ssh $(HOST) "for item in $(GEMINI_SKILLS) $(SHARED_DIRS); do if [ -d ~/.gemini/skills/\$$item ]; then find ~/.gemini/skills/\$$item \( -name build -o -name prompts -o -name __pycache__ \) -type d -prune -exec rm -rf {} +; find ~/.gemini/skills/\$$item -name '*.pyc' -delete; find ~/.gemini/skills/\$$item -name 'upsert_*hook.py' -delete; find ~/.gemini/skills/\$$item -name 'arch_controller_stop_hook.py' -delete; fi; done"; \
 		fi

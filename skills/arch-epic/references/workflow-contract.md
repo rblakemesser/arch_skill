@@ -130,23 +130,21 @@ determinism happens.
 ### Inputs
 - Epic doc.
 - All sub-plan DOC_PATHs (as they exist on disk).
-- arch-step controller state files at both `.codex/` and
-  `.claude/arch_skill/` paths.
+- all sub-plan planning, worklog, and audit truth visible in each DOC_PATH.
 
 ### Outputs
-- One arch-step command invoked, OR epic critic run, OR no action
-  (hook is driving), with matching Orchestration Log entry.
+- One arch-step command invoked, OR epic critic run, with matching Orchestration Log entry.
 - Updated sub-plan Status in the Decomposition.
 
 ### Actions
 Run the routing logic in `arch-step-integration.md` against the
 first sub-plan whose Status is not `complete`. Execute exactly one
 transition per turn, then end the turn. Don't chain multiple
-transitions in the same turn — the hook-backed controllers need a
-full turn to arm and disarm cleanly.
+transitions in the same turn; each transition needs fresh doc truth before
+the next routing decision.
 
 ### Where judgment lives
-- Detecting state disagreements between stored Status and observed
+- Detecting disagreements between stored Status and observed
   reality. When they differ, prose reasoning decides what the real
   state is.
 - Deciding whether an epic critic verdict can be repaired inside the
@@ -155,14 +153,14 @@ full turn to arm and disarm cleanly.
   for a scope-preserving user decision.
 
 ### Where determinism lives
-- Reading state files.
+- Reading sub-plan docs.
 - Invoking arch-step commands.
 - Writing log entries.
 - Running the critic subprocess via `scripts/run_arch_epic.py`.
 
 ### Failure modes
 - auto-plan or implement-loop ended without expected completion
-  markers. Surface to the user; do not silently re-arm.
+  markers. Surface to the user; do not silently advance.
 - Audit block says NOT COMPLETE or has reopened phases. Halt with
   the arch-step audit's reported blockers; let the user decide.
 - Critic verdict is `incomplete` (check 4 failed). Halt, surface
@@ -370,8 +368,8 @@ Log entry. End turn. Next turn re-enters `run`.
 
 - Never edit the target repo's code directly. Sub-plans do that
   via arch-step's implement-loop.
-- Never run more than one state transition per turn. The
-  hook-backed controllers need the full turn.
+- Never run more than one state transition per turn. Each transition needs
+  fresh doc truth before the next routing decision.
 - Never silently advance past a gate (North Star approval, audit
   COMPLETE, critic pass). If a gate is unmet, surface it.
 - Never overwrite past Orchestration Log or Decision Log entries.

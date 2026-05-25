@@ -4,9 +4,7 @@
 
 - `_audit_sim_ledger.md` lives at repo root.
 - The root `.gitignore` must contain `_audit_sim_ledger.md` while the audit is active.
-- the active-runtime audit-loop-sim state exists only while `auto` is armed:
-  - Codex: `.codex/audit-loop-sim-state.<SESSION_ID>.json`, with `SESSION_ID` taken from `CODEX_THREAD_ID`
-  - Claude Code: `.claude/arch_skill/audit-loop-sim-state(.<SESSION_ID>).json`
+- `auto` progress is represented in this ledger; no separate hook state file is written.
 
 ## Ledger shape
 

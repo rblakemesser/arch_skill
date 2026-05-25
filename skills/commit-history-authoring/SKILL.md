@@ -81,7 +81,6 @@ only inspects and applies a safe message-only rewrite.
    supplied an exact boundary, add `--base <ref>`.
 4. Resolve active arch-plan evidence from, in order:
    - an explicit `docs/<...>.md` path from the user
-   - current controller state under `.codex/` or `.claude/arch_skill/`
    - a single strong canonical docs candidate with full-arch markers
 5. If multiple credible plan candidates remain, ask the user to choose from the
    top candidates. Otherwise proceed with `active arch plan: none`.

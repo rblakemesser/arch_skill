@@ -74,12 +74,12 @@ turn.
   Updates epic Status to `north-star-approved`. Invokes
   `$arch-step auto-plan docs/epic/ADMIN_DASHBOARD_SSO_2026-04-22/PHASE_01_AUTH_SSO_2026-04-22.md`. Status becomes
   `planning`. Ends turn.
-- Hook drives auto-plan across several turns (research,
+- Native goal-mode continuation drives auto-plan across turns (research,
   deep-dive, phase-plan, consistency-pass).
-- Once state file is absent and consistency-pass is clean, skill
+- Once consistency-pass is clean, skill
   invokes `$arch-step implement-loop`. Status becomes `implementing`.
-- Hook drives implement-loop and audit-implementation.
-- Once audit COMPLETE and no state file, skill spawns the epic
+- Native goal-mode continuation drives implement-loop and audit-implementation.
+- Once audit COMPLETE, skill spawns the epic
   critic subprocess via `run_arch_epic.py critic-spawn`.
 - Critic returns `verdict: pass`. Skill marks sub-plan 1 Status
   `complete`. Writes verdict path. Loops.

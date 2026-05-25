@@ -178,7 +178,8 @@ codex exec \
 Flag meanings:
 
 - `--ephemeral` keeps the child stateless and cold.
-- `--disable codex_hooks` prevents hook recursion.
+- `--disable codex_hooks` isolates the consult from any local Codex hooks outside
+  this package.
 - `-C <work_root>` pins the filesystem context.
 - `--dangerously-bypass-approvals-and-sandbox` gives the child realistic local
   access. Use only in trusted local environments.
@@ -214,7 +215,8 @@ Flag meanings:
   and tool/hook activity for long consults.
 - `--dangerously-skip-permissions` gives the child realistic local access. Use
   only in trusted local environments.
-- `--settings '{"disableAllHooks":true}'` prevents hook recursion.
+- `--settings '{"disableAllHooks":true}'` isolates the consult from local Claude
+  hooks outside this package.
 - `--model` and `--effort` pin the execution choice.
 
 After Claude exits, read the final `type=result` event from `events.jsonl` and

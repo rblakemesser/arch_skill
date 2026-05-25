@@ -77,14 +77,14 @@
 - "We know the goal but not the path, keep iterating bets":
   - `goal-loop`
 
-## Specialized loops vs generic completion loop
+## Specialized loops vs native goal mode
 
 - "Keep tightening the onboarding copy across the marketing site until it reads well on mobile":
-  - `arch-loop`
+  - native `/goal`
 - "Rewrite this AGENTS.md file with `$agent-linter` as a required clean audit":
-  - `arch-loop`
+  - native `/goal`
 - "Every 30 minutes check whether staging is reachable and keep fixing infra until it is, max 8 hours":
-  - `arch-loop`
+  - native `/goal` for the fixing work; use the host's native scheduling surface for timed checks
 - "Scan this repo for bugs and fix what matters, consequence-first":
   - `audit-loop`
 - "Deeply map this repo, then add the comments that actually matter":
@@ -92,11 +92,11 @@
 - "Find the biggest automation blind spots in the real app and keep closing them":
   - `audit-loop-sim`
 
-## Generic completion loop vs pure wait/poll
+## Waiting and polling
 
 - "Wait 1h30m then continue investigating the flaky test":
-  - `wait`
+  - use the host's native scheduling or reminder surface
 - "Every 30 minutes check whether branch X has been pushed; when it is, integrate it":
-  - `delay-poll`
+  - use the host's native scheduling surface
 - "Every 30 minutes check whether staging is reachable and keep fixing infra until it is, max 8 hours":
-  - `arch-loop` (parent work between checks, external evaluator decides when to stop)
+  - native `/goal` for fixing plus the host's native scheduling surface for timed checks

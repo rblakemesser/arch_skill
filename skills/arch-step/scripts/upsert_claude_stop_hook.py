@@ -1,11 +1,5 @@
 #!/usr/bin/env python3
-"""Install or verify the unified arch_skill Stop hook in Claude settings.json.
-
-The install path holds an exclusive fcntl.flock on the target settings file so
-concurrent arms from parallel sessions serialize their read-modify-write. The
-canonical entry bytes are identical for every session, so parallel installs
-converge on the same output regardless of order.
-"""
+"""Remove or verify absence of the old arch_skill Claude Stop hook."""
 
 from __future__ import annotations
 
@@ -17,21 +11,15 @@ from pathlib import Path
 
 
 HOOK_SCRIPT_NAME = "arch_controller_stop_hook.py"
-HOOK_TIMEOUT_SEC = 90000
-HOOK_RUNTIME = "claude"
-
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
+    action = parser.add_mutually_exclusive_group(required=True)
+    action.add_argument("--remove", action="store_true")
+    action.add_argument("--verify-absent", action="store_true")
     parser.add_argument("--settings-file", required=True)
-    parser.add_argument("--skills-dir", required=True)
-    parser.add_argument("--verify", action="store_true")
+    parser.add_argument("--skills-dir")
     return parser.parse_args()
-
-
-def expected_command(skills_dir: Path) -> str:
-    hook_script = skills_dir / "arch-step" / "scripts" / HOOK_SCRIPT_NAME
-    return f"python3 {hook_script} --runtime {HOOK_RUNTIME}"
 
 
 def command_mentions_repo_runner(command: str) -> bool:
@@ -84,20 +72,8 @@ def is_repo_managed_group(group: object) -> bool:
     return False
 
 
-def repo_managed_groups(stop_groups: list[object]) -> list[dict]:
+def repo_managed_groups(stop_groups: list[object]) -> list[object]:
     return [group for group in stop_groups if is_repo_managed_group(group)]
-
-
-def expected_group(command: str) -> dict:
-    return {
-        "hooks": [
-            {
-                "type": "command",
-                "command": command,
-                "timeout": HOOK_TIMEOUT_SEC,
-            }
-        ]
-    }
 
 
 def _open_for_lock(path: Path):
@@ -105,7 +81,9 @@ def _open_for_lock(path: Path):
     return open(path, "a+", encoding="utf-8")
 
 
-def install_hook(settings_file: Path, skills_dir: Path) -> None:
+def remove_hook(settings_file: Path) -> None:
+    if not settings_file.exists():
+        return
     with _open_for_lock(settings_file) as lock_fd:
         fcntl.flock(lock_fd.fileno(), fcntl.LOCK_EX)
         data = load_settings_file(settings_file)
@@ -115,53 +93,40 @@ def install_hook(settings_file: Path, skills_dir: Path) -> None:
         if not isinstance(stop_groups, list):
             raise SystemExit(f"{settings_file} must contain a list at hooks.Stop")
 
-        command = expected_command(skills_dir)
-        stop_groups = [group for group in stop_groups if not is_repo_managed_group(group)]
-        stop_groups.append(expected_group(command))
-        data["hooks"]["Stop"] = stop_groups
+        remaining_groups = [group for group in stop_groups if not is_repo_managed_group(group)]
+        if remaining_groups == stop_groups:
+            return
+        if remaining_groups:
+            data["hooks"]["Stop"] = remaining_groups
+        else:
+            data["hooks"].pop("Stop", None)
 
         write_json_file(settings_file, data)
 
 
-def verify_hook(settings_file: Path, skills_dir: Path) -> None:
+def verify_absent(settings_file: Path) -> None:
     if not settings_file.exists():
-        raise SystemExit(f"missing Claude settings file: {settings_file}")
+        return
     data = load_settings_file(settings_file)
     stop_groups = data["hooks"].get("Stop", [])
     if not isinstance(stop_groups, list):
         raise SystemExit(f"{settings_file} must contain a list at hooks.Stop")
 
-    command = expected_command(skills_dir)
-    wanted = expected_group(command)
     managed_groups = repo_managed_groups(stop_groups)
-    if not managed_groups:
+    if managed_groups:
         raise SystemExit(
-            "missing arch_skill Stop hook entry in "
-            f"{settings_file}; expected command: {command}. "
-            "Run `make install` or `arch_controller_stop_hook.py --ensure-installed --runtime claude`."
-        )
-    if len(managed_groups) != 1:
-        raise SystemExit(
-            "arch_skill: multiple Stop hook entries found in "
-            f"{settings_file}; expected exactly one matching: {command}. "
-            "Remove the extras manually and rerun install."
-        )
-    if managed_groups[0] != wanted:
-        raise SystemExit(
-            "arch_skill: stale Stop hook entry in "
-            f"{settings_file}; expected command: {command}. "
-            "Remove the stale entry manually and rerun install."
+            "arch_skill Claude Stop hook entries are still present in "
+            f"{settings_file}. Run `make install` to remove them."
         )
 
 
 def main() -> int:
     args = parse_args()
     settings_file = Path(args.settings_file).expanduser()
-    skills_dir = Path(args.skills_dir).expanduser()
-    if args.verify:
-        verify_hook(settings_file, skills_dir)
+    if args.verify_absent:
+        verify_absent(settings_file)
     else:
-        install_hook(settings_file, skills_dir)
+        remove_hook(settings_file)
     return 0
 
 

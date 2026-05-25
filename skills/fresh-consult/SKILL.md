@@ -39,8 +39,8 @@ controllers, state machines, parsers, or install-time automation.
   loops, or persistent orchestration. Use `$stepwise` or `$arch-epic`.
 - The child is expected to edit files or fix issues. Use `$agent-delegate` for
   a one-shot operational subprocess task.
-- The child is expected to arm hooks or continue a controller. Use the matching
-  hook-backed workflow skill instead.
+- The child is expected to continue a long-running workflow. Use the matching
+  workflow skill or native goal mode instead.
 - There is no concrete artifact, claim, question, or target path to inspect.
 - The requested runtime CLI is not installed.
 

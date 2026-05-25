@@ -51,7 +51,6 @@ should explain its own step.
 Call out an active arch plan only when the evidence is real:
 
 - the user named a `docs/<...>.md` plan path
-- controller state names a `doc_path`
 - exactly one strong canonical full-arch doc candidate is visible
 - the commit itself touches or clearly implements that plan
 

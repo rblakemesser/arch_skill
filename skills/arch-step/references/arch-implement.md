@@ -82,7 +82,7 @@ By the end of the run:
 ## Hard rules
 
 - read `DOC_PATH` fully before editing code
-- this command is an ordered implementation run across the current approved ordered implementation frontier; if the user wants hook-backed fresh auditing after each full implementation pass, use `implement-loop`
+- this command is an ordered implementation run across the current approved ordered implementation frontier; if the user wants repeated fresh auditing after each full implementation pass, use `implement-loop`
 - treat the doc as the authoritative spec and checklist
 - identify the canonical owner path before designing or extending a code path
 - if the work includes refactor, consolidation, or shared-path extraction, identify the preservation signal before editing code

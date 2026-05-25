@@ -12,28 +12,24 @@ This repo ships installable agent skills centered on the arch suite for Codex CL
 
 The live arch suite is:
 
-- `arch-step` — the broad full-arch execution surface; owns the full staged workflow, extended helper passes, bounded `auto-plan`, implementation-frontier `implement-loop`, compact `status`, and guided `advance`
-- `miniarch-step` — the trimmed full-arch surface; keeps canonical arch docs, phasing, and real auto controllers without the broader `arch-step` helper surface
-- `arch-docs` — standalone docs-audit and cleanup skill; owns topic-first stale-doc cleanup, consolidation onto canonical docs, working-doc retirement, and hook-backed `auto` docs cleanup in Codex and Claude Code
+- `arch-step` — the broad full-arch execution surface; owns the full staged workflow, extended helper passes, bounded `auto-plan`, implementation-frontier `implement-loop`, doctrine-only `full-auto`, compact `status`, and guided `advance`
+- `miniarch-step` — the trimmed full-arch surface; keeps canonical arch docs, phasing, doctrine-only `full-auto`, and native goal-mode auto flow without the broader `arch-step` helper surface
+- `arch-docs` — standalone docs-audit and cleanup skill; owns topic-first stale-doc cleanup, consolidation onto canonical docs, working-doc retirement, and native goal-mode `auto` docs cleanup
 - `arch-mini-plan` — one-pass canonical mini planning that hands follow-through to `miniarch-step` or `arch-step`
 - `lilarch` — compact 1-3 phase feature flow
 - `bugs-flow` — evidence-first bug analyze/fix/review flow
-- `audit-loop` — exhaustive map-first repo audit loop with a root audit ledger, mandatory post-change self-audit, and hook-backed `auto` continuation in Codex and Claude Code
-- `comment-loop` — exhaustive map-first repo comment hardening loop with a root comment ledger and hook-backed `auto` continuation in Codex and Claude Code
-- `audit-loop-sim` — exhaustive map-first real-app automation audit loop with a root simulator ledger, mandatory post-change self-audit, and hook-backed `auto` continuation in Codex and Claude Code
+- `audit-loop` — exhaustive map-first repo audit loop with a root audit ledger, mandatory post-change self-audit, and native goal-mode `auto` continuation
+- `comment-loop` — exhaustive map-first repo comment hardening loop with a root comment ledger and native goal-mode `auto` continuation
+- `audit-loop-sim` — exhaustive map-first real-app automation audit loop with a root simulator ledger, mandatory post-change self-audit, and native goal-mode `auto` continuation
 - `goal-loop` — open-ended goal-seeking loop
 - `north-star-investigation` — math-first investigation loop
 - `arch-flow` — read-only "what's next?" router for arch docs
 - `arch-skills-guide` — explains the suite and recommends the right live subskill
-- `arch-epic` — multi-plan orchestrator that wraps `arch-step` for goals too big for a single canonical plan. Captures the goal, drafts a plain-English one-sentence-per-sub-plan decomposition with inter-plan gates, gets user approval, then runs sub-plans depth-first. Interactive mode drives each sub-plan through arch-step's `new` → `auto-plan` → `implement-loop` → `audit-implementation` arc and uses a fresh Claude/Codex critic after completion. Automatic mode asks for role-based execution choices for planner, implementation worker, and critic, resolves shorthand to exact runnable model IDs, pins the policy, then uses streamed hook-suppressed spawned harnesses with detached long-run monitoring and a 180s default child-wait cadence. Planner and implementation sessions are resumable; fresh critics report observation-only verdicts, and in-scope failures resume the same role session instead of spawning a separate repair worker.
+- `arch-epic` — multi-plan orchestrator that wraps `arch-step` for goals too big for a single canonical plan. Captures the goal, drafts a plain-English one-sentence-per-sub-plan decomposition with inter-plan gates, gets user approval, then runs sub-plans depth-first. Interactive mode drives each sub-plan through arch-step's `new` → `auto-plan` → `implement-loop` → `audit-implementation` arc and uses a fresh Claude/Codex critic after completion. Automatic mode asks for role-based execution choices for planner, implementation worker, and critic, resolves shorthand to exact runnable model IDs, pins the policy, then uses streamed spawned harnesses with detached long-run monitoring and a 180s default child-wait cadence. Planner and implementation sessions are resumable; fresh critics report observation-only verdicts, and in-scope failures resume the same role session instead of spawning a separate repair worker.
 
 Use `miniarch-step` when the work still needs a real full-arch artifact and auto continuation, but you want the trimmed command surface instead of the broader `arch-step` helper surface. Use `arch-step` when the work is broader, more ambiguous, or needs the full helper surface.
 
 Other shipped skills are:
-
-- `arch-loop` — generic hook-backed completion loop for Codex and Claude Code that takes free-form requirements, optional named-skill audit obligations (e.g. `$agent-linter`), and optional runtime/cadence/iteration caps, then drives repeat turns through the installed `Stop` hook until a fresh unsandboxed Codex `gpt-5.4` `xhigh` external evaluator emits a `clean` or `blocked` verdict. Distinct from `delay-poll` (condition-polling only, no work done between checks) and from specialized loops like `audit-loop` (prescribed map-first audit flow).
-- `delay-poll` — delay-and-check controller for Codex and Claude Code that waits inside the installed `Stop` hook, re-runs a read-only condition check on a fixed interval, and resumes the same thread when the condition becomes true
-- `wait` — one-shot delay-then-resume controller for Codex and Claude Code that sleeps inside the installed `Stop` hook for a parsed duration (`30m`, `1h30m`, `90s`, `2d`) and then injects a literal resume prompt back into the same thread exactly once. Use this for plain "wait N and continue" work. For condition re-checking use `delay-poll`; for recurring or scheduled work use `/loop` or `schedule`.
 - `agent-definition-auditor` — cold-reader scoring and findings for `AGENTS.md`, `CLAUDE.md`, `SKILL.md`, `SOUL.md`, system prompts, and other agent-definition markdown
 - `agents-md-authoring` — writes, edits, refactors, and audits concise repo-present `AGENTS.md` files
 - `prompt-authoring` — writes, edits, refactors, and audits prompts, reusable prompt contracts, and compact Codex `/goal` mission briefs
@@ -55,9 +51,9 @@ Other shipped skills are:
 - `agent-history` — searches local Codex or Claude Code session history for prior prompts, goals, commands, corrections, tool use, and timelines from natural-language asks, using bundled read-only JSONL/SQLite helpers and concise evidence summaries
 - `model-consensus` — prompt-only parent-agent orchestration for two selected Claude Opus, Codex GPT/GBT, or Cursor Composer model sessions to cross-check, critique, and converge on a plan, architecture, investigation, design, or concept until they agree or expose the smallest unresolved decision; preserves child discovery freedom for investigations and requires repo-backed participants to read real evidence before agreeing
 - `contact-sheet-builder` — builds quick local contact sheet PNGs from existing images, folders, globs, or attached local image paths using a lean prompt contract plus one Pillow renderer; defaults to dense labeled sheets, dynamic near-native edge-to-edge canvas sizing, safe temp output, Preview opening on macOS, and concise receipts
-- `code-review` — deterministic general code-review skill that always shells out to fresh unsandboxed Codex `gpt-5.4` `xhigh` (with parallel `gpt-5.4-mini` `xhigh` review lenses) for diffs, branches, paths, or completion-claim audits; supports direct and hook-backed invocation, and keeps Codex as the reviewer even when Claude hosts the Stop hook
+- `code-review` — deterministic general code-review skill that always shells out to fresh unsandboxed Codex `gpt-5.4` `xhigh` (with parallel `gpt-5.4-mini` `xhigh` review lenses) for diffs, branches, paths, or completion-claim audits; direct invocation only
 - `thermo-nuclear-code-quality-review` — vendored Cursor Team Kit rubric for unusually strict maintainability reviews focused on code-judo simplification, 1k-line file growth, spaghetti branching, abstraction boundaries, and structural quality
-- `stepwise` — diagnostic orchestrator for ordered multi-step processes defined in another repo's doctrine; spawns a fresh Claude or Codex worker session per step, runs an independent observational critic, and on failure diagnoses with the involved sessions before authoring a source-grounded repair at root cause. Model and effort for worker and critic are supplied by the user at invocation; both runtimes run dangerous / skip-permissions / no-sandbox. Distinct from `arch-loop` (requirement-satisfaction, not ordered steps), `arch-step` (plan-doc-backed full-arch), and `code-review` (one-shot review).
+- `stepwise` — diagnostic orchestrator for ordered multi-step processes defined in another repo's doctrine; spawns a fresh Claude or Codex worker session per step, runs an independent observational critic, and on failure diagnoses with the involved sessions before authoring a source-grounded repair at root cause. Model and effort for worker and critic are supplied by the user at invocation; both runtimes run dangerous / skip-permissions / no-sandbox. Distinct from `arch-step` (plan-doc-backed full-arch), `goal-loop` (bet-and-learn optimization), and `code-review` (one-shot review).
 
 Examples in this repo use Codex `$skill` notation. In Claude Code, invoke the same skill as `/skill`.
 
@@ -69,26 +65,9 @@ cd arch_skill
 make install
 ```
 
-This installs the live skill surface to `~/.agents/skills/`, writes one arch_skill-managed Codex `Stop` hook in `~/.codex/hooks.json` pointing at `~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py --runtime codex`, writes one arch_skill-managed Claude Code `Stop` hook plus one `SessionStart` hook in `~/.claude/settings.json` pointing at the same installed runner with `--runtime claude`, removes older `~/.codex/skills/<skill>` mirrors from previous installs, and also installs the Claude Code and Gemini CLI skill directories. Source/build internals (`build/`, `prompts/`, `__pycache__/`, and `*.pyc`) are pruned from installed skill packages. The `thermo-nuclear-code-quality-review` package is sourced unchanged from the vendored Cursor Team Kit plugin at `vendor/cursor/plugins/cursor-team-kit/skills/`; the installer copies only that skill package, not Cursor Team Kit agents or rules. Every loop-skill arm also reruns the same idempotent, flock-guarded `arch_controller_stop_hook.py --ensure-installed --runtime <codex|claude>` so the canonical hook entries cannot drift between runs. Drift is fail-loud at dispatch: any non-canonical group, missing `SessionStart` on Claude, or stale runner path makes the Stop hook exit 2 with the exact repair command rather than silently migrate.
+This installs the live skill surface to `~/.agents/skills/`, removes old arch_skill-owned Codex and Claude hook entries from previous installs, removes older `~/.codex/skills/<skill>` mirrors, and also installs the Claude Code and Gemini CLI skill directories. Source/build internals (`build/`, `prompts/`, `__pycache__/`, `*.pyc`, and hook cleanup helpers) are pruned from installed skill packages. The `thermo-nuclear-code-quality-review` package is sourced unchanged from the vendored Cursor Team Kit plugin at `vendor/cursor/plugins/cursor-team-kit/skills/`; the installer copies only that skill package, not Cursor Team Kit agents or rules.
 
-Codex automatic `auto-plan`, `implement-loop`, `auto-implement`, `arch-docs auto`, `audit-loop auto`, `comment-loop auto`, `audit-loop-sim auto`, `arch-loop`, `delay-poll`, and `wait` also require the Codex feature flag:
-
-```bash
-codex features enable codex_hooks
-```
-
-Claude Code uses the installed settings-level `Stop` hook and does not depend on the Codex feature flag. Claude controllers that need fresh child review or check passes launch hook-suppressed child runs with `claude -p --settings '{"disableAllHooks":true}'`, so that child path must work with the machine's normal Claude auth.
-
-Hook-backed skills all follow the **arm first, disarm never** controller contract at `skills/_shared/controller-contract.md`. That document owns the state-file paths, the arm-time ensure-install rule, the dispatch-time loud verify, the session-scoped conflict gate, the staleness sweep, and the manual recovery procedure. Do not run the Stop hook yourself — arm the controller, end the turn, and let the installed runner own the rest.
-
-For manual recovery when a controller wedges, see the shared contract's Manual recovery section, or run the shared runner's disarm flags directly:
-
-```bash
-~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py --list-controllers
-~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py --disarm <name> [--session <id>]
-~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py --disarm-all --yes
-~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py --doctor
-```
+Automatic skill modes now rely on the host's native goal-mode continuation. Use Codex `/goal` or Claude Code `/goal` when you want a skill to keep moving across turns until its proof bar is met. This package no longer installs `Stop` or `SessionStart` hooks.
 
 To skip Gemini:
 
@@ -112,9 +91,6 @@ Installed skills:
   - `~/.agents/skills/north-star-investigation/`
   - `~/.agents/skills/arch-flow/`
   - `~/.agents/skills/arch-skills-guide/`
-  - `~/.agents/skills/arch-loop/`
-  - `~/.agents/skills/delay-poll/`
-  - `~/.agents/skills/wait/`
   - `~/.agents/skills/agent-definition-auditor/`
   - `~/.agents/skills/agents-md-authoring/`
   - `~/.agents/skills/prompt-authoring/`
@@ -154,9 +130,6 @@ Installed skills:
   - `~/.claude/skills/north-star-investigation/`
   - `~/.claude/skills/arch-flow/`
   - `~/.claude/skills/arch-skills-guide/`
-  - `~/.claude/skills/arch-loop/`
-  - `~/.claude/skills/delay-poll/`
-  - `~/.claude/skills/wait/`
   - `~/.claude/skills/agent-definition-auditor/`
   - `~/.claude/skills/agents-md-authoring/`
   - `~/.claude/skills/prompt-authoring/`
@@ -222,7 +195,7 @@ Installed skills:
 
 Codex reads the same installed skill surface from `~/.agents/skills/`. `make install` also removes stale pre-skill command surfaces, removed skill packages, older `~/.codex/skills/<skill>` mirrors, and local source/build internals so runtime routing stays unambiguous.
 
-`arch-loop`, `delay-poll`, and `wait` are installed on Codex and Claude Code because both runtimes have a native `Stop` hook surface; all three are omitted from Gemini because Gemini still has no hook-backed auto-controller surface and there is no way for the parsed duration, condition re-check, or evaluator-backed verdict to resume the same thread there. `arch-loop` evaluator turns additionally always shell out to fresh unsandboxed Codex `gpt-5.4` `xhigh` for the external verdict; the Claude host can arm and drive the loop, but the evaluator subprocess itself is always Codex, mirroring the `code-review` exception below. `agent-history` is installed on the agents/Codex and Claude Code surfaces because its v1 storage map covers Codex and Claude Code local history. `contact-sheet-builder` is installed on all three skill surfaces and requires Python with Pillow at runtime. `figma-best-practices`, `fal-ai-tools`, `fresh-consult`, `agent-delegate`, `plan-audit`, `plan-implement`, `model-consensus`, `plan-swarm`, and `thermo-nuclear-code-quality-review` are installed on all three skill surfaces. Subprocess skills still require the selected local `claude`, `codex`, or `agent` CLI to exist on the host at invocation time. Provider routing is fixed: Codex runs GPT/GBT/OpenAI models, Claude Code runs Opus, and Cursor Agent runs only `composer-2.5-fast`; do not use Cursor Agent as a host for GPT/GBT or Claude model ids. `fresh-consult` and `model-consensus` report read-only or planning results; `fresh-consult` can run multiple fresh read-only children when explicitly requested. `agent-delegate` may write to the shared worktree when invoked with an allowed write scope, can run multiple fresh workers when explicitly requested, and may resume an explicit same-runtime delegated session when the caller requires continuity. `plan-audit` is doctrine-only and prompt-first: it audits planning artifacts in whatever format they use, may keep a Markdown audit log beside file-backed plans, and includes a plan-backed implementation-audit code-review mode that does not run tests, ask for logs, prove CI, require external coding-harness CLIs, or add scripts/controllers. `plan-implement` is doctrine-only and prompt-first: it implements from existing plans while keeping a lightweight implementation log, proof freshness, and warm plan-backed review aligned without external coding-harness spawning or deterministic control. `plan-swarm` is prompt-first: the parent agent coordinates parallel workers through `agent-delegate` and keeps human worklogs next to the plan. `code-review` is installed on the agents/Codex and Claude Code surfaces only; the Claude host can trigger the skill, but the actual review subprocess always shells out to fresh Codex.
+`arch-loop`, `delay-poll`, and `wait` are removed from the live installed surface; use native `/goal` for free-form completion and the host's native scheduling/reminder surface for timed waiting or polling. `agent-history` is installed on the agents/Codex and Claude Code surfaces because its v1 storage map covers Codex and Claude Code local history. `contact-sheet-builder` is installed on all three skill surfaces and requires Python with Pillow at runtime. `figma-best-practices`, `fal-ai-tools`, `fresh-consult`, `agent-delegate`, `plan-audit`, `plan-implement`, `model-consensus`, `plan-swarm`, and `thermo-nuclear-code-quality-review` are installed on all three skill surfaces. Subprocess skills still require the selected local `claude`, `codex`, or `agent` CLI to exist on the host at invocation time. Provider routing is fixed: Codex runs GPT/GBT/OpenAI models, Claude Code runs Opus, and Cursor Agent runs only `composer-2.5-fast`; do not use Cursor Agent as a host for GPT/GBT or Claude model ids. `fresh-consult` and `model-consensus` report read-only or planning results; `fresh-consult` can run multiple fresh read-only children when explicitly requested. `agent-delegate` may write to the shared worktree when invoked with an allowed write scope, can run multiple fresh workers when explicitly requested, and may resume an explicit same-runtime delegated session when the caller requires continuity. `plan-audit` is doctrine-only and prompt-first: it audits planning artifacts in whatever format they use, may keep a Markdown audit log beside file-backed plans, and includes a plan-backed implementation-audit code-review mode that does not run tests, ask for logs, prove CI, require external coding-harness CLIs, or add scripts/controllers. `plan-implement` is doctrine-only and prompt-first: it implements from existing plans while keeping a lightweight implementation log, proof freshness, and warm plan-backed review aligned without external coding-harness spawning or deterministic control. `plan-swarm` is prompt-first: the parent agent coordinates parallel workers through `agent-delegate` and keeps human worklogs next to the plan. `code-review` is installed on the agents/Codex and Claude Code surfaces only; the Claude host can trigger the skill, but the actual review subprocess always shells out to fresh Codex.
 
 ### Remote install
 
@@ -236,15 +209,11 @@ make remote_install HOST=user@host
 make verify_install
 ```
 
-This validates the installed active skill surface in `~/.agents/skills/`, checks that exactly one arch_skill-managed Codex `Stop` hook exists in `~/.codex/hooks.json` and points at `~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py --runtime codex`, checks that exactly one arch_skill-managed Claude Code `Stop` hook plus one `SessionStart` hook exist in `~/.claude/settings.json` and point at the same installed runner with `--runtime claude`, confirms the old `~/.codex/skills/<skill>` mirrors are absent, and confirms removed skill packages are absent for the supported runtimes. The Stop hook itself also re-runs the same verify on every dispatch and exits 2 with the exact repair command if it finds drift — there is no silent migration, no legacy fallback, no transitional shim.
+This validates the installed active skill surface in `~/.agents/skills/`, confirms old arch_skill-owned Codex and Claude hook entries are absent, confirms the old `~/.codex/skills/<skill>` mirrors are absent, and confirms removed skill packages are absent for the supported runtimes.
 
-To confirm the Codex feature gate is enabled:
-
-```bash
-codex features list | rg '^codex_hooks\\s+.*\\strue$'
-```
-
-Restart your Codex, Claude Code, or Gemini CLI session after install so it reloads skills.
+Restart your Codex, Claude Code, or Gemini CLI session after install so it
+reloads skills and drops any hook list cached before install removed old
+arch_skill hook entries.
 
 ## Shipped skills
 
@@ -267,13 +236,16 @@ Use `arch-step` for broad or ambiguity-heavy full-arch work. It owns the standal
 - `implement`
 - `implement-loop`
 - `auto-implement`
+- `full-auto`
 - `audit-implementation`
 - `status`
 - `advance`
 
 `consistency-pass` is the optional end-to-end cold-read helper before implementation. In Codex it uses two parallel cold reads; `auto-plan` runs it automatically after `phase-plan`. When it runs, `Decision: proceed to implement? yes` is only legal if the artifact is decision-complete and has no unresolved plan-shaping decisions left.
 
-`auto-plan` is the automatic planning controller in Codex and Claude Code. The user-facing command is still just `$arch-step auto-plan` in Codex or `/arch-step auto-plan` in Claude Code, with an optional `docs/MY_PLAN.md` argument. `DOC_PATH` is always the planning ledger. The armed controller state lives under `.codex/` in Codex and under `.claude/arch_skill/` in Claude Code. On a fresh doc, the parent `auto-plan` pass runs only `research`, then ends its turn. On reruns, the installed Stop hook reads the doc and resumes from the first incomplete stage through `deep-dive` pass 1, `deep-dive` pass 2, `phase-plan`, and `consistency-pass`, then owns the successful `implement-loop` handoff. That handoff is allowed only when the artifact is decision-complete. If any unresolved plan-shaping decision remains, `auto-plan` must stop and ask the user the exact blocker question; the Stop hook clears controller state. Every arm runs `arch_controller_stop_hook.py --ensure-installed --runtime <codex|claude>` first; the installer is idempotent and flock-guarded and writes the canonical `Stop` entry (and the `SessionStart` entry on Claude). If `--ensure-installed` fails loud, repair the named prerequisite and rerun.
+`auto-plan` is the automatic planning command. The user-facing command is still just `$arch-step auto-plan` in Codex or `/arch-step auto-plan` in Claude Code, with an optional `docs/MY_PLAN.md` argument. `DOC_PATH` is always the planning ledger. It resumes from the first incomplete stage through `research`, `deep-dive` pass 1, `deep-dive` pass 2, `phase-plan`, and `consistency-pass`, then emits the `implement-loop` handoff only when the artifact is decision-complete. In native `/goal`, it keeps moving across turns until that proof bar is met or a true blocker stops it. Outside goal mode, it runs one bounded stage and names the exact next command.
+
+`full-auto` is a doctrine-only re-entrant mode, not a new controller. It reads the plan, worklog, and audit block, then routes to the next existing command: `new` or `reformat` when the doc is missing or non-canonical, `auto-plan` while planning is incomplete, `implement-loop` only after `consistency-pass` proves the artifact is decision-complete and ready for implementation, or `$arch-docs` after a clean code audit. It never starts implementation before planning readiness and never bypasses North Star confirmation.
 
 `arch-step` does not have authority to silently cut approved behavior, acceptance criteria, or required implementation work because the agent wants to narrow scope on its own. If repo evidence cannot settle a plan-shaping choice, the skill must ask the user instead of guessing.
 
@@ -283,13 +255,13 @@ Compatibility posture is separate from `fallback_policy`. The plan should say wh
 
 Section 7 phase plans should protect the full destination map while building depth-first. The first working slice should prove one real path through the canonical owner path and highest-risk seam; later phases should expand along named axes. Phase count follows proof gates, dependency edges, reversibility or migration boundaries, and user-review boundaries rather than a preset number. New phase plans should use an explicit `Checklist (must all be done)` plus `Exit criteria (all required)` so a phase cannot be called complete while planned obligations are still implicit.
 
-`implement-loop` is the automatic implementation-frontier delivery controller in Codex and Claude Code. `auto-implement` is an exact user-facing synonym for the same controller. The user-facing command is `$arch-step implement-loop docs/MY_PLAN.md` or `$arch-step auto-implement docs/MY_PLAN.md` in Codex, and the same `/arch-step ...` command in Claude Code. It arms loop state before implementation work, then runs the current approved ordered implementation frontier: the earliest incomplete or reopened phase plus later phases whose prerequisites and proof gates are reachable in this arc. Named later expansion is not current missing work until its proof gate is due; silent removal from the destination map is still a scope cut. The controller state lives under `.codex/` in Codex and under `.claude/arch_skill/` in Claude Code. Every arm runs `arch_controller_stop_hook.py --ensure-installed --runtime <codex|claude>` first; the installer is idempotent and flock-guarded and writes the canonical `Stop` entry (and the `SessionStart` entry on Claude). Claude fresh-audit cycles additionally require working hook-suppressed child runs via `claude -p --settings '{"disableAllHooks":true}'`.
+`implement-loop` is the automatic implementation-frontier delivery command. `auto-implement` is an exact user-facing synonym. The user-facing command is `$arch-step implement-loop docs/MY_PLAN.md` or `$arch-step auto-implement docs/MY_PLAN.md` in Codex, and the same `/arch-step ...` command in Claude Code. It runs the current approved ordered implementation frontier: the earliest incomplete or reopened phase plus later phases whose prerequisites and proof gates are reachable in this arc, then runs `audit-implementation`. Named later expansion is not current missing work until its proof gate is due; silent removal from the destination map is still a scope cut. In native `/goal`, it keeps implementing and auditing until the audit is clean or a true blocker stops it. Outside goal mode, it runs one bounded implementation/audit cycle and names the next command.
 
 If the user says "do the full arch flow," "continue this architecture doc," or "audit implementation against the plan," the right live skill is `arch-step`.
 
 ### `miniarch-step`
 
-Use `miniarch-step` when the work still needs a canonical full-arch doc, phased execution, and real auto controllers in Codex or Claude Code, but does not need `arch-step`'s broader staged helper surface. It keeps the trimmed command surface without changing the full-work posture.
+Use `miniarch-step` when the work still needs a canonical full-arch doc, phased execution, and native goal-mode auto flow, but does not need `arch-step`'s broader staged helper surface. It keeps the trimmed command surface without changing the full-work posture.
 
 It keeps the same full-arch artifact shape and the same clean-audit handoff to `arch-docs`, but with a shorter command surface:
 
@@ -302,13 +274,16 @@ It keeps the same full-arch artifact shape and the same clean-audit handoff to `
 - `implement`
 - `implement-loop`
 - `auto-implement`
+- `full-auto`
 - `audit-implementation`
 - `status`
 - `advance`
 
-`miniarch-step auto-plan` is the planning controller for the trimmed full-arch surface in Codex and Claude Code. `DOC_PATH` is the planning ledger and the armed controller state lives under `.codex/` in Codex and under `.claude/arch_skill/` in Claude Code. On a fresh doc, the parent pass runs only `research`, then ends its turn. On reruns, the installed Stop hook resumes from the first incomplete stage through `deep-dive` and `phase-plan`, then owns the successful `implement-loop` handoff.
+`miniarch-step auto-plan` is the automatic planning command for the trimmed full-arch surface. `DOC_PATH` is the planning ledger. It resumes from the first incomplete stage through `research`, `deep-dive`, and `phase-plan`, then emits the `implement-loop` handoff when the plan is decision-complete. In native `/goal`, it keeps moving across turns until that proof bar is met or a true blocker stops it.
 
-`miniarch-step implement-loop` and `miniarch-step auto-implement` share the same implementation-frontier delivery controller. They arm runtime-local controller state under `.codex/` in Codex or `.claude/arch_skill/` in Claude Code, implement the current approved ordered implementation frontier, and let fresh `audit-implementation` decide whether the loop is clean or more work remains. Named later expansion is not current missing work until its proof gate is due. In Codex, that fresh miniarch audit child runs with `gpt-5.4-mini` at `xhigh` reasoning effort.
+`miniarch-step full-auto` is also doctrine-only and re-entrant. It routes over the existing miniarch `auto-plan` and `implement-loop` commands, but it does not add or invoke `consistency-pass`; before implementation it must use the normal miniarch section-quality readiness bar to confirm the artifact, research, deep dive, and phase plan are strong enough to proceed without guessing.
+
+`miniarch-step implement-loop` and `miniarch-step auto-implement` share the same implementation-frontier delivery command. They implement the current approved ordered implementation frontier and use `audit-implementation` to decide whether the loop is clean or more work remains. Named later expansion is not current missing work until its proof gate is due. In Codex, miniarch fresh audit uses `gpt-5.4-mini` at `xhigh` reasoning effort when a fresh child audit is launched.
 
 Use `miniarch-step` when the work needs full-arch execution but does not need `arch-step`'s broader helper surface.
 
@@ -316,7 +291,7 @@ Use `miniarch-step` when the work needs full-arch execution but does not need `a
 
 Use when one goal is too large for a single `arch-step` plan and should be decomposed into approved, ordered sub-plans. The epic doc owns the raw goal, decomposition, inter-plan gates, sub-plan DOC_PATHs, and append-only orchestration history; each sub-plan remains a real arch-step plan.
 
-Interactive mode is re-entrant: `arch-epic` invokes or observes one arch-step transition at a time, runs a fresh Claude or Codex scope-drift critic after each completed sub-plan, and advances only after the critic passes. Automatic mode is explicit and opt-in after decomposition approval. It asks once for a role table (`epic_planner`, `implementation_worker`, `critic`), resolves shorthand such as `opus 4.7 xhigh` or `gpt 5.5 high` to runnable model IDs, writes a pinned policy, then drives one sub-plan at a time through spawned hook-suppressed harnesses. Planner and implementation sessions are resumed after in-scope critic failures; critics stay fresh, stateless, and observation-only. The default child wait cadence is 180 seconds; long planner and implementation children run detached with live `events.jsonl`, `stderr.log`, and `stream.log` artifacts rather than tight polling.
+Interactive mode is re-entrant: `arch-epic` invokes or observes one arch-step transition at a time, runs a fresh Claude or Codex scope-drift critic after each completed sub-plan, and advances only after the critic passes. Automatic mode is explicit and opt-in after decomposition approval. It asks once for a role table (`epic_planner`, `implementation_worker`, `critic`), resolves shorthand such as `opus 4.7 xhigh` or `gpt 5.5 high` to runnable model IDs, writes a pinned policy, then drives one sub-plan at a time through spawned child harnesses. Planner and implementation sessions are resumed after in-scope critic failures; critics stay fresh, stateless, and observation-only. The default child wait cadence is 180 seconds; long planner and implementation children run detached with live `events.jsonl`, `stderr.log`, and `stream.log` artifacts rather than tight polling.
 
 Use `arch-epic` instead of `stepwise` when the subprocesses are implementing one epic through arch-step-style sub-plans. Use `stepwise` when a foreign repo's doctrine already defines an ordered process to execute.
 
@@ -326,9 +301,7 @@ Use when the job is leaving repo docs healthier: cleaning up stale, overlapping,
 
 With no extra mode, `arch-docs` runs one grounded DGTFO docs-health pass: orient to the repo's doc system, inventory doc-shaped surfaces, group them by topic, ground those topics against code, use git history when staleness or datedness matters, consolidate each topic to one canonical home, update stale surviving docs, clarify confusing docs, and add grounded missing docs when the canonical result is either a standard public-repo doc or a differentiated evergreen doc that deserves its own home. Repo posture is evidence-based: default to `private/internal` when unclear, but in `public OSS` repos treat `README`, `LICENSE*`, `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, and `SUPPORT.md` as expected standalone docs. Then delete stale, duplicate, or dated one-off truth and repair links or nav for the surviving docs.
 
-`arch-docs auto` is the hook-backed controller for repeated docs-cleanup passes in Codex and Claude Code. The user-facing command is still just `$arch-docs auto` in Codex or `/arch-docs auto` in Claude Code. Every arm runs `arch_controller_stop_hook.py --ensure-installed --runtime <codex|claude>` first; the installer is idempotent and flock-guarded and writes the canonical `Stop` entry (and the `SessionStart` entry on Claude).
-
-For any of these supported auto controllers, do not run the Stop hook yourself. After the controller is armed, just end the turn and let the installed Stop hook run.
+`arch-docs auto` is the repeated docs-cleanup mode. In native `/goal`, it runs a grounded pass, fresh review, and repeats until the docs cleanup is clean or a real blocker stops it. Outside goal mode, it runs one bounded pass plus review and names the next command.
 
 ### `arch-mini-plan`
 
@@ -353,18 +326,6 @@ Use for repo-wide code comment hardening passes where the agent should exhaustiv
 ### `audit-loop-sim`
 
 Use for repo-wide real-app automation passes where the agent should exhaustively map the app, journeys, and current automation surface before editing, then rank and attack the biggest unresolved automation risks by consequence instead of cashing out on tiny safe test tweaks. Every editful pass must then audit its own diff for safety, downstream consequences, elegance, and duplication before it can count as done.
-
-### `arch-loop`
-
-Use when the user wants Codex or Claude Code to drive a generic hook-backed completion loop: free-form requirements go in, optional named-skill audit obligations (e.g. `$agent-linter`, `$code-review`) and optional runtime/cadence/iteration caps, and the loop runs repeat parent turns through the installed `Stop` hook until an external Codex evaluator returns `clean` or `blocked`. Every evaluator turn always shells out to a fresh unsandboxed Codex `gpt-5.4` `xhigh` subprocess — even when Claude hosts the Stop hook — and the evaluator's structured verdict is the only thing that can stop the loop. Continue verdicts choose between `parent_work` (run another implementation turn now) and `wait_recheck` (sleep `cadence_seconds` inside the hook, then re-run the evaluator without spending a parent turn). Controller state lives under `.codex/arch-loop-state.<SESSION_ID>.json` in Codex and under `.claude/arch_skill/arch-loop-state.<SESSION_ID>.json` in Claude Code. Every arm runs `arch_controller_stop_hook.py --ensure-installed --runtime <codex|claude>` first; the installer is idempotent and flock-guarded and writes the canonical `Stop` entry (and the `SessionStart` entry on Claude). Distinct from `delay-poll` (condition-polling only, no work done between checks) and from specialized loops like `audit-loop` / `comment-loop` / `audit-loop-sim` (prescribed map-first flows with their own artifact contracts).
-
-### `delay-poll`
-
-Use when the user wants Codex or Claude Code to wait on some external condition, re-check it every 30 minutes, every hour, or similar, and continue the same visible thread only after that condition becomes true.
-
-### `wait`
-
-Use when the user wants Codex or Claude Code to sleep a specific parsed duration (`30m`, `1h30m`, `90s`, `2d`) and then continue the same visible thread with a literal follow-up prompt exactly once. No polling, no re-checking, no fresh child run during the wait. For condition re-checking use `delay-poll`; for recurring or scheduled work use `/loop` or `schedule`.
 
 ### `goal-loop`
 
@@ -444,7 +405,7 @@ Use `fresh-consult` for cold reads, parallel consults, consistency audits, compl
 
 Use when the user wants one or more Claude Opus, Codex GPT/GBT, or Cursor Composer subprocesses to do concrete work in the current workspace: implementation, editing, investigation-and-fix, command execution, verification, installed-skill use, or explicit same-session continuation of a previous delegated worker. The skill is prompt-only: it writes delegation prompts, runs the selected local CLI hook-suppressed where supported and unsandboxed in the shared worktree, captures each child `prompt.md`, `final.txt`, `events.jsonl`, `stderr.log`, and `execution.json` under `/tmp/agent-delegate/...`, then reports mode, status, changed files, verification, blockers, follow-up, session id when present, and run directories.
 
-Fresh one-shot is the default. When the caller explicitly requests parallel workers, `agent-delegate` creates a group directory and launches ordinary fresh child workers, then inspects repo state before reporting the combined result. When the caller explicitly requires continuity, `agent-delegate` can start a fresh-resumable worker or resume an explicit same-runtime session id / prior run directory. Claude resume uses `-r <session_id>` from the original work root; Codex resume uses `codex exec resume <thread_id>` and never `--last`; Cursor Agent resume uses `--resume <session_id>` and never `--continue`, `agent resume`, or `agent ls`. The skill does not resume "latest" sessions, cross runtimes, or use hook-backed controllers as a continuation strategy.
+Fresh one-shot is the default. When the caller explicitly requests parallel workers, `agent-delegate` creates a group directory and launches ordinary fresh child workers, then inspects repo state before reporting the combined result. When the caller explicitly requires continuity, `agent-delegate` can start a fresh-resumable worker or resume an explicit same-runtime session id / prior run directory. Claude resume uses `-r <session_id>` from the original work root; Codex resume uses `codex exec resume <thread_id>` and never `--last`; Cursor Agent resume uses `--resume <session_id>` and never `--continue`, `agent resume`, or `agent ls`. The skill does not resume "latest" sessions, cross runtimes, or use external continuation controllers as a strategy.
 
 The user supplies runtime, model, and effort, or the skill asks once before invoking. Runtime can be inferred only from unambiguous model families such as `gpt-5.5` or `GBT55XI` for Codex, `Claude Opus 4.7` for Claude, or `Cursor Agent composer 2.5` for Cursor Agent. Composer 2.5 always resolves to `composer-2.5-fast`; Cursor Agent never hosts GPT/GBT or Claude model ids. Exact model versions are preserved; there is no silent downgrade, provider switch, effort substitution, detached fallback, separate-worktree fallback, or ambiguous resume fallback.
 
@@ -502,7 +463,7 @@ Use when the user wants a real, deterministic code review against a diff, branch
 
 Review children commonly take 5+ minutes; xhigh synthesis or broad lens coverage can reasonably take 20-40 minutes. Poll stream logs every few minutes, not every few seconds.
 
-Direct invocation runs the runner as a one-shot command. The skill also wires into the shared `arch-step` Stop-hook dispatcher so Codex and Claude Code can trigger the same runner via `.codex/code-review-state.<SESSION_ID>.json` or `.claude/arch_skill/code-review-state.<SESSION_ID>.json`. The Claude-host path is an intentional exception to the broader native-auto-loop direction: the Stop hook runs under Claude, but the review subprocess itself must always be Codex. Generic Claude auto-controllers stay Claude-native; `code-review` does not. `code-review` is review-only — it never edits the reviewed repo and never writes a "suggested patch" block.
+Direct invocation runs the runner as a one-shot command. `code-review` is review-only: it never edits the reviewed repo and never writes a "suggested patch" block.
 
 Use `code-review` when the user wants an automated finding-set with explicit coverage guarantees. Use `plan-audit implementation-audit` when the user wants prompt-first code review against a specific plan without running tests, proving CI, or launching the code-review runner. Use `fresh-consult` when the user wants a general Claude Opus or Codex GPT/GBT second opinion without the code-review runner. Use `codex-review-yolo` when the user wants a narrower, more interactive `-p yolo` fresh-eyes consult on a specific artifact.
 
@@ -526,7 +487,7 @@ Practical rule:
 
 ## Usage
 
-- Primary surface: ask the agent to use `arch-step`, `miniarch-step`, `arch-epic`, `arch-docs`, `arch-mini-plan`, `lilarch`, `bugs-flow`, `audit-loop`, `comment-loop`, `audit-loop-sim`, `arch-loop`, `delay-poll`, `wait`, `goal-loop`, `north-star-investigation`, `arch-flow`, `arch-skills-guide`, `agent-definition-auditor`, `agents-md-authoring`, `prompt-authoring`, `skill-authoring`, `figma-best-practices`, `fal-ai-tools`, `eli10`, `pr-authoring`, `commit-history-authoring`, `skill-flow`, `amir-publish`, `codex-cleanup`, `fresh-consult`, `agent-delegate`, `plan-audit`, `plan-implement`, `model-consensus`, `contact-sheet-builder`, `code-review`, `thermo-nuclear-code-quality-review`, `stepwise`, or `codex-review-yolo`.
+- Primary surface: ask the agent to use `arch-step`, `miniarch-step`, `arch-epic`, `arch-docs`, `arch-mini-plan`, `lilarch`, `bugs-flow`, `audit-loop`, `comment-loop`, `audit-loop-sim`, `goal-loop`, `north-star-investigation`, `arch-flow`, `arch-skills-guide`, `agent-definition-auditor`, `agents-md-authoring`, `prompt-authoring`, `skill-authoring`, `figma-best-practices`, `fal-ai-tools`, `eli10`, `pr-authoring`, `commit-history-authoring`, `skill-flow`, `amir-publish`, `codex-cleanup`, `fresh-consult`, `agent-delegate`, `plan-audit`, `plan-implement`, `model-consensus`, `contact-sheet-builder`, `code-review`, `thermo-nuclear-code-quality-review`, `stepwise`, or `codex-review-yolo`.
 - Full-arch execution defaults to `miniarch-step` when the trimmed command surface is enough and `arch-step` when the broader or helper-heavy surface is needed.
 - Docs cleanup loops default to `arch-docs`.
 - Read-only checklist and next-step inspection uses `arch-flow`.
@@ -541,10 +502,12 @@ Examples:
 - `Use $arch-step consistency-pass docs/MY_PLAN.md`
 - `Use $arch-step implement-loop docs/MY_PLAN.md`
 - `Use $arch-step auto-implement docs/MY_PLAN.md`
+- `Use $arch-step full-auto docs/MY_PLAN.md`
 - `Use $miniarch-step for this feature`
 - `Use $miniarch-step auto-plan`
 - `Use $miniarch-step implement-loop docs/MY_PLAN.md`
 - `Use $miniarch-step auto-implement docs/MY_PLAN.md`
+- `Use $miniarch-step full-auto docs/MY_PLAN.md`
 - `Use $arch-epic to break this migration into sub-plans and run them in order`
 - `Use $arch-epic to automatically implement this approved epic end to end`
 - `Use $arch-docs`
@@ -561,11 +524,6 @@ Examples:
 - `Use $audit-loop-sim`
 - `Use $audit-loop-sim review`
 - `Use $audit-loop-sim auto`
-- `Use $arch-loop tighten the onboarding copy across the marketing site until it reads cleanly on mobile`
-- `Use $arch-loop rewrite this AGENTS.md file with $agent-linter as a required clean audit`
-- `Use $arch-loop every 30 minutes check whether staging.api.internal is reachable and keep fixing infra until it is, max 8 hours`
-- `Use $delay-poll every 30 minutes check whether branch blah has been fully pushed; when it is, pull it and integrate it in`
-- `Use $wait 1h30m then continue investigating the flaky test`
 - `Use $goal-loop for this metric problem`
 - `Use $north-star-investigation for this quantified performance hunt`
 - `Use $arch-flow docs/MY_PLAN.md`

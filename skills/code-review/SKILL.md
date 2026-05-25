@@ -16,7 +16,6 @@ The skill is review-only. It never fixes code, never asks the reviewer to fix co
 - User says: "review this", "code review this diff", "audit this change", "review the PR", "run code-review".
 - User has finished non-trivial work (uncommitted diff, commit range, branch diff, checklist completion claim) and wants fresh-eyes findings before merge, ship, or mark-complete.
 - User wants docs-drift, duplication, test/proof adequacy, or agent-surface lint coverage rolled into one review pass.
-- User wants hook-backed review triggered by Codex or Claude Code after each implementation stop.
 
 ## When not to use
 
@@ -62,7 +61,7 @@ The runner is deterministic orchestration only — target resolution, artifact c
 
 ## Workflow
 
-`code-review` has two invocation paths: **direct** and **hook-backed**. Direct invocation runs `scripts/run_code_review.py` synchronously as a shell command and does not use the arm-first controller contract at all. Hook-backed invocation is the loop-skill form and follows the shared doctrine.
+`code-review` has one invocation path: **direct**. It runs `scripts/run_code_review.py` synchronously as a shell command.
 
 ### Direct invocation
 
@@ -78,16 +77,6 @@ The runner is deterministic orchestration only — target resolution, artifact c
 5. **Relay.** Report the verdict to the user. Name the run directory so they can read the full synthesis and per-lens outputs.
 6. **Do not fix code here.** If blocking findings need fixing, that is a separate turn. This skill is review-only.
 
-### Hook-backed invocation
-
-**Arm first, disarm never.** When `code-review` is armed as a hook-backed controller, the very first step of the invocation writes a session-scoped state file; the very last step of the parent turn is to end the turn. Parent turns do not run the Stop hook, do not delete state, and do not clean up early — the Stop hook is the only process that clears state, and it does so only when the review run completes (CLEAN on reviewer success, BLOCKED on reviewer failure or missing coverage). Core doctrine, arm-time ensure-install, session-id rules, conflict gate, staleness sweep, and manual recovery live in `skills/_shared/controller-contract.md`. This invocation path is documented as an optional deviation in the shared contract. State lives at `.codex/code-review-state.<SESSION_ID>.json` (Codex) or `.claude/arch_skill/code-review-state.<SESSION_ID>.json` (Claude Code).
-
-1. **Arm**: ensure-install the Stop hook (`arch_controller_stop_hook.py --ensure-installed --runtime <codex|claude>`; fails loud on drift) → resolve the session id (on Claude Code via `arch_controller_stop_hook.py --current-session`; abort with its error if it fails) → resolve target and objective → write the session-scoped state file → end the turn.
-2. **Body** (hook-owned): the installed Stop hook shells out to the same fresh unsandboxed Codex `gpt-5.4` `xhigh` reviewer subprocess (always Codex, even when Claude hosts the hook), captures the run directory, and parses the `ReviewVerdict`.
-3. **Disarm** (hook-owned): the Stop hook clears state when the reviewer finishes, writes the verdict reference into the turn surface, and stops.
-
-The review subprocess is identical in both paths. Only the orchestration differs.
-
 ## Output expectations
 
 - A short user-facing summary: verdict verbatim, blocking findings quoted, non-blocking findings summarized, coverage notes (docs drift, external research, subreviews, agent-linter).
@@ -99,4 +88,4 @@ The review subprocess is identical in both paths. Only the orchestration differs
 - `references/reviewer-prompt.md` — the canonical prompt contract the runner instantiates per lens and for final synthesis
 - `references/review-requirements.md` — portable review requirements: duplication/drift, platform boundaries, self-describing code, proof proportional to risk, docs drift, spam guardrails
 - `references/output-contract.md` — the `ReviewVerdict` shape, findings schema, coverage notes, malformed-output handling, no-findings state
-- `references/invocation.md` — direct and hook-backed invocation, exact Codex flags, run artifact layout, default model and reasoning effort, unsandboxed posture, failure behavior
+- `references/invocation.md` — direct invocation, exact Codex flags, run artifact layout, default model and reasoning effort, unsandboxed posture, failure behavior

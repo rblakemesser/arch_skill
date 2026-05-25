@@ -1,6 +1,6 @@
 ---
 name: arch-step
-description: "Operate the standalone full-arch workflow against one canonical plan artifact and explicit doctrine: `new`, `reformat`, `research`, `deep-dive`, `external-research`, `phase-plan`, `auto-plan`, `plan-enhance`, `fold-in`, `overbuild-protector`, `consistency-pass`, `review-gate`, `implement`, `implement-loop`, `auto-implement`, `audit-implementation`, `status`, or `advance`. Use when the user wants the full arch workflow, a specific full-arch step, or concise full-arch status for work that may require architectural convergence onto canonical repo paths. Internal refactors may widen enough to remove duplicate truth or parallel paths, but the skill must not invent new product functionality, modes, or speculative infrastructure. Not for read-only checklist routing, mini plans, lilarch, bugs, or open-ended loops."
+description: "Operate the standalone full-arch workflow against one canonical plan artifact and explicit doctrine: `new`, `reformat`, `research`, `deep-dive`, `external-research`, `phase-plan`, `auto-plan`, `plan-enhance`, `fold-in`, `overbuild-protector`, `consistency-pass`, `review-gate`, `implement`, `implement-loop`, `auto-implement`, `full-auto`, `audit-implementation`, `status`, or `advance`. Use when the user wants the full arch workflow, a specific full-arch step, or concise full-arch status for work that may require architectural convergence onto canonical repo paths. Internal refactors may widen enough to remove duplicate truth or parallel paths, but the skill must not invent new product functionality, modes, or speculative infrastructure. Not for read-only checklist routing, mini plans, lilarch, bugs, or open-ended loops."
 metadata:
   short-description: "Standalone full-arch operator"
 ---
@@ -17,7 +17,8 @@ The primary object is one canonical full-arch plan doc. Commands exist to move t
 - The ask is generic full arch language such as "do the full arch flow," "continue this architecture doc," "implement the plan," or "audit implementation against the plan."
 - The work needs one canonical plan doc plus real architectural convergence onto existing repo patterns, shared code paths, or single-source-of-truth boundaries.
 - The user wants explicit stage control instead of a more holistic or phase-family-driven flow.
-- The ask is command-shaped: `new`, `reformat`, `research`, `deep-dive`, `external-research`, `phase-plan`, `auto-plan`, `plan-enhance`, `fold-in`, `overbuild-protector`, `consistency-pass`, `review-gate`, `implement`, `implement-loop`, `auto-implement`, `audit-implementation`, `status`, or `advance`.
+- The ask is command-shaped: `new`, `reformat`, `research`, `deep-dive`, `external-research`, `phase-plan`, `auto-plan`, `plan-enhance`, `fold-in`, `overbuild-protector`, `consistency-pass`, `review-gate`, `implement`, `implement-loop`, `auto-implement`, `full-auto`, `audit-implementation`, `status`, or `advance`.
+- The user wants one canonical plan driven as far as possible through planning and implementation with native goal-mode continuation.
 - The user wants one specific plan-doc shape with exact headings, stable markers, and consistent stage ownership.
 - The user wants `advance` to print the full checklist, choose exactly one next command, and optionally execute that one step.
 - The user wants `status` to evaluate the actual plan artifact, not emit a generic checklist.
@@ -48,7 +49,7 @@ The primary object is one canonical full-arch plan doc. Commands exist to move t
 - Credible proof supports continued implementation. It does not justify stopping after one local fix, one phase, or one convenient subset while later approved phases are still reachable.
 - If the doc is materially non-canonical, repair only the safe owned portion or route to `reformat`.
 - Keep one planning source of truth. Do not create sidecar plan docs or competing checklists.
-- All planning commands are docs-only. Only `implement` and `implement-loop` may change code.
+- All planning commands are docs-only. Only `implement` and `implement-loop` may change code; `full-auto` may reach code changes only by routing to `implement-loop`.
 - Distinguish requested behavior scope from architectural convergence scope. Requested behavior scope governs user-visible behavior. Architectural convergence scope covers internal refactors needed to route the ask through canonical paths, remove duplicate truth, and prevent drift.
 - Search for the canonical existing path before designing a new one. Reuse it, refactor it as much as required to fully own the change, or justify why it cannot own the change.
 - Internal convergence work may broaden touched files or nearby adopters when needed to avoid parallel paths or shadow contracts, but it must not invent new product functionality, modes, or speculative infrastructure.
@@ -64,19 +65,20 @@ The primary object is one canonical full-arch plan doc. Commands exist to move t
 - If the real lever is prompt repair, say so plainly and recommend `prompt-authoring` instead of inventing deterministic scaffolding.
 - When porting agent instructions, prompt doctrine, or other instruction-bearing content, preserve explicit operational structure by default. Do not silently condense ordered steps, conditions, hard negatives, or escalation logic unless the artifact records why that condensation is safe and keeps the source text recoverable.
 - Default to fail-loud boundaries, hard cutover, and explicit deletes. Runtime shims are forbidden unless the plan explicitly approves them.
-- `auto-plan` is one command. It either runs a real bounded planning sequence or fails loud. Prompt-only chaining does not count as the feature.
-- `implement-loop` is one command. It either runs a real implementation-frontier implement-then-audit controller or fails loud. Prompt-only repetition does not count as the feature.
+- `auto-plan` is one command. In native goal mode, keep advancing the real planning sequence until the artifact is decision-complete or a true blocker stops it. Outside goal mode, run one bounded pass and name the exact next command.
+- `implement-loop` is one command. In native goal mode, keep running implementation-frontier work and fresh `audit-implementation` until the audit is clean or a true blocker stops it. Outside goal mode, run one bounded pass and name the exact next command.
+- `full-auto` is a re-entrant doctrine mode that reads artifact truth and routes to the next existing command. It must plan before implementation and must not bypass readiness gates.
 - Git is the history for retired live truth surfaces. Do not preserve dead competing code paths, stale live docs, or stale comments for posterity. Delete them. If a touched doc, comment, or instruction still matters after the change, update it to current reality in the same run.
 - Broader docs audit, consolidation, and final plan/worklog retirement after a clean full-arch code audit belong to `arch-docs`, not to extra hidden `arch-step` commands.
 - Core commands apply scope-triage and convergence rules even when helper commands are not run.
 - `advance` must choose from structure first, quality second, stage order third. Helper commands stay explicit.
 - `status` is compact, read-only, and grounded in the actual artifact.
 - `advance` owns the longer checklist surface and optional one-step execution.
-- **No-progress rule.** After two consecutive parent passes with no real change (no repo file edit, no plan/doc edit, no new evidence the audit/evaluator has not seen), end with `requested_yield: {kind: "await_user", reason: "no progress after 2 passes: ..."}` instead of firing another identical pass. See `skills/_shared/controller-contract.md` §Parent-pass discipline.
-- **No invented budgets.** The hook owns timing (`deadline_at`, iteration cap, parsed cadence). Do not self-declare `blocked` or "outside in-session budget" because remaining work feels expensive or the auditor is costly. Take the next reachable step, arm `requested_yield: sleep_for` for a paced pause, or yield `await_user` if the armed window is genuinely too small. Terminal verdicts come from the controller, not from invented budgets.
-- **Exhaust the frontier before handing to audit.** Ending the turn is not a cheap checkpoint — each turn end pays for a full fresh audit or evaluator child run. End the turn when you believe you are done with everything reachable (full plan frontier, every reachable phase, every named audit), not after one local fix. If a blocker stops you short, yield explicitly via `await_user` or `sleep_for`; do not drop the turn silently mid-frontier.
+- **No-progress rule.** After two consecutive passes with no real change (no repo file edit, no plan/doc edit, no new evidence a fresh audit has not seen), stop with the exact blocker instead of firing another identical pass.
+- **No invented budgets.** Do not call work blocked because it feels expensive. In goal mode, keep moving until the objective is complete or a real blocker meets the native goal-mode stop rule.
+- **Exhaust the frontier before auditing.** Do not hand to audit after one local fix when later approved phases are reachable. Finish the current approved ordered implementation frontier or record the real blocker plainly.
 - **Respect the tree state the user gave you.** Do not stash changes, create new branches, split the work across multiple PRs, or rewrite history. Commit hygiene, branch strategy, and PR shape are the user's decisions.
-- **Parallel-agent edits are a pause signal, not a revert signal.** If the working tree contains edits this pass did not make (foreign file, unexpected compiler error, unfamiliar commit), pause via `requested_yield: {kind: "sleep_for", seconds: 300, ...}` to let the other agent land its fix. Do not revert. Escalate via `await_user` only after two pause-retry cycles fail.
+- **Parallel-agent edits are a pause signal, not a revert signal.** If the working tree contains edits this pass did not make (foreign file, unexpected compiler error, unfamiliar commit), pause briefly to let the other agent land its fix. Do not revert. Escalate to the user only after two pause-retry cycles fail.
 
 ## First move
 
@@ -95,7 +97,7 @@ The primary object is one canonical full-arch plan doc. Commands exist to move t
    - obvious contradictions across TL;DR, Section 0, target architecture, call-site audit, phase plan, verification, rollout, and decision log
    - canonical-path ownership and behavior-preservation claims
 6. Read `references/section-quality.md` for the sections this command depends on.
-7. Read the matching command reference.
+7. Read the matching command reference. If the command is `full-auto`, read `references/full-auto.md`.
 8. If the command is `advance`, read `references/advance.md`, choose the one move that most improves artifact integrity or flow progress, and stop unless `RUN=1` explicitly asks for that one step to execute.
 
 ## Workflow
@@ -117,6 +119,7 @@ The primary object is one canonical full-arch plan doc. Commands exist to move t
 - `implement`
 - `implement-loop`
 - `auto-implement`
+- `full-auto`
 - `audit-implementation`
 - `status`
 - `advance`
@@ -170,7 +173,7 @@ These stay explicit and do not auto-run from `advance`:
 
 Default placement is after `phase-plan` and before `implement`, unless the user explicitly asks otherwise. They are extra hardening surfaces, not the only place where scope, convergence, or preservation discipline exists.
 
-### Explicit controller commands
+### Explicit automatic commands
 
 These stay explicit unless the user directly asks for them:
 
@@ -178,58 +181,58 @@ These stay explicit unless the user directly asks for them:
 - `implement-loop`
 - `auto-implement`
 
-**Arm first, disarm never.** This skill is hook-owned for the controller commands above. The very first step of every invocation runs `arch_controller_stop_hook.py --ensure-installed --runtime <codex|claude>` and then writes a session-scoped controller state file; the very last step of the parent turn is to end the turn. Parent turns do not run the Stop hook, do not delete state, and do not clean up early — the Stop hook is the only process that clears state, and it does so only on `CLEAN`, `BLOCKED`, or deadline. Core doctrine, arm-time ensure-install, session-id rules, conflict gate, staleness sweep, and manual recovery live in `skills/_shared/controller-contract.md`. The rules below describe only what is specific to `arch-step`.
+`full-auto` is not in this list because it routes over the existing commands.
+
+### Re-entrant full-auto mode
+
+`full-auto` is an explicit mode for one canonical full-arch plan. It does not add
+a new controller, state file, runner, hook behavior, script, or heuristic layer.
+It reads `DOC_PATH`, `WORKLOG_PATH`, and the implementation audit block, then
+invokes the next existing command only when the artifact is ready for that command.
+
+Read `references/full-auto.md` before using this mode. The main rule is simple:
+plan first with `auto-plan`, prove implementation readiness with the normal
+full-arch readiness inventory, then implement with `implement-loop`. If the
+North Star is still draft, a decision gap remains, or `consistency-pass` does
+not approve implementation, stop honestly instead of chaining.
 
 #### `auto-plan`
 
-A bounded planning controller. `DOC_PATH` is always the planning ledger; state is session-scoped at `.codex/auto-plan-state.<SESSION_ID>.json` (Codex) or `.claude/arch_skill/auto-plan-state.<SESSION_ID>.json` (Claude Code).
+A bounded automatic planning command. `DOC_PATH` is always the planning ledger.
 
 Workflow:
 
-1. **Arm**: ensure-install → resolve session id → write state file → end the turn. On a fresh doc, the parent pass may additionally run only `research` before ending. It must not self-run `deep-dive` pass 1, `deep-dive` pass 2, `phase-plan`, or `consistency-pass` in the same turn. On Claude Code, resolve the session id first via `arch_controller_stop_hook.py --current-session`; abort with the tool's error message if it fails.
-2. **Body** (hook-owned): the Stop hook reads doc truth and feeds exactly one literal next command per later turn through `deep-dive` pass 1, `deep-dive` pass 2, `phase-plan`, and `consistency-pass`.
-3. **Disarm** (hook-owned): only after `consistency-pass` confirms the doc is decision-complete and ready for `implement-loop`, the Stop hook clears state and emits the handoff.
+1. Read doc truth and North Star status.
+2. Run the first incomplete planning stage in order: `research`, `deep-dive` pass 1, `deep-dive` pass 2, `phase-plan`, then `consistency-pass`.
+3. In native goal mode, continue taking the next incomplete stage until `consistency-pass` confirms the doc is decision-complete and ready for `implement-loop`, or until a true blocker stops the run.
+4. Outside native goal mode, run one bounded stage and end with the exact next command.
 
 `arch-step`-specific rules:
 
 - User-facing invocation: `$arch-step auto-plan` or `$arch-step auto-plan <DOC_PATH>`.
-- Rerunning `auto-plan` on a partially complete doc is legal; the hook resumes from the first incomplete stage already visible in `DOC_PATH`.
+- Rerunning `auto-plan` on a partially complete doc is legal; resume from the first incomplete stage already visible in `DOC_PATH`.
 - Prefer the current session's canonical full-arch doc when `DOC_PATH` is omitted.
-- The parent pass must not clear state, claim the planning arc is complete, or emit the `implement-loop` handoff while any decision gaps remain.
-- If the North Star approval is missing, name it and stop (this is a skill-specific gate in addition to the shared ensure-install step).
+- Do not claim the planning arc is complete or emit the `implement-loop` handoff while any decision gaps remain.
+- If the North Star approval is missing, name it and stop.
 
 #### `implement-loop` / `auto-implement`
 
-`implement-loop` is an implementation-frontier delivery controller; `auto-implement` is an exact synonym resolving to the same behavior. State lives at `.codex/implement-loop-state.<SESSION_ID>.json` (Codex) or `.claude/arch_skill/implement-loop-state.<SESSION_ID>.json` (Claude Code).
+`implement-loop` is an implementation-frontier delivery command; `auto-implement` is an exact synonym resolving to the same behavior.
 
 Workflow:
 
-1. **Arm**: ensure-install → resolve session id → write state file → end the turn. The parent pass may run one bounded implementation pass before ending; it must not hand back to audit mid-pass or claim clean from the implementation side. On Claude Code, resolve the session id first via `arch_controller_stop_hook.py --current-session`; abort with the tool's error message if it fails.
-2. **Body** (hook-owned): the Stop hook runs `audit-implementation` as a fresh child (on Codex: default `gpt-5.4` `xhigh`; on Claude Code: hook-suppressed child run via `claude -p --settings '{"disableAllHooks":true}'`). If audit is not clean, the hook continues with another implementation pass.
-3. **Disarm** (hook-owned): when the fresh audit child finishes clean, the hook clears state and the parent hands off to `$arch-docs`.
+1. Read the approved plan and current audit/worklog truth.
+2. Implement the current approved ordered implementation frontier.
+3. Run `audit-implementation` after the implementation pass.
+4. If audit is clean, hand off to `$arch-docs`.
+5. If audit is not clean and work remains reachable, continue from the reopened or incomplete phase. In native goal mode, repeat until clean or truly blocked. Outside native goal mode, report the next exact implementation command.
 
 `arch-step`-specific rules:
 
 - User-facing invocation: `$arch-step implement-loop <DOC_PATH>` or `$arch-step auto-implement <DOC_PATH>`. Do not introduce a second command, mode, or control surface.
 - Implementation covers the current approved ordered implementation frontier in order: the earliest incomplete or reopened phase plus later phases whose prerequisites and proof gates are reachable in this implementation arc.
 - Execution does not rewrite requirements, scope, acceptance criteria, or phase obligations mid-coding. If the plan itself needs to change, stop and repair the plan instead of continuing on a rewritten story.
-- The parent implementation pass may ship code and sync plan/worklog truth, but only the fresh `audit-implementation` child may author the authoritative audit outcome, emit the `arch-docs` handoff, or clear loop state.
-
-#### Graceful yield (auto-plan / implement-loop / auto-implement)
-
-Prefer not to need user feedback — approved plan intent and repo evidence should settle most decisions. When that fails and the parent must genuinely ask the user a question, or the parent has nothing useful to do until an async signal lands, write a single `requested_yield` object into the controller state before ending the turn. The Stop hook honors and clears it before the next audit:
-
-```jsonc
-"requested_yield": {
-  "kind": "sleep_for" | "await_user",
-  "seconds": 1200,   // sleep_for only; positive integer
-  "reason": "asked the user to choose between canonical owner paths"
-}
-```
-
-- `await_user`: the hook stops cleanly (`continue=False`) with the reason and leaves the controller armed. The next user turn resumes dispatch normally. This is the graceful exit when you asked the user a question; do not end the turn without writing the yield, or the Stop hook will tight-loop.
-- `sleep_for`: the hook sleeps the requested seconds (bounded by the installed hook timeout) and then continues to the next audit/planning pass. Use this whenever the next step is an automated check the parent itself can re-run — polling a marker file, re-checking CI, waiting on a detached job of any wall-clock length. If the work outlasts a single hook-timeout window, arm repeated `sleep_for` pauses rather than escalating. See `skills/_shared/controller-contract.md` §Choosing the yield kind.
-- The field is single-shot. Write it once per turn; the hook clears it before taking action. Do not re-read it.
+- The implementation pass may ship code and sync plan/worklog truth, but the audit must be a real `audit-implementation` pass against current repo state before the loop can finish clean.
 
 ### Output expectations
 
@@ -260,14 +263,15 @@ Prefer not to need user feedback — approved plan intent and repo evidence shou
 - `references/arch-deep-dive.md` - current architecture, target architecture, call-site audit, and planning-pass rules
 - `references/arch-external-research.md` - external research contract and plan-integration rules
 - `references/arch-phase-plan.md` - authoritative phase-plan contract
-- `references/arch-auto-plan.md` - bounded planning controller over research, deep-dive twice, phase-plan, and consistency-pass
+- `references/arch-auto-plan.md` - bounded automatic planning over research, deep-dive twice, phase-plan, and consistency-pass
+- `references/full-auto.md` - doctrine-only re-entrant mode over `auto-plan` and `implement-loop`
 - `references/arch-plan-enhance.md` - best-possible hardening of the main plan
 - `references/arch-fold-in.md` - fold references into the main artifact and wire them into phases
 - `references/arch-overbuild-protector.md` - explicit scope triage and remediation using the same rubric core commands should already apply
 - `references/arch-consistency-pass.md` - end-to-end cold-read consistency review before implementation
 - `references/arch-review-gate.md` - local idiomatic and completeness review
 - `references/arch-implement.md` - implementation, worklog, and completion discipline
-- `references/arch-implement-loop.md` - implementation-frontier implement/audit loop, required ensure-install step, and loop-state contract
+- `references/arch-implement-loop.md` - implementation-frontier implement/audit loop and proof contract
 - `references/arch-audit-implementation.md` - code-completeness audit and phase reopening
 - `references/status.md` - compact artifact-first status rules
 - `references/advance.md` - full checklist, next-command selection, and optional one-step execution

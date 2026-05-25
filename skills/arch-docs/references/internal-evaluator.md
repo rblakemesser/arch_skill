@@ -1,12 +1,12 @@
 # Internal Auto Evaluator
 
-This is the suite-only evaluator used by the Stop-hook child run for `arch-docs auto`.
+This is the suite-only evaluator used by `arch-docs auto`.
 
 Do not suggest this surface to users.
 
 ## Goal
 
-Read the armed controller state plus current repo docs and decide one of exactly three honest outcomes:
+Read the current repo docs plus `.doc-audit-ledger.md` and decide one of exactly three honest outcomes:
 
 - `clean`
 - `continue`
@@ -14,17 +14,16 @@ Read the armed controller state plus current repo docs and decide one of exactly
 
 ## Inputs
 
-- `STATE_PATH`: the resolved host-aware `arch-docs auto` state path for the current session under `.codex/` or `.claude/arch_skill/`
-- scope metadata from the state file, including `scope_kind`, `scope_summary`, any `context_sources` or `context_paths`, and any repo-posture fields already recorded
 - `.doc-audit-ledger.md` when it still exists
 - current repo docs in the resolved scope
 - current README or docs index surfaces touched by the cleanup
+- explicit scope metadata from the user request or ledger, including repo posture when already recorded
 
 ## Read-only rule
 
 - Do not modify repo files.
-- Do not rewrite docs, delete files, or "help" the controller from the evaluator.
-- Judge the last pass only from current repo truth plus the controller state.
+- Do not rewrite docs, delete files, or "help" the cleanup from the evaluator.
+- Judge the last pass only from current repo truth plus the ledger and explicit request scope.
 
 ## Evaluate these questions
 
@@ -81,6 +80,6 @@ Repo-posture ambiguity by itself is not a blocker. Default `private/internal` un
 
 ## Output contract
 
-Return structured JSON only, matching the schema supplied by the controller.
+Return structured JSON only, matching the schema supplied by the caller.
 
 Keep the reasoning fields concise and concrete.

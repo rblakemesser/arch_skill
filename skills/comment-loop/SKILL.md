@@ -43,7 +43,7 @@ Use this skill when the job is to exhaustively map a repo, its proof surface, an
 - Unrelated dirty or untracked files are not a blocker. Leave them alone unless they directly conflict with the current comment front or make verification unsafe.
 - Default invocation with no mode is `run`.
 - `review` is docs-only.
-- `auto` is hook-backed in Codex and Claude Code and must fail loud when the active host runtime lacks the repo-managed `Stop` entry for the installed runner at `~/.agents/skills/arch-step/scripts/arch_controller_stop_hook.py` (Codex reads it from `~/.codex/hooks.json`; Claude Code reads it from `~/.claude/settings.json`). In Codex that also includes the `codex_hooks` feature gate.
+- `auto` is goal-mode friendly. In native goal mode, keep running `run` then `review` until no credible high-impact comment work remains or a real blocker stops it. Outside goal mode, run one bounded pass and name the exact next command.
 - No auto commits. Keep the ledger truthful without relying on git history.
 
 ## First move
@@ -55,7 +55,7 @@ Use this skill when the job is to exhaustively map a repo, its proof surface, an
    - `run`
    - `review`
    - `auto`
-5. Resolve repo root, root `.gitignore`, `_comment_ledger.md`, and the host-aware `auto` controller state path described in `references/comment-loop-controller.md`.
+5. Resolve repo root, root `.gitignore`, and `_comment_ledger.md`.
 6. Read the matching mode reference and `references/quality-bar.md`.
 
 ## Workflow
@@ -81,18 +81,21 @@ Use this skill when the job is to exhaustively map a repo, its proof surface, an
 
 ### 3) `auto`
 
-**Arm first, disarm never.** This skill is hook-owned for `auto`. The very first step of every invocation writes a session-scoped controller state file; the very last step of the parent turn is to end the turn. Parent turns do not run the Stop hook, do not delete state, and do not clean up early — the Stop hook is the only process that clears state, and it does so only on `CLEAN`, `BLOCKED`, or deadline. Core doctrine, arm-time ensure-install, session-id rules, conflict gate, staleness sweep, and manual recovery live in `skills/_shared/controller-contract.md`. The rules below describe only what is specific to `comment-loop auto`. State lives at `.codex/comment-loop-state.<SESSION_ID>.json` (Codex) or `.claude/arch_skill/comment-loop-state.<SESSION_ID>.json` (Claude Code); see `references/comment-loop-controller.md` for the state schema.
+`auto` is the repeated comment-hardening loop. Native goal mode supplies the
+repeated turns; this skill does not install or arm automation hooks.
 
 Workflow:
 
-1. **Arm**: run `arch_controller_stop_hook.py --ensure-installed --runtime <codex|claude>` → resolve session id → write state file → end the turn. The parent pass may run one truthful `run` pass (mapping-only is correct on the first turns) before ending. On Claude Code, resolve the session id first via `arch_controller_stop_hook.py --current-session`; abort with the tool's error message if it fails.
-2. **Body** (hook-owned): the Stop hook launches a fresh `review` pass in the active host runtime, reads the verdict from `_comment_ledger.md`, and on `CONTINUE` starts the next `$comment-loop` pass.
-3. **Disarm** (hook-owned): on `CLEAN`, the hook clears state, deletes `_comment_ledger.md`, and removes the `.gitignore` entry; on `BLOCKED`, the hook clears state and stops honestly.
+1. Run one truthful `run` pass. Mapping-only is correct on the first turns.
+2. Run a fresh `review` pass against `_comment_ledger.md` and current repo state.
+3. If review says `CONTINUE`, run the next `$comment-loop run` pass.
+4. In native goal mode, keep repeating until review says `CLEAN` or `BLOCKED`.
+5. Outside native goal mode, stop after one run/review cycle and print the next exact command.
 
 `comment-loop`-specific rules:
 
 - User-facing invocation is just `comment-loop auto`.
-- Dirty or untracked files are not a blocker. Do not refuse to arm only because the repo has unrelated dirty or untracked files.
+- Dirty or untracked files are not a blocker. Do not refuse to run only because the repo has unrelated dirty or untracked files.
 - `auto` must not degrade into low-value narration while outcome-critical shared contracts or gotchas remain unexplained.
 - Do not auto-commit changes.
 
@@ -108,10 +111,10 @@ Workflow:
 
 ## Reference map
 
-- `references/ledger-contract.md` - root ledger shape, controller block, status vocabulary, and cleanup lifecycle
+- `references/ledger-contract.md` - root ledger shape, status vocabulary, and cleanup lifecycle
 - `references/shared-doctrine.md` - prioritization, explanation discipline, and anti-patterns
 - `references/commenting-principles.md` - distilled external best practices for useful comments
 - `references/run.md` - mapping-aware comment or cleanup pass
 - `references/review.md` - fresh docs-only verdict pass
-- `references/comment-loop-controller.md` - comment-loop controller state schema and verdict source (core doctrine lives in `skills/_shared/controller-contract.md`)
+- `references/comment-loop-controller.md` - comment-loop auto status and verdict source
 - `references/quality-bar.md` - strong vs weak triage, findings, comments, and stop decisions
