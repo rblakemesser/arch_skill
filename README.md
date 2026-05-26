@@ -37,6 +37,7 @@ Other shipped skills are:
 - `skill-authoring` — writes, edits, refactors, and audits prompt-first reusable agent skill packages
 - `figma-best-practices` — prompt-only Figma file-craft doctrine for creating, auditing, or repairing structurally honest Figma files, libraries, variables, components, Dev Mode prep, Code Connect mapping, and Make/Sites/Buzz/Slides/MCP readiness
 - `fal-ai-tools` — prompt-first fal.ai tool workflow for model discovery, schema and pricing lookup, file upload, background removal, media generation or editing, inference, polling, and result receipts using MCP when available and SDK/HTTP fallback otherwise
+- `flutter-reference` — doctrine-only Flutter app and game-building reference for architecture, Dart style, state management, lifecycle, performance, testing, CI, accessibility, localization, security, platform integration, and Flame/game-loop guidance
 - `eli10` — answers in maximum-readability ELI10 style: reduces reader working-memory load, leads with the point, preserves exact technical truth, defines load-bearing jargon, explains mechanisms plainly, avoids fake memory and baby talk, and uses scan markers or tables only when they clarify
 - `pr-authoring` — writes and publishes high-quality GitHub pull requests from real repo changes
 - `commit-history-authoring` — rewrites the current branch's branch-span commit messages from its nearest parent branch into informative history while preserving commit boundaries, patches, trailers, and backup recovery; it never pushes rewritten history
@@ -100,6 +101,7 @@ Installed skills:
   - `~/.agents/skills/skill-authoring/`
   - `~/.agents/skills/figma-best-practices/`
   - `~/.agents/skills/fal-ai-tools/`
+  - `~/.agents/skills/flutter-reference/`
   - `~/.agents/skills/eli10/`
   - `~/.agents/skills/pr-authoring/`
   - `~/.agents/skills/commit-history-authoring/`
@@ -141,6 +143,7 @@ Installed skills:
   - `~/.claude/skills/skill-authoring/`
   - `~/.claude/skills/figma-best-practices/`
   - `~/.claude/skills/fal-ai-tools/`
+  - `~/.claude/skills/flutter-reference/`
   - `~/.claude/skills/eli10/`
   - `~/.claude/skills/pr-authoring/`
   - `~/.claude/skills/commit-history-authoring/`
@@ -182,6 +185,7 @@ Installed skills:
   - `~/.gemini/skills/skill-authoring/`
   - `~/.gemini/skills/figma-best-practices/`
   - `~/.gemini/skills/fal-ai-tools/`
+  - `~/.gemini/skills/flutter-reference/`
   - `~/.gemini/skills/eli10/`
   - `~/.gemini/skills/pr-authoring/`
   - `~/.gemini/skills/commit-history-authoring/`
@@ -203,7 +207,7 @@ Installed skills:
 
 Codex reads the same installed skill surface from `~/.agents/skills/`. `make install` also removes stale pre-skill command surfaces, removed skill packages, older `~/.codex/skills/<skill>` mirrors, and local source/build internals so runtime routing stays unambiguous.
 
-`arch-loop`, `delay-poll`, and `wait` are removed from the live installed surface; use native `/goal` for free-form completion and the host's native scheduling/reminder surface for timed waiting or polling. `agent-history` is installed on the agents/Codex and Claude Code surfaces because its v1 storage map covers Codex and Claude Code local history. `contact-sheet-builder` is installed on all three skill surfaces and requires Python with Pillow at runtime. `figma-best-practices`, `fal-ai-tools`, `chatgpt-web`, `fresh-consult`, `agent-delegate`, `plan-audit`, `plan-implement`, `model-consensus`, `plan-swarm`, `exhaustive-code-review`, and `thermo-nuclear-code-quality-review` are installed on all three skill surfaces. `chatgpt-web` is prompt-only and requires BrowserOS MCP plus an already logged-in ChatGPT browser session; it does not automate login. Subprocess skills still require the selected local `claude`, `codex`, or `agent` CLI to exist on the host at invocation time. Provider routing is fixed: Codex runs GPT/GBT/OpenAI models, Claude Code runs Opus, and Cursor Agent runs only `composer-2.5-fast`; do not use Cursor Agent as a host for GPT/GBT or Claude model ids. `fresh-consult` and `model-consensus` report read-only or planning results; `fresh-consult` can run multiple fresh read-only children when explicitly requested. `agent-delegate` may write to the shared worktree when invoked with an allowed write scope, can run multiple fresh workers when explicitly requested, and may resume an explicit same-runtime delegated session when the caller requires continuity. `plan-audit` is doctrine-only and prompt-first: it audits planning artifacts in whatever format they use, may keep a Markdown audit log beside file-backed plans, and includes a plan-backed implementation-audit code-review mode that does not run tests, ask for logs, prove CI, require external coding-harness CLIs, or add scripts/controllers. `plan-implement` is doctrine-only and prompt-first: it implements from existing plans while keeping a lightweight implementation log, proof freshness, and warm plan-backed review aligned without external coding-harness spawning or deterministic control. `plan-swarm` is prompt-first: the parent agent coordinates parallel workers through `agent-delegate` and keeps human worklogs next to the plan. `exhaustive-code-review` is prompt-only and review-only: it maximizes native parallel agents, saves the review artifact under `/tmp/exhaustive-code-review/`, and does not dictate the user's workflow. `code-review` is installed on the agents/Codex and Claude Code surfaces only; the Claude host can trigger the skill, but the actual review subprocess always shells out to fresh Codex.
+`arch-loop`, `delay-poll`, and `wait` are removed from the live installed surface; use native `/goal` for free-form completion and the host's native scheduling/reminder surface for timed waiting or polling. `agent-history` is installed on the agents/Codex and Claude Code surfaces because its v1 storage map covers Codex and Claude Code local history. `contact-sheet-builder` is installed on all three skill surfaces and requires Python with Pillow at runtime. `figma-best-practices`, `fal-ai-tools`, `flutter-reference`, `chatgpt-web`, `fresh-consult`, `agent-delegate`, `plan-audit`, `plan-implement`, `model-consensus`, `plan-swarm`, `exhaustive-code-review`, and `thermo-nuclear-code-quality-review` are installed on all three skill surfaces. `chatgpt-web` is prompt-only and requires BrowserOS MCP plus an already logged-in ChatGPT browser session; it does not automate login. Subprocess skills still require the selected local `claude`, `codex`, or `agent` CLI to exist on the host at invocation time. Provider routing is fixed: Codex runs GPT/GBT/OpenAI models, Claude Code runs Opus, and Cursor Agent runs only `composer-2.5-fast`; do not use Cursor Agent as a host for GPT/GBT or Claude model ids. `fresh-consult` and `model-consensus` report read-only or planning results; `fresh-consult` can run multiple fresh read-only children when explicitly requested. `agent-delegate` may write to the shared worktree when invoked with an allowed write scope, can run multiple fresh workers when explicitly requested, and may resume an explicit same-runtime delegated session when the caller requires continuity. `plan-audit` is doctrine-only and prompt-first: it audits planning artifacts in whatever format they use, may keep a Markdown audit log beside file-backed plans, and includes a plan-backed implementation-audit code-review mode that does not run tests, ask for logs, prove CI, require external coding-harness CLIs, or add scripts/controllers. `plan-implement` is doctrine-only and prompt-first: it implements from existing plans while keeping a lightweight implementation log, proof freshness, and warm plan-backed review aligned without external coding-harness spawning or deterministic control. `plan-swarm` is prompt-first: the parent agent coordinates parallel workers through `agent-delegate` and keeps human worklogs next to the plan. `exhaustive-code-review` is prompt-only and review-only: it maximizes native parallel agents, saves the review artifact under `/tmp/exhaustive-code-review/`, and does not dictate the user's workflow. `code-review` is installed on the agents/Codex and Claude Code surfaces only; the Claude host can trigger the skill, but the actual review subprocess always shells out to fresh Codex.
 
 ### Remote install
 
@@ -379,6 +383,10 @@ Use when the user wants to create, audit, or repair a Figma file, component libr
 
 Use when the user wants to use fal.ai tools, models, MCP, SDK/API calls, background removal, media generation or editing, model discovery, schema lookup, pricing checks, file upload, inference, polling, or result receipts. The skill is prompt-first: it prefers visible fal MCP tools, falls back to `fal_client` or raw HTTP when MCP is unavailable, checks live schemas and pricing before paid calls, and keeps fal keys redacted. Use provider-specific implementation or frontend skills instead when the task does not call fal.
 
+### `flutter-reference`
+
+Use when the user wants Flutter-specific guidance for building, reviewing, repairing, or diagnosing mobile apps or games. The skill is doctrine-only: it collects grouped Flutter references for architecture, Dart style, state management, lifecycle, performance, rendering, memory, testing, CI, accessibility, localization, security, platform integration, assets, input, and Flame/game-loop guidance. Use current official docs first when the request depends on latest Flutter, Dart, Android, iOS, or package behavior.
+
 ### `eli10`
 
 Use when the user wants any answer, explanation, plan, review, recommendation, rewrite, or status update in ELI10/ELI16 maximum-readability style. The skill teaches the agent to spend the reader's working memory on the idea, not on parsing: lead with the point, explain at the right layer, unstack dense phrases, define load-bearing jargon, preserve exact commands/metrics/file names, avoid fake memory and baby talk, and skip next steps unless asked. It uses native tables only when they improve understanding, and avoids tables when long prose, paths, commands, or root-cause explanations would be clearer as bullets or sections. It uses the decision-brief contract only when the answer is asking the user to choose. Use `prompt-authoring` for prompts and reusable prompt contracts and `skill-authoring` for skill packages.
@@ -507,7 +515,7 @@ Practical rule:
 
 ## Usage
 
-- Primary surface: ask the agent to use `arch-step`, `miniarch-step`, `arch-epic`, `arch-docs`, `arch-mini-plan`, `lilarch`, `bugs-flow`, `audit-loop`, `comment-loop`, `audit-loop-sim`, `goal-loop`, `north-star-investigation`, `arch-flow`, `arch-skills-guide`, `agent-definition-auditor`, `agents-md-authoring`, `prompt-authoring`, `chatgpt-web`, `skill-authoring`, `figma-best-practices`, `fal-ai-tools`, `eli10`, `pr-authoring`, `commit-history-authoring`, `skill-flow`, `amir-publish`, `codex-cleanup`, `fresh-consult`, `agent-delegate`, `plan-audit`, `plan-implement`, `model-consensus`, `contact-sheet-builder`, `exhaustive-code-review`, `code-review`, `thermo-nuclear-code-quality-review`, `stepwise`, or `codex-review-yolo`.
+- Primary surface: ask the agent to use `arch-step`, `miniarch-step`, `arch-epic`, `arch-docs`, `arch-mini-plan`, `lilarch`, `bugs-flow`, `audit-loop`, `comment-loop`, `audit-loop-sim`, `goal-loop`, `north-star-investigation`, `arch-flow`, `arch-skills-guide`, `agent-definition-auditor`, `agents-md-authoring`, `prompt-authoring`, `chatgpt-web`, `skill-authoring`, `figma-best-practices`, `fal-ai-tools`, `flutter-reference`, `eli10`, `pr-authoring`, `commit-history-authoring`, `skill-flow`, `amir-publish`, `codex-cleanup`, `fresh-consult`, `agent-delegate`, `plan-audit`, `plan-implement`, `model-consensus`, `contact-sheet-builder`, `exhaustive-code-review`, `code-review`, `thermo-nuclear-code-quality-review`, `stepwise`, or `codex-review-yolo`.
 - Full-arch execution defaults to `miniarch-step` when the trimmed command surface is enough and `arch-step` when the broader or helper-heavy surface is needed.
 - Docs cleanup loops default to `arch-docs`.
 - Read-only checklist and next-step inspection uses `arch-flow`.
@@ -555,6 +563,7 @@ Examples:
 - `Use $skill-authoring to audit this skill package`
 - `Use $figma-best-practices to audit this Figma library for Dev Mode and MCP readiness`
 - `Use $fal-ai-tools to remove the background from this image with fal.ai`
+- `Use $flutter-reference to review this Flutter app architecture`
 - `Use $eli10 to explain why this test failed`
 - `Use $eli10 to format this decision question`
 - `Use $pr-authoring to write and publish a PR for this branch`
