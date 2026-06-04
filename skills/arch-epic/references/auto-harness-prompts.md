@@ -1,6 +1,7 @@
 # Automatic harness prompt contracts
 
-Automatic mode uses spawned Claude/Codex harnesses to keep the top-level
+Automatic mode uses spawned Claude, Codex, or Grok harnesses to keep the
+top-level
 orchestrator context clean. These prompts are contracts, not templates for
 mindless command execution. Each child must understand why the role exists,
 which artifacts are authoritative, what evidence it must leave, and when it

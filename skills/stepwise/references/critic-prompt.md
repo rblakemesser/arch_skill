@@ -146,4 +146,6 @@ write future commands.
 
 Claude structured output via `--json-schema` may emit JSON inside a
 `structured_output` key. Codex writes schema-conforming JSON to the `-o` file
-when `--output-schema` is active. The orchestrator handles those runtime shapes.
+when `--output-schema` is active. Grok receives a schema-appended prompt and
+the script post-validates the JSON in the final text. The orchestrator handles
+those runtime shapes.

@@ -1,17 +1,17 @@
 ---
 name: fresh-consult
-description: "Invoke one or more fresh Claude Opus, Codex GPT/GBT, or Cursor Composer subprocesses for prompt-engineered read-only second opinions with clean context. Use when the user or another skill asks for a cold read, parallel consults, external consult, flow consistency audit, completion check, readability/confusion check, or general second opinion. Ask once if runtime, model, effort, or consult target is missing; run hook-suppressed where supported and unsandboxed; report each child result back. Do NOT use for deterministic code-review coverage (`code-review`), Codex `-p yolo` reviews (`codex-review-yolo`), ordered subprocess orchestration (`stepwise`/`arch-epic`), or implementation/fixing (`agent-delegate`)."
+description: "Invoke one or more fresh Claude Opus, Codex GPT/GBT, Cursor Composer, or Grok subprocesses for prompt-engineered read-only second opinions with clean context. Use when the user or another skill asks for a cold read, parallel consults, external consult, flow consistency audit, completion check, readability/confusion check, or general second opinion. Ask once if runtime, model, effort, or consult target is missing; run hook-suppressed where supported and unsandboxed; report each child result back. Do NOT use for deterministic code-review coverage (`code-review`), Codex `-p yolo` reviews (`codex-review-yolo`), ordered subprocess orchestration (`stepwise`/`arch-epic`), or implementation/fixing (`agent-delegate`)."
 metadata:
-  short-description: "Fresh Claude, Codex, or Composer second opinion"
+  short-description: "Fresh Claude, Codex, Cursor, or Grok opinion"
 ---
 
 # Fresh Consult
 
 Use this skill when the user or another skill needs one or more clean second
-opinions from fresh Claude Opus, Codex GPT/GBT, or Cursor Composer
-subprocesses. Each child model starts from disk and the consult prompt, not from
-the current chat history, so it can catch confusion, drift, missing completion,
-or weak reasoning the parent may have normalized.
+opinions from fresh Claude Opus, Codex GPT/GBT, Cursor Composer, or Grok
+subprocesses. Each child model starts from disk and the consult prompt,
+not from the current chat history, so it can catch confusion, drift, missing
+completion, or weak reasoning the parent may have normalized.
 
 This is a prompt-engineering skill. It ships no scripts, shims, hook
 controllers, state machines, parsers, or install-time automation.
@@ -25,6 +25,7 @@ controllers, state machines, parsers, or install-time automation.
 - "Get a second opinion on whether this doc is linear and not confusing."
 - "Have a clean model check whether the implementation matches the checklist."
 - "Use Cursor Agent Composer 2.5 Fast for a cold read of this artifact."
+- "Use Grok Build for a fresh consult on this implementation claim."
 - Another skill needs an independent read before it decides whether to proceed.
 
 ## When not to use
@@ -35,6 +36,8 @@ controllers, state machines, parsers, or install-time automation.
   Use `$codex-review-yolo`.
 - The user asks Cursor Agent to run GPT/GBT or Claude models. Cursor Agent is
   Composer-only; GPT/GBT runs through Codex and Opus runs through Claude Code.
+- The user asks Grok to run GPT/GBT, Claude, or Cursor-only model ids. Grok
+  uses `grok-build` or `grok-composer-2.5-fast`.
 - The work is an ordered subprocess workflow with manifests, critics, repair
   loops, or persistent orchestration. Use `$stepwise` or `$arch-epic`.
 - The child is expected to edit files or fix issues. Use `$agent-delegate` for
@@ -49,10 +52,11 @@ controllers, state machines, parsers, or install-time automation.
 - Resolve each consult objective, exact user-named artifacts or target paths,
   hard constraints, and the work root before launching child processes.
 - Runtime, model, and effort must be known. Codex runs GPT/GBT/OpenAI models,
-  Claude Code runs Opus, and Cursor Agent runs `composer-2.5-fast`. If any
-  value is missing or ambiguous, ask one consolidated question before invoking.
-- Never run GPT/GBT or Claude models through Cursor Agent. Do not pass GPT/GBT
-  or Claude model ids to Cursor Agent.
+  Claude Code runs Opus, Cursor Agent runs `composer-2.5-fast`, and Grok CLI
+  runs `grok-build` or `grok-composer-2.5-fast`. If any value is missing or
+  ambiguous, ask one consolidated question before invoking.
+- Never run GPT/GBT or Claude models through Cursor Agent or Grok. Do not pass
+  Grok model ids to Codex, Claude, or Cursor Agent.
 - Treat model text as intent, not a fuzzy alias. Preserve exact family and
   numeric version; never silently substitute a nearby model.
 - Run the child fresh, hook-suppressed where the runtime supports it, and
@@ -85,7 +89,7 @@ controllers, state machines, parsers, or install-time automation.
 4. If runtime/model/effort or consult target is incomplete, ask one question
    that names exactly what is missing and what it controls.
 5. Confirm the selected CLI exists with `command -v codex`, `command -v
-   claude`, or `command -v agent`.
+   claude`, `command -v agent`, or `command -v grok`.
 6. Create the run directory or group directory and write each consult prompt to
    its own `prompt.md`.
 7. Invoke each child with the exact command shape from the invocation reference.
@@ -96,7 +100,7 @@ controllers, state machines, parsers, or install-time automation.
    answer, the work root, and the exact artifacts or target paths the user
    named.
 2. **Resolve execution.** Map the raw model phrase to
-   `runtime=<claude|codex|agent>`, `model=<runnable id>`, and
+   `runtime=<claude|codex|agent|grok>`, `model=<runnable id>`, and
    `effort=<level-or-encoded-in-model>`.
    Announce the mapping before execution.
 3. **Select single or parallel.** Use the single-child path by default. Use a
@@ -134,6 +138,6 @@ controllers, state machines, parsers, or install-time automation.
 ## Reference Map
 
 - `references/model-and-invocation.md` - runtime/model/effort resolution and
-  exact Claude/Codex command shapes
+  exact child-runtime command shapes
 - `references/consult-prompt-and-output.md` - consult prompt skeleton, verdict
   footer, report rules, and anti-patterns

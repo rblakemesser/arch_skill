@@ -1,19 +1,20 @@
 # Model And Invocation
 
 Use this reference to resolve what the user meant by "Claude", "Codex",
-"Cursor Agent", "opus high", "gpt 5.5 xhigh", "composer-2.5-fast", or similar
-phrasing, and to run the selected worker subprocess or explicit parallel group
-of worker subprocesses. Fresh one-shot is the default. Same-session resume is
-allowed only when the caller explicitly requires continuity for one worker.
-Provider routing is fixed: Codex runs GPT/GBT/OpenAI models, Claude Code runs
-Opus, and Cursor Agent runs Composer 2.5 Fast.
+"Cursor Agent", "Grok", "opus high", "gpt 5.5 xhigh",
+"composer-2.5-fast", "grok-build", or similar phrasing, and to run the
+selected worker subprocess or explicit parallel group of worker subprocesses.
+Fresh one-shot is the default. Same-session resume is allowed only when the
+caller explicitly requires continuity for one worker. Provider routing is
+fixed: Codex runs GPT/GBT/OpenAI models, Claude Code runs Opus, Cursor Agent
+runs Composer 2.5 Fast, and Grok CLI runs Grok models.
 
 ## Required Values
 
 Every delegation child needs:
 
 - `mode` - `fresh-one-shot`, `fresh-resumable`, or `resume`
-- `runtime` - `claude`, `codex`, or `agent`
+- `runtime` - `claude`, `codex`, `agent`, or `grok`
 - `model` - the runnable CLI model identifier, or the previous session model
   when a resume intentionally reuses it
 - `effort` - the reasoning effort level, or the previous session effort when a
@@ -21,8 +22,8 @@ Every delegation child needs:
 
 Resume mode also needs either:
 
-- `session_id` - Claude `session_id`, Codex `thread_id`, or Cursor Agent
-  `session_id`
+- `session_id` - Claude `session_id`, Codex `thread_id`, Cursor Agent
+  `session_id`, or Grok `sessionId`
 - `run_dir` - a previous `agent-delegate` run directory containing
   `session_id.txt` and `execution.json`
 
@@ -55,7 +56,7 @@ and announce the mapping before launch.
 Same-runtime is mandatory. Claude sessions resume through Claude with
 `-r <session_id>`. Codex threads resume through `codex exec resume
 <thread_id>`. Cursor Agent sessions resume through `agent -p --resume
-<session_id>`.
+<session_id>`. Grok sessions resume through `grok --resume <session_id>`.
 
 Parallel delegation supports `fresh-one-shot` and `fresh-resumable`. Keep
 `resume` on the single-worker path; launching several resumed sessions at once
@@ -75,8 +76,14 @@ Infer runtime only when the user's wording makes it unambiguous:
 - `agent`, `cursor`, `cursor agent`, or `cursor-agent` implies
   `runtime=agent` only for Composer. Cursor Agent always resolves to
   `composer-2.5-fast`.
+- `grok`, `grok build`, `grok-build`, `grok composer`, or
+  `grok-composer-2.5-fast` implies `runtime=grok`.
+- Bare `composer`, `composer 2.5`, or bare `2.5` is ambiguous unless the user
+  explicitly names Cursor Agent or Grok in the same execution choice.
 - If a phrase mixes Cursor Agent with GPT/GBT or Claude, fail loud instead of
   choosing a side. Never run GPT/GBT or Claude models through Cursor Agent.
+- If a phrase mixes Grok with GPT/GBT, Claude, or Cursor Agent, fail loud
+  instead of choosing a side.
 - If the user names only an effort level, such as "xhigh", ask for runtime and
   model.
 - If the user says only "delegate this" or "have another agent do this", ask
@@ -105,9 +112,16 @@ Treat model text as intent, not a loose alias:
   ask for an Opus choice.
 - For Cursor Agent, always use `composer-2.5-fast`. Accept `agent`, `cursor`,
   `cursor agent`, `cursor-agent`, `composer`, `composer 2.5`,
-  `composer-2.5`, `composer-2.5-fast`, or bare `2.5` in Cursor Agent context
-  as that runnable id. Do not use Cursor model discovery for non-Composer
-  routing, and do not pass GPT/GBT or Claude model ids to Cursor Agent.
+  `composer-2.5`, `composer-2.5-fast`, or bare `2.5` only in Cursor Agent
+  context as that runnable id. Do not use Cursor model discovery for
+  non-Composer routing, and do not pass GPT/GBT, Claude, or Grok model ids to
+  Cursor Agent.
+- For Grok, use `grok-build` by default when the user says `grok`,
+  `grok cli`, `grok build`, or `grok-build`. Use
+  `grok-composer-2.5-fast` only when the user names Grok Composer, such as
+  `grok composer`, `grok composer 2.5`, or `grok-composer-2.5-fast`. Inspect
+  `grok models` when availability matters, and do not pass GPT/GBT, Claude, or
+  Cursor Agent model ids to Grok.
 - Do not run paid trial prompts to discover whether a Claude model exists. Use
   the CLI help/config surface when available; otherwise ask.
 
@@ -115,24 +129,28 @@ Always announce the raw-to-resolved mapping before execution:
 
 ```text
 Claude Opus 4.7 xhigh -> runtime=claude, model=claude-opus-4-7, effort=xhigh
+Grok Build high -> runtime=grok, model=grok-build, effort=high
 ```
 
 For deterministic script plumbing that needs the same rules, use
 `skills/_shared/model_resolution.py` instead of creating a local model alias
 table. The helper exists to keep fresh-consult, agent-delegate,
-Stepwise-style orchestrators, and arch-epic automatic harnesses aligned on
+model-consensus, Stepwise-style orchestrators, and arch-epic automatic
+harnesses aligned on
 exact-version preservation and fail-loud behavior.
 
 ## Effort Resolution
 
 - Claude accepts `low`, `medium`, `high`, `xhigh`, and `max` via `--effort`.
 - Codex effort is passed as `-c model_reasoning_effort='"<level>"'`.
+- Grok accepts `low`, `medium`, `high`, `xhigh`, and `max` via `--effort`.
 - Cursor Agent does not expose a separate `--effort` flag in the local CLI.
   Store effort as `encoded-in-model` and pass only
   `--model "composer-2.5-fast"`.
 - For Codex, confirm the selected model supports the requested effort when
   `codex debug models` is needed for model resolution.
-- If the effort is missing or the selected model does not support it, ask.
+- If the effort is missing for Claude, Codex, or Grok, or the selected model
+  does not support it, ask.
 - A caller rule like "copywriting always xhigh" is execution intent from the
   caller. Apply it only to the delegated turn it clearly controls; do not add a
   built-in task taxonomy inside this skill.
@@ -160,14 +178,15 @@ on the command line.
 `events.jsonl` is the live child stream. `stderr.log` is the diagnostic error
 stream. `final.txt` is the final assistant text: Codex writes it directly with
 `-o`; for Claude and Cursor Agent, copy the `result` text from the final
-`type=result` event after the process exits.
+`type=result` event after the process exits. For Grok, concatenate streamed
+`type=text` `data` chunks after the process exits.
 
 Write `execution.json` before invocation with at least:
 
 ```json
 {
   "mode": "fresh-one-shot | fresh-resumable | resume",
-  "runtime": "claude | codex | agent",
+  "runtime": "claude | codex | agent | grok",
   "model": "<resolved model or reused-from-session>",
   "effort": "<resolved effort or reused-from-session>",
   "work_root": "<absolute path>",
@@ -219,10 +238,11 @@ Write `execution.json` before each child invocation with the normal fields plus:
 }
 ```
 
-Launch each child with the same Codex, Claude, or Cursor Agent command shape
-below, using that child's paths. Record the shell PID and exit status in the
-child directory if the host shell makes that convenient, but do not introduce a
-script, controller, detached monitor, separate worktree, or merge layer.
+Launch each child with the same Codex, Claude, Cursor Agent, or Grok command
+shape below, using that child's paths. Record the shell PID and exit status in
+the child directory if the host shell makes that convenient, but do not
+introduce a script, controller, detached monitor, separate worktree, or merge
+layer.
 
 Do not block launch because siblings might touch nearby files. Brief every
 child that other workers may be editing the same repo, that unfamiliar changes
@@ -433,6 +453,65 @@ After Cursor Agent exits, write the final `result` text to `final.txt`. Write
 the returned `session_id` to `session_id.txt` when present; otherwise preserve
 the input session id in `session_id.txt`.
 
+## Grok Fresh
+
+Use this shape for both `fresh-one-shot` and `fresh-resumable` Grok
+delegations:
+
+```bash
+RUST_LOG=off grok \
+  --cwd "<work_root>" \
+  --no-auto-update \
+  --no-memory \
+  --no-subagents \
+  --disable-web-search \
+  --permission-mode bypassPermissions \
+  --always-approve \
+  --model "<resolved_grok_model>" \
+  --effort "<resolved_effort>" \
+  --output-format streaming-json \
+  --prompt-file "$PROMPT_PATH" \
+  > "$EVENTS_PATH" \
+  2> "$STDERR_PATH"
+```
+
+Do not pass `--sandbox disabled`; Grok does not accept that flag/value pair,
+and its default local mode is unsandboxed. Grok has no documented
+hook-suppression flag. Use `--no-auto-update`, `--no-memory`,
+`--no-subagents`, and `--disable-web-search` for isolation.
+
+After Grok exits, concatenate streamed `type=text` `data` chunks into
+`final.txt`. For fresh-resumable runs, write the final `type=end` event's
+`sessionId` to `session_id.txt`. If no final text exists after a zero exit, or
+a fresh-resumable run has no `sessionId`, treat the run as malformed and
+preserve the run directory.
+
+## Grok Resume
+
+Use this shape to resume an explicit Grok session:
+
+```bash
+RUST_LOG=off grok \
+  --cwd "<work_root>" \
+  --no-auto-update \
+  --no-memory \
+  --no-subagents \
+  --disable-web-search \
+  --permission-mode bypassPermissions \
+  --always-approve \
+  --model "<resolved_grok_model>" \
+  --effort "<resolved_effort>" \
+  --output-format streaming-json \
+  --resume "<session_id>" \
+  --prompt-file "$PROMPT_PATH" \
+  > "$EVENTS_PATH" \
+  2> "$STDERR_PATH"
+```
+
+Use `--resume <session_id>` only. Do not use any latest-session selection.
+After Grok exits, write the final text to `final.txt` and preserve the returned
+`sessionId` in `session_id.txt` when present.
+
 ## Monitoring Posture
 
 Delegated work is not instant. A normal repo-backed task commonly takes 5+
@@ -457,14 +536,17 @@ Fail loud and preserve the run directory when:
 - `session_id.txt` is missing, empty, or `UNRECOVERABLE` for a resume
 - the caller asks for cross-runtime resume
 - the caller asks for Claude `--continue`, Codex `--last`, Cursor Agent
-  `--continue`, `agent resume`, `agent ls`, or "latest" resume selection
+  `--continue`, `agent resume`, `agent ls`, Grok latest-session selection, or
+  any other "latest" resume selection
 - the child exits non-zero
 - `final.txt` is empty
 - Claude exits without a final `type=result` event
 - Cursor Agent exits without a final `type=result` event
+- Grok exits without final text
 - fresh-resumable Codex does not emit `thread.started`
+- fresh-resumable Grok does not emit a final `sessionId`
 - the child omits the required status footer
 
-Do not silently fall back between Claude, Codex, and Cursor Agent, one model to
-another model, one effort level to another, foreground to detached execution,
-or shared-worktree execution to a separate worktree.
+Do not silently fall back between Claude, Codex, Cursor Agent, and Grok, one
+model to another model, one effort level to another, foreground to detached
+execution, or shared-worktree execution to a separate worktree.

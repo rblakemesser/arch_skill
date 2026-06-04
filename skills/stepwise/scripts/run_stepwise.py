@@ -8,7 +8,7 @@ stop discipline. Those decisions live in the orchestrator's prose reasoning.
 Subcommands:
 
   init-run     Create the run directory and initial state.json.
-  step-spawn   Spawn a fresh step sub-session (claude or codex).
+  step-spawn   Spawn a fresh step sub-session (claude, codex, or grok).
   step-resume  Resume an existing step sub-session with a repair prompt.
   step-diagnose
                Resume an existing step sub-session with a read-only
@@ -692,6 +692,111 @@ def _parse_codex_thread_id(stdout_text: str) -> str | None:
     return None
 
 
+def _grok_argv(
+    target_repo: str,
+    model: str,
+    effort: str,
+    prompt_path: Path,
+    *,
+    session_id: str | None = None,
+) -> list[str]:
+    argv = [
+        "env",
+        "RUST_LOG=off",
+        "grok",
+        "--cwd",
+        target_repo,
+        "--no-auto-update",
+        "--no-memory",
+        "--no-subagents",
+        "--disable-web-search",
+        "--permission-mode",
+        "bypassPermissions",
+        "--always-approve",
+        "--model",
+        model,
+        "--effort",
+        effort,
+        "--output-format",
+        "streaming-json",
+        "--prompt-file",
+        str(prompt_path),
+    ]
+    if session_id:
+        argv.extend(["--resume", session_id])
+    return argv
+
+
+def _parse_grok_final_json(stdout_text: str) -> dict | None:
+    text_parts: list[str] = []
+    session_id: str | None = None
+    fallback_text: str | None = None
+    for line in stdout_text.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            ev = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        sid = ev.get("sessionId") or ev.get("session_id")
+        if isinstance(sid, str) and sid:
+            session_id = sid
+        if ev.get("type") == "text" and isinstance(ev.get("data"), str):
+            text_parts.append(ev["data"])
+        elif isinstance(ev.get("text"), str):
+            fallback_text = ev["text"]
+    text = "".join(text_parts) if text_parts else fallback_text
+    if text is None and session_id is None:
+        return None
+    return {
+        "type": "grok_result",
+        "result": text or "",
+        "session_id": session_id,
+    }
+
+
+def _parse_grok_session_id(stdout_text: str) -> str | None:
+    final = _parse_grok_final_json(stdout_text)
+    if final is None:
+        return None
+    sid = final.get("session_id")
+    return sid if isinstance(sid, str) and sid else None
+
+
+def _json_object_from_text(text: str) -> dict | None:
+    stripped = text.strip()
+    if stripped.startswith("```"):
+        first_newline = stripped.find("\n")
+        if first_newline != -1:
+            stripped = stripped[first_newline + 1 :]
+        if stripped.rstrip().endswith("```"):
+            stripped = stripped.rstrip()[:-3]
+    candidates = [stripped.strip()]
+    start = stripped.find("{")
+    end = stripped.rfind("}")
+    if start != -1 and end != -1 and end > start:
+        candidates.append(stripped[start : end + 1])
+    for candidate in candidates:
+        try:
+            obj = json.loads(candidate)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(obj, dict):
+            return obj
+    return None
+
+
+def _prompt_with_schema(prompt: str, schema: Any) -> str:
+    return (
+        prompt.rstrip()
+        + "\n\n## JSON Schema\n"
+        + "Return JSON only, with no markdown fences, conforming to this schema:\n"
+        + json.dumps(schema, indent=2, sort_keys=True)
+        + "\n"
+    )
+
+
 # ---- step-spawn -----------------------------------------------------------
 
 
@@ -748,6 +853,9 @@ def cmd_step_spawn(args: argparse.Namespace) -> int:
             prompt,
         ]
         spawn_cwd = None
+    elif args.runtime == "grok":
+        argv = _grok_argv(target_repo, args.model, args.effort, prompt_path)
+        spawn_cwd = None
     else:
         _die(f"unknown runtime: {args.runtime}")
 
@@ -765,8 +873,17 @@ def cmd_step_spawn(args: argparse.Namespace) -> int:
             )
         _write_json(final_path, final)
         sid = _parse_claude_session_id(stdout_text)
-    else:
+    elif args.runtime == "codex":
         sid = _parse_codex_thread_id(stdout_text)
+    else:
+        final = _parse_grok_final_json(stdout_text)
+        if final is None:
+            _die(
+                "grok stdout did not include a parseable final event; see stream.log",
+                code=3,
+            )
+        _write_json(final_path, final)
+        sid = _parse_grok_session_id(stdout_text)
 
     if sid is None:
         _write_text(try_dir / "session_id.txt", "UNRECOVERABLE\n")
@@ -855,6 +972,15 @@ def cmd_step_resume(args: argparse.Namespace) -> int:
             prompt,
         ]
         resume_cwd = None
+    elif args.runtime == "grok":
+        argv = _grok_argv(
+            target_repo,
+            args.model,
+            args.effort,
+            prompt_path,
+            session_id=sid,
+        )
+        resume_cwd = None
     else:
         _die(f"unknown runtime: {args.runtime}")
 
@@ -871,8 +997,17 @@ def cmd_step_resume(args: argparse.Namespace) -> int:
             )
         _write_json(final_path, final)
         out_sid = _parse_claude_session_id(stdout_text) or sid
-    else:
+    elif args.runtime == "codex":
         out_sid = _parse_codex_thread_id(stdout_text) or sid
+    else:
+        final = _parse_grok_final_json(stdout_text)
+        if final is None:
+            _die(
+                "grok stdout did not include a parseable final event; see stream.log",
+                code=3,
+            )
+        _write_json(final_path, final)
+        out_sid = _parse_grok_session_id(stdout_text) or sid
 
     _write_text(try_dir / "session_id.txt", out_sid + "\n")
     _write_try_origin(
@@ -946,6 +1081,15 @@ def cmd_step_diagnose(args: argparse.Namespace) -> int:
             prompt,
         ]
         resume_cwd = None
+    elif args.runtime == "grok":
+        argv = _grok_argv(
+            target_repo,
+            args.model,
+            args.effort,
+            prompt_path,
+            session_id=sid,
+        )
+        resume_cwd = None
     else:
         _die(f"unknown runtime: {args.runtime}")
 
@@ -973,10 +1117,24 @@ def cmd_step_diagnose(args: argparse.Namespace) -> int:
             result_text if isinstance(result_text, str) else json.dumps(final, indent=2),
         )
         out_sid = _parse_claude_session_id(stdout_text) or sid
-    else:
+    elif args.runtime == "codex":
         out_sid = _parse_codex_thread_id(stdout_text) or sid
         if not response_path.is_file():
             _die(f"codex diagnostic did not write -o file: {response_path}", code=5)
+    else:
+        final = _parse_grok_final_json(stdout_text)
+        if final is None:
+            _die(
+                "grok stdout did not include a parseable final event; see diagnostic stream log",
+                code=3,
+            )
+        _write_json(final_path, final)
+        result_text = final.get("result")
+        _write_text(
+            response_path,
+            result_text if isinstance(result_text, str) else json.dumps(final, indent=2),
+        )
+        out_sid = _parse_grok_session_id(stdout_text) or sid
 
     _write_text(session_path, out_sid + "\n")
     print(str(response_path))
@@ -1053,6 +1211,16 @@ def cmd_critic_spawn(args: argparse.Namespace) -> int:
             prompt,
         ]
         critic_cwd = None
+    elif args.runtime == "grok":
+        grok_prompt_path = crit_dir / "prompt.grok.md"
+        _write_text(grok_prompt_path, _prompt_with_schema(prompt, schema))
+        argv = _grok_argv(
+            target_repo,
+            args.model,
+            args.effort,
+            grok_prompt_path,
+        )
+        critic_cwd = None
     else:
         _die(f"unknown runtime: {args.runtime}")
 
@@ -1074,7 +1242,7 @@ def cmd_critic_spawn(args: argparse.Namespace) -> int:
                 code=5,
             )
         _write_json(verdict_path, verdict)
-    else:
+    elif args.runtime == "codex":
         # codex writes structured JSON to final_path directly
         if not final_path.is_file():
             _die(
@@ -1085,6 +1253,19 @@ def cmd_critic_spawn(args: argparse.Namespace) -> int:
             verdict = json.loads(final_path.read_text(encoding="utf-8"))
         except json.JSONDecodeError as e:
             _die(f"codex critic output is not valid JSON: {e}", code=5)
+        _write_json(verdict_path, verdict)
+    else:
+        final = _parse_grok_final_json(stdout_text)
+        if final is None:
+            _die(
+                "grok critic stdout did not include a parseable final event; see stream.log",
+                code=3,
+            )
+        _write_json(final_path, final)
+        result_text = final.get("result")
+        verdict = _json_object_from_text(result_text if isinstance(result_text, str) else "")
+        if verdict is None:
+            _die("grok critic output is not valid JSON; see stdout.final.json", code=5)
         _write_json(verdict_path, verdict)
 
     validation_errors = _validate_step_verdict(verdict)
@@ -1325,7 +1506,7 @@ def _build_parser() -> argparse.ArgumentParser:
     step = sub.add_parser("step-spawn", help="Spawn a fresh step sub-session")
     for a in ["--run-dir", "--target-repo", "--prompt-file", "--model", "--effort"]:
         step.add_argument(a, required=True)
-    step.add_argument("--runtime", required=True, choices=["claude", "codex"])
+    step.add_argument("--runtime", required=True, choices=["claude", "codex", "grok"])
     step.add_argument("--step-n", required=True, type=int)
     step.add_argument("--try-k", required=True, type=int)
     step.add_argument(
@@ -1344,7 +1525,7 @@ def _build_parser() -> argparse.ArgumentParser:
     for a in ["--run-dir", "--target-repo", "--prompt-file", "--model",
               "--effort", "--session-id"]:
         resume.add_argument(a, required=True)
-    resume.add_argument("--runtime", required=True, choices=["claude", "codex"])
+    resume.add_argument("--runtime", required=True, choices=["claude", "codex", "grok"])
     resume.add_argument("--step-n", required=True, type=int)
     resume.add_argument("--try-k", required=True, type=int)
     resume.add_argument(
@@ -1361,7 +1542,7 @@ def _build_parser() -> argparse.ArgumentParser:
     for a in ["--run-dir", "--target-repo", "--prompt-file", "--model",
               "--effort", "--session-id"]:
         diagnose.add_argument(a, required=True)
-    diagnose.add_argument("--runtime", required=True, choices=["claude", "codex"])
+    diagnose.add_argument("--runtime", required=True, choices=["claude", "codex", "grok"])
     diagnose.add_argument("--step-n", required=True, type=int)
     diagnose.add_argument("--try-k", required=True, type=int)
     diagnose.add_argument("--round-k", required=True, type=int)
@@ -1372,7 +1553,7 @@ def _build_parser() -> argparse.ArgumentParser:
     for a in ["--run-dir", "--target-repo", "--prompt-file", "--model",
               "--effort", "--schema-file"]:
         critic.add_argument(a, required=True)
-    critic.add_argument("--runtime", required=True, choices=["claude", "codex"])
+    critic.add_argument("--runtime", required=True, choices=["claude", "codex", "grok"])
     critic.add_argument("--step-n", required=True, type=int)
     critic.add_argument("--try-k", required=True, type=int)
     critic.set_defaults(func=cmd_critic_spawn)

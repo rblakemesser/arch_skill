@@ -10,11 +10,12 @@ contract, execution ledger, current diff, worker logs, and proof evidence.
 The arbiter prompt must include: "Maximize parallelism with native subagents or
 parallel-agent features provided by your current coding harness. Do not
 manually spawn separate coding-harness executables, or invoke skills whose main
-effect is to shell out to `codex`, `claude`, or `agent`, from inside this child
-prompt unless the parent explicitly assigns that action."
+effect is to shell out to `codex`, `claude`, `agent`, or `grok`, from inside
+this child prompt unless the parent explicitly assigns that action."
 Run arbiter, consult, and review work through Codex GPT/GBT or Claude Opus.
 Do not route review through Cursor Agent just because implementation used
-Cursor Composer, and do not pass GPT/GBT or Claude model ids to Cursor Agent.
+Cursor Composer, do not route review through Grok just because implementation
+used Grok, and do not pass model ids across runtimes.
 
 Ask it:
 

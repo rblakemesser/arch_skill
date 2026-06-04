@@ -106,15 +106,16 @@ Claude Code, and Gemini.
   (over-promotion, redundancy, dead skills, broken refs) with `path:line`
   evidence.
 - Use `$fresh-consult` when the user or another skill wants one or more
-  clean-context Claude, Codex, or Cursor Agent second opinions on a concrete artifact,
-  completion claim, flow consistency question, or readability/confusion check.
+  clean-context Claude, Codex, Cursor Agent, or Grok second opinions on a
+  concrete artifact, completion claim, flow consistency question, or
+  readability/confusion check.
 - Use `$commit-history-authoring` when the user wants the current branch's
   local-only commit messages rewritten into informative history while
   preserving patches and commit boundaries by default.
-- Use `$agent-delegate` when the user wants one or more fresh Claude, Codex, or
-  Cursor Agent subprocesses to do concrete work in the current workspace, including
-  implementation, editing, investigation-and-fix, command execution, or
-  installed-skill use.
+- Use `$agent-delegate` when the user wants one or more fresh Claude, Codex,
+  Cursor Agent, or Grok subprocesses to do concrete work in the current
+  workspace, including implementation, editing, investigation-and-fix, command
+  execution, or installed-skill use.
 - Use `$plan-audit` when the user wants an existing planning artifact in any
   format audited before work starts for plan quality, outcome clarity, real
   ambiguity, constraints, repo/code truth, depth-first risk, side doors,
@@ -128,16 +129,17 @@ Claude Code, and Gemini.
   plan, plan-audit log, implementation log, proof freshness, and warm
   plan-backed review aligned. It is the lightweight implementation lane: use
   native subagents when helpful, but do not manually spawn `codex`, `claude`,
-  or `agent` executables or turn the work into an external worker swarm.
+  `agent`, or `grok` executables or turn the work into an external worker
+  swarm.
 - Use `$plan-swarm` when the user wants to implement a named phase or phase
   range from an existing plan document by having the parent agent decompose
   the phase into independently delegable slices, launch or resume parallel
-  Codex, Claude, or Cursor Agent workers through `$agent-delegate`, coordinate
-  scarce verification manually, write worklogs next to the plan, and close only
-  after arbiter and thermonuclear findings are triaged.
-- Use `$model-consensus` when the user wants two selected Claude, Codex, or
-  Cursor Agent models to iterate on a plan, architecture, design, or concept
-  until they converge or expose the smallest unresolved decision, including
+  Codex, Claude, Cursor Agent, or Grok workers through `$agent-delegate`,
+  coordinate scarce verification manually, write worklogs next to the plan,
+  and close only after arbiter and thermonuclear findings are triaged.
+- Use `$model-consensus` when the user wants two selected Claude, Codex,
+  Cursor Agent, or Grok models to iterate on a plan, architecture, design, or
+  concept until they converge or expose the smallest unresolved decision, including
   adversarial simplification. The parent agent orchestrates directly; do not
   introduce a deterministic runner, script, controller, or harness layer.
 - Use `$thermo-nuclear-code-quality-review` only when the user explicitly wants

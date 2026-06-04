@@ -2,8 +2,9 @@
 
 This module is deterministic plumbing for skill scripts. It encodes the
 provider-owned routing rule: Codex runs GPT/GBT/OpenAI models, Claude Code runs
-Opus, and Cursor Agent runs Composer 2.5 Fast. Cross-provider phrases fail loud
-instead of routing an expensive model through the wrong harness.
+Opus, Cursor Agent runs Composer 2.5 Fast, and Grok CLI runs Grok models.
+Cross-provider phrases fail loud instead of routing an expensive model through
+the wrong harness.
 """
 
 from __future__ import annotations
@@ -17,7 +18,7 @@ from dataclasses import dataclass
 from typing import Any
 
 
-VALID_RUNTIMES = {"agent", "claude", "codex"}
+VALID_RUNTIMES = {"agent", "claude", "codex", "grok"}
 VALID_EFFORTS = {"low", "medium", "high", "xhigh", "max"}
 
 _CLAUDE_FAMILIES = {"opus"}
@@ -32,6 +33,7 @@ _CLAUDE_FAMILY_RE = re.compile(
     r"(?:[\s_-]*(?P<version>\d+(?:[\.-]\d+)*))?\b",
     re.IGNORECASE,
 )
+_GROK_MODEL_RE = re.compile(r"\bgrok(?:[-_][a-z0-9.]+)+\b", re.IGNORECASE)
 _ROLE_ALIASES = {
     "planner": "epic_planner",
     "plan": "epic_planner",
@@ -107,11 +109,35 @@ def discover_codex_models() -> list[str]:
     return sorted(candidates)
 
 
+def discover_grok_models() -> list[str]:
+    """Return model ids from `grok models` when available."""
+
+    if shutil.which("grok") is None:
+        return []
+    proc = subprocess.run(
+        ["grok", "models"],
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        check=False,
+    )
+    if proc.returncode != 0:
+        return []
+    candidates: set[str] = set()
+    for token in re.findall(r"\bgrok-\S+", proc.stdout):
+        cleaned = token.strip("`'\",:;()[]{}")
+        if cleaned:
+            candidates.add(cleaned)
+    return sorted(candidates)
+
+
 def resolve_execution_phrase(
     source_quote: str,
     *,
     codex_models: list[str] | None = None,
     agent_models: list[str] | None = None,
+    grok_models: list[str] | None = None,
 ) -> ResolvedExecution:
     """Resolve a compact user phrase into runtime/model/effort.
 
@@ -121,6 +147,8 @@ def resolve_execution_phrase(
     - "GBT55XI" -> codex / gpt-5.5 / xhigh
     - "cursor agent composer-2.5-fast" -> agent / composer-2.5-fast / encoded-in-model
     - "cursor agent composer 2.5" -> agent / composer-2.5-fast / encoded-in-model
+    - "grok build high" -> grok / grok-build / high
+    - "grok composer 2.5 high" -> grok / grok-composer-2.5-fast / high
 
     The function raises ModelResolutionError when a required value is missing
     or when exact-version-preserving model discovery is impossible. Cursor
@@ -136,7 +164,7 @@ def resolve_execution_phrase(
     runtime, runtime_source = _infer_runtime(lowered)
     if runtime is None:
         raise ModelResolutionError(
-            f"could not infer runtime from {raw!r}; name claude, codex, or agent"
+            f"could not infer runtime from {raw!r}; name claude, codex, agent, or grok"
         )
     if effort is None and runtime != "agent":
         raise ModelResolutionError(
@@ -147,9 +175,11 @@ def resolve_execution_phrase(
         model = _resolve_claude_model(raw)
     elif runtime == "codex":
         model = _resolve_codex_model(raw, codex_models=codex_models)
-    else:
+    elif runtime == "agent":
         model = _resolve_agent_model(raw, agent_models=agent_models)
         effort = f"encoded-in-model:{effort}" if effort else "encoded-in-model"
+    else:
+        model = _resolve_grok_model(raw, grok_models=grok_models)
 
     return ResolvedExecution(
         runtime=runtime,
@@ -171,6 +201,7 @@ def resolve_role_execution_policy(
     *,
     codex_models: list[str] | None = None,
     agent_models: list[str] | None = None,
+    grok_models: list[str] | None = None,
     poll_seconds: int = 180,
     quiet_floor_seconds: int = 900,
     stuck_floor_seconds: int = 1800,
@@ -228,6 +259,7 @@ def resolve_role_execution_policy(
                     phrase_clean,
                     codex_models=codex_models,
                     agent_models=agent_models,
+                    grok_models=grok_models,
                 ).to_dict()
                 block["source"] = "user_table"
                 resolved[role] = block
@@ -273,15 +305,30 @@ def _infer_runtime(lowered: str) -> tuple[str | None, str]:
     has_agent = bool(
         re.search(r"\b(cursor(?:[-\s]+agent)?|cursor-agent|agent)\b", lowered)
     )
+    has_grok = bool(
+        re.search(r"\b(grok|xai|x\.ai)\b", lowered)
+        or _GROK_MODEL_RE.search(lowered)
+    )
+    has_composer = bool(
+        re.search(r"(?<![a-z0-9])composer(?![a-z0-9])", lowered)
+        or re.search(r"(?<![\d])2[-_.]5(?![\d])", lowered)
+    )
+    if has_grok and (has_codex or has_claude or has_agent):
+        raise ModelResolutionError(
+            "execution phrase mixes Grok with another runtime family; split "
+            "the roles"
+        )
     if has_agent and (has_codex or has_claude):
         raise ModelResolutionError(
             "execution phrase mixes Cursor Agent with a GPT/GBT/Claude model; "
             "Codex runs GPT/GBT, Claude Code runs Opus, and Cursor Agent runs "
             "composer-2.5-fast"
         )
+    if has_grok:
+        return "grok", "inferred_from_model_family"
     if has_agent:
         return "agent", "inferred_from_runtime_name"
-    if sum(bool(v) for v in [has_codex, has_claude, has_agent]) > 1:
+    if sum(bool(v) for v in [has_codex, has_claude, has_agent, has_grok]) > 1:
         raise ModelResolutionError(
             "execution phrase names multiple runtime families; split the roles"
         )
@@ -289,6 +336,11 @@ def _infer_runtime(lowered: str) -> tuple[str | None, str]:
         return "codex", "inferred_from_model_family"
     if has_claude:
         return "claude", "inferred_from_model_family"
+    if has_composer:
+        raise ModelResolutionError(
+            "Composer phrasing is ambiguous now that Cursor Agent and Grok both "
+            "have Composer models; name Cursor Agent or Grok explicitly"
+        )
     return None, "unresolved"
 
 
@@ -375,6 +427,43 @@ def _resolve_agent_model(raw: str, *, agent_models: list[str] | None) -> str:
     raise ModelResolutionError(
         f"unsupported Cursor Agent model in {raw!r}; Cursor Agent is limited to composer-2.5-fast"
     )
+
+
+def _resolve_grok_model(raw: str, *, grok_models: list[str] | None) -> str:
+    models = grok_models
+    if models is None:
+        models = discover_grok_models()
+    normalized_models = [model.lower() for model in models]
+    candidate = _extract_grok_model_candidate(raw.lower())
+    if candidate is None:
+        raise ModelResolutionError(f"could not find a Grok model in {raw!r}")
+
+    if not normalized_models or candidate in normalized_models:
+        return candidate
+    raise ModelResolutionError(
+        f"{raw!r} did not match an available Grok model id; candidate was {candidate!r}"
+    )
+
+
+def _extract_grok_model_candidate(lowered: str) -> str | None:
+    if re.search(
+        r"\bgrok[-_\s]*composer(?:[-_\s]*2[-_\s]*5(?:[-_\s]*fast)?)?\b",
+        lowered,
+    ):
+        return "grok-composer-2.5-fast"
+    if re.search(r"\bgrok[-_\s]*build\b", lowered):
+        return "grok-build"
+
+    match = _GROK_MODEL_RE.search(lowered)
+    if match:
+        token = match.group(0).replace("_", "-")
+        if token == "grok-composer" or token.startswith("grok-composer-2-5"):
+            return "grok-composer-2.5-fast"
+        return token
+
+    if re.search(r"\bgrok\b", lowered):
+        return "grok-build"
+    return None
 
 
 def _extract_agent_model_candidate(lowered: str) -> str | None:

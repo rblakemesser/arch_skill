@@ -192,12 +192,12 @@ Absolute path to the epic doc. The critic needs it to see the
 approved Decomposition shape and any epic-level Decision Log
 entries that might explain a sub-plan's apparent divergence.
 
-## Claude vs. Codex surfacing
+## Runtime surfacing
 
 Claude's structured output via `--json-schema` surfaces the JSON
 in the top-level result's `structured_output` field. Codex's
-`--output-schema` writes the JSON verbatim to the `-o` file. The
-orchestrator handles both in `scripts/run_arch_epic.py` — the
-critic does not need to worry about which runtime it is on. It
-returns one JSON document per the schema; the runtime and the
-script get it to the right place.
+`--output-schema` writes the JSON verbatim to the `-o` file. Grok receives the
+schema appended to the prompt, and the script post-validates the final JSON
+text. The critic does not need to worry about which runtime it is on. It
+returns one JSON document per the schema; the runtime and the script get it to
+the right place.

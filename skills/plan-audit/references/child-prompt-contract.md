@@ -7,8 +7,8 @@ treated as required whenever available.
 
 Do not replace native subagents by manually spawning separate coding-harness
 executables, or by invoking skills whose main effect is to shell out to
-`codex`, `claude`, or `agent`, unless the parent explicitly assigns that
-action. Do not turn this into an external delegation workflow.
+`codex`, `claude`, `agent`, or `grok`, unless the parent explicitly assigns
+that action. Do not turn this into an external delegation workflow.
 
 The parent owns synthesis and verdict. Children provide bounded evidence.
 

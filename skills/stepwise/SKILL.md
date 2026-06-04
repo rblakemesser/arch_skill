@@ -1,6 +1,6 @@
 ---
 name: stepwise
-description: "Run an ordered multi-step process inside a target repo with one fresh Claude or Codex worker session per step, an independent observational critic, and a Stepwise-owned diagnose-and-repair loop that talks to struggling sessions, walks upstream when inputs are suspect, and repairs at root cause. Use for named process execution with strict step ordering and evidence. Do NOT use for plan-doc implementation (arch-step), bet-and-learn optimization (goal-loop), one-shot reviews, or single-turn work."
+description: "Run an ordered multi-step process inside a target repo with one fresh Claude, Codex, or Grok worker session per step, an independent observational critic, and a Stepwise-owned diagnose-and-repair loop that talks to struggling sessions, walks upstream when inputs are suspect, and repairs at root cause. Use for named process execution with strict step ordering and evidence. Do NOT use for plan-doc implementation (arch-step), bet-and-learn optimization (goal-loop), one-shot reviews, or single-turn work."
 metadata:
   short-description: "Diagnostic multi-step orchestrator with critics"
 ---
@@ -8,8 +8,8 @@ metadata:
 # stepwise
 
 Execute an ordered multi-step process in a target repo. Each step runs in a
-fresh Claude or Codex sub-session using the execution settings resolved for
-that step. An independent critic sub-session judges whether the attempt
+fresh Claude, Codex, or Grok sub-session using the execution settings resolved
+for that step. An independent critic sub-session judges whether the attempt
 honored its declared contract. When a critic fails or abstains with inspectable
 evidence, Stepwise diagnoses the failure before repair: it reads the evidence,
 talks directly to the relevant session, walks upstream when inputs are suspect,
@@ -91,8 +91,9 @@ break.
   Strict/balanced/lenient never changes this number.
 - Diagnostic read-only turns do not consume repair bounces. Operational repair
   prompts do.
-- No `--ephemeral` on worker subprocesses because they must be resumable.
-  Critic subprocesses use `--ephemeral`.
+- Do not use stateless-only worker subprocess flags because workers must be
+  resumable. Critics use the runtime's fresh/stateless command shape where
+  supported.
 - Silent worker repair past the resolved repair limit, silent skipping, and
   silent advance on fail are forbidden. Apply `stop_discipline` when repair
   capacity is exhausted.
@@ -203,8 +204,8 @@ Subcommands:
   prompt.
 - `step-diagnose` - resume an existing worker session read-only and write the
   diagnostic turn into `diagnostic/` without consuming a repair bounce.
-- `critic-spawn` - spawn an ephemeral critic with a structured schema; parse
-  and validate the observational verdict.
+- `critic-spawn` - spawn a fresh critic with a structured schema; parse and
+  validate the observational verdict.
 - `latest-session` - print latest try/session metadata for a step.
 - `upstream-for` - print manifest-declared upstream artifacts and latest
   sessions for a step.

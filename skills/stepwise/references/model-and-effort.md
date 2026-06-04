@@ -2,10 +2,10 @@
 
 Six base values must be known before Phase 2 can draft a runnable manifest:
 
-- `execution_defaults.step.runtime` - `claude` or `codex` for worker steps
+- `execution_defaults.step.runtime` - `claude`, `codex`, or `grok` for worker steps
 - `execution_defaults.step.model` - model for worker steps
 - `execution_defaults.step.effort` - reasoning effort for worker steps
-- `execution_defaults.critic.runtime` - `claude` or `codex` for critics
+- `execution_defaults.critic.runtime` - `claude`, `codex`, or `grok` for critics
 - `execution_defaults.critic.model` - model for critics
 - `execution_defaults.critic.effort` - reasoning effort for critics
 
@@ -30,6 +30,7 @@ The intake phase parses whatever the user wrote. Any of these is clear:
 
 - "use Claude Opus 4.7 xhigh for steps and Codex gpt-5.5 xhigh for critic"
 - "Codex gpt-5.5 high everywhere" (one value reused for all defaults)
+- "Grok Build high for steps and Codex gpt-5.5 xhigh for critic"
 - "steps on gpt-5.5 high, critic on gpt-5.5 xhigh"
 - "default to Codex gpt-5.5 high, but use Claude Opus 4.7 for copywriting"
 
@@ -59,6 +60,13 @@ This is reasoning, not a lookup table:
   (`codex debug models`) and choose the available identifier with the same
   family and exact version. For example, "gpt 5.5" resolves to `gpt-5.5` if
   that exact model appears, and "gpt 5.3 codex" resolves to `gpt-5.3-codex`.
+- For Grok, use `grok-build` by default when the user says `grok`,
+  `grok cli`, `grok build`, or `grok-build`. Use
+  `grok-composer-2.5-fast` only when the user names Grok Composer, such as
+  `grok composer`, `grok composer 2.5`, or `grok-composer-2.5-fast`. Inspect
+  `grok models` when availability matters.
+- Bare `composer`, `composer 2.5`, or bare `2.5` is ambiguous unless the user
+  explicitly names Cursor Agent or Grok in the same execution choice.
 - If the user says `gpt 5.4` or a `gpt-5.4` variant while choosing a model,
   pause before execution and ask whether they meant `gpt-5.5` or explicitly
   want `gpt-5.4`. This is an intent check, not an alias rule: do not rewrite
@@ -71,13 +79,14 @@ This is reasoning, not a lookup table:
 
 Always announce the raw-to-resolved mapping before execution, for example:
 `Claude Opus 4.7 xhigh -> runtime=claude, model=claude-opus-4-7,
-effort=xhigh`.
+effort=xhigh` or `Grok Build high -> runtime=grok, model=grok-build,
+effort=high`.
 
 For deterministic script plumbing that needs these same resolution rules, use
 `skills/_shared/model_resolution.py` instead of adding another hidden model
-alias table. The helper keeps Stepwise-style flows, fresh-consult, and
-arch-epic automatic harnesses aligned on exact-version preservation and
-fail-loud behavior.
+alias table. The helper keeps Stepwise-style flows, fresh-consult,
+agent-delegate, model-consensus, and arch-epic automatic harnesses aligned on
+exact-version preservation and fail-loud behavior.
 
 ## Asking when missing
 
@@ -114,7 +123,7 @@ Runtime is separate from model and effort.
 Infer runtime only when the evidence is unambiguous:
 
 - a target repo says "run with Codex"
-- the user says "Claude Opus 4.7" or "Codex gpt-5.5"
+- the user says "Claude Opus 4.7", "Codex gpt-5.5", or "Grok Build"
 - an installed CLI supports only the named model family and the user clearly
   intended that family
 

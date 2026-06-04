@@ -1,17 +1,18 @@
 # Model And Invocation
 
 Use this reference to resolve what the user meant by "Claude", "Codex",
-"Cursor Agent", "opus high", "gpt 5.5 xhigh", "GBT55XI",
-"composer-2.5-fast", or similar phrasing, and to run the selected fresh
-subprocess or explicit parallel group of fresh subprocesses. Fresh consult is
-review/second-opinion work. Provider routing is fixed: Codex runs GPT/GBT,
-Claude Code runs Opus, and Cursor Agent runs Composer 2.5 Fast.
+"Cursor Agent", "Grok", "opus high", "gpt 5.5 xhigh", "GBT55XI",
+"composer-2.5-fast", "grok-build", or similar phrasing, and to run the
+selected fresh subprocess or explicit parallel group of fresh subprocesses.
+Fresh consult is review/second-opinion work. Provider routing is fixed: Codex
+runs GPT/GBT, Claude Code runs Opus, Cursor Agent runs Composer 2.5 Fast, and
+Grok CLI runs Grok models.
 
 ## Required Values
 
 Every consult child needs three execution values:
 
-- `runtime` - `claude`, `codex`, or `agent`
+- `runtime` - `claude`, `codex`, `agent`, or `grok`
 - `model` - the runnable CLI model identifier
 - `effort` - the reasoning effort level, or `encoded-in-model` for Cursor Agent
 
@@ -40,8 +41,14 @@ Infer runtime only when the user's wording makes it unambiguous:
 - `agent`, `cursor`, `cursor agent`, or `cursor-agent` implies
   `runtime=agent` only for Composer. Cursor Agent always resolves to
   `composer-2.5-fast`.
+- `grok`, `grok build`, `grok-build`, `grok composer`, or
+  `grok-composer-2.5-fast` implies `runtime=grok`.
+- Bare `composer`, `composer 2.5`, or bare `2.5` is ambiguous unless the user
+  explicitly names Cursor Agent or Grok in the same execution choice.
 - If a phrase mixes Cursor Agent with GPT/GBT or Claude, fail loud instead of
   choosing a side. Never run GPT/GBT or Claude models through Cursor Agent.
+- If a phrase mixes Grok with GPT/GBT, Claude, or Cursor Agent, fail loud
+  instead of choosing a side.
 - If the user names only an effort level, such as "xhigh", ask for runtime and
   model.
 - If the user says only "run a fresh consult" or "get a second opinion", ask
@@ -70,9 +77,16 @@ Treat model text as intent, not a loose alias:
   ask for an Opus choice.
 - For Cursor Agent, always use `composer-2.5-fast`. Accept `agent`, `cursor`,
   `cursor agent`, `cursor-agent`, `composer`, `composer 2.5`,
-  `composer-2.5`, `composer-2.5-fast`, or bare `2.5` in Cursor Agent context
-  as that runnable id. Do not use Cursor model discovery for non-Composer
-  routing, and do not pass GPT/GBT or Claude model ids to Cursor Agent.
+  `composer-2.5`, `composer-2.5-fast`, or bare `2.5` only in Cursor Agent
+  context as that runnable id. Do not use Cursor model discovery for
+  non-Composer routing, and do not pass GPT/GBT, Claude, or Grok model ids to
+  Cursor Agent.
+- For Grok, use `grok-build` by default when the user says `grok`,
+  `grok cli`, `grok build`, or `grok-build`. Use
+  `grok-composer-2.5-fast` only when the user names Grok Composer, such as
+  `grok composer`, `grok composer 2.5`, or `grok-composer-2.5-fast`. Inspect
+  `grok models` when availability matters, and do not pass GPT/GBT, Claude, or
+  Cursor Agent model ids to Grok.
 - Do not run paid trial prompts to discover whether a Claude model exists. Use
   the CLI help/config surface when available; otherwise ask.
 
@@ -81,6 +95,7 @@ Always announce the raw-to-resolved mapping before execution:
 ```text
 Claude Opus 4.7 xhigh -> runtime=claude, model=claude-opus-4-7, effort=xhigh
 Cursor Agent composer 2.5 -> runtime=agent, model=composer-2.5-fast, effort=encoded-in-model
+Grok Build high -> runtime=grok, model=grok-build, effort=high
 ```
 
 For deterministic script plumbing that needs the same rules, use
@@ -93,13 +108,14 @@ harnesses aligned on exact-version preservation and fail-loud behavior.
 
 - Claude accepts `low`, `medium`, `high`, `xhigh`, and `max` via `--effort`.
 - Codex effort is passed as `-c model_reasoning_effort='"<level>"'`.
+- Grok accepts `low`, `medium`, `high`, `xhigh`, and `max` via `--effort`.
 - Cursor Agent does not expose a separate `--effort` flag in the local CLI.
   Store effort as `encoded-in-model` and pass only
   `--model "composer-2.5-fast"`.
 - For Codex, confirm the selected model supports the requested effort when
   `codex debug models` is needed for model resolution.
-- If effort is missing for Claude or Codex, or the selected model does not
-  support the requested effort, ask.
+- If effort is missing for Claude, Codex, or Grok, or the selected model does
+  not support the requested effort, ask.
 
 ## Run Directory
 
@@ -121,7 +137,8 @@ on the command line.
 `events.jsonl` is the live child stream. `stderr.log` is the diagnostic error
 stream. `final.txt` is the final assistant text: Codex writes it directly with
 `-o`; for Claude and Cursor Agent, copy the `result` text from the final
-`type=result` event after the process exits.
+`type=result` event after the process exits. For Grok, concatenate streamed
+`type=text` `data` chunks after the process exits.
 
 ## Parallel Consult Group
 
@@ -150,10 +167,10 @@ EVENTS_PATH="$RUN_DIR/events.jsonl"
 STDERR_PATH="$RUN_DIR/stderr.log"
 ```
 
-Launch each child with the same Codex, Claude, or Cursor Agent command shape
-below, using that child's paths. Record the shell PID and exit status in the
-child directory if the host shell makes that convenient, but do not introduce a
-script, controller, detached monitor, or state machine.
+Launch each child with the same Codex, Claude, Cursor Agent, or Grok command
+shape below, using that child's paths. Record the shell PID and exit status in
+the child directory if the host shell makes that convenient, but do not
+introduce a script, controller, detached monitor, or state machine.
 
 Default to one shared runtime/model/effort for all children. If the user clearly
 assigns different execution choices to different children, apply those choices
@@ -262,6 +279,36 @@ After Cursor Agent exits, read the final `type=result` event from
 verdict-footer checks. If no result event exists after a zero exit, treat the
 run as malformed and preserve the run directory.
 
+## Grok Command
+
+Use this shape for a Grok consult:
+
+```bash
+RUST_LOG=off grok \
+  --cwd "<work_root>" \
+  --no-auto-update \
+  --no-memory \
+  --no-subagents \
+  --disable-web-search \
+  --permission-mode bypassPermissions \
+  --always-approve \
+  --model "<resolved_grok_model>" \
+  --effort "<resolved_effort>" \
+  --output-format streaming-json \
+  --prompt-file "$PROMPT_PATH" \
+  > "$EVENTS_PATH" \
+  2> "$STDERR_PATH"
+```
+
+Do not pass `--sandbox disabled`; Grok does not accept that flag/value pair,
+and its default local mode is unsandboxed. Grok has no documented
+hook-suppression flag. Use `--no-auto-update`, `--no-memory`,
+`--no-subagents`, and `--disable-web-search` for isolation.
+
+After Grok exits, concatenate streamed `type=text` `data` chunks into
+`final.txt` before applying the verdict-footer checks. If no final text exists
+after a zero exit, treat the run as malformed and preserve the run directory.
+
 ## Monitoring Posture
 
 Consults are not instant. A normal repo-backed consult commonly takes 5+
@@ -274,9 +321,9 @@ process liveness every few minutes; do not poll every few seconds. A missing
 still alive. Investigate only after the process exits non-zero, the stream
 shows an error, or there is no stream activity for a long quiet window.
 
-Do not use Claude `-r`, Codex `exec resume`, Cursor Agent `--resume`,
-`agent resume`, `agent ls`, or latest-session selection; a consult is a cold
-read, not a resumed conversation.
+Do not use Claude `-r`, Codex `exec resume`, Cursor Agent `--resume`, Grok
+`--resume`, `agent resume`, `agent ls`, or latest-session selection; a consult
+is a cold read, not a resumed conversation.
 
 ## Failure Behavior
 
@@ -288,7 +335,8 @@ Fail loud and preserve the run directory when:
 - `final.txt` is empty
 - Claude exits without a final `type=result` event
 - Cursor Agent exits without a final `type=result` event
+- Grok exits without final text
 - the child omits the required verdict footer
 
-Do not silently fall back between Claude, Codex, and Cursor Agent, one model to
-another model, or one effort level to another.
+Do not silently fall back between Claude, Codex, Cursor Agent, and Grok, one
+model to another model, or one effort level to another.

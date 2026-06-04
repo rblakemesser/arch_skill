@@ -34,7 +34,7 @@ raw_goal: |
   <verbatim user input that created this epic — every word, no edits>
 raw_goal_sha256: <hex digest of the raw_goal string>
 sub_plans_approved: false
-critic_runtime: null | claude | codex
+critic_runtime: null | claude | codex | grok
 critic_model: null | <resolved CLI model, e.g. claude-opus-4-7>
 critic_effort: null | <low | medium | high | xhigh | max>
 models_sha256: null | <hex digest of {runtime, model, effort} tuple>

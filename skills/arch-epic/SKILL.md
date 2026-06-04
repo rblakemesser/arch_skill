@@ -12,7 +12,7 @@ The skill takes a prose goal, proposes a plain-English decomposition
 whose count follows proof gates rather than a preset range, gets user approval, and then drives
 each sub-plan through arch-step's `new` → `auto-plan` → `implement-loop`
 → `audit-implementation` arc. After each sub-plan completes, a fresh
-Claude or Codex critic subprocess inspects the shipped work for scope
+Claude, Codex, or Grok critic subprocess inspects the shipped work for scope
 drift against the approved North Star. If the critic finds a requirement
 needed to preserve approved scope or a non-trivial scope change, the skill
 halts and asks the user how to preserve the scope by extending the current
@@ -108,7 +108,7 @@ Must happen every run:
   orchestrator still does not edit target code itself.
 - Epic critic runs once per sub-plan at sub-plan completion and
   returns structured JSON `EpicVerdict`. Critic is a separate
-  subprocess (claude or codex).
+  subprocess (`claude`, `codex`, or `grok`).
 - Both arch-step invocations and critic subprocesses run dangerous
   / skip-permissions / no-sandbox per repo convention.
 - User supplies execution policy at invocation or at the role-table
@@ -259,7 +259,8 @@ Detail per mode lives in `references/workflow-contract.md`.
   contracts for automatic planner, implementation, same-session
   continuation, and critic harnesses.
 - `references/epic-verdict-schema.json` — JSON schema file used by
-  Codex `--output-schema` (and inlined into Claude `--json-schema`).
+  Codex `--output-schema`, inlined into Claude `--json-schema`, and appended
+  to Grok critic prompts before post-validation.
 - `references/model-and-effort.md` — role-based execution policy,
   model shorthand resolution, exact-version preservation, and ask-once
   discipline.
@@ -284,7 +285,7 @@ python3 scripts/run_arch_epic.py critic-spawn \
   --sub-plan-doc-path <path> \
   --prompt-file <path> \
   --schema-file references/epic-verdict-schema.json \
-  --runtime claude|codex \
+  --runtime claude|codex|grok \
   --model <model> \
   --effort <effort> \
   [--orchestrator-root <dir>]

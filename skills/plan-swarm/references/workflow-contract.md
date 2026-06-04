@@ -15,8 +15,8 @@ It does not write a new plan or broaden the requested boundary.
   consult child prompt: "Maximize parallelism with native subagents or
   parallel-agent features provided by your current coding harness. Do not
   manually spawn separate coding-harness executables, or invoke skills whose
-  main effect is to shell out to `codex`, `claude`, or `agent`, from inside
-  this child prompt unless the parent explicitly assigns that action."
+  main effect is to shell out to `codex`, `claude`, `agent`, or `grok`, from
+  inside this child prompt unless the parent explicitly assigns that action."
 - Inspect worker reports, changed files, and proof after every batch.
 - Batch review, test, integration, and worker findings before dispatching
   follow-up work.

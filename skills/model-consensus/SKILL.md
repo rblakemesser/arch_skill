@@ -1,6 +1,6 @@
 ---
 name: model-consensus
-description: "Run a prompt-only, parent-agent orchestrated dialogue between two named Claude Opus, Codex GPT/GBT, or Cursor Composer models to cross-check, critique, and converge on a lean plan, architecture, debugging strategy, investigation, design, or concept. Use when the user wants iterative two-model agreement or adversarial simplification. Repo-backed runs make both models read real evidence, but open investigations preserve child discovery freedom. Not for one-shot cold opinions, deterministic code review, ordered implementation loops, or broad idea tournaments."
+description: "Run a prompt-only, parent-agent orchestrated dialogue between two named Claude Opus, Codex GPT/GBT, Cursor Composer, or Grok models to cross-check, critique, and converge on a lean plan, architecture, debugging strategy, investigation, design, or concept. Use when the user wants iterative two-model agreement or adversarial simplification. Repo-backed runs make both models read real evidence, but open investigations preserve child discovery freedom. Not for one-shot cold opinions, deterministic code review, ordered implementation loops, or broad idea tournaments."
 metadata:
   short-description: "Agent-run two-model consensus for lean repo-grounded plans"
 ---
@@ -20,7 +20,7 @@ evidence discovery when the task is investigative, converges on existing repo
 patterns when the task is architectural, and avoids kitchen-sink plans.
 ## Use When
 
-- The user wants two Claude Opus, Codex GPT/GBT, or Cursor Composer models to
+- The user wants two Claude Opus, Codex GPT/GBT, Cursor Composer, or Grok models to
   iterate on a plan,
   architecture, design, migration, debugging strategy, investigation, or
   concept.
@@ -69,8 +69,8 @@ patterns when the task is architectural, and avoids kitchen-sink plans.
   as "gpt 5.5 xhigh" or "Claude Opus 4.7 high", resolve it with the shared
   model-resolution rules and announce the raw-to-resolved mapping.
 - Provider routing is fixed: Codex runs GPT/GBT/OpenAI models, Claude Code runs
-  Opus, and Cursor Agent runs `composer-2.5-fast`. Do not pass GPT/GBT or
-  Claude model ids to Cursor Agent.
+  Opus, Cursor Agent runs `composer-2.5-fast`, and Grok CLI runs `grok-build`
+  or `grok-composer-2.5-fast`. Do not pass model ids across runtimes.
 - For repo-backed work, both child models must read real evidence before they
   are allowed to recommend or agree. In open investigation mode, require them to
   choose and cite the code, docs, research, tests, and commands they need. In
@@ -105,7 +105,7 @@ Then:
    the caller's diagnosis or investigation frame.
 3. Resolve the two participant execution choices. Ask one concise question if
    any runtime/model/effort choice is missing or ambiguous. Cursor Agent always
-   means `composer-2.5-fast`.
+   means `composer-2.5-fast`; Grok without a Composer model means `grok-build`.
 4. Create a per-run artifact directory by hand, for example
    `.arch_skill/model-consensus/<slug>-<timestamp>/`. Store prompts, final
    replies, event streams, and a short run index there. Do not create a script.
@@ -156,7 +156,7 @@ Final responses should include:
   deterministic runner
 - `prompt-contracts.md` - prompt shapes for first pass, critique, adversarial
   mode, revision, and signoff
-- `model-and-invocation.md` - model shorthand resolution, direct Claude/Codex
+- `model-and-invocation.md` - model shorthand resolution, direct child
   invocation, resumable sessions, streaming, and long-run monitoring posture
 - `repo-grounding.md` - required repo reading, open-investigation evidence
   discovery, and single-path architecture pressure

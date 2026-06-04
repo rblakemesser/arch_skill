@@ -56,8 +56,8 @@ For each drafted step, resolve execution in this order:
    If the chosen CLI cannot satisfy the target doctrine or session mechanics,
    do not force it.
 2. **Hard target doctrine.** If the target repo or process explicitly requires
-   Claude or Codex for a step, honor that unless the user explicitly overrides
-   it and accepts the conflict.
+   Claude, Codex, or Grok for a step, honor that unless the user explicitly
+   overrides it and accepts the conflict.
 3. **Explicit step or label preference.** A user phrase like "step 4 on
    Codex" or "the copy pass on Claude" beats a broader semantic preference.
 4. **Semantic category preference.** A phrase like "copywriting steps" applies

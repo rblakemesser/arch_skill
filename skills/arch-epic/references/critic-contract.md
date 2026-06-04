@@ -11,7 +11,7 @@ completion/scope. Automatic mode uses spawned critics instead of
 per-sub-plan user approval, so those critics must check that the raw
 epic goal and approved decomposition are still represented.
 
-The critic is a fresh subprocess (Claude or Codex, per the epic
+The critic is a fresh subprocess (Claude, Codex, or Grok, per the epic
 doc's `critic_runtime`). It has no memory of the orchestrator's
 prose. It reads the sub-plan's DOC_PATH, worklog, and the arch-step
 audit block directly, returns one JSON document, and exits. It reports
@@ -139,9 +139,9 @@ The critic computes each check's status (`pass` / `fail` /
 ## EpicVerdict JSON schema
 
 Lives at `references/epic-verdict-schema.json`. Inlined here for
-reference. Both Claude (`--json-schema`) and Codex
-(`--output-schema`) expect `additionalProperties: false` at every
-object level.
+reference. Claude (`--json-schema`) and Codex (`--output-schema`) expect
+`additionalProperties: false` at every object level; Grok receives the schema
+inline and the script post-validates the returned JSON.
 
 ```json
 {

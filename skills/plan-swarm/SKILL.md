@@ -41,8 +41,8 @@ without treating Git history as PR-ready.
 - The user names an existing plan doc and asks to finish one phase quickly.
 - A plan phase has independent owner surfaces that can be delegated in
   parallel.
-- The user asks for Codex GPT/GBT, Claude Opus, or Cursor Composer workers to
-  implement plan slices.
+- The user asks for Codex GPT/GBT, Claude Opus, Cursor Composer, or Grok
+  workers to implement plan slices.
 - A phase needs an external arbiter and strict maintainability pass before it
   can be called done.
 
@@ -69,20 +69,25 @@ without treating Git history as PR-ready.
 - When the user chooses Cursor Agent for implementation, Composer 2.5 means
   `composer-2.5-fast`; accept `composer`, `composer 2.5`, `composer-2.5`, or
   bare `2.5` in Cursor Agent context as that model.
+- When the user chooses Grok for implementation, plain Grok means
+  `grok-build`; Grok Composer means `grok-composer-2.5-fast`.
 - Implementation and review policy are independent. Cursor implementation does
-  not make review run through Cursor.
+  not make review run through Cursor, and Grok implementation does not make
+  review run through Grok.
 - Provider routing is fixed: Codex runs GPT/GBT/OpenAI models, Claude Code runs
-  Opus, and Cursor Agent runs only `composer-2.5-fast`.
+  Opus, Cursor Agent runs only `composer-2.5-fast`, and Grok CLI runs
+  `grok-build` or `grok-composer-2.5-fast`.
 - Arbiter, consult, and review work must use Codex GPT/GBT or Claude Opus.
-  Do not pass GPT/GBT or Claude model ids to Cursor Agent.
+  Do not pass GPT/GBT, Claude, Cursor Agent, or Grok model ids across runtimes.
 - Workers are prompted like capable engineers, not micromanaged checklist
   executors.
 - Every child prompt, including implementation, repair, verification, arbiter,
   and consult prompts, tells the child: "Maximize parallelism with native
   subagents or parallel-agent features provided by your current coding harness.
   Do not manually spawn separate coding-harness executables, or invoke skills
-  whose main effect is to shell out to `codex`, `claude`, or `agent`, from
-  inside this child prompt unless the parent explicitly assigns that action."
+  whose main effect is to shell out to `codex`, `claude`, `agent`, or `grok`,
+  from inside this child prompt unless the parent explicitly assigns that
+  action."
 - The parent commits freely. If the run inherits a dirty worktree, assume it is
   likely resumed plan work and create an initial checkpoint unless there is a
   concrete safety issue such as secrets, obvious machine-local junk, or files

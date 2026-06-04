@@ -1,16 +1,16 @@
 # Model And Invocation
 
-`model-consensus` invokes Claude, Codex, or Cursor Agent child models directly
-from the parent agent. It does not create a new runner script, model alias
-table, harness, or deterministic controller.
+`model-consensus` invokes Claude, Codex, Cursor Agent, or Grok child models
+directly from the parent agent. It does not create a new runner script, model
+alias table, harness, or deterministic controller.
 Provider routing is fixed: Codex runs GPT/GBT/OpenAI models, Claude Code runs
-Opus, and Cursor Agent runs Composer 2.5 Fast.
+Opus, Cursor Agent runs Composer 2.5 Fast, and Grok CLI runs Grok models.
 
 ## Required Participant Values
 
 Each participant needs:
 
-- `runtime`: `claude`, `codex`, or `agent`
+- `runtime`: `claude`, `codex`, `agent`, or `grok`
 - `model`: runnable model id or exact model phrase
 - `effort`: `low`, `medium`, `high`, `xhigh`, or `max` when supported by the
   selected runtime/model
@@ -22,7 +22,8 @@ If any execution choice is missing or ambiguous, ask one consolidated question:
 Before I run model-consensus, I need the two participant choices. These are
 real external model sessions and can spend model budget. Please give
 runtime/model/effort for Model A and Model B, and say whether either should be
-adversarial. Cursor Agent is Composer-only.
+adversarial. Cursor Agent is Composer-only; Grok defaults to grok-build unless
+you name Grok Composer.
 ```
 
 ## Model Phrase Resolution
@@ -39,8 +40,10 @@ Follow the shared model-resolution doctrine:
 - Infer runtime only from unambiguous family evidence: `gpt`/`gbt`/`codex`
   implies Codex; `claude opus` or `opus` implies Claude; `agent`, `cursor`,
   `cursor agent`, or `cursor-agent` implies Cursor Agent only for Composer.
+  `grok`, `grok-build`, `grok build`, or `grok composer` implies Grok.
   If a phrase mixes Cursor Agent with GPT/GBT or Claude, fail loud instead of
-  choosing a side.
+  choosing a side. If a phrase mixes Grok with GPT/GBT, Claude, or Cursor
+  Agent, fail loud instead of choosing a side.
 - For Codex, inspect `codex debug models` when model availability matters and
   choose an available id with the same family and exact version.
 - For Claude, only Opus is supported. For Opus family plus version, prefer
@@ -51,6 +54,13 @@ Follow the shared model-resolution doctrine:
   Cursor Agent context as that runnable id. Do not use Cursor model discovery
   for non-Composer routing, and do not pass GPT/GBT or Claude model ids to
   Cursor Agent.
+- For Grok, use `grok-build` by default when the user says `grok`,
+  `grok cli`, `grok build`, or `grok-build`. Use
+  `grok-composer-2.5-fast` only when the user names Grok Composer, such as
+  `grok composer`, `grok composer 2.5`, or `grok-composer-2.5-fast`. Inspect
+  `grok models` when availability matters.
+- Bare `composer`, `composer 2.5`, or bare `2.5` is ambiguous unless the user
+  explicitly names Cursor Agent or Grok in the same execution choice.
 - Do not run paid trial prompts to discover Claude model availability.
 - If discovery is unavailable, ambiguous, or no exact match exists, ask for the
   runnable model id.
@@ -64,6 +74,7 @@ Always announce the mapping before execution:
 ```text
 Model A: "Claude Opus 4.7 xhigh" -> runtime=claude, model=claude-opus-4-7, effort=xhigh
 Model B: "gpt 5.5 xhigh" -> runtime=codex, model=gpt-5.5, effort=xhigh
+Model C: "Grok Build high" -> runtime=grok, model=grok-build, effort=high
 ```
 
 ## Run Directory
@@ -210,6 +221,56 @@ Use `--resume <session_id>`, not `--continue`, `agent resume`, or `agent ls`,
 because multiple child sessions may exist in the same repo. Do not add
 `--verbose`; that flag is Claude-only. `<resolved_agent_model>` must be
 `composer-2.5-fast`.
+
+## Grok: First Turn
+
+Use a resumable Grok session for each Grok participant:
+
+```bash
+RUST_LOG=off grok \
+  --cwd "<work_root>" \
+  --no-auto-update \
+  --no-memory \
+  --no-subagents \
+  --disable-web-search \
+  --permission-mode bypassPermissions \
+  --always-approve \
+  --model "<resolved_grok_model>" \
+  --effort "<resolved_effort>" \
+  --output-format streaming-json \
+  --prompt-file "$RUN_DIR/round-01/model-a-prompt.md" \
+  > "$RUN_DIR/round-01/model-a-events.jsonl" \
+  2> "$RUN_DIR/round-01/model-a-stderr.log"
+```
+
+Concatenate streamed `type=text` `data` chunks into the participant final file.
+Keep the final `type=end` event's `sessionId` for resume. Do not pass
+`--sandbox disabled`; Grok does not accept that flag/value pair, and its
+default local mode is unsandboxed. Grok has no documented hook-suppression
+flag.
+
+## Grok: Resume Turn
+
+```bash
+RUST_LOG=off grok \
+  --cwd "<work_root>" \
+  --no-auto-update \
+  --no-memory \
+  --no-subagents \
+  --disable-web-search \
+  --permission-mode bypassPermissions \
+  --always-approve \
+  --model "<resolved_grok_model>" \
+  --effort "<resolved_effort>" \
+  --output-format streaming-json \
+  --resume "<session_id>" \
+  --prompt-file "$RUN_DIR/round-02/model-a-prompt.md" \
+  > "$RUN_DIR/round-02/model-a-events.jsonl" \
+  2> "$RUN_DIR/round-02/model-a-stderr.log"
+```
+
+Use `--resume <session_id>`, not latest-session selection, because multiple
+child sessions may exist in the same repo.
 
 ## Monitoring Posture
 

@@ -73,8 +73,8 @@ findings, update artifacts, and own the final claim.
 
 - Do not launch the deterministic `code-review` runner unless the user or local
   instructions explicitly require it.
-- Do not manually spawn `codex`, `claude`, or `agent` binaries for ordinary
-  continuous review.
+- Do not manually spawn `codex`, `claude`, `agent`, or `grok` binaries for
+  ordinary continuous review.
 - Do not block implementation on missing CI logs when this is plan-backed code
   review.
 - Do not let review become a reason to widen scope beyond the plan.

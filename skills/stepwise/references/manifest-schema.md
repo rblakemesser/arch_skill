@@ -63,7 +63,7 @@ Resolved execution blocks appear on every step for both worker and critic:
 
 Fields:
 
-- `runtime`: `"claude"` or `"codex"`.
+- `runtime`: `"claude"`, `"codex"`, or `"grok"`.
 - `model`: CLI model name to pass to the runtime.
 - `effort`: reasoning effort to pass to the runtime.
 - `source`: where the value came from.

@@ -162,8 +162,8 @@ Do not:
   conflicts from evidence after they happen.
 - Resume an ambiguous "latest" session instead of an explicit session id or
   prior run directory.
-- Change runtime when resuming a session. Claude resumes through Claude; Codex
-  resumes through Codex.
+- Change runtime when resuming a session. Resume through the same runtime that
+  created the session.
 - Treat the child as final authority. It is a capable worker whose output still
   needs parent-side sanity checks.
 - Reuse old run directories for new turns. A resume turn still gets a new run

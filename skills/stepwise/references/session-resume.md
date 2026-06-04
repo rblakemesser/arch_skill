@@ -1,27 +1,27 @@
 # Session resume mechanics
 
-Verified against Claude Code CLI 2.1.119 and Codex CLI 0.124.0-alpha.3. When
-either CLI version drifts, re-run the verification block at the bottom of this
-file before trusting any invocation here.
+Verified against Claude Code CLI 2.1.119, Codex CLI 0.124.0-alpha.3, and Grok
+CLI 0.2.22. When a CLI version drifts, re-run the relevant verification block
+at the bottom of this file before trusting that invocation.
 
 ## Why sessions matter for this skill
 
 A step runs in a fresh subprocess. The critic inspects the output and returns
 an observational verdict. On failure, Stepwise may resume worker sessions in
 two different ways: read-only diagnostic conversation, then operational repair
-after root cause is located. Claude and Codex expose different session handles;
-this reference is the single place the exact mechanics live.
+after root cause is located. Claude, Codex, and Grok expose different session
+handles; this reference is the single place the exact mechanics live.
 
 ## Runtime behavior contract
 
 - Step sub-sessions are resumable. Do not pass `--ephemeral` (Codex) or
   `--no-session-persistence` (Claude) to them.
-- Critic sub-sessions are stateless. Pass `--ephemeral` (Codex) or rely on
-  fresh process (Claude) — we never resume a critic.
+- Critic sub-sessions are stateless. Pass `--ephemeral` for Codex, rely on a
+  fresh process for Claude and Grok, and never resume a critic.
 - Diagnostic and repair turns both resume worker sessions. Diagnostic turns
   are read-only by prompt contract and do not consume repair bounces. Repair
   turns are operational and do consume repair bounces.
-- Both runtimes run with dangerous/skip-permissions/no-sandbox. This is a
+- All runtimes run with dangerous/skip-permissions/no-sandbox. This is a
   user-set constraint on this skill. Read-only discipline for the critic is
   enforced in the critic prompt, not with a sandbox flag.
 
@@ -192,6 +192,68 @@ required-but-nullable. `scripts/run_stepwise.py` writes a normalized
 `critic/schema.codex.json` before invoking Codex, then validates the returned
 observational StepVerdict semantically.
 
+## Grok — step session (resumable)
+
+```
+RUST_LOG=off grok \
+  --cwd <target_repo> \
+  --no-auto-update \
+  --no-memory \
+  --no-subagents \
+  --disable-web-search \
+  --permission-mode bypassPermissions \
+  --always-approve \
+  --model <resolved_step_model> \
+  --effort <resolved_step_effort> \
+  --output-format streaming-json \
+  --prompt-file <step_prompt_file>
+```
+
+Grok stdout is JSONL when `streaming-json` is active. Concatenate `type=text`
+event `data` chunks for the final answer. Capture the final `type=end`
+event's `sessionId` for resume.
+
+## Grok — step resume
+
+```
+RUST_LOG=off grok \
+  --cwd <target_repo> \
+  --no-auto-update \
+  --no-memory \
+  --no-subagents \
+  --disable-web-search \
+  --permission-mode bypassPermissions \
+  --always-approve \
+  --model <resolved_step_model> \
+  --effort <resolved_step_effort> \
+  --output-format streaming-json \
+  --resume <session_id> \
+  --prompt-file <diagnostic_or_repair_prompt_file>
+```
+
+Use `--resume <session_id>` only. Do not use latest-session selection.
+
+## Grok — critic (fresh, post-validated)
+
+```
+RUST_LOG=off grok \
+  --cwd <target_repo> \
+  --no-auto-update \
+  --no-memory \
+  --no-subagents \
+  --disable-web-search \
+  --permission-mode bypassPermissions \
+  --always-approve \
+  --model <resolved_critic_model> \
+  --effort <resolved_critic_effort> \
+  --output-format streaming-json \
+  --prompt-file <critic_prompt_with_schema_file>
+```
+
+Grok has no schema-enforcement flag in the local CLI. The script writes a
+Grok-specific prompt file that appends the StepVerdict JSON Schema, parses the
+final text as JSON, and then runs the same semantic verdict validation.
+
 ## Notes on flag drift
 
 - Claude's `--effort` accepts: `low`, `medium`, `high`, `xhigh`, `max`.
@@ -209,10 +271,14 @@ observational StepVerdict semantically.
 - `--verbose` is required by the Claude CLI when `--output-format stream-json`
   is used. Add it to every Claude stream-json step, resume, diagnostic, critic,
   and smoke-test command.
+- Grok does not accept `--sandbox disabled`; do not add it. Its default local
+  mode is unsandboxed. Use `RUST_LOG=off` to suppress noisy success stderr
+  while preserving useful failure errors.
+- Grok has no documented hook-suppression flag. Do not invent one.
 
 ## Verification block
 
-Run these six invocations against a fresh temp directory to confirm behavior
+Run the relevant invocations against a fresh temp directory to confirm behavior
 before shipping changes to this skill. Substitute any cheap available models;
 behavior does not depend on model choice.
 
@@ -252,6 +318,31 @@ codex exec --cd /tmp/smoke --ephemeral \
   --model gpt-5.5 -c model_reasoning_effort='"low"' \
   --output-schema /tmp/smoke/schema.json --json -o /tmp/smoke/verdict.json \
   "Return verdict pass." < /dev/null
+
+# 7 Grok step
+printf 'Say PING.' > /tmp/smoke/grok-step.prompt
+RUST_LOG=off grok --cwd /tmp/smoke --no-auto-update --no-memory \
+  --no-subagents --disable-web-search --permission-mode bypassPermissions \
+  --always-approve --model grok-build --effort low \
+  --output-format streaming-json --prompt-file /tmp/smoke/grok-step.prompt \
+  | tee /tmp/smoke/grok-step.events.jsonl
+
+# 8 Grok resume (reuse sessionId from step 7)
+printf 'Say PONG.' > /tmp/smoke/grok-resume.prompt
+RUST_LOG=off grok --cwd /tmp/smoke --no-auto-update --no-memory \
+  --no-subagents --disable-web-search --permission-mode bypassPermissions \
+  --always-approve --model grok-build --effort low \
+  --output-format streaming-json --resume <SESSION_ID> \
+  --prompt-file /tmp/smoke/grok-resume.prompt \
+  | tee /tmp/smoke/grok-resume.events.jsonl
+
+# 9 Grok critic (schema is appended to the prompt, then output is parsed)
+printf 'Return JSON only: {"verdict":"pass"}' > /tmp/smoke/grok-critic.prompt
+RUST_LOG=off grok --cwd /tmp/smoke --no-auto-update --no-memory \
+  --no-subagents --disable-web-search --permission-mode bypassPermissions \
+  --always-approve --model grok-build --effort low \
+  --output-format streaming-json --prompt-file /tmp/smoke/grok-critic.prompt \
+  | tee /tmp/smoke/grok-critic.events.jsonl
 ```
 
 If any of the six fails or emits a different shape than described above,

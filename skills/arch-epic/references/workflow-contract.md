@@ -215,7 +215,7 @@ the next routing decision.
    `events.jsonl`, `stderr.log`, and `stream.log` while they work.
 6. While a detached child is active, poll with `poll_seconds` (default 180),
    inspect `child-status` and `child-tail`, and classify silence by the
-   long-run floors. Recent Claude/Codex thinking, tool, or output events are
+   long-run floors. Recent child thinking, tool, or output events are
    progress. Lack of a final artifact before the floor expires is not failure.
 7. Mark the sub-plan complete only after the critic has no blocking
    findings. Then move to the next sub-plan.

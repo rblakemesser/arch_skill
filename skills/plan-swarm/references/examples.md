@@ -106,8 +106,8 @@ complete this slice.
 Maximize parallelism with native subagents or parallel-agent features provided
 by your current coding harness. Do not manually spawn separate coding-harness
 executables, or invoke skills whose main effect is to shell out to `codex`,
-`claude`, or `agent`, from inside this child prompt unless the parent explicitly
-assigns that action.
+`claude`, `agent`, or `grok`, from inside this child prompt unless the parent
+explicitly assigns that action.
 
 Verification intent: run the plan-required and slice-local checks that prove the
 QA adapter boundary. Do not run the full suite unless repo evidence shows this
@@ -141,8 +141,8 @@ the cleanest implementation that satisfies the phase contract.
 Maximize parallelism with native subagents or parallel-agent features provided
 by your current coding harness. Do not manually spawn separate coding-harness
 executables, or invoke skills whose main effect is to shell out to `codex`,
-`claude`, or `agent`, from inside this child prompt unless the parent explicitly
-assigns that action.
+`claude`, `agent`, or `grok`, from inside this child prompt unless the parent
+explicitly assigns that action.
 
 Verification intent: cover the accepted findings and any adjacent behavior your
 repair plausibly affects. Reuse already-passing proof unless your repair touched
@@ -169,8 +169,8 @@ verification slice explicitly asks for a repair.
 Maximize parallelism with native subagents or parallel-agent features provided
 by your current coding harness. Do not manually spawn separate coding-harness
 executables, or invoke skills whose main effect is to shell out to `codex`,
-`claude`, or `agent`, from inside this child prompt unless the parent explicitly
-assigns that action.
+`claude`, `agent`, or `grok`, from inside this child prompt unless the parent
+explicitly assigns that action.
 
 End with the required plan-swarm worker footer.
 ```

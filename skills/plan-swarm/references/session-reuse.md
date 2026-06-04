@@ -47,5 +47,6 @@ worker only when evidence shows it is stuck, harmful, or unable to continue.
 - Never cross-resume between runtimes.
 - Never use latest-session selection.
 - Cursor Agent resumes only through `--resume <session_id>`.
+- Grok resumes only through `--resume <session_id>`.
 - Codex resumes only through `codex exec resume <thread_id>`.
 - Claude resumes only through `-r <session_id>`.

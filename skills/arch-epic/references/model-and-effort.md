@@ -1,6 +1,6 @@
 # Role execution policy: user-supplied, asked once
 
-`arch-epic` uses external Claude/Codex subprocesses in two places:
+`arch-epic` uses external Claude, Codex, or Grok subprocesses in two places:
 
 - interactive mode: the epic critic at sub-plan completion
 - automatic mode: planner, implementation worker, and critics
@@ -15,7 +15,7 @@ planner session, and implementation failures resume the implementation session.
 
 Interactive mode needs one critic execution block:
 
-- `critic_runtime`: `claude` or `codex`
+- `critic_runtime`: `claude`, `codex`, or `grok`
 - `critic_model`: runnable CLI model identifier
 - `critic_effort`: `low | medium | high | xhigh | max`
 
@@ -74,6 +74,7 @@ the same doctrine used by Stepwise and fresh-consult:
 - preserve model family and numeric version exactly
 - infer runtime only from unambiguous family evidence
 - inspect `codex debug models` when Codex model availability matters
+- inspect `grok models` when Grok model availability matters
 - prefer `claude-<family>-<version-with-hyphens>` for Claude family+version
   phrases
 - ask for the runnable ID when discovery is unavailable, ambiguous, or missing
@@ -88,6 +89,7 @@ All of these are valid when they include a role:
 
 - "planner on Claude Opus 4.7 xhigh"
 - "implementation worker on Codex gpt-5.5 xhigh"
+- "planner on Grok Build high"
 - "critics on gpt 5.5 xhigh"
 - "codex gpt-5.5 high everywhere"
 
@@ -103,20 +105,27 @@ Treat model text as intent, not a loose alias:
 - `gpt 5.3 codex` may normalize to `gpt-5.3-codex`.
 - `opus 4.7` under Claude may normalize to `claude-opus-4-7`; it must not
   become another Opus version.
+- `grok`, `grok cli`, `grok build`, or `grok-build` may normalize to
+  `grok-build`.
+- `grok composer`, `grok composer 2.5`, or `grok-composer-2.5-fast` may
+  normalize to `grok-composer-2.5-fast`.
+- Bare `composer`, `composer 2.5`, or bare `2.5` is ambiguous unless the user
+  explicitly names Cursor Agent or Grok in the same execution choice.
 - If the user says `gpt 5.4` or a `gpt-5.4` variant while choosing a model,
   pause before execution and ask whether they meant `gpt-5.5` or explicitly
   want `gpt-5.4`. This is an intent check, not an alias rule: do not rewrite
   the version yourself.
 - Family-only Claude aliases such as `opus`, `sonnet`, or `haiku` are allowed
   only when the user did not pin a version.
-- If the phrase names both Claude and Codex families, ask the user to split
-  the role choices.
+- If the phrase names multiple runtime families, ask the user to split the role
+  choices.
 
 Always print the raw-to-resolved mapping before execution:
 
 ```text
 critic: "codex gpt 5.5 xhigh" -> runtime=codex, model=gpt-5.5, effort=xhigh
 planner: "Claude Opus 4.7 high" -> runtime=claude, model=claude-opus-4-7, effort=high
+implementation_worker: "Grok Build high" -> runtime=grok, model=grok-build, effort=high
 ```
 
 ## Asking when missing

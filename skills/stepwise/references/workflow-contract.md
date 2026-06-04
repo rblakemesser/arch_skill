@@ -140,8 +140,8 @@ bounces.
 - Subprocess crashes -> treat as a failed attempt with crash evidence, subject
   to the same diagnose-and-repair protocol unless the crash is a known
   orchestration defect.
-- Session id not captured -> inspect the raw stream for known Claude/Codex id
-  shapes before marking `session_id.txt` as `UNRECOVERABLE`.
+- Session id not captured -> inspect the raw stream for the runtime's session
+  id shape before marking `session_id.txt` as `UNRECOVERABLE`.
 
 ### 4b. Spawn critic sub-session
 

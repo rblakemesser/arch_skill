@@ -57,8 +57,9 @@ the sequence of transcript landmarks.
 ## StepVerdict JSON schema
 
 The critic returns one JSON document conforming to
-`step-verdict.schema.json`. Both runtimes enforce it: Claude via
-`--json-schema`, Codex via `--output-schema`. Codex may require
+`step-verdict.schema.json`. Claude enforces it with `--json-schema`, Codex
+enforces it with `--output-schema`, and Grok receives the schema inline before
+the script post-validates the returned JSON. Codex may require
 required-but-nullable fields; the orchestration script normalizes schema shape
 while preserving semantics.
 
