@@ -38,7 +38,7 @@ critic_runtime: null | claude | codex | grok
 critic_model: null | <resolved CLI model, e.g. claude-opus-4-7>
 critic_effort: null | <low | medium | high | xhigh | max>
 models_sha256: null | <hex digest of {runtime, model, effort} tuple>
-auto_execution: null | <automatic-mode policy block>
+auto_execution: null | <spawned-harness policy block>
 ---
 ```
 
@@ -65,21 +65,24 @@ Frontmatter rules:
 - `critic_runtime`, `critic_model`, `critic_effort` are user-supplied
   per `model-and-effort.md` for interactive-mode completion critics.
   They are not defaulted. `critic_model` stores the resolved runnable
-  identifier, not raw shorthand. When the user explicitly asked for
-  automatic end-to-end execution, these fields may stay `null` until an
-  interactive critic is needed; automatic-mode critics use the
-  `auto_execution.roles.critic` block instead.
+  identifier, not raw shorthand. During same-session `auto-plan`, these fields
+  may stay `null` because no epic critic runs during planning; same-session
+  `auto-implement` must fill them before the first epic critic. When the user
+  explicitly asked for spawned-harness end-to-end execution, these fields may
+  stay `null` until an interactive critic is needed; spawned-harness critics
+  use the `auto_execution.roles.critic` block instead.
 - `models_sha256` is computed over the runtime/model/effort tuple when
   that tuple is present. Changing any of them re-hashes. Past verdicts
   keep their old models recorded in their own artifacts.
 - `auto_execution` is `null` until the user explicitly asks for
-  automatic execution. Automatic mode fills it after decomposition
-  approval and role-table resolution. Interactive mode ignores it.
+  role-based spawned-harness automatic execution. Spawned-harness mode fills it
+  after decomposition approval and role-table resolution. Interactive mode
+  ignores it.
 
 ### `auto_execution`
 
-Automatic mode stores the role-based policy in both the epic doc and
-the automatic run directory:
+Spawned-harness automatic mode stores the role-based policy in both the epic doc and
+the spawned-harness run directory:
 
 ```yaml
 auto_execution:
@@ -123,7 +126,7 @@ Rules:
 - `stuck_floor_seconds` defaults to `1800`. A live child with no stream
   activity beyond this floor becomes `needs_attention`; this is a diagnostic
   status, not an automatic termination command.
-- `max_runtime_seconds` defaults to `7200` for automatic children unless the
+- `max_runtime_seconds` defaults to `7200` for spawned children unless the
   user pins a different policy.
 - `auto_run_dir` is an operational pointer. It is added after the run
   directory exists and is not part of the `execution_sha256` input.
@@ -132,7 +135,7 @@ Rules:
 - Model resolution comes from `skills/_shared/model_resolution.py` and
   `references/model-and-effort.md`; exact versions are never silently
   substituted.
-- New automatic policies require `epic_planner`, `implementation_worker`, and
+- New spawned-harness policies require `epic_planner`, `implementation_worker`, and
   `critic`. Older docs may include a legacy `repair_worker`; keep it readable,
   but ordinary critic failures resume the original planner or implementation
   worker session instead of using a separate repair role.
@@ -167,7 +170,8 @@ A numbered list of sub-plans. Each entry has:
 - `DOC_PATH:` the path to the sub-plan's canonical arch-step doc.
   Empty at decomposition time for sub-plans that have not been
   started yet (lazy planning). Filled in when the skill invokes
-  `$arch-step new` for that sub-plan.
+  `$arch-step new` for that sub-plan or when same-session `auto-plan`
+  assigns the grouped path before creating the sub-plan doc.
   When arch-epic assigns a path, use
   `docs/epic/<EPIC_SLUG_WITH_DATE>/PHASE_<NN>_<SUBPLAN_SLUG>_<YYYY-MM-DD>.md`.
   Derive `<EPIC_SLUG_WITH_DATE>` from the epic doc stem without the
@@ -179,11 +183,11 @@ A numbered list of sub-plans. Each entry has:
 - `Gate to next:` the assertion that must be true before the next
   sub-plan starts planning. The last sub-plan has no `Gate to next`.
 - `Status:` one of `pending | north-star-approved | planning |
-  implementing | complete | scope-changed`.
+  planned | implementing | complete | scope-changed`.
 - `Epic-critic verdict:` empty until the sub-plan reaches
   completion; then the verdict path (relative or absolute) for
   audit.
-- In automatic mode, add `Auto-run status:` when useful. Keep it
+- In spawned-harness automatic mode, add `Auto-run status:` when useful. Keep it
   compact: current role, latest worker artifact, latest critic verdict,
   or `not started`. Do not copy child transcripts into the epic doc.
 
@@ -236,6 +240,7 @@ by the skill, not the user. Examples of what goes here:
 - Sub-plan N North Star approved by user.
 - Sub-plan N auto-plan started.
 - Sub-plan N auto-plan completed (consistency-pass clean).
+- Sub-plan N marked planned.
 - Sub-plan N implement-loop started.
 - Sub-plan N implement-loop completed (arch-step audit COMPLETE).
 - Epic critic run on sub-plan N: verdict=`<pass|scope_change|incomplete>`.
@@ -270,10 +275,10 @@ conversation history a month from now, not a machine log.
 
 ### Epic Requirement Coverage
 
-Automatic-mode sub-plan DOC_PATHs must include an Epic Requirement
-Coverage section, usually in Section 0 or immediately after it. The
-coverage map classifies every meaningful raw-goal/decomposition
-requirement as one of:
+Same-session `auto-plan` and spawned-harness sub-plan DOC_PATHs
+must include an Epic Requirement Coverage section, usually in Section 0 or
+immediately after it. The coverage map classifies every meaningful
+raw-goal/decomposition requirement as one of:
 
 - owned by this sub-plan
 - satisfied by a prior sub-plan
@@ -286,8 +291,9 @@ Decision Log.
 Coverage is a scope-preservation map, not a scope-reduction tool. A
 requirement from the raw goal, approved Decomposition, North Star, Section 7,
 acceptance criteria, or verification obligations must never be classified as
-out of scope by an automatic child. If it is not owned here, satisfied already,
-or assigned to a named later sub-plan, the sub-plan is not ready.
+out of scope by the orchestrator or a spawned child. If it is not owned here,
+satisfied already, or assigned to a named later sub-plan, the sub-plan is not
+ready.
 
 ## Mutation rules
 
@@ -300,13 +306,21 @@ The skill mutates the epic doc under these conditions only:
 - `run` mode: updates sub-plan Status fields, fills in DOC_PATH when
   `$arch-step new` runs, appends to log, writes critic verdict
   pointer under the sub-plan entry.
+- `auto-plan` mode: assigns missing DOC_PATHs, creates or repairs sub-plan docs
+  by applying the `arch-step` `new` artifact contract directly, runs or
+  continues `$arch-step auto-plan`, sets sub-plan Status to `planned` only after
+  the `arch-step` readiness gate passes, and appends compact log entries.
+- `auto-implement` mode: requires every non-complete sub-plan to be `planned`,
+  runs or continues `$arch-step auto-implement`, runs the epic critic after the
+  `arch-step` implementation audit is COMPLETE, updates Status to
+  `implementing` or `complete`, and appends compact log entries.
 - `resume-scope-change` mode: inserts a new sub-plan or extends an
   existing one's scope to preserve approved requirements; always
   appends a Decision Log entry.
 - `auto-run` mode: writes or updates `auto_execution`, writes compact
   Auto-run status fields, records role-policy changes, same-role worker
   resumes after critic failures, and auto-inserted sub-plans. Full child
-  artifacts stay in the automatic run directory; `state.json` keeps compact
+  artifacts stay in the spawned-harness run directory; `state.json` keeps compact
   `latest_worker_attempts` pointers to the sessions that may be resumed.
 
 The skill never edits `raw_goal` or `raw_goal_sha256` except at

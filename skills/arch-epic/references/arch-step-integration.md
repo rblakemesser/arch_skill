@@ -6,8 +6,9 @@ orchestrator's own session. It does NOT shell out to `claude -p` or
 same session as `arch-epic`, so native goal-mode continuation can see
 the same plan truth.
 
-That rule applies to interactive mode. Automatic mode is a separate
-explicit lane: spawned workers do not invoke `$arch-step auto-plan`,
+That rule applies to interactive mode and to the same-session
+`arch-epic auto-plan` / `arch-epic auto-implement` drivers. Spawned-harness
+automatic mode is a separate explicit lane: spawned workers do not invoke `$arch-step auto-plan`,
 `implement-loop`, or any other automatic continuation command. Instead,
 the worker prompt points at arch-step's reference files and tells the
 child to apply the doctrine directly against the sub-plan DOC_PATH. This
@@ -17,6 +18,11 @@ quality contract.
 This reference maps sub-plan Status to the exact arch-step command
 the skill issues next. It is the operational cheat sheet the
 orchestrator prose leans on.
+
+Same-session `arch-epic auto-plan` and `arch-epic auto-implement` share the
+same status vocabulary but use a different stopping point: `auto-plan` stops at
+Status `planned` for every sub-plan, and `auto-implement` is the only
+same-session command that moves planned sub-plans into implementation.
 
 ## Mapping
 
@@ -51,6 +57,14 @@ either confirm the North Star (arch-step flow) or ask for
 adjustments. On the turn after that, the skill reads the arch-step
 doc's frontmatter.
 
+Same-session `auto-plan` exception: when the user explicitly asked for
+`arch-epic auto-plan`, do not invoke `$arch-step new` and stop for a separate
+North Star approval turn. Instead, assign the grouped DOC_PATH and apply the
+`arch-step new` artifact contract directly from the approved Decomposition,
+raw epic goal, prior gates, and Epic Requirement Coverage. This is allowed only
+when the resulting sub-plan North Star is a direct, unambiguous expansion of
+approved epic scope; otherwise stop and ask.
+
 ### Status transition: `pending` → `north-star-approved`
 
 Detected by reading the sub-plan's arch-step DOC_PATH frontmatter:
@@ -73,13 +87,39 @@ Next action:
 
 Read the sub-plan's DOC_PATH and look for `arch_skill:block:consistency_pass`
 with `Decision-complete: yes` and `Decision: proceed to implement? yes`.
-If present, planning is done. Update Status to `implementing`, invoke
-`$arch-step implement-loop <DOC_PATH>`, append to log:
-`Sub-plan N auto-plan completed. Sub-plan N implement-loop started.`
+If present, planning is done.
+
+- In interactive `run` mode, update Status to `implementing`, invoke
+  `$arch-step implement-loop <DOC_PATH>`, and append to log:
+  `Sub-plan N auto-plan completed. Sub-plan N implement-loop started.`
+- In same-session `arch-epic auto-plan`, run
+  `python3 skills/arch-step/scripts/arch_stage_gate.py ready --doc <DOC_PATH>`.
+  If it exits 0, update Status to `planned`, append to log:
+  `Sub-plan N auto-plan completed. Status set to planned.`, then move to the
+  next sub-plan in native goal mode or stop with the next exact command outside
+  goal mode.
 
 If the consistency-pass block is absent or not ready, invoke
 `$arch-step auto-plan <DOC_PATH>` again in goal mode, or report the exact
 next bounded command outside goal mode. Do not silently advance.
+
+### Status `planned`
+
+Meaning: this sub-plan passed the `arch-step auto-plan` readiness bar and has
+not started implementation.
+
+Next action:
+1. For ordinary interactive `run`, do not skip into implementation unless the
+   user asked to run or continue implementation. Surface that the next exact
+   command is `$arch-epic auto-implement <EPIC_DOC_PATH>` or
+   `$arch-step implement-loop <DOC_PATH>` for this sub-plan.
+2. For same-session `arch-epic auto-implement`, run
+   `python3 skills/arch-step/scripts/arch_stage_gate.py ready --doc <DOC_PATH>`.
+   If it exits 0, invoke `$arch-step auto-implement <DOC_PATH>`, update Status
+   to `implementing`, and append to log:
+   `Sub-plan N auto-implement started.`
+3. If the gate is not ready, keep or reset the Status to `planning` and route
+   back to `$arch-epic auto-plan <EPIC_DOC_PATH>`.
 
 ### Status `implementing`
 
@@ -98,8 +138,9 @@ audit's reported blockers. The user decides whether to rerun
 implement-loop, continue in goal mode, or intervene.
 
 If the audit block is absent entirely: implement-loop ended without
-writing the audit. Run or request `$arch-step implement-loop <DOC_PATH>`;
-do not silently advance.
+writing the audit. Run or request `$arch-step implement-loop <DOC_PATH>` or
+`$arch-step auto-implement <DOC_PATH>` depending on the current command; do not
+silently advance.
 
 ### Critic verdict: `pass`
 
@@ -109,7 +150,7 @@ do not silently advance.
 - Append to log: `Epic critic run on sub-plan N: verdict=pass.`
 - Append to log: `Sub-plan N marked complete.`
 - Loop back through the mapping from step 1 (first sub-plan with
-  Status `pending`). If all sub-plans are `complete`, flip
+  Status not `complete`). If all sub-plans are `complete`, flip
   `status: complete` on the epic doc and write the final summary.
 
 ### Critic verdict: `scope_change_detected`
@@ -147,14 +188,15 @@ user whether to rerun implement-loop or investigate manually.
 - `$arch-step full-auto` — single-plan full-auto belongs to `arch-step`
   itself. `arch-epic` already owns the multi-plan routing layer, so it
   invokes or observes the underlying `new`, `auto-plan`, and
-  `implement-loop` transitions directly in interactive mode.
+  `implement-loop` / `auto-implement` transitions directly in interactive or
+  same-session auto modes.
 - `$arch-step status` as part of the loop — only if the user
   explicitly asks "what does arch-step think of sub-plan N?", in
   which case the skill relays the answer without acting on it.
 
-## Automatic harness integration
+## Spawned-harness automatic integration
 
-Automatic mode uses the same sub-plan Status vocabulary, but the
+Spawned-harness automatic mode uses the same sub-plan Status vocabulary, but the
 transition owner changes:
 
 - `pending`: planner harness creates or repairs the numbered per-epic
@@ -164,13 +206,16 @@ transition owner changes:
   planning stages from arch-step doctrine directly. It does not arm
   `auto-plan`.
 - `planning`: critic checks plan readiness and decision completeness.
+- `planned`: normally produced by same-session `auto-plan`; spawned-harness
+  mode may skip it because that lane checks planning gates with critics before
+  implementation.
 - `implementing`: implementation worker executes Section 7, updates the
   worklog, and leaves verification evidence. It does not arm
   `implement-loop`.
 - completion: critic checks implementation audit, scope drift, and epic
   requirement coverage.
 
-Automatic mode still treats the sub-plan DOC_PATH and worklog as the
+Spawned-harness automatic mode still treats the sub-plan DOC_PATH and worklog as the
 truth. Child transcripts are evidence, not a second plan. The top-level
 orchestrator records only compact artifact pointers in the epic doc.
 
@@ -183,7 +228,7 @@ observation-only evidence. Critics do not prescribe repair steps.
 ## Cross-runtime parity
 
 Everything above works identically on Claude Code and Codex because
-`$arch-step`'s `auto-plan` and `implement-loop` commands are native
+`$arch-step`'s `auto-plan`, `implement-loop`, and `auto-implement` commands are native
 goal-mode friendly in both runtimes. The epic skill checks sub-plan doc
 truth rather than external automation state.
 

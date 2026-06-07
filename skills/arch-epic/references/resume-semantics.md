@@ -18,8 +18,11 @@ Every turn the skill runs this sequence:
    - the stored Status in the Decomposition
    - the sub-plan DOC_PATH frontmatter when it exists
    - planning markers such as `arch_skill:block:research_grounding`, architecture blocks, `arch_skill:block:phase_plan`, and `arch_skill:block:consistency_pass`
+   - the `arch-step` auto-plan receipt gate via
+     `python3 skills/arch-step/scripts/arch_stage_gate.py ready --doc <DOC_PATH>`
+     when deciding whether a non-implemented sub-plan is `planned`
    - the `arch_skill:block:implementation_audit` block when present
-   - automatic-mode run state and child artifacts under `.arch_skill/arch-epic/auto/<epic-slug>/run-<ts>/` when `auto_execution` is present
+   - spawned-harness run state and child artifacts under `.arch_skill/arch-epic/auto/<epic-slug>/run-<ts>/` when `auto_execution` is present
 4. If the stored Status disagrees with observed doc truth, update the stored Status before acting and append an Orchestration Log entry naming the discrepancy.
 5. Route per `arch-step-integration.md`.
 6. End the turn. The next turn re-runs the same routine.
@@ -30,8 +33,13 @@ Interactive mode does not add an `arch-epic`-owned state file. The epic doc is
 the orchestration surface, and sub-plan DOC_PATHs are the implementation
 contracts.
 
-Automatic mode intentionally owns spawned harnesses outside arch-step's visible
-session. It writes a compact `state.json` plus child artifacts under
+Same-session `auto-plan` and `auto-implement` also do not add an
+`arch-epic`-owned state file. `planned` is derived from the sub-plan DOC_PATH:
+the `arch-step` stage receipt gate is ready and no implementation worklog or
+implementation audit evidence has started.
+
+Spawned-harness mode intentionally owns spawned harnesses outside arch-step's
+visible session. It writes a compact `state.json` plus child artifacts under
 `.arch_skill/arch-epic/auto/<epic-slug>/run-<ts>/`. That run state is
 operational evidence, not a competing source of product truth: the epic doc
 remains the approved goal/decomposition/decision surface, and sub-plan DOC_PATHs
@@ -54,6 +62,15 @@ Example:
 - Action: update stored Status to `implementing`, then advance per the Status `implementing` + audit COMPLETE rule by running the epic critic.
 - Log: `Sub-plan N stored status was 'planning' but observed doc truth indicates implementation is complete. Updating and running critic.`
 
+Another common case:
+
+- Stored Status: `planning`.
+- Observed: `arch_stage_gate.py ready --doc <DOC_PATH>` exits 0 and no
+  implementation worklog or implementation audit evidence exists.
+- Action: update stored Status to `planned`. In `auto-plan`, move to the next
+  sub-plan. In `auto-implement`, start this sub-plan's implementation.
+- Log: `Sub-plan N stored status was 'planning' but observed doc truth indicates planning is complete. Updating to planned.`
+
 The log entry is important because the user reading the epic later sees the
 reconciliation happened and why.
 
@@ -68,6 +85,9 @@ that map to this single re-entrant pass:
 - "resume <docs/EPIC_*.md>"
 - "status of my epic"
 - "what's left on this epic?"
+- "auto-plan this epic"
+- "auto-implement this epic"
+- "plan every sub-plan before implementation"
 
 Status-query phrasings trigger `summary` mode. Everything else triggers the
 re-entry routine.
@@ -76,5 +96,7 @@ re-entry routine.
 
 - Re-ask decomposition approval if `sub_plans_approved: true`.
 - Re-ask per-sub-plan North Star if arch-step's DOC_PATH has `status: active`.
+- Re-run `auto-plan` for a sub-plan already marked `planned` unless the
+  readiness gate no longer passes.
 - Re-run the epic critic on a sub-plan already marked `complete`.
 - Restart a sub-plan from scratch because something looks weird. If something looks weird, surface it with a specific question, not a silent reset.

@@ -1,6 +1,6 @@
 # Automatic harness prompt contracts
 
-Automatic mode uses spawned Claude, Codex, or Grok harnesses to keep the
+Spawned-harness automatic mode uses spawned Claude, Codex, or Grok harnesses to keep the
 top-level
 orchestrator context clean. These prompts are contracts, not templates for
 mindless command execution. Each child must understand why the role exists,
@@ -14,7 +14,7 @@ worker for normal failures.
 
 ## Shared ground rules
 
-Every automatic-mode child prompt must include these sections:
+Every spawned-harness child prompt must include these sections:
 
 - `Mission`
 - `System Context`
@@ -312,7 +312,7 @@ Decide whether the current sub-plan can advance through gate {{gate_name}}.
 You are read-only. Return structured JSON only.
 
 ## System Context
-Automatic mode replaces per-sub-plan user approval with spawned critics. Your
+Spawned-harness automatic mode replaces per-sub-plan user approval with spawned critics. Your
 job is to protect the approved epic requirements from being lost, narrowed, or
 silently removed while allowing normal implementation latitude. The epic scope
 is locked: do not invent any drop/out-of-scope compromise. Named later

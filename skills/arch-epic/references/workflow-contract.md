@@ -1,7 +1,9 @@
-# Workflow contract: six modes the skill runs
+# Workflow contract: re-entrant modes the skill runs
 
-The skill runs one mode per turn. The mode is chosen from the epic
-doc's state, not from a user command. The user types whatever; the
+The skill runs one mode per turn. Most modes are chosen from the epic
+doc's state, not from a user command. The explicit automation modes
+also use the user's command-shaped ask: `auto-plan`, `auto-implement`,
+or role-based spawned-harness execution. The user types whatever; the
 skill reads the doc and picks the right mode.
 
 This file names each mode, its trigger, its inputs, its outputs,
@@ -37,9 +39,10 @@ determinism happens.
    `critic_runtime`, `critic_model`, `critic_effort` if any is
    missing. One consolidated question per `model-and-effort.md`. Wait
    for the answer before writing the doc. If the user explicitly asked
-   for automatic end-to-end execution, defer execution choices to the
-   role-table gate in `auto-run`; write the interactive critic tuple as
-   pending/null.
+   for same-session `auto-plan`, defer critic choices because no critic
+   runs during planning. If the user explicitly asked for role-based
+   spawned-harness execution, defer execution choices to the role-table
+   gate in `auto-run`; write the interactive critic tuple as pending/null.
 3. Write the epic doc: frontmatter (with hashes), TL;DR in plain
    English, draft Decomposition per `decomposition-principles.md`
    (one sentence each, ordering by dependency then risk, gates as
@@ -166,13 +169,134 @@ the next routing decision.
 - Critic verdict is `incomplete` (check 4 failed). Halt, surface
   the arch-step audit block contents.
 
+## Mode: `auto-plan`
+
+### Trigger
+- Epic doc has `sub_plans_approved: true`.
+- User explicitly asks for `arch-epic auto-plan`, asks to plan every
+  sub-plan before implementation, or resumes an existing same-session
+  auto-plan pass.
+
+### Inputs
+- Epic doc.
+- Approved Decomposition.
+- All existing sub-plan DOC_PATHs.
+- `arch-step` planning truth inside each sub-plan doc.
+
+### Outputs
+- Missing sub-plan DOC_PATHs assigned under the normal per-epic path.
+- One sub-plan DOC_PATH created, repaired, or advanced through
+  `$arch-step auto-plan`, with a matching Orchestration Log entry.
+- Sub-plan Status set to `planned` only after the `arch-step` receipt gate
+  reports ready.
+
+### Actions
+1. Select the first sub-plan whose Status is not `planned` or `complete`.
+2. If no such sub-plan exists, report that every non-complete sub-plan is
+   planned and the next command is `$arch-epic auto-implement <EPIC_DOC_PATH>`.
+3. If the sub-plan has no DOC_PATH, assign the grouped per-epic path and write
+   it into the Decomposition.
+4. If the DOC_PATH is missing, create it by applying the `arch-step` `new`
+   artifact contract directly in the visible session. If the DOC_PATH exists
+   but lacks required `arch-step new` artifact content, repair those missing
+   planning sections before continuing. Seed creation or repair from the
+   approved Decomposition entry, the raw epic goal, prior sub-plan gates, and
+   Epic Requirement Coverage. This is not a spawned planner and not a new
+   script.
+5. Treat the approved Decomposition as enough authority only when the sub-plan
+   North Star is a direct, unambiguous expansion of approved epic scope. If two
+   valid interpretations remain, stop and ask the user.
+6. Invoke or continue `$arch-step auto-plan <DOC_PATH>`.
+7. Before marking the sub-plan `planned`, run
+   `python3 skills/arch-step/scripts/arch_stage_gate.py ready --doc <DOC_PATH>`
+   and require exit 0.
+8. In native goal mode, continue to the next sub-plan until all non-complete
+   sub-plans are `planned` or a real blocker stops the run. Outside native goal
+   mode, stop after one bounded transition and name the exact next command.
+
+### Where judgment lives
+- Expanding the approved Decomposition into a truthful sub-plan North Star and
+  Epic Requirement Coverage without losing raw-goal scope.
+- Deciding whether the approved Decomposition really resolves the sub-plan
+  scope or whether the user must choose between two real interpretations.
+
+### Where determinism lives
+- DOC_PATH assignment.
+- `arch_stage_gate.py ready` proof.
+- Status update to `planned`.
+- Orchestration Log append.
+
+### Failure modes
+- Decomposition is not approved: stop and ask for approval first.
+- Sub-plan scope is ambiguous: ask the smallest user question.
+- Stage gate is not ready: continue or report `$arch-step auto-plan <DOC_PATH>`.
+- A sub-plan doc has implementation already started before all sub-plans are
+  planned: surface the mixed state; do not rewrite history.
+
+## Mode: `auto-implement`
+
+### Trigger
+- Epic doc has `sub_plans_approved: true`.
+- User explicitly asks for `arch-epic auto-implement`, asks to implement the
+  planned epic end to end, or resumes an existing same-session auto-implement
+  pass.
+
+### Inputs
+- Epic doc.
+- Approved Decomposition.
+- Every non-complete sub-plan DOC_PATH.
+- Current worklogs and `arch-step` implementation audit blocks.
+
+### Outputs
+- One sub-plan advanced through `$arch-step auto-implement <DOC_PATH>` or the
+  existing epic critic, with matching Orchestration Log entries.
+- Sub-plan Status updated to `implementing` or `complete`.
+- Epic `status: complete` only after every sub-plan is complete.
+
+### Actions
+1. If any non-complete sub-plan has Status other than `planned` or
+   `implementing`, stop with:
+   `Use $arch-epic auto-plan <EPIC_DOC_PATH>`.
+2. Select the first sub-plan whose Status is `planned` or `implementing`.
+3. Run `python3 skills/arch-step/scripts/arch_stage_gate.py ready --doc <DOC_PATH>`;
+   if it fails, set or keep Status `planning` and route back to `auto-plan`.
+4. If the sub-plan does not have an implementation audit COMPLETE block, invoke
+   or continue `$arch-step auto-implement <DOC_PATH>` and set Status to
+   `implementing`.
+5. If the `arch-step` implementation audit is COMPLETE, run the existing epic
+   critic via `scripts/run_arch_epic.py critic-spawn`.
+6. If the critic passes, mark the sub-plan `complete` and continue to the next
+   planned sub-plan in native goal mode. Outside native goal mode, stop after
+   the bounded transition and name the exact next command.
+7. If all sub-plans are `complete`, set epic `status: complete` and render the
+   final summary.
+
+### Where judgment lives
+- Deciding whether a critic finding is ordinary in-scope unfinished work,
+  material scope drift, or a state mismatch that needs user attention.
+- Reconciling stored Status with sub-plan audit truth before acting.
+
+### Where determinism lives
+- Readiness gate command.
+- `$arch-step auto-implement <DOC_PATH>` invocation.
+- Epic critic subprocess invocation and verdict parsing.
+- Status and log updates.
+
+### Failure modes
+- Planning is incomplete: stop and route to `auto-plan`.
+- `arch-step` audit is NOT COMPLETE: keep Status `implementing` and continue
+  the same sub-plan instead of running the epic critic.
+- Epic critic finds scope drift: halt for a scope-preserving user decision.
+- Critic runtime/model/effort is missing: ask the same consolidated critic
+  policy question used by interactive mode.
+
 ## Mode: `auto-run`
 
 ### Trigger
 - Epic doc has `sub_plans_approved: true`.
-- User explicitly asks to automatically implement/run the epic end to
-  end, or an existing epic doc has `auto_execution` and active auto-run
-  artifacts.
+- User explicitly asks for role-based spawned-harness automatic execution, asks
+  which agents/models to use, or an existing epic doc has `auto_execution` and
+  active auto-run artifacts.
 
 ### Inputs
 - Epic doc.
@@ -368,8 +492,9 @@ Log entry. End turn. Next turn re-enters `run`.
 
 - Never edit the target repo's code directly. Sub-plans do that
   via arch-step's implement-loop.
-- Never run more than one state transition per turn. Each transition needs
-  fresh doc truth before the next routing decision.
+- Outside native goal-mode `auto-plan` and `auto-implement`, never run more
+  than one state transition per turn. Each transition needs fresh doc truth
+  before the next routing decision.
 - Never silently advance past a gate (North Star approval, audit
   COMPLETE, critic pass). If a gate is unmet, surface it.
 - Never overwrite past Orchestration Log or Decision Log entries.

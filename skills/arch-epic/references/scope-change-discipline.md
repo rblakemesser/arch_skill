@@ -4,9 +4,8 @@ The epic critic runs after each sub-plan finishes and arch-step's audit
 confirms code completion. Its unique job is to detect drift from approved
 epic scope and force a scope-preserving response.
 
-The rule is simple: the epic scope is the epic scope. Automatic mode must not
-cut, narrow, park, drop, or move approved scope. Automatic mode must not
-cut, narrow, or silently remove approved scope from the epic. If a requirement
+The rule is simple: the epic scope is the epic scope. No arch-epic mode may
+cut, narrow, park, drop, or silently remove approved scope from the epic. If a requirement
 is present in the raw goal, approved Decomposition, sub-plan North Star, Epic
 Requirement Coverage, Section 7 checklist, exit criteria, or verification
 obligations, it must be implemented now, carried by a named later sub-plan,
@@ -94,7 +93,7 @@ approved epic destination and the later owner is explicit.
 
 ## No Auto-Reduction Rule
 
-Automatic mode never auto-applies a scope disposition that reduces scope.
+No automatic arch-epic lane ever auto-applies a scope disposition that reduces scope.
 When the critic returns `verdict: scope_change_detected`, the
 orchestrator halts and asks the user how to preserve the approved scope:
 
@@ -106,7 +105,7 @@ orchestrator reports the blocker instead of marking the sub-plan complete.
 
 Agent-written Decision Log entries are not approval to reduce scope. They are
 evidence that a scope question exists. Only the user's original approved epic
-scope and later visible user instructions define the scope; automatic children
+scope and later visible user instructions define the scope; spawned children
 do not get to shrink it.
 
 ## What The Orchestrator Tells The User

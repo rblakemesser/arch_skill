@@ -3,12 +3,12 @@
 `arch-epic` uses external Claude, Codex, or Grok subprocesses in two places:
 
 - interactive mode: the epic critic at sub-plan completion
-- automatic mode: planner, implementation worker, and critics
+- spawned-harness automatic mode: planner, implementation worker, and critics
 
 The user supplies runtime/model/effort for every required role, or the skill
 asks once before running. Different roles deserve different price points, so
-automatic mode must not collapse the whole epic into one hidden default.
-Automatic repair uses same-role session resume: planner failures resume the
+spawned-harness automatic mode must not collapse the whole epic into one hidden default.
+Spawned-harness repair uses same-role session resume: planner failures resume the
 planner session, and implementation failures resume the implementation session.
 
 ## Interactive mode
@@ -20,13 +20,13 @@ Interactive mode needs one critic execution block:
 - `critic_effort`: `low | medium | high | xhigh | max`
 
 These values live in the epic doc frontmatter for compatibility with existing
-epic docs. They may remain null when the user explicitly chose automatic mode
-and the role execution table has not been pinned yet; automatic critics use
-the `auto_execution.roles.critic` block.
+epic docs. They may remain null when the user explicitly chose spawned-harness automatic mode
+and the role execution table has not been pinned yet; spawned-harness critics
+use the `auto_execution.roles.critic` block.
 
-## Automatic mode
+## Spawned-harness automatic mode
 
-Automatic mode asks for a role table after decomposition approval:
+Spawned-harness automatic mode asks for a role table after decomposition approval:
 
 | Role | What it controls |
 | --- | --- |
@@ -47,7 +47,7 @@ max_runtime_seconds: 7200
 ```
 
 The resolved policy is stored under `auto_execution` in the epic doc and in
-the automatic run directory's `state.json`.
+the spawned-harness run directory's `state.json`.
 
 Existing policies may contain a legacy `repair_worker` role. Load it for
 compatibility, but do not ask for it in new runs and do not use it for ordinary
@@ -146,7 +146,7 @@ choices control real spawned subprocesses and model budget.
 Please give runtime/model/effort for each role, or say which roles should be
 "same as" another role. Ordinary critic failures resume the relevant planner
 or implementation worker session; there is no separate repair-worker choice in
-new automatic policies.
+new spawned-harness policies.
 ```
 
 If one role is complete and another is missing, preserve the complete role and
@@ -154,7 +154,7 @@ ask only for the missing ones.
 
 ## Pinning
 
-Automatic mode writes:
+Spawned-harness automatic mode writes:
 
 - `source_quotes`: the raw user role text
 - `roles`: resolved runtime/model/effort blocks

@@ -358,14 +358,18 @@ Examples:
 
 - `Use $arch-epic to break this migration into sub-plans and run them in order`
 - `Use $arch-epic docs/EPIC_AUTH_MIGRATION_2026-04-26.md`
+- `Use $arch-epic auto-plan docs/EPIC_AUTH_MIGRATION_2026-06-07.md`
+- `Use $arch-epic auto-implement docs/EPIC_AUTH_MIGRATION_2026-06-07.md`
 - `Use $arch-epic to automatically implement this approved epic end to end`
 
 Practical rule:
 
 - Interactive mode runs one visible transition at a time: draft decomposition, get approval, invoke or observe the next arch-step step, then run a fresh Claude, Codex, or Grok critic after each completed sub-plan.
-- Automatic mode is explicit and opt-in after decomposition approval. It asks once for a role execution table: `epic_planner`, `implementation_worker`, and `critic`.
+- Same-session `auto-plan` is explicit and opt-in after decomposition approval. It creates or repairs every sub-plan DOC_PATH, runs `$arch-step auto-plan <DOC_PATH>`, requires `arch_stage_gate.py ready`, marks each ready sub-plan `planned`, and does not start implementation.
+- Same-session `auto-implement` requires all non-complete sub-plans to be `planned`, then runs `$arch-step auto-implement <DOC_PATH>` in order and runs the epic critic after each clean arch-step audit.
+- The separate spawned-harness automatic mode is explicit and opt-in after decomposition approval. It asks once for a role execution table: `epic_planner`, `implementation_worker`, and `critic`.
 - Role choices are resolved with the shared exact-version model resolver. Shorthand such as `opus 4.7 xhigh` becomes `claude-opus-4-7`; `gpt 5.5 high` becomes `gpt-5.5`. There is no silent downgrade, provider switch, or effort substitution. If the user says `gpt 5.4` while choosing a model, clarify whether they meant `gpt-5.5` before launching children.
-- Automatic mode drives sub-plans depth-first. It does not plan or implement sub-plan N+1 until sub-plan N has passed the relevant critic gates.
+- Spawned-harness automatic mode drives sub-plans depth-first. It does not plan or implement sub-plan N+1 until sub-plan N has passed the relevant critic gates.
 - Spawned automatic workers apply arch-step doctrine directly from disk and do not invoke nested `auto-plan`, `implement-loop`, or other automatic continuation commands.
 - Planner and implementation worker sessions are resumable. When a fresh critic finds ordinary in-scope unfinished work, the orchestrator resumes the same planner or implementation session with observation-only evidence instead of starting a separate repair worker.
 - The default child wait cadence is 180 seconds while waiting for spawned harnesses; avoid tight two-second polling loops. Long planner and implementation children can run detached with live `events.jsonl`, `stderr.log`, and `stream.log` artifacts, and the orchestrator should treat recent stream activity as progress rather than expecting an early final artifact.

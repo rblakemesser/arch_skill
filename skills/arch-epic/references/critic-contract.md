@@ -5,9 +5,9 @@ In interactive mode, the epic critic runs once per sub-plan after
 `Verdict (code): COMPLETE`. Its job is narrow: detect scope drift
 between what the user approved and what shipped.
 
-In automatic mode, the same critic role also runs earlier gates:
+In spawned-harness automatic mode, the same critic role also runs earlier gates:
 North Star / Epic Requirement Coverage, plan readiness, and
-completion/scope. Automatic mode uses spawned critics instead of
+completion/scope. Spawned-harness automatic mode uses spawned critics instead of
 per-sub-plan user approval, so those critics must check that the raw
 epic goal and approved decomposition are still represented.
 
@@ -20,13 +20,13 @@ the worker.
 
 ## The checks
 
-Completion critics run all checks. Earlier automatic-mode gates run the
+Completion critics run all checks. Earlier spawned-harness gates run the
 checks that apply to that gate and mark completion-only checks
 `inapplicable`.
 
 ### 0. `epic_requirement_coverage`
 
-Automatic-mode sub-plan docs must include an Epic Requirement Coverage
+Spawned-harness sub-plan docs must include an Epic Requirement Coverage
 section. Verify that every meaningful raw-goal/decomposition requirement
 is classified as:
 
@@ -213,7 +213,7 @@ inline and the script post-validates the returned JSON.
 
 Existing schema consumers may see older verdicts without
 `epic_requirement_coverage`; those historical verdicts stand. New
-automatic-mode critics must include it.
+spawned-harness critics must include it.
 
 ## Critic posture
 
@@ -238,7 +238,7 @@ smoothly.
 - Not a code reviewer. Use the host agent's normal review response for that.
 - Not a re-audit of arch-step's implementation. That is
   `$arch-step audit-implementation`'s job.
-- Not a repair author. In automatic mode, the parent resumes the
+- Not a repair author. In spawned-harness automatic mode, the parent resumes the
   planner or implementation worker with the critic verdict as evidence.
 - Not a gate on the next sub-plan's North Star (that is the user's
   job at the next `$arch-step new` invocation in interactive mode).

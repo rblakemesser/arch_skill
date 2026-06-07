@@ -1,6 +1,6 @@
 # Worked examples
 
-Four scenarios. Each walks through the user's interaction and the
+Five scenarios. Each walks through the user's interaction and the
 skill's state transitions at key moments. These are teaching examples,
 not a script to copy.
 
@@ -226,7 +226,69 @@ Skill:
 No scope choice was made. The WebSocket observation can become future work
 only if the user asks for it outside the locked epic scope.
 
-## Example 4 — Automatic mode with role-based spawned harnesses
+## Example 4 — Same-session `auto-plan`, then `auto-implement`
+
+### User invokes
+
+> "Use `$arch-epic auto-plan` on this approved payments migration epic.
+> I want every sub-plan planned before implementation starts."
+
+### `auto-plan` mode
+
+The epic doc already has `sub_plans_approved: true`.
+
+For sub-plan 1, the skill assigns:
+
+```text
+docs/epic/PAYMENTS_MIGRATION_2026-06-07/PHASE_01_PAYMENT_CONTRACT_2026-06-07.md
+```
+
+It creates the sub-plan doc by applying the `arch-step new` artifact contract
+directly from the approved Decomposition, raw epic goal, prior gates, and Epic
+Requirement Coverage. Because the sub-plan North Star is a direct expansion of
+approved scope, no separate user approval is needed. If there were two valid
+North Stars, the skill would stop and ask.
+
+Then it invokes:
+
+```text
+$arch-step auto-plan docs/epic/PAYMENTS_MIGRATION_2026-06-07/PHASE_01_PAYMENT_CONTRACT_2026-06-07.md
+```
+
+When `skills/arch-step/scripts/arch_stage_gate.py ready --doc <DOC_PATH>` exits
+0, the skill marks sub-plan 1:
+
+```text
+Status: planned
+```
+
+Native goal-mode continuation repeats the same process for sub-plans 2 and 3.
+No implementation starts during `auto-plan`.
+
+### User invokes
+
+> "Now use `$arch-epic auto-implement`."
+
+### `auto-implement` mode
+
+The skill first confirms every non-complete sub-plan is `planned`. Then it
+selects sub-plan 1 and invokes:
+
+```text
+$arch-step auto-implement docs/epic/PAYMENTS_MIGRATION_2026-06-07/PHASE_01_PAYMENT_CONTRACT_2026-06-07.md
+```
+
+When the sub-plan's `arch_skill:block:implementation_audit` says
+`Verdict (code): COMPLETE`, the skill runs the normal epic critic. Only after
+the critic passes does it mark sub-plan 1 `complete` and move to sub-plan 2.
+
+### Takeaway
+
+Same-session `auto-plan` and `auto-implement` are drivers over existing
+`arch-step` proof. They do not use the role table, spawned workers, polling
+policy, or spawned-harness run directory.
+
+## Example 5 — Spawned-harness automatic mode with role-based workers
 
 ### User invokes
 
@@ -237,7 +299,7 @@ only if the user asks for it outside the locked epic scope.
 
 The epic doc already has `sub_plans_approved: true` and no
 `auto_execution` block. The skill asks one consolidated question for
-the automatic role table:
+the spawned-harness role table:
 
 ```text
 Before I run the epic automatically, I need the role execution table.
@@ -294,12 +356,12 @@ there is no final artifact after a short window, and it does not plan sub-plan
 
 ## Takeaways
 
-- The user makes a bounded set of decisions: goal, decomposition,
-  role execution policy, and scope changes. Everything else runs
-  without their attention in automatic mode.
+- In spawned-harness automatic mode, the user makes a bounded set of decisions:
+  goal, decomposition, role execution policy, and scope changes. Everything
+  else runs without their attention.
 - Automatic repair is same-role session resume. The implementer keeps its
   context; the critic stays fresh and observation-only.
-- `pass-after-retry` in stepwise has no analogue here. Automatic mode may
+- `pass-after-retry` in stepwise has no analogue here. Spawned-harness mode may
   resume the same role session after a critic failure, but the sub-plan only
   advances after a fresh critic pass.
 - The epic critic catches cross-plan issues; arch-step catches
