@@ -75,9 +75,10 @@ turn.
   `$arch-step auto-plan docs/epic/ADMIN_DASHBOARD_SSO_2026-04-22/PHASE_01_AUTH_SSO_2026-04-22.md`. Status becomes
   `planning`. Ends turn.
 - Native goal-mode continuation drives auto-plan across turns (research,
-  deep-dive, phase-plan, consistency-pass).
-- Once consistency-pass is clean, skill
-  invokes `$arch-step implement-loop`. Status becomes `implementing`.
+  deep-dive pass 1, deep-dive pass 2, phase-plan, consistency-pass).
+- Once `python3 skills/arch-step/scripts/arch_stage_gate.py ready --doc
+  <DOC_PATH>` exits 0, skill invokes `$arch-step implement-loop`. Status becomes
+  `implementing`.
 - Native goal-mode continuation drives implement-loop and audit-implementation.
 - Once audit COMPLETE, skill spawns the epic
   critic subprocess via `run_arch_epic.py critic-spawn`.
@@ -243,11 +244,12 @@ For sub-plan 1, the skill assigns:
 docs/epic/PAYMENTS_MIGRATION_2026-06-07/PHASE_01_PAYMENT_CONTRACT_2026-06-07.md
 ```
 
-It creates the sub-plan doc by applying the `arch-step new` artifact contract
-directly from the approved Decomposition, raw epic goal, prior gates, and Epic
-Requirement Coverage. Because the sub-plan North Star is a direct expansion of
-approved scope, no separate user approval is needed. If there were two valid
-North Stars, the skill would stop and ask.
+It creates only the sub-plan scaffold by applying the `arch-step new` artifact
+contract directly from the approved Decomposition, raw epic goal, prior gates,
+and Epic Requirement Coverage. Because the sub-plan North Star is a direct
+expansion of approved scope, no separate user approval is needed. If there were
+two valid North Stars, the skill would stop and ask. Scaffold creation is setup
+only; it is not readiness proof.
 
 Then it invokes:
 
@@ -264,6 +266,11 @@ Status: planned
 
 Native goal-mode continuation repeats the same process for sub-plans 2 and 3.
 No implementation starts during `auto-plan`.
+
+If the sub-plan doc has marker-looking planning blocks but missing or incomplete
+generated receipts, `ready --doc <DOC_PATH>` fails. The skill keeps the sub-plan
+at `planning` and continues `$arch-step auto-plan <DOC_PATH>` instead of moving
+to the next sub-plan.
 
 ### User invokes
 

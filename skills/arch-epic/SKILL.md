@@ -23,10 +23,12 @@ The normal lane is interactive and re-entrant: arch-epic invokes or observes
 arch-step commands in the visible session one transition at a time.
 
 The same-session automatic commands are explicit and opt-in:
-`auto-plan` plans every approved sub-plan to the `arch-step auto-plan`
-readiness bar before implementation starts, and `auto-implement` implements
-the planned sub-plans in order through the `arch-step auto-implement` /
-`implement-loop` contract.
+`auto-plan` is a strict sequential driver over real `$arch-step auto-plan
+<SUBPLAN_DOC_PATH>` runs. It handles one approved sub-plan at a time, requires
+the generated ArcStep receipt gate to report ready for that exact DOC_PATH, and
+only then marks the sub-plan `planned` before moving to the next one.
+`auto-implement` implements the planned sub-plans in order through the
+`arch-step auto-implement` / `implement-loop` contract.
 
 The spawned harness lane is also explicit and opt-in. After the user approves the
 decomposition, arch-epic asks for a role-based execution table:
@@ -47,10 +49,11 @@ not start a separate repair-worker session.
 Progressive lazy planning is the default for interactive and spawned-harness
 work: sub-plan N+1 is not planned until sub-plan N is complete. Same-session
 `auto-plan` is the deliberate exception: it plans all approved sub-plans first,
-then stops before implementation. The user approves the decomposition up front, then
-approves each sub-plan's North Star when it comes up in interactive
-mode. In spawned-harness mode, spawned critics check North Star and Epic
-Requirement Coverage gates instead of asking the user on every sub-plan.
+but still plans exactly one sub-plan at a time and stops before implementation.
+The user approves the decomposition up front, then approves each sub-plan's
+North Star when it comes up in interactive mode. In spawned-harness mode,
+spawned critics check North Star and Epic Requirement Coverage gates instead of
+asking the user on every sub-plan.
 
 Resume is the only mode — every `$arch-epic` invocation re-reads the
 epic doc and sub-plan docs from disk and picks up where things left
@@ -106,9 +109,16 @@ Must happen every run:
   no call-site audit).
 - Progressive planning: in interactive and spawned-harness modes, invoke
   `$arch-step new` or planner harness work for sub-plan N+1 only after sub-plan
-  N is `complete` per the epic critic. In same-session `auto-plan`, create or
-  repair each sub-plan DOC_PATH in order by applying the `arch-step` `new`
-  artifact contract directly, and stop before implementation.
+  N is `complete` per the epic critic. In same-session `auto-plan`, assign or
+  create only the scaffold needed for the next sub-plan's canonical DOC_PATH,
+  then invoke or continue the real `$arch-step auto-plan <SUBPLAN_DOC_PATH>`
+  flow for that exact DOC_PATH. Creation, scaffold repair, copied sections, or
+  marker-looking text are never readiness proof.
+- In same-session `auto-plan`, update a sub-plan Status to `planned` only after
+  `python3 skills/arch-step/scripts/arch_stage_gate.py ready --doc
+  <SUBPLAN_DOC_PATH>` exits 0 for that exact DOC_PATH. If the gate is not ready,
+  keep or set the sub-plan to `planning` and continue or report the exact
+  `$arch-step auto-plan <SUBPLAN_DOC_PATH>` command.
 - Per-sub-plan North Star approval uses `$arch-step`'s existing
   North-Star gate. `arch-epic` does not re-invent it — it just
   stops when arch-step stops. In spawned-harness mode, this gate is replaced
@@ -170,6 +180,9 @@ Must never happen:
   plan every sub-plan before implementation, but it still handles one sub-plan
   at a time in decomposition order. Implementation always runs one sub-plan at
   a time and advances only after the epic critic passes.
+- Marking a same-session `auto-plan` sub-plan `planned` from a consistency
+  marker, plausible Section 3-7 content, prior stored status, or ArcEpic-authored
+  setup. The ArcStep generated receipt gate is the proof.
 - Same-session `auto-implement` starting while any non-complete sub-plan is not
   `planned`. Plan all sub-plans first with `auto-plan`.
 - Two-second child polling. Spawned-harness mode defaults to 180-second waits
@@ -235,9 +248,10 @@ Detail per mode lives in `references/workflow-contract.md`.
    sub-plan statuses and the most recent log entries. No state
    changes.
 6. **`auto-plan`** — same-session planning driver after decomposition
-   approval. Creates or repairs every sub-plan DOC_PATH, runs each one through
-   `$arch-step auto-plan`, marks each ready sub-plan `planned`, and stops before
-   implementation.
+   approval. Sets up the next sub-plan DOC_PATH, drives real `$arch-step
+   auto-plan <SUBPLAN_DOC_PATH>` for that exact doc, runs the ArcStep readiness
+   gate, marks it `planned` only when the gate exits 0, then repeats for the
+   next sub-plan in decomposition order. It stops before implementation.
 7. **`auto-implement`** — same-session implementation driver. Requires every
    non-complete sub-plan to be `planned`, then runs each in order through
    `$arch-step auto-implement` plus the epic critic.
@@ -254,7 +268,7 @@ Detail per mode lives in `references/workflow-contract.md`.
   `docs/epic/<EPIC_SLUG_WITH_DATE>/PHASE_<NN>_<SUBPLAN_SLUG>_<YYYY-MM-DD>.md`,
   owned by arch-step.
 - Same-session `auto-plan` leaves non-complete sub-plans at Status `planned`
-  when their `arch-step` receipt gate is ready.
+  only when their exact DOC_PATH passes the `arch-step` generated receipt gate.
 - Epic critic artifacts under
   `<orchestrator repo root>/.arch_skill/arch-epic/critics/<slug>/run-<ts>/`
   including the EpicVerdict JSON, the exact invocation.sh, and the

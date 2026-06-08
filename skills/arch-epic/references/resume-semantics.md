@@ -17,10 +17,10 @@ Every turn the skill runs this sequence:
 3. Compute each sub-plan's current Status by cross-referencing:
    - the stored Status in the Decomposition
    - the sub-plan DOC_PATH frontmatter when it exists
-   - planning markers such as `arch_skill:block:research_grounding`, architecture blocks, `arch_skill:block:phase_plan`, and `arch_skill:block:consistency_pass`
+   - planning markers such as `arch_skill:block:research_grounding`, architecture blocks, `arch_skill:block:phase_plan`, and `arch_skill:block:consistency_pass` as progress evidence only
    - the `arch-step` auto-plan receipt gate via
      `python3 skills/arch-step/scripts/arch_stage_gate.py ready --doc <DOC_PATH>`
-     when deciding whether a non-implemented sub-plan is `planned`
+     before deciding that any non-implemented sub-plan is `planned`
    - the `arch_skill:block:implementation_audit` block when present
    - spawned-harness run state and child artifacts under `.arch_skill/arch-epic/auto/<epic-slug>/run-<ts>/` when `auto_execution` is present
 4. If the stored Status disagrees with observed doc truth, update the stored Status before acting and append an Orchestration Log entry naming the discrepancy.
@@ -35,8 +35,10 @@ contracts.
 
 Same-session `auto-plan` and `auto-implement` also do not add an
 `arch-epic`-owned state file. `planned` is derived from the sub-plan DOC_PATH:
-the `arch-step` stage receipt gate is ready and no implementation worklog or
-implementation audit evidence has started.
+the exact `python3 skills/arch-step/scripts/arch_stage_gate.py ready --doc
+<DOC_PATH>` command exits 0 for the sub-plan, and no implementation worklog or
+implementation audit evidence has started. Marker blocks and stored epic Status
+are not enough.
 
 Spawned-harness mode intentionally owns spawned harnesses outside arch-step's
 visible session. It writes a compact `state.json` plus child artifacts under
@@ -74,6 +76,15 @@ Another common case:
 The log entry is important because the user reading the epic later sees the
 reconciliation happened and why.
 
+Stale planned case:
+
+- Stored Status: `planned`.
+- Observed: `arch_stage_gate.py ready --doc <DOC_PATH>` fails, even if the doc
+  has plausible planning markers.
+- Action: update stored Status back to `planning` and route through
+  `$arch-epic auto-plan <EPIC_DOC_PATH>` / `$arch-step auto-plan <DOC_PATH>`.
+- Log: `Sub-plan N stored status was 'planned' but the ArcStep readiness gate no longer passes. Updating to planning and resuming auto-plan.`
+
 ## Natural Phrasing
 
 The skill's description field and `When to use` include the natural phrasings
@@ -96,7 +107,8 @@ re-entry routine.
 
 - Re-ask decomposition approval if `sub_plans_approved: true`.
 - Re-ask per-sub-plan North Star if arch-step's DOC_PATH has `status: active`.
-- Re-run `auto-plan` for a sub-plan already marked `planned` unless the
-  readiness gate no longer passes.
+- Re-run `auto-plan` for a sub-plan already marked `planned` when
+  `python3 skills/arch-step/scripts/arch_stage_gate.py ready --doc <DOC_PATH>`
+  still exits 0.
 - Re-run the epic critic on a sub-plan already marked `complete`.
 - Restart a sub-plan from scratch because something looks weird. If something looks weird, surface it with a specific question, not a silent reset.

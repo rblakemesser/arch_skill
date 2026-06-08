@@ -365,7 +365,7 @@ Examples:
 Practical rule:
 
 - Interactive mode runs one visible transition at a time: draft decomposition, get approval, invoke or observe the next arch-step step, then run a fresh Claude, Codex, or Grok critic after each completed sub-plan.
-- Same-session `auto-plan` is explicit and opt-in after decomposition approval. It creates or repairs every sub-plan DOC_PATH, runs `$arch-step auto-plan <DOC_PATH>`, requires `arch_stage_gate.py ready`, marks each ready sub-plan `planned`, and does not start implementation.
+- Same-session `auto-plan` is explicit and opt-in after decomposition approval. It is a strict sequential driver: it sets up the next sub-plan DOC_PATH, runs the real `$arch-step auto-plan <DOC_PATH>` sequence, requires `arch_stage_gate.py ready --doc <DOC_PATH>` to pass, marks that sub-plan `planned` only after generated receipts prove readiness, and does not start implementation. Marker-only or copied planning text is not enough.
 - Same-session `auto-implement` requires all non-complete sub-plans to be `planned`, then runs `$arch-step auto-implement <DOC_PATH>` in order and runs the epic critic after each clean arch-step audit.
 - The separate spawned-harness automatic mode is explicit and opt-in after decomposition approval. It asks once for a role execution table: `epic_planner`, `implementation_worker`, and `critic`.
 - Role choices are resolved with the shared exact-version model resolver. Shorthand such as `opus 4.7 xhigh` becomes `claude-opus-4-7`; `gpt 5.5 high` becomes `gpt-5.5`. There is no silent downgrade, provider switch, or effort substitution. If the user says `gpt 5.4` while choosing a model, clarify whether they meant `gpt-5.5` before launching children.

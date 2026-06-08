@@ -61,9 +61,13 @@ Same-session `auto-plan` exception: when the user explicitly asked for
 `arch-epic auto-plan`, do not invoke `$arch-step new` and stop for a separate
 North Star approval turn. Instead, assign the grouped DOC_PATH and apply the
 `arch-step new` artifact contract directly from the approved Decomposition,
-raw epic goal, prior gates, and Epic Requirement Coverage. This is allowed only
-when the resulting sub-plan North Star is a direct, unambiguous expansion of
-approved epic scope; otherwise stop and ask.
+raw epic goal, prior gates, and Epic Requirement Coverage. This setup is
+scaffold-only: it does not write `arch-step` planning-stage receipts, and it
+does not make Section 3-7 planning blocks ready by ArcEpic shortcut. This is
+allowed only when the resulting sub-plan North Star is a direct, unambiguous
+expansion of approved epic scope; otherwise stop and ask. After setup, route
+immediately to the `north-star-approved` mapping in the same `auto-plan` pass so
+the real `$arch-step auto-plan <DOC_PATH>` flow owns the planning work.
 
 ### Status transition: `pending` → `north-star-approved`
 
@@ -85,28 +89,36 @@ Next action:
 
 ### Status `planning`
 
-Read the sub-plan's DOC_PATH and look for `arch_skill:block:consistency_pass`
-with `Decision-complete: yes` and `Decision: proceed to implement? yes`.
-If present, planning is done.
+Run:
+
+```text
+python3 skills/arch-step/scripts/arch_stage_gate.py ready --doc <DOC_PATH>
+```
+
+This readiness command is the deciding proof. A consistency-pass marker,
+plausible Section 3-7 text, copied planning content, or a prior stored epic
+Status is not enough. If the command fails, keep or set the sub-plan Status to
+`planning`, append a compact reconciliation log entry when stored status was
+misleading, and invoke `$arch-step auto-plan <DOC_PATH>` again in goal mode or
+report that exact command plus the gate-reported next stage outside goal mode.
+Do not silently advance.
+
+If the readiness command exits 0:
 
 - In interactive `run` mode, update Status to `implementing`, invoke
   `$arch-step implement-loop <DOC_PATH>`, and append to log:
-  `Sub-plan N auto-plan completed. Sub-plan N implement-loop started.`
-- In same-session `arch-epic auto-plan`, run
-  `python3 skills/arch-step/scripts/arch_stage_gate.py ready --doc <DOC_PATH>`.
-  If it exits 0, update Status to `planned`, append to log:
-  `Sub-plan N auto-plan completed. Status set to planned.`, then move to the
-  next sub-plan in native goal mode or stop with the next exact command outside
-  goal mode.
-
-If the consistency-pass block is absent or not ready, invoke
-`$arch-step auto-plan <DOC_PATH>` again in goal mode, or report the exact
-next bounded command outside goal mode. Do not silently advance.
+  `Sub-plan N auto-plan readiness gate passed. Sub-plan N implement-loop started.`
+- In same-session `arch-epic auto-plan`, update Status to `planned`, append to
+  log: `Sub-plan N auto-plan readiness gate passed. Status set to planned.`,
+  then move to the next sub-plan in native goal mode or stop with the next exact
+  command outside goal mode.
 
 ### Status `planned`
 
-Meaning: this sub-plan passed the `arch-step auto-plan` readiness bar and has
-not started implementation.
+Meaning: this exact sub-plan DOC_PATH passed
+`python3 skills/arch-step/scripts/arch_stage_gate.py ready --doc <DOC_PATH>`
+after real generated ArcStep auto-plan receipts, and implementation has not
+started.
 
 Next action:
 1. For ordinary interactive `run`, do not skip into implementation unless the
@@ -118,8 +130,9 @@ Next action:
    If it exits 0, invoke `$arch-step auto-implement <DOC_PATH>`, update Status
    to `implementing`, and append to log:
    `Sub-plan N auto-implement started.`
-3. If the gate is not ready, keep or reset the Status to `planning` and route
-   back to `$arch-epic auto-plan <EPIC_DOC_PATH>`.
+3. If the gate is not ready, the stored `planned` status is stale. Reset or keep
+   the Status as `planning`, append a reconciliation log entry, and route back
+   to `$arch-epic auto-plan <EPIC_DOC_PATH>`.
 
 ### Status `implementing`
 

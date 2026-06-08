@@ -185,10 +185,13 @@ the next routing decision.
 
 ### Outputs
 - Missing sub-plan DOC_PATHs assigned under the normal per-epic path.
-- One sub-plan DOC_PATH created, repaired, or advanced through
-  `$arch-step auto-plan`, with a matching Orchestration Log entry.
-- Sub-plan Status set to `planned` only after the `arch-step` receipt gate
-  reports ready.
+- At most one sub-plan DOC_PATH set up or advanced in a bounded turn, with a
+  matching Orchestration Log entry.
+- Sub-plan Status kept at or downgraded to `planning` until the exact
+  DOC_PATH passes the ArcStep generated receipt gate.
+- Sub-plan Status set to `planned` only after
+  `python3 skills/arch-step/scripts/arch_stage_gate.py ready --doc <DOC_PATH>`
+  exits 0 for that same DOC_PATH.
 
 ### Actions
 1. Select the first sub-plan whose Status is not `planned` or `complete`.
@@ -198,21 +201,28 @@ the next routing decision.
    it into the Decomposition.
 4. If the DOC_PATH is missing, create it by applying the `arch-step` `new`
    artifact contract directly in the visible session. If the DOC_PATH exists
-   but lacks required `arch-step new` artifact content, repair those missing
-   planning sections before continuing. Seed creation or repair from the
-   approved Decomposition entry, the raw epic goal, prior sub-plan gates, and
-   Epic Requirement Coverage. This is not a spawned planner and not a new
-   script.
+   but lacks the required `arch-step new` scaffold, repair only that scaffold
+   before continuing. Do not fill or repair Section 3-7 planning content as an
+   ArcEpic shortcut. Seed setup from the approved Decomposition entry, the raw
+   epic goal, prior sub-plan gates, and Epic Requirement Coverage. This is not a
+   spawned planner and not a new script.
 5. Treat the approved Decomposition as enough authority only when the sub-plan
    North Star is a direct, unambiguous expansion of approved epic scope. If two
    valid interpretations remain, stop and ask the user.
-6. Invoke or continue `$arch-step auto-plan <DOC_PATH>`.
-7. Before marking the sub-plan `planned`, run
+6. Invoke or continue the real `$arch-step auto-plan <DOC_PATH>` flow for the
+   selected sub-plan. ArcEpic must not emulate `research`, either `deep-dive`
+   pass, `phase-plan`, `consistency-pass`, or the receipt block itself.
+7. After the bounded ArcStep continuation, inspect the gate with `status` or
+   `ready`. Before marking the sub-plan `planned`, run
    `python3 skills/arch-step/scripts/arch_stage_gate.py ready --doc <DOC_PATH>`
-   and require exit 0.
-8. In native goal mode, continue to the next sub-plan until all non-complete
-   sub-plans are `planned` or a real blocker stops the run. Outside native goal
-   mode, stop after one bounded transition and name the exact next command.
+   and require exit 0. If it fails, leave the sub-plan at `planning` and
+   continue or report `$arch-step auto-plan <DOC_PATH>` with the gate's next
+   required stage.
+8. Only after the gate exits 0 may ArcEpic append the `planned` log entry and
+   move to the next sub-plan. In native goal mode, continue sub-plan by sub-plan
+   until all non-complete sub-plans are `planned` or a real blocker stops the
+   run. Outside native goal mode, stop after one bounded transition and name the
+   exact next command.
 
 ### Where judgment lives
 - Expanding the approved Decomposition into a truthful sub-plan North Star and
@@ -223,13 +233,17 @@ the next routing decision.
 ### Where determinism lives
 - DOC_PATH assignment.
 - `arch_stage_gate.py ready` proof.
-- Status update to `planned`.
+- Status update to `planned` after the readiness proof exits 0.
 - Orchestration Log append.
 
 ### Failure modes
 - Decomposition is not approved: stop and ask for approval first.
 - Sub-plan scope is ambiguous: ask the smallest user question.
-- Stage gate is not ready: continue or report `$arch-step auto-plan <DOC_PATH>`.
+- Stage gate is not ready: keep or set Status `planning`, then continue or
+  report `$arch-step auto-plan <DOC_PATH>` with the gate-reported next stage.
+- A sub-plan has marker-looking planning blocks, copied Section 3-7 content, or
+  a stored `planned` Status but `ready --doc <DOC_PATH>` fails: treat that state
+  as not planned and reconcile before acting.
 - A sub-plan doc has implementation already started before all sub-plans are
   planned: surface the mixed state; do not rewrite history.
 

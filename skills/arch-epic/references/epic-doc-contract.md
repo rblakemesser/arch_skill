@@ -184,6 +184,11 @@ A numbered list of sub-plans. Each entry has:
   sub-plan starts planning. The last sub-plan has no `Gate to next`.
 - `Status:` one of `pending | north-star-approved | planning |
   planned | implementing | complete | scope-changed`.
+  In same-session `auto-plan`, `planned` means the exact sub-plan DOC_PATH
+  passed `python3 skills/arch-step/scripts/arch_stage_gate.py ready --doc
+  <DOC_PATH>` after real generated ArcStep auto-plan receipts. A created doc,
+  repaired scaffold, consistency-pass marker, copied Section 3-7 content, or
+  stored prior Status is not enough.
 - `Epic-critic verdict:` empty until the sub-plan reaches
   completion; then the verdict path (relative or absolute) for
   audit.
@@ -239,8 +244,11 @@ by the skill, not the user. Examples of what goes here:
 - Sub-plan N invoked: `$arch-step new <DOC_PATH>`.
 - Sub-plan N North Star approved by user.
 - Sub-plan N auto-plan started.
-- Sub-plan N auto-plan completed (consistency-pass clean).
-- Sub-plan N marked planned.
+- Sub-plan N auto-plan readiness gate passed:
+  `python3 skills/arch-step/scripts/arch_stage_gate.py ready --doc <DOC_PATH>`.
+- Sub-plan N marked planned after ArcStep readiness proof.
+- Sub-plan N stored status was planned but readiness gate failed; reset to
+  planning and resumed auto-plan.
 - Sub-plan N implement-loop started.
 - Sub-plan N implement-loop completed (arch-step audit COMPLETE).
 - Epic critic run on sub-plan N: verdict=`<pass|scope_change|incomplete>`.
@@ -306,10 +314,13 @@ The skill mutates the epic doc under these conditions only:
 - `run` mode: updates sub-plan Status fields, fills in DOC_PATH when
   `$arch-step new` runs, appends to log, writes critic verdict
   pointer under the sub-plan entry.
-- `auto-plan` mode: assigns missing DOC_PATHs, creates or repairs sub-plan docs
-  by applying the `arch-step` `new` artifact contract directly, runs or
-  continues `$arch-step auto-plan`, sets sub-plan Status to `planned` only after
-  the `arch-step` readiness gate passes, and appends compact log entries.
+- `auto-plan` mode: assigns missing DOC_PATHs, creates or repairs only the
+  `arch-step new` scaffold directly, runs or continues the real `$arch-step
+  auto-plan <DOC_PATH>` flow, sets sub-plan Status to `planned` only after
+  `python3 skills/arch-step/scripts/arch_stage_gate.py ready --doc <DOC_PATH>`
+  exits 0 for that exact DOC_PATH, and appends compact log entries. It never
+  treats scaffold setup, marker-looking text, copied planning sections, or a
+  prior stored Status as readiness proof.
 - `auto-implement` mode: requires every non-complete sub-plan to be `planned`,
   runs or continues `$arch-step auto-implement`, runs the epic critic after the
   `arch-step` implementation audit is COMPLETE, updates Status to
