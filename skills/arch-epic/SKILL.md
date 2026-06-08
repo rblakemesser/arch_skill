@@ -27,8 +27,11 @@ The same-session automatic commands are explicit and opt-in:
 <SUBPLAN_DOC_PATH>` runs. It handles one approved sub-plan at a time, requires
 the generated ArcStep receipt gate to report ready for that exact DOC_PATH, and
 only then marks the sub-plan `planned` before moving to the next one.
-`auto-implement` implements the planned sub-plans in order through the
-`arch-step auto-implement` / `implement-loop` contract.
+`auto-implement` is a strict sequential driver over real `$arch-step
+auto-implement <SUBPLAN_DOC_PATH>` runs. It handles one planned sub-plan at a
+time, lets ArcStep own the full implement/prove/audit loop, runs the epic
+critic only after ArcStep's implementation audit says `Verdict (code):
+COMPLETE`, and marks the sub-plan `complete` only after that critic passes.
 
 The spawned harness lane is also explicit and opt-in. After the user approves the
 decomposition, arch-epic asks for a role-based execution table:
@@ -128,10 +131,14 @@ Must happen every run:
   the sub-plan North Star is a direct, unambiguous expansion of the approved
   epic scope; otherwise stop and ask.
 - Per-sub-plan implementation runs through
-  `$arch-step implement-loop` in interactive mode and `$arch-step
-  auto-implement` in same-session `auto-implement`. In spawned-harness mode,
-  spawned implementation workers execute the approved sub-plan directly
-  from arch-step doctrine and the sub-plan doc; the top-level
+  `$arch-step implement-loop` in interactive mode and real `$arch-step
+  auto-implement <SUBPLAN_DOC_PATH>` in same-session `auto-implement`.
+  Same-session `auto-implement` is not complete after one invocation; it keeps
+  the selected sub-plan at `implementing` and continues the ArcStep
+  implement/prove/audit loop until `arch_skill:block:implementation_audit` says
+  `Verdict (code): COMPLETE` or a true blocker stops progress. In
+  spawned-harness mode, spawned implementation workers execute the approved
+  sub-plan directly from arch-step doctrine and the sub-plan doc; the top-level
   orchestrator still does not edit target code itself.
 - Epic critic runs once per sub-plan at sub-plan completion and
   returns structured JSON `EpicVerdict`. Critic is a separate
@@ -185,6 +192,13 @@ Must never happen:
   setup. The ArcStep generated receipt gate is the proof.
 - Same-session `auto-implement` starting while any non-complete sub-plan is not
   `planned`. Plan all sub-plans first with `auto-plan`.
+- Marking a same-session `auto-implement` sub-plan `complete` from stored
+  Status, worklog optimism, local proof, one `$arch-step auto-implement`
+  invocation, or ArcStep audit alone. ArcStep audit COMPLETE must come first,
+  then the epic critic must return `pass`.
+- Running the epic critic while the sub-plan implementation audit is missing,
+  NOT COMPLETE, reopened, or otherwise not clean. Continue or report
+  `$arch-step auto-implement <SUBPLAN_DOC_PATH>` for that sub-plan instead.
 - Two-second child polling. Spawned-harness mode defaults to 180-second waits
   while waiting for spawned harnesses unless the user explicitly pins a
   different cadence in the role policy.
@@ -253,8 +267,10 @@ Detail per mode lives in `references/workflow-contract.md`.
    gate, marks it `planned` only when the gate exits 0, then repeats for the
    next sub-plan in decomposition order. It stops before implementation.
 7. **`auto-implement`** — same-session implementation driver. Requires every
-   non-complete sub-plan to be `planned`, then runs each in order through
-   `$arch-step auto-implement` plus the epic critic.
+   non-complete sub-plan to be `planned`, then runs each in order through real
+   `$arch-step auto-implement <SUBPLAN_DOC_PATH>` until ArcStep audit is
+   COMPLETE, runs the epic critic, and marks the sub-plan `complete` only after
+   critic `pass`.
 8. **`auto-run`** — explicit spawned-harness lane after decomposition
    approval. Resolve/pin the role execution table, initialize the
    auto run directory, then drive one active sub-plan depth-first

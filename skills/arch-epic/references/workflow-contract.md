@@ -262,8 +262,9 @@ the next routing decision.
 - Current worklogs and `arch-step` implementation audit blocks.
 
 ### Outputs
-- One sub-plan advanced through `$arch-step auto-implement <DOC_PATH>` or the
-  existing epic critic, with matching Orchestration Log entries.
+- One sub-plan advanced through the real `$arch-step auto-implement <DOC_PATH>`
+  implement/prove/audit loop or the existing epic critic, with matching
+  Orchestration Log entries.
 - Sub-plan Status updated to `implementing` or `complete`.
 - Epic `status: complete` only after every sub-plan is complete.
 
@@ -275,14 +276,23 @@ the next routing decision.
 3. Run `python3 skills/arch-step/scripts/arch_stage_gate.py ready --doc <DOC_PATH>`;
    if it fails, set or keep Status `planning` and route back to `auto-plan`.
 4. If the sub-plan does not have an implementation audit COMPLETE block, invoke
-   or continue `$arch-step auto-implement <DOC_PATH>` and set Status to
-   `implementing`.
+   or continue `$arch-step auto-implement <DOC_PATH>` and set or keep Status
+   `implementing`. One invocation is not completion. In native goal mode,
+   continue the same ArcStep implement/prove/audit loop until
+   `arch_skill:block:implementation_audit` says `Verdict (code): COMPLETE` or a
+   true blocker stops progress. Outside native goal mode, stop after the
+   bounded transition and name `$arch-step auto-implement <DOC_PATH>` as the
+   next command when audit is still not clean.
 5. If the `arch-step` implementation audit is COMPLETE, run the existing epic
    critic via `scripts/run_arch_epic.py critic-spawn`.
 6. If the critic passes, mark the sub-plan `complete` and continue to the next
    planned sub-plan in native goal mode. Outside native goal mode, stop after
    the bounded transition and name the exact next command.
-7. If all sub-plans are `complete`, set epic `status: complete` and render the
+7. If the critic returns `incomplete`, keep or set the sub-plan Status as
+   `implementing`, append a compact mismatch log entry, and route back through
+   `$arch-step auto-implement <DOC_PATH>` unless the audit or verdict evidence
+   is unreadable or contradictory. Do not mark the sub-plan complete or advance.
+8. If all sub-plans are `complete`, set epic `status: complete` and render the
    final summary.
 
 ### Where judgment lives
@@ -299,8 +309,13 @@ the next routing decision.
 ### Failure modes
 - Planning is incomplete: stop and route to `auto-plan`.
 - `arch-step` audit is NOT COMPLETE: keep Status `implementing` and continue
-  the same sub-plan instead of running the epic critic.
+  the same sub-plan through `$arch-step auto-implement <DOC_PATH>` instead of
+  running the epic critic. In native goal mode this means keep going until audit
+  is COMPLETE or truly blocked.
 - Epic critic finds scope drift: halt for a scope-preserving user decision.
+- Epic critic returns `incomplete`: keep Status `implementing` and route back
+  through `$arch-step auto-implement <DOC_PATH>` unless evidence is unreadable
+  or contradictory. Never advance to the next sub-plan.
 - Critic runtime/model/effort is missing: ask the same consolidated critic
   policy question used by interactive mode.
 

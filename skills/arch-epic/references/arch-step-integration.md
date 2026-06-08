@@ -127,8 +127,8 @@ Next action:
    `$arch-step implement-loop <DOC_PATH>` for this sub-plan.
 2. For same-session `arch-epic auto-implement`, run
    `python3 skills/arch-step/scripts/arch_stage_gate.py ready --doc <DOC_PATH>`.
-   If it exits 0, invoke `$arch-step auto-implement <DOC_PATH>`, update Status
-   to `implementing`, and append to log:
+   If it exits 0, invoke `$arch-step auto-implement <DOC_PATH>`, update or keep
+   Status as `implementing`, and append to log:
    `Sub-plan N auto-implement started.`
 3. If the gate is not ready, the stored `planned` status is stale. Reset or keep
    the Status as `planning`, append a reconciliation log entry, and route back
@@ -146,9 +146,11 @@ Apply per the `Critic verdict` rules below.
 
 If the audit block is present but says something other than COMPLETE
 (NOT COMPLETE, reopened phases): do NOT run the epic critic. This is
-an arch-step-level completion issue. Surface to the user with the
-audit's reported blockers. The user decides whether to rerun
-implement-loop, continue in goal mode, or intervene.
+an arch-step-level completion issue. In same-session `arch-epic auto-implement`,
+keep or set Status `implementing` and continue `$arch-step auto-implement
+<DOC_PATH>` in native goal mode, or report that exact command plus the audit
+blockers outside goal mode. In ordinary interactive `run`, surface the blockers
+and the next exact command so the user can decide whether to continue.
 
 If the audit block is absent entirely: implement-loop ended without
 writing the audit. Run or request `$arch-step implement-loop <DOC_PATH>` or
@@ -177,9 +179,12 @@ silently advance.
 ### Critic verdict: `incomplete`
 
 Rare — arch-step's audit normally catches incomplete work before
-the critic runs. When it happens: halt. Set `status: halted`,
-update sub-plan Status back to `implementing`, append log, ask the
-user whether to rerun implement-loop or investigate manually.
+the critic runs. When it happens, do not mark the sub-plan complete and do not
+advance. In same-session `arch-epic auto-implement`, keep or set sub-plan Status
+`implementing`, append a compact mismatch log entry, and route back through
+`$arch-step auto-implement <DOC_PATH>` unless the audit or verdict evidence is
+unreadable or contradictory. In ordinary interactive mode, halt and ask whether
+to rerun implement-loop or investigate manually.
 
 ## What arch-epic does NOT invoke
 

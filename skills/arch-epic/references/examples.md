@@ -279,21 +279,32 @@ to the next sub-plan.
 ### `auto-implement` mode
 
 The skill first confirms every non-complete sub-plan is `planned`. Then it
-selects sub-plan 1 and invokes:
+selects sub-plan 1, re-checks the ArcStep readiness gate for that exact
+DOC_PATH, and invokes:
 
 ```text
 $arch-step auto-implement docs/epic/PAYMENTS_MIGRATION_2026-06-07/PHASE_01_PAYMENT_CONTRACT_2026-06-07.md
 ```
 
-When the sub-plan's `arch_skill:block:implementation_audit` says
-`Verdict (code): COMPLETE`, the skill runs the normal epic critic. Only after
-the critic passes does it mark sub-plan 1 `complete` and move to sub-plan 2.
+One invocation is not completion. In native goal mode, the skill keeps that
+same sub-plan at `implementing` and continues the real ArcStep
+implement/prove/audit loop until the sub-plan's
+`arch_skill:block:implementation_audit` says `Verdict (code): COMPLETE` or a
+true blocker stops progress. If the audit is missing, NOT COMPLETE, or reopens
+phases, the skill does not run the epic critic yet; it continues or reports the
+exact `$arch-step auto-implement <DOC_PATH>` command.
+
+When ArcStep audit is COMPLETE, the skill runs the normal epic critic. Only
+after the critic passes does it mark sub-plan 1 `complete` and move to sub-plan
+2. If the critic returns `incomplete`, the sub-plan stays `implementing` and
+routes back through ArcStep instead of advancing.
 
 ### Takeaway
 
 Same-session `auto-plan` and `auto-implement` are drivers over existing
-`arch-step` proof. They do not use the role table, spawned workers, polling
-policy, or spawned-harness run directory.
+`arch-step` proof. `auto-implement` needs ArcStep audit COMPLETE plus epic
+critic pass for each sub-plan. They do not use the role table, spawned workers,
+polling policy, or spawned-harness run directory.
 
 ## Example 5 — Spawned-harness automatic mode with role-based workers
 

@@ -250,8 +250,11 @@ by the skill, not the user. Examples of what goes here:
 - Sub-plan N stored status was planned but readiness gate failed; reset to
   planning and resumed auto-plan.
 - Sub-plan N implement-loop started.
+- Sub-plan N auto-implement continued; ArcStep audit is not COMPLETE yet.
 - Sub-plan N implement-loop completed (arch-step audit COMPLETE).
 - Epic critic run on sub-plan N: verdict=`<pass|scope_change|incomplete>`.
+- Epic critic incomplete on sub-plan N; status kept implementing and ArcStep
+  auto-implement resumed.
 - Scope-change detected on sub-plan N: `<headline>`. Halted.
 - User resolution on sub-plan N scope change: `<decision>`.
 - Sub-plan N marked complete.
@@ -322,9 +325,13 @@ The skill mutates the epic doc under these conditions only:
   treats scaffold setup, marker-looking text, copied planning sections, or a
   prior stored Status as readiness proof.
 - `auto-implement` mode: requires every non-complete sub-plan to be `planned`,
-  runs or continues `$arch-step auto-implement`, runs the epic critic after the
-  `arch-step` implementation audit is COMPLETE, updates Status to
-  `implementing` or `complete`, and appends compact log entries.
+  verifies the exact DOC_PATH still passes the ArcStep readiness gate, runs or
+  continues the real `$arch-step auto-implement <DOC_PATH>` implement/prove/audit
+  loop until `arch_skill:block:implementation_audit` says `Verdict (code):
+  COMPLETE` or a true blocker stops progress, runs the epic critic only after
+  that clean audit, updates Status to `complete` only after critic `pass`, and
+  appends compact log entries. It never treats one invocation, local proof,
+  worklog optimism, stored Status, or ArcStep audit alone as epic completion.
 - `resume-scope-change` mode: inserts a new sub-plan or extends an
   existing one's scope to preserve approved requirements; always
   appends a Decision Log entry.
