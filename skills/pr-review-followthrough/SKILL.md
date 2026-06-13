@@ -1,6 +1,6 @@
 ---
 name: pr-review-followthrough
-description: "Explicit-invocation PR follow-through loop for an already-open GitHub pull request: poll the PR, handle every new review or comment thread, reply on-thread with accept/decline rationale, push fixes to the same branch, and repeat until the PR is merge-ready."
+description: "Explicit-invocation PR follow-through loop for an already-open GitHub pull request: poll the PR, triage every new review or comment thread with judgment, reply on-thread with accept/decline rationale, push warranted fixes to the same branch, and repeat until the PR is merge-ready."
 ---
 
 # PR Review Followthrough
@@ -48,6 +48,7 @@ make install
   - required checks
   - mergeability, conflict state, and branch-behind state
 - Reply to every actionable item on the exact GitHub surface that raised it, even when declining the change or pointing out that it is already fixed.
+- Treat reviewer comments as claims and requests, not commands. Inspect the code, repo policy, product intent, and tests before changing code. Accept feedback that improves correctness, maintainability, consistency, or required policy. Decline or partially accept feedback that is already handled, overbroad, pedantic, out of scope, unsupported by repo truth, or likely to make the code worse. A no-code reply with evidence is a valid resolution.
 - Prefer one branch, one PR, one coherent follow-through loop. Do not fork the work into side branches or parallel PRs unless the user explicitly wants that.
 - After each accepted change, run the smallest relevant verification, push to the same PR branch, and continue polling.
 - Stop at merge-ready. Do not click merge, enable auto-merge, or queue the PR unless the user separately asks for that.
@@ -83,10 +84,10 @@ make install
    - top-level PR comments requesting code, QA, docs, or explanation
    - failing required checks
    - mergeability / branch-update problems
-3. For each actionable item, choose one disposition:
-   - accept and fix
+3. For each actionable item, inspect the evidence and choose one disposition:
+   - accept and fix when the feedback is valid and improves the PR
    - partially accept and fix the bounded part
-   - decline with evidence
+   - decline with evidence when the feedback is wrong, already handled, pedantic, scope-expanding, or harmful
    - already handled, with a commit or reply pointer
    - blocked on an irreducible human decision
 4. Reply on the exact thread or comment surface that raised the item.
@@ -103,6 +104,7 @@ make install
 
 ## Actionability rules
 
+- In this section, actionable means the item must be evaluated and answered. It does not mean the requested code change must be implemented.
 - Treat these as actionable by default:
   - `CHANGES_REQUESTED`
   - new inline review comments
