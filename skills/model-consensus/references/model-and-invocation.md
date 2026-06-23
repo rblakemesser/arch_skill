@@ -3,9 +3,9 @@
 `model-consensus` invokes Claude, Codex, Cursor Agent, or Grok child models
 directly from the parent agent. It does not create a new runner script, model
 alias table, harness, or deterministic controller.
-Provider routing is fixed: Codex runs GPT/GBT/OpenAI models, Claude Code runs
-supported Claude models, Cursor Agent runs Composer 2.5 Fast, and Grok CLI runs
-Grok models.
+Provider routing is fixed: Codex runs GPT/GBT/OpenAI and Fugu models, Claude
+Code runs supported Claude models, Cursor Agent runs Composer 2.5 Fast, and
+Grok CLI runs Grok models.
 
 ## Required Participant Values
 
@@ -39,23 +39,24 @@ Follow the shared model-resolution doctrine:
   pause before execution and ask whether they meant `gpt-5.5` or explicitly
   want `gpt-5.4`. This is an intent check, not an alias rule: do not rewrite
   the version yourself.
-- Infer runtime only from unambiguous family evidence: `gpt`/`gbt`/`codex`
-  implies Codex; `claude fable`, `fable`, `claude opus`, or `opus` implies
-  Claude; `agent`, `cursor`, `cursor agent`, or `cursor-agent` implies Cursor
-  Agent only for Composer.
+- Infer runtime only from unambiguous family evidence: `gpt`/`gbt`/`fugu`/
+  `fugu-ultra`/`codex` implies Codex; `claude fable`, `fable`,
+  `claude opus`, or `opus` implies Claude; `agent`, `cursor`, `cursor agent`,
+  or `cursor-agent` implies Cursor Agent only for Composer.
   `grok`, `grok-build`, `grok build`, or `grok composer` implies Grok.
-  If a phrase mixes Cursor Agent with GPT/GBT or Claude, fail loud instead of
-  choosing a side. If a phrase mixes Grok with GPT/GBT, Claude, or Cursor
-  Agent, fail loud instead of choosing a side.
+  If a phrase mixes Cursor Agent with GPT/GBT/Fugu or Claude, fail loud
+  instead of choosing a side. If a phrase mixes Grok with GPT/GBT/Fugu,
+  Claude, or Cursor Agent, fail loud instead of choosing a side.
 - For Codex, inspect `codex debug models` when model availability matters and
-  choose an available id with the same family and exact version.
+  choose an available id with the same family and exact version. `fugu` and
+  `fugu-ultra` are exact runnable model ids; preserve them exactly.
 - For Claude, preserve the named supported Claude family and version. Fable 5
   resolves to `claude-fable-5`; Opus 4.7 resolves to `claude-opus-4-7`. If the
   user names Sonnet or Haiku, fail loud and ask for a supported Claude choice.
 - For Cursor Agent, always use `composer-2.5-fast`. Accept `composer`,
   `composer 2.5`, `composer-2.5`, `composer-2.5-fast`, or bare `2.5` in a
   Cursor Agent context as that runnable id. Do not use Cursor model discovery
-  for non-Composer routing, and do not pass GPT/GBT or Claude model ids to
+  for non-Composer routing, and do not pass GPT/GBT/Fugu or Claude model ids to
   Cursor Agent.
 - For Grok, use `grok-build` by default when the user says `grok`,
   `grok cli`, `grok build`, or `grok-build`. Use
@@ -78,7 +79,8 @@ Always announce the mapping before execution:
 Model A: "Claude Fable 5 high" -> runtime=claude, model=claude-fable-5, effort=high
 Model B: "Claude Opus 4.7 xhigh" -> runtime=claude, model=claude-opus-4-7, effort=xhigh
 Model C: "gpt 5.5 xhigh" -> runtime=codex, model=gpt-5.5, effort=xhigh
-Model D: "Grok Build high" -> runtime=grok, model=grok-build, effort=high
+Model D: "Fugu Ultra xhigh" -> runtime=codex, model=fugu-ultra, effort=xhigh
+Model E: "Grok Build high" -> runtime=grok, model=grok-build, effort=high
 ```
 
 For Fable participant prompts, keep the brief direct: state the goal,

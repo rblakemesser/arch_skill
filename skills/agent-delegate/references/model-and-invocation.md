@@ -2,12 +2,13 @@
 
 Use this reference to resolve what the user meant by "Claude", "Codex",
 "Cursor Agent", "Grok", "fable 5 high", "opus high", "gpt 5.5 xhigh",
-"composer-2.5-fast", "grok-build", or similar phrasing, and to run the
+"fugu high", "fugu-ultra xhigh", "composer-2.5-fast", "grok-build", or
+similar phrasing, and to run the
 selected worker subprocess or explicit parallel group of worker subprocesses.
 Fresh-resumable is the default: new children start cold but capture a session
 handle for later exact resume. Provider routing is fixed: Codex runs
-GPT/GBT/OpenAI models, Claude Code runs supported Claude models, Cursor Agent
-runs Composer 2.5 Fast, and Grok CLI runs Grok models.
+GPT/GBT/OpenAI and Fugu models, Claude Code runs supported Claude models,
+Cursor Agent runs Composer 2.5 Fast, and Grok CLI runs Grok models.
 
 ## Required Values
 
@@ -70,7 +71,7 @@ skill.
 Infer runtime only when the user's wording makes it unambiguous:
 
 - `codex`, `openai`, `gpt`, `gbt`, `gpt-5.5`, `GBT55XI`,
-  `gpt 5.5 high`, or `gpt-5.3-codex` implies
+  `gpt 5.5 high`, `gpt-5.3-codex`, `fugu high`, or `fugu-ultra xhigh` implies
   `runtime=codex`.
 - `claude fable`, `fable`, `claude opus`, or `opus` implies
   `runtime=claude`.
@@ -83,9 +84,10 @@ Infer runtime only when the user's wording makes it unambiguous:
   `grok-composer-2.5-fast` implies `runtime=grok`.
 - Bare `composer`, `composer 2.5`, or bare `2.5` is ambiguous unless the user
   explicitly names Cursor Agent or Grok in the same execution choice.
-- If a phrase mixes Cursor Agent with GPT/GBT or Claude, fail loud instead of
-  choosing a side. Never run GPT/GBT or Claude models through Cursor Agent.
-- If a phrase mixes Grok with GPT/GBT, Claude, or Cursor Agent, fail loud
+- If a phrase mixes Cursor Agent with GPT/GBT/Fugu or Claude, fail loud instead
+  of choosing a side. Never run GPT/GBT/Fugu or Claude models through Cursor
+  Agent.
+- If a phrase mixes Grok with GPT/GBT/Fugu, Claude, or Cursor Agent, fail loud
   instead of choosing a side.
 - If the user names only an effort level, such as "xhigh", ask for runtime and
   model.
@@ -108,7 +110,8 @@ Treat model text as intent, not a loose alias:
   want `gpt-5.4`. This is an intent check, not an alias rule: do not rewrite
   the version yourself.
 - For Codex, inspect `codex debug models` when needed and choose an available
-  identifier with the same family and exact version. If no exact match exists
+  identifier with the same family and exact version. `fugu` and `fugu-ultra`
+  are exact runnable model ids; preserve them exactly. If no exact match exists
   or multiple matches are plausible, ask for the runnable model id.
 - For Claude, preserve the named supported Claude family and version. Fable 5
   resolves to `claude-fable-5`; Opus 4.7 resolves to `claude-opus-4-7`. If the
@@ -117,14 +120,14 @@ Treat model text as intent, not a loose alias:
   `cursor agent`, `cursor-agent`, `composer`, `composer 2.5`,
   `composer-2.5`, `composer-2.5-fast`, or bare `2.5` only in Cursor Agent
   context as that runnable id. Do not use Cursor model discovery for
-  non-Composer routing, and do not pass GPT/GBT, Claude, or Grok model ids to
-  Cursor Agent.
+  non-Composer routing, and do not pass GPT/GBT/Fugu, Claude, or Grok model ids
+  to Cursor Agent.
 - For Grok, use `grok-build` by default when the user says `grok`,
   `grok cli`, `grok build`, or `grok-build`. Use
   `grok-composer-2.5-fast` only when the user names Grok Composer, such as
   `grok composer`, `grok composer 2.5`, or `grok-composer-2.5-fast`. Inspect
-  `grok models` when availability matters, and do not pass GPT/GBT, Claude, or
-  Cursor Agent model ids to Grok.
+  `grok models` when availability matters, and do not pass GPT/GBT/Fugu,
+  Claude, or Cursor Agent model ids to Grok.
 - Do not run paid trial prompts to discover whether a Claude model exists. Use
   the CLI help/config surface when available; otherwise ask.
 
@@ -133,6 +136,7 @@ Always announce the raw-to-resolved mapping before execution:
 ```text
 Claude Fable 5 high -> runtime=claude, model=claude-fable-5, effort=high
 Claude Opus 4.7 xhigh -> runtime=claude, model=claude-opus-4-7, effort=xhigh
+Fugu Ultra xhigh -> runtime=codex, model=fugu-ultra, effort=xhigh
 Grok Build high -> runtime=grok, model=grok-build, effort=high
 ```
 
@@ -153,6 +157,7 @@ verification, blockers, session metadata, and run directories.
 
 - Claude accepts `low`, `medium`, `high`, `xhigh`, and `max` via `--effort`.
 - Codex effort is passed as `-c model_reasoning_effort='"<level>"'`.
+  Fugu supports `high`; Fugu Ultra supports `high`, `xhigh`, and `max`.
 - Grok accepts `low`, `medium`, `high`, `xhigh`, and `max` via `--effort`.
 - Cursor Agent does not expose a separate `--effort` flag in the local CLI.
   Store effort as `encoded-in-model` and pass only

@@ -36,7 +36,8 @@ COMPLETE`, and marks the sub-plan `complete` only after that critic passes.
 The spawned harness lane is also explicit and opt-in. After the user approves the
 decomposition, arch-epic asks for a role-based execution table:
 `epic_planner`, `implementation_worker`, and `critic`.
-It resolves shorthand such as `opus 4.7 xhigh` or `gpt 5.5 high` to
+It resolves shorthand such as `opus 4.7 xhigh`, `gpt 5.5 high`, or
+`fugu-ultra xhigh` to
 runnable model IDs using the shared resolver doctrine, pins the resolved
 policy, then drives sub-plans depth-first with spawned child harnesses whose
 hooks are disabled for subprocess isolation. Spawned workers apply arch-step

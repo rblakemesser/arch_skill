@@ -29,6 +29,7 @@ under-powers hard work.
 The intake phase parses whatever the user wrote. Any of these is clear:
 
 - "use Claude Fable 5 high for steps and Codex gpt-5.5 xhigh for critic"
+- "use Codex Fugu high for steps and Codex Fugu Ultra xhigh for critic"
 - "Codex gpt-5.5 high everywhere" (one value reused for all defaults)
 - "Grok Build high for steps and Codex gpt-5.5 xhigh for critic"
 - "steps on gpt-5.5 high, critic on gpt-5.5 xhigh"
@@ -61,6 +62,8 @@ This is reasoning, not a lookup table:
   (`codex debug models`) and choose the available identifier with the same
   family and exact version. For example, "gpt 5.5" resolves to `gpt-5.5` if
   that exact model appears, and "gpt 5.3 codex" resolves to `gpt-5.3-codex`.
+  `fugu` and `fugu-ultra` are exact Codex model ids; preserve them exactly.
+  Fugu supports `high`; Fugu Ultra supports `high`, `xhigh`, and `max`.
 - For Grok, use `grok-build` by default when the user says `grok`,
   `grok cli`, `grok build`, or `grok-build`. Use
   `grok-composer-2.5-fast` only when the user names Grok Composer, such as
@@ -82,6 +85,8 @@ Always announce the raw-to-resolved mapping before execution, for example:
 `Claude Fable 5 high -> runtime=claude, model=claude-fable-5,
 effort=high` or `Grok Build high -> runtime=grok, model=grok-build,
 effort=high`.
+`Fugu Ultra xhigh -> runtime=codex, model=fugu-ultra, effort=xhigh` is the
+same kind of exact Codex mapping.
 
 For deterministic script plumbing that needs these same resolution rules, use
 `skills/_shared/model_resolution.py` instead of adding another hidden model
@@ -125,6 +130,7 @@ Infer runtime only when the evidence is unambiguous:
 
 - a target repo says "run with Codex"
 - the user says "Claude Fable 5", "Codex gpt-5.5", or "Grok Build"
+- the user says "Codex Fugu", "Fugu high", or "Fugu Ultra xhigh"
 - an installed CLI supports only the named model family and the user clearly
   intended that family
 

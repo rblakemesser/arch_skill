@@ -76,6 +76,30 @@ class ArchEpicAutoModeTests(unittest.TestCase):
                 codex_models=["gpt-5.4", "gpt-5.4-mini"],
             )
 
+    def test_codex_accepts_fugu_model_ids(self):
+        cases = [
+            ("Fugu high", "fugu", "high"),
+            ("Codex Fugu Ultra xhigh", "fugu-ultra", "xhigh"),
+            ("sakana fugu-ultra max", "fugu-ultra", "max"),
+        ]
+
+        for phrase, model, effort in cases:
+            with self.subTest(phrase=phrase):
+                resolved = self.model_resolution.resolve_execution_phrase(
+                    phrase,
+                    codex_models=["gpt-5.5", "fugu", "fugu-ultra"],
+                )
+                self.assertEqual(resolved.runtime, "codex")
+                self.assertEqual(resolved.model, model)
+                self.assertEqual(resolved.effort, effort)
+
+    def test_codex_fugu_refuses_unsupported_effort(self):
+        with self.assertRaises(self.model_resolution.ModelResolutionError):
+            self.model_resolution.resolve_execution_phrase(
+                "fugu xhigh",
+                codex_models=["fugu", "fugu-ultra"],
+            )
+
     def test_cursor_agent_model_resolves_with_encoded_effort(self):
         resolved = self.model_resolution.resolve_execution_phrase(
             "cursor agent composer-2.5-fast",

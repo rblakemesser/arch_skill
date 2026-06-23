@@ -1,6 +1,6 @@
 ---
 name: model-consensus
-description: "Run a prompt-only, parent-agent orchestrated dialogue between two named Claude Fable/Opus, Codex GPT/GBT, Cursor Composer, or Grok models to cross-check, critique, and converge on a lean plan, architecture, debugging strategy, investigation, design, or concept. Use when the user wants iterative two-model agreement or adversarial simplification. Repo-backed runs make both models read real evidence, but open investigations preserve child discovery freedom. Not for one-shot cold opinions, deterministic code review, ordered implementation loops, or broad idea tournaments."
+description: "Run a prompt-only, parent-agent orchestrated dialogue between two named Claude Fable/Opus, Codex GPT/GBT/Fugu, Cursor Composer, or Grok models to cross-check, critique, and converge on a lean plan, architecture, debugging strategy, investigation, design, or concept. Use when the user wants iterative two-model agreement or adversarial simplification. Repo-backed runs make both models read real evidence, but open investigations preserve child discovery freedom. Not for one-shot cold opinions, deterministic code review, ordered implementation loops, or broad idea tournaments."
 metadata:
   short-description: "Agent-run two-model consensus for lean repo-grounded plans"
 ---
@@ -20,7 +20,7 @@ evidence discovery when the task is investigative, converges on existing repo
 patterns when the task is architectural, and avoids kitchen-sink plans.
 ## Use When
 
-- The user wants two Claude Fable/Opus, Codex GPT/GBT, Cursor Composer, or Grok
+- The user wants two Claude Fable/Opus, Codex GPT/GBT/Fugu, Cursor Composer, or Grok
   models to iterate on a plan,
   architecture, design, migration, debugging strategy, investigation, or
   concept.
@@ -69,10 +69,10 @@ patterns when the task is architectural, and avoids kitchen-sink plans.
   model id or exact model phrase, and effort. If the user names shorthand such
   as "gpt 5.5 xhigh" or "Claude Fable 5 high", resolve it with the shared
   model-resolution rules and announce the raw-to-resolved mapping.
-- Provider routing is fixed: Codex runs GPT/GBT/OpenAI models, Claude Code runs
-  supported Claude models, Cursor Agent runs `composer-2.5-fast`, and Grok CLI
-  runs `grok-build` or `grok-composer-2.5-fast`. Do not pass model ids across
-  runtimes.
+- Provider routing is fixed: Codex runs GPT/GBT/OpenAI and Fugu models, Claude
+  Code runs supported Claude models, Cursor Agent runs `composer-2.5-fast`, and
+  Grok CLI runs `grok-build` or `grok-composer-2.5-fast`. Do not pass model ids
+  across runtimes.
 - For repo-backed work, both child models must read real evidence before they
   are allowed to recommend or agree. In open investigation mode, require them to
   choose and cite the code, docs, research, tests, and commands they need. In

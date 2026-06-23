@@ -74,6 +74,8 @@ the same doctrine used by Stepwise and fresh-consult:
 - preserve model family and numeric version exactly
 - infer runtime only from unambiguous family evidence
 - inspect `codex debug models` when Codex model availability matters
+- preserve `fugu` and `fugu-ultra` as exact Codex model ids; Fugu supports
+  `high`, and Fugu Ultra supports `high`, `xhigh`, and `max`
 - inspect `grok models` when Grok model availability matters
 - prefer `claude-<family>-<version-with-hyphens>` for supported Claude
   family+version
@@ -90,6 +92,7 @@ All of these are valid when they include a role:
 
 - "planner on Claude Fable 5 high"
 - "implementation worker on Codex gpt-5.5 xhigh"
+- "implementation worker on Codex Fugu Ultra xhigh"
 - "planner on Grok Build high"
 - "critics on gpt 5.5 xhigh"
 - "codex gpt-5.5 high everywhere"
@@ -104,6 +107,8 @@ Treat model text as intent, not a loose alias:
 
 - `gpt 5.5` may normalize to `gpt-5.5`; it must not become `gpt-5.4`.
 - `gpt 5.3 codex` may normalize to `gpt-5.3-codex`.
+- `fugu` and `fugu-ultra` are exact Codex model ids; preserve them as
+  `fugu` and `fugu-ultra`.
 - `fable 5` under Claude may normalize to `claude-fable-5`; `opus 4.7` may
   normalize to `claude-opus-4-7`. Neither may become another Claude family or
   version.
@@ -126,6 +131,7 @@ Always print the raw-to-resolved mapping before execution:
 
 ```text
 critic: "codex gpt 5.5 xhigh" -> runtime=codex, model=gpt-5.5, effort=xhigh
+critic: "Fugu Ultra xhigh" -> runtime=codex, model=fugu-ultra, effort=xhigh
 planner: "Claude Fable 5 high" -> runtime=claude, model=claude-fable-5, effort=high
 implementation_worker: "Grok Build high" -> runtime=grok, model=grok-build, effort=high
 ```

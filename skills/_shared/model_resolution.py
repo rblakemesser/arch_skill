@@ -1,8 +1,9 @@
 """Shared runtime/model/effort resolution for arch_skill subprocesses.
 
 This module is deterministic plumbing for skill scripts. It encodes the
-provider-owned routing rule: Codex runs GPT/GBT/OpenAI models, Claude Code runs
-supported Claude models, Cursor Agent runs Composer 2.5 Fast, and Grok CLI runs Grok models.
+provider-owned routing rule: Codex runs GPT/GBT/OpenAI and Fugu models,
+Claude Code runs supported Claude models, Cursor Agent runs Composer 2.5 Fast,
+and Grok CLI runs Grok models.
 Cross-provider phrases fail loud instead of routing an expensive model through
 the wrong harness.
 """
@@ -28,6 +29,11 @@ _CODEX_FAMILY_RE = re.compile(
     re.IGNORECASE,
 )
 _GBT_COMPACT_RE = re.compile(r"\bgbt[\s_-]*55(?:[\s_-]*(?:xhigh|xi|x))?\b", re.IGNORECASE)
+_FUGU_MODEL_RE = re.compile(r"\bfugu(?:[\s_-]*ultra)?\b", re.IGNORECASE)
+_FUGU_EFFORTS = {
+    "fugu": {"high"},
+    "fugu-ultra": {"high", "xhigh", "max"},
+}
 _CLAUDE_FAMILY_RE = re.compile(
     r"\b(?P<family>fable|opus|sonnet|haiku)"
     r"(?:[\s_-]*(?P<version>\d+(?:[\.-]\d+)*))?\b",
@@ -102,10 +108,10 @@ def discover_codex_models() -> list[str]:
     if proc.returncode != 0:
         return []
     candidates: set[str] = set()
-    for token in re.findall(r"\b(?:gpt|o)\S+", proc.stdout):
+    for token in re.findall(r"\b(?:gpt|gbt|o|fugu)\S+", proc.stdout, re.IGNORECASE):
         cleaned = token.strip("`'\",:;()[]{}")
         if cleaned:
-            candidates.add(cleaned)
+            candidates.add(cleaned.lower())
     return sorted(candidates)
 
 
@@ -146,6 +152,8 @@ def resolve_execution_phrase(
     - "Claude Opus 4.7 xhigh" -> claude / claude-opus-4-7 / xhigh
     - "codex gpt 5.4 mini high" -> codex / gpt-5.4-mini / high
     - "GBT55XI" -> codex / gpt-5.5 / xhigh
+    - "Fugu high" -> codex / fugu / high
+    - "Fugu Ultra xhigh" -> codex / fugu-ultra / xhigh
     - "cursor agent composer-2.5-fast" -> agent / composer-2.5-fast / encoded-in-model
     - "cursor agent composer 2.5" -> agent / composer-2.5-fast / encoded-in-model
     - "grok build high" -> grok / grok-build / high
@@ -176,6 +184,7 @@ def resolve_execution_phrase(
         model = _resolve_claude_model(raw)
     elif runtime == "codex":
         model = _resolve_codex_model(raw, codex_models=codex_models)
+        _validate_codex_effort(model, effort or "", raw)
     elif runtime == "agent":
         model = _resolve_agent_model(raw, agent_models=agent_models)
         effort = f"encoded-in-model:{effort}" if effort else "encoded-in-model"
@@ -299,8 +308,9 @@ def _extract_effort(lowered: str) -> str | None:
 
 def _infer_runtime(lowered: str) -> tuple[str | None, str]:
     has_codex = bool(
-        re.search(r"\b(codex|openai|gpt|gbt)\b", lowered)
+        re.search(r"\b(codex|openai|gpt|gbt|sakana)\b", lowered)
         or _GBT_COMPACT_RE.search(lowered)
+        or _FUGU_MODEL_RE.search(lowered)
     )
     has_claude = bool(
         re.search(r"\b(claude|anthropic|fable|opus|sonnet|haiku)\b", lowered)
@@ -323,8 +333,8 @@ def _infer_runtime(lowered: str) -> tuple[str | None, str]:
         )
     if has_agent and (has_codex or has_claude):
         raise ModelResolutionError(
-            "execution phrase mixes Cursor Agent with a GPT/GBT/Claude model; "
-            "Codex runs GPT/GBT, Claude Code runs supported Claude models, "
+            "execution phrase mixes Cursor Agent with a GPT/GBT/Fugu/Claude model; "
+            "Codex runs GPT/GBT/Fugu, Claude Code runs supported Claude models, "
             "and Cursor Agent runs composer-2.5-fast"
         )
     if has_grok:
@@ -364,10 +374,14 @@ def _resolve_claude_model(raw: str) -> str:
 
 
 def _resolve_codex_model(raw: str, *, codex_models: list[str] | None) -> str:
+    candidate = _extract_fugu_model_candidate(raw.lower())
+    if candidate is not None:
+        return _resolve_codex_candidate(raw, candidate, codex_models=codex_models)
+
     match = _CODEX_FAMILY_RE.search(raw)
     compact = _GBT_COMPACT_RE.search(raw)
     if not match and not compact:
-        raise ModelResolutionError(f"could not find a Codex/GPT model in {raw!r}")
+        raise ModelResolutionError(f"could not find a Codex model in {raw!r}")
 
     version = "5.5" if compact and not match else match.group("version")
     suffix_words = [] if compact and not match else re.findall(
@@ -377,16 +391,28 @@ def _resolve_codex_model(raw: str, *, codex_models: list[str] | None) -> str:
     if suffix_words:
         candidate += "-" + "-".join(word.lower() for word in suffix_words)
 
+    return _resolve_codex_candidate(raw, candidate, codex_models=codex_models)
+
+
+def _resolve_codex_candidate(
+    raw: str,
+    candidate: str,
+    *,
+    codex_models: list[str] | None,
+) -> str:
     models = codex_models
     if models is None:
         models = discover_codex_models()
+    normalized_models = [model.lower() for model in models]
 
-    if not models:
+    if not normalized_models:
         return candidate
-    if candidate in models:
+    if candidate in normalized_models:
         return candidate
     compatible = [
-        model for model in models if _same_codex_family_and_version(candidate, model)
+        model
+        for model in normalized_models
+        if _same_codex_family_and_version(candidate, model)
     ]
     if len(compatible) == 1:
         return compatible[0]
@@ -402,6 +428,24 @@ def _resolve_codex_model(raw: str, *, codex_models: list[str] | None) -> str:
 
 def _same_codex_family_and_version(candidate: str, model: str) -> bool:
     return model == candidate
+
+
+def _extract_fugu_model_candidate(lowered: str) -> str | None:
+    if re.search(r"\bfugu[\s_-]*ultra\b", lowered):
+        return "fugu-ultra"
+    if re.search(r"\bfugu\b", lowered):
+        return "fugu"
+    return None
+
+
+def _validate_codex_effort(model: str, effort: str, raw: str) -> None:
+    allowed = _FUGU_EFFORTS.get(model)
+    if allowed is None or effort in allowed:
+        return
+    allowed_text = ", ".join(sorted(allowed))
+    raise ModelResolutionError(
+        f"{raw!r} uses effort {effort!r}, but {model!r} supports only: {allowed_text}"
+    )
 
 
 def _looks_like_agent_model_id(token: str) -> bool:
