@@ -47,6 +47,8 @@ Other shipped skills:
 - `agent-history`
 - `model-consensus`
 - `contact-sheet-builder`
+- `cynical-code-review`
+- `cynical-architecture-review`
 - `exhaustive-code-review`
 - `stepwise`
 - `thermo-nuclear-code-quality-review`
@@ -108,6 +110,8 @@ Default local path:
 - `~/.agents/skills/agent-history/`
 - `~/.agents/skills/model-consensus/`
 - `~/.agents/skills/contact-sheet-builder/`
+- `~/.agents/skills/cynical-code-review/`
+- `~/.agents/skills/cynical-architecture-review/`
 - `~/.agents/skills/exhaustive-code-review/`
 - `~/.agents/skills/stepwise/`
 - `~/.agents/skills/arch-epic/`
@@ -157,6 +161,8 @@ Installed skills:
   - `agent-history`
   - `model-consensus`
   - `contact-sheet-builder`
+  - `cynical-code-review`
+  - `cynical-architecture-review`
   - `exhaustive-code-review`
   - `stepwise`
   - `arch-epic`
@@ -199,6 +205,8 @@ Installed skills:
   - `agent-history`
   - `model-consensus`
   - `contact-sheet-builder`
+  - `cynical-code-review`
+  - `cynical-architecture-review`
   - `exhaustive-code-review`
   - `stepwise`
   - `arch-epic`
@@ -240,6 +248,8 @@ Installed skills:
   - `plan-swarm`
   - `model-consensus`
   - `contact-sheet-builder`
+  - `cynical-code-review`
+  - `cynical-architecture-review`
   - `exhaustive-code-review`
   - `stepwise`
   - `arch-epic`
@@ -247,7 +257,7 @@ Installed skills:
 
 Install removes stale pre-skill command surfaces, removed skill packages, older Codex skill mirrors, old arch_skill-owned hook entries, and source/build internals from installed skill packages. It does not install new hooks.
 
-`arch-loop`, `delay-poll`, `wait`, and `code-review` are removed from the live installed surface; use native `/goal` for free-form completion, the host's native scheduling/reminder surface for timed waiting or polling, and ordinary host review behavior for generic code review. `agent-history` is installed on the agents/Codex and Claude Code surfaces because its storage map covers Codex and Claude Code local history. `contact-sheet-builder` is installed on all three skill surfaces and requires Python with Pillow at runtime. `arch-step-goal-prompt`, `figma-best-practices`, `fal-ai-tools`, `chatgpt-web`, `fresh-consult`, `agent-delegate`, `plan-audit`, `plan-implement`, `model-consensus`, `plan-swarm`, `codex-cleanup`, `codex-babysit`, `exhaustive-code-review`, and `thermo-nuclear-code-quality-review` are installed on all three skill surfaces, but subprocess skills still require the selected local `claude`, `codex`, `agent`, or `grok` CLI to exist on the host at invocation time. `chatgpt-web` is prompt-only and requires BrowserOS MCP plus an already logged-in ChatGPT browser session; it does not automate login. `thermo-nuclear-code-quality-review` is sourced unchanged from the vendored Cursor Team Kit plugin at `vendor/cursor/plugins/cursor-team-kit/skills/`; only that skill package is installed, not Cursor Team Kit agents or rules. `fresh-consult` is read-only: first turns start clean, second/third same-line follow-ups resume a captured exact child session id by default, turn four rotates fresh, and explicitly requested parallel consults create multiple child chains. `agent-delegate` may write to the shared worktree when invoked with an allowed write scope and can run multiple fresh-resumable workers when explicitly requested. Provider routing is fixed: Codex runs GPT/GBT/OpenAI models plus Fugu (`fugu`) and Fugu Ultra (`fugu-ultra`), Claude Code runs supported Claude models, Cursor Agent runs `composer-2.5-fast`, and Grok CLI runs `grok-build` or `grok-composer-2.5-fast`. `plan-implement` is prompt-first and local: it keeps plan-backed implementation state, proof freshness, and warm review aligned without external worker orchestration. `plan-swarm` is prompt-first: the parent agent coordinates parallel workers through `agent-delegate` and keeps human worklogs next to the plan. `exhaustive-code-review` is prompt-only and review-only: it maximizes native parallel agents, saves the review artifact under `/tmp/exhaustive-code-review/`, and does not dictate the user's workflow.
+`arch-loop`, `delay-poll`, `wait`, and `code-review` are removed from the live installed surface; use native `/goal` for free-form completion, the host's native scheduling/reminder surface for timed waiting or polling, and ordinary host review behavior for generic code review. `agent-history` is installed on the agents/Codex and Claude Code surfaces because its storage map covers Codex and Claude Code local history. `contact-sheet-builder` is installed on all three skill surfaces and requires Python with Pillow at runtime. `arch-step-goal-prompt`, `figma-best-practices`, `fal-ai-tools`, `chatgpt-web`, `fresh-consult`, `agent-delegate`, `plan-audit`, `plan-implement`, `model-consensus`, `plan-swarm`, `codex-cleanup`, `codex-babysit`, `cynical-code-review`, `cynical-architecture-review`, `exhaustive-code-review`, and `thermo-nuclear-code-quality-review` are installed on all three skill surfaces, but subprocess skills still require the selected local `claude`, `codex`, `agent`, or `grok` CLI to exist on the host at invocation time. `chatgpt-web` is prompt-only and requires BrowserOS MCP plus an already logged-in ChatGPT browser session; it does not automate login. `thermo-nuclear-code-quality-review` is sourced unchanged from the vendored Cursor Team Kit plugin at `vendor/cursor/plugins/cursor-team-kit/skills/`; only that skill package is installed, not Cursor Team Kit agents or rules. `fresh-consult` is read-only: first turns start clean, second/third same-line follow-ups resume a captured exact child session id by default, turn four rotates fresh, and explicitly requested parallel consults create multiple child chains. `agent-delegate` may write to the shared worktree when invoked with an allowed write scope and can run multiple fresh-resumable workers when explicitly requested. Provider routing is fixed: Codex runs GPT/GBT/OpenAI models plus Fugu (`fugu`) and Fugu Ultra (`fugu-ultra`), Claude Code runs supported Claude models, Cursor Agent runs `composer-2.5-fast`, and Grok CLI runs `grok-build` or `grok-composer-2.5-fast`. `plan-implement` is prompt-first and local: it keeps plan-backed implementation state, proof freshness, and warm review aligned without external worker orchestration. `plan-swarm` is prompt-first: the parent agent coordinates parallel workers through `agent-delegate` and keeps human worklogs next to the plan. `cynical-code-review`, `cynical-architecture-review`, and `exhaustive-code-review` are prompt-only and review-only: cynical code review owns skeptical implementation-integrity audits under `/tmp/cynical-code-review/`, cynical architecture review owns subtraction-first accidental architecture audits under `/tmp/cynical-architecture-review/`, and exhaustive review owns coverage-led audits under `/tmp/exhaustive-code-review/`.
 
 ## Shared conventions
 
@@ -743,6 +753,64 @@ Practical rule:
 - Use Figma, slide, doc, PDF, or video tools when the requested artifact is not
   a local image contact sheet.
 
+### `cynical-code-review`
+
+Use when the user wants a prompt-only skeptical implementation-integrity code
+review over implemented code, a branch, diff, path set, completion claim, or
+optional plan-backed implementation and wants the review saved to disk. It
+assumes the completion story may be misleading, treats names/docs/status/tests
+as claims rather than proof, hunts name-only completion, split-brain owners,
+side doors, partial unification, stale authority paths, stopped-short user
+workflows, overbuilt machinery, scope contamination, fake proof receipts, and
+docs/status/tests that mask broken code, then saves the review artifact under
+`/tmp/cynical-code-review/...`.
+
+Examples:
+
+- `Use $cynical-code-review to audit this implemented plan and assume we missed the point`
+- `Use $cynical-code-review on this completion claim`
+- `Use $cynical-code-review to find split-brain owners and stopped-short behavior`
+
+Practical rule:
+
+- Use `cynical-code-review` when distrust of the implementation story is the
+  job.
+- Use `cynical-architecture-review` when accidental architecture and
+  subtraction are the job.
+- Use `exhaustive-code-review` when coverage itself is the deliverable.
+
+### `cynical-architecture-review`
+
+Use when the user wants a prompt-only skeptical architecture review over a
+branch, diff, subsystem, plan-backed implementation, or code area and wants the
+review saved to disk. It assumes the architecture may have emerged accidentally
+through iteration, preserves the intended UX and hard experiment requirements,
+hunts sprawl, invalid split ownership, duplicate truth, accidental
+abstractions, compatibility shims, flags-as-architecture, registries, adapters,
+state spread, wrong decomposition, and needless complexity, then saves
+`target.md`, `architecture-map.md`, `complexity-ledger.md`,
+`subtraction-map.md`, `coverage.md`, `findings.md`, and `verdict.md` under
+`/tmp/cynical-architecture-review/...`.
+
+It is not a QA/test/doc review. Tests, docs, fixtures, examples, generated
+artifacts, and status text matter only when they reveal architecture truth,
+architecture lies, or future-copy risk, unless the user explicitly asks for
+that lane.
+
+Examples:
+
+- `Use $cynical-architecture-review on this subsystem`
+- `Use $cynical-architecture-review to find accidental architecture and simplify it without changing the UX`
+- `Use $cynical-architecture-review on this plan-backed implementation; assume the architecture just happened`
+
+Practical rule:
+
+- Use `cynical-architecture-review` when accidental architecture and
+  subtraction are the job.
+- Use `cynical-code-review` when distrust of the implementation story is the
+  job.
+- Use `thermo-nuclear-code-quality-review` for maintainability-only review.
+
 ### `exhaustive-code-review`
 
 Use when the user wants a prompt-only exhaustive code review over a branch,
@@ -764,6 +832,8 @@ Examples:
 Practical rule:
 
 - Use `exhaustive-code-review` when coverage itself is the deliverable.
+- Use `cynical-architecture-review` when accidental architecture and
+  subtraction are the deliverable.
 - Use `plan-audit implementation-audit` for plan-backed code review.
 - Use `thermo-nuclear-code-quality-review` for maintainability-only review.
 

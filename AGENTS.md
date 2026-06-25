@@ -141,6 +141,15 @@ Claude Code, and Gemini.
   machinery, scope contamination, fake proof receipts, and docs/status/tests
   that mask broken code. Use `$exhaustive-code-review` instead when coverage
   itself is the deliverable.
+- Use `$cynical-architecture-review` when the user wants a skeptical,
+  subtraction-first architecture review of a branch, diff, subsystem,
+  plan-backed implementation, or code area and explicitly wants the review to
+  assume the architecture may have emerged accidentally through iteration. It
+  hunts sprawl, invalid split ownership, duplicate truth, accidental
+  abstractions, compatibility shims, flags-as-architecture, registries,
+  adapters, state spread, wrong decomposition, and complexity not forced by the
+  intended UX or hard experiment requirements. It is not for QA/test/doc review
+  unless those surfaces expose architecture truth or the user asks.
 - Use `$plan-implement` when the user wants to implement an existing plan,
   phase, section, checklist, issue-body plan, or design doc while keeping the
   plan, plan-audit log, implementation log, proof freshness, and warm
