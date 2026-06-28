@@ -7,8 +7,8 @@ Use this reference to resolve what the user meant by "Claude", "Codex",
 selected read-only consult subprocess.
 
 Fresh consult is review/second-opinion work. Provider routing is fixed: Codex
-runs GPT/GBT/Fugu, Claude Code runs supported Claude models, Cursor Agent
-runs Composer 2.5 Fast, and Grok CLI runs Grok models. The first turn in a
+runs GPT/GBT/OpenAI model ids and Fugu profiles, Claude Code runs supported
+Claude models, Cursor Agent runs Composer 2.5 Fast, and Grok CLI runs Grok models. The first turn in a
 consult line starts clean from disk and the prompt; bounded same-line
 follow-ups resume the captured child session by exact session id.
 
@@ -17,7 +17,7 @@ follow-ups resume the captured child session by exact session id.
 Every consult child needs three execution values:
 
 - `runtime` - `claude`, `codex`, `agent`, or `grok`
-- `model` - the runnable CLI model identifier
+- `model` - the runnable CLI model identifier, or the Codex profile name for Fugu
 - `effort` - the reasoning effort level, or `encoded-in-model` for Cursor Agent
 
 If any value is missing or ambiguous, ask one consolidated question before
@@ -50,11 +50,11 @@ Infer runtime only when the user's wording makes it unambiguous:
   `grok-composer-2.5-fast` implies `runtime=grok`.
 - Bare `composer`, `composer 2.5`, or bare `2.5` is ambiguous unless the user
   explicitly names Cursor Agent or Grok in the same execution choice.
-- If a phrase mixes Cursor Agent with GPT/GBT/Fugu or Claude, fail loud instead
-  of choosing a side. Never run GPT/GBT/Fugu or Claude models through Cursor
-  Agent.
-- If a phrase mixes Grok with GPT/GBT/Fugu, Claude, or Cursor Agent, fail loud
-  instead of choosing a side.
+- If a phrase mixes Cursor Agent with GPT/GBT model ids, Fugu profiles, or
+  Claude, fail loud instead of choosing a side. Never run GPT/GBT model ids,
+  Fugu profiles, or Claude models through Cursor Agent.
+- If a phrase mixes Grok with GPT/GBT model ids, Fugu profiles, Claude, or
+  Cursor Agent, fail loud instead of choosing a side.
 - If the user names only an effort level, such as "xhigh", ask for runtime and
   model.
 - If the user says only "run a fresh consult" or "get a second opinion", ask
@@ -75,10 +75,10 @@ Treat model text as intent, not a loose alias:
   pause before execution and ask whether they meant `gpt-5.5` or explicitly
   want `gpt-5.4`. This is an intent check, not an alias rule: do not rewrite
   the version yourself.
-- For Codex, inspect `codex debug models` when needed and choose an available
-  identifier with the same family and exact version. `fugu` and `fugu-ultra`
-  are exact runnable model ids; preserve them exactly. If no exact match exists
-  or multiple matches are plausible, ask for the runnable model id.
+- For ordinary Codex model ids, inspect `codex debug models` when needed and
+  choose an available identifier with the same family and exact version. For
+  Fugu, resolve `fugu` and `fugu-ultra` as Codex profiles, not model-list ids;
+  preserve the profile names exactly and launch them with `-p`.
 - For Claude, preserve the named supported Claude family and version. Fable 5
   resolves to `claude-fable-5`; Opus 4.7 resolves to `claude-opus-4-7`. If the
   user names Sonnet or Haiku, fail loud and ask for a supported Claude choice.
@@ -86,14 +86,14 @@ Treat model text as intent, not a loose alias:
   `cursor agent`, `cursor-agent`, `composer`, `composer 2.5`,
   `composer-2.5`, `composer-2.5-fast`, or bare `2.5` only in Cursor Agent
   context as that runnable id. Do not use Cursor model discovery for
-  non-Composer routing, and do not pass GPT/GBT/Fugu, Claude, or Grok model ids
-  to Cursor Agent.
+  non-Composer routing, and do not pass GPT/GBT model ids, Fugu profiles,
+  Claude, or Grok model ids to Cursor Agent.
 - For Grok, use `grok-build` by default when the user says `grok`,
   `grok cli`, `grok build`, or `grok-build`. Use
   `grok-composer-2.5-fast` only when the user names Grok Composer, such as
   `grok composer`, `grok composer 2.5`, or `grok-composer-2.5-fast`. Inspect
-  `grok models` when availability matters, and do not pass GPT/GBT/Fugu,
-  Claude, or Cursor Agent model ids to Grok.
+  `grok models` when availability matters, and do not pass GPT/GBT model ids,
+  Fugu profiles, Claude, or Cursor Agent model ids to Grok.
 - Do not run paid trial prompts to discover whether a Claude model exists. Use
   the CLI help/config surface when available; otherwise ask.
 
@@ -102,7 +102,7 @@ Always announce the raw-to-resolved mapping before execution:
 ```text
 Claude Fable 5 high -> runtime=claude, model=claude-fable-5, effort=high
 Claude Opus 4.7 xhigh -> runtime=claude, model=claude-opus-4-7, effort=xhigh
-Fugu Ultra xhigh -> runtime=codex, model=fugu-ultra, effort=xhigh
+Fugu Ultra xhigh -> runtime=codex, model=fugu-ultra, codex_profile=fugu-ultra, effort=xhigh
 Cursor Agent composer 2.5 -> runtime=agent, model=composer-2.5-fast, effort=encoded-in-model
 Grok Build high -> runtime=grok, model=grok-build, effort=high
 ```
@@ -121,14 +121,19 @@ visible output contract to verdict, evidence, session metadata, and directories.
 ## Effort Resolution
 
 - Claude accepts `low`, `medium`, `high`, `xhigh`, and `max` via `--effort`.
-- Codex effort is passed as `-c model_reasoning_effort='"<level>"'`.
-  Fugu supports `high`; Fugu Ultra supports `high`, `xhigh`, and `max`.
+- For ordinary Codex model ids, pass effort as
+  `-c model_reasoning_effort='"<level>"'`.
+- For Fugu profiles, use `-p fugu` or `-p fugu-ultra`. Omit `-c` when using
+  the profile default (`fugu` defaults to `high`; `fugu-ultra` defaults to
+  `xhigh`). Add `-c model_reasoning_effort='"<level>"'` only when the user
+  explicitly requests a supported non-default Fugu Ultra effort.
 - Grok accepts `low`, `medium`, `high`, `xhigh`, and `max` via `--effort`.
 - Cursor Agent does not expose a separate `--effort` flag in the local CLI.
   Store effort as `encoded-in-model` and pass only
   `--model "composer-2.5-fast"`.
-- For Codex, confirm the selected model supports the requested effort when
-  `codex debug models` is needed for model resolution.
+- For ordinary Codex model ids, confirm the selected model supports the
+  requested effort when `codex debug models` is needed for model resolution.
+  `codex debug models` does not prove whether local Fugu profiles exist.
 - If effort is missing for Claude, Codex, or Grok, or the selected model does
   not support the requested effort, ask.
 
@@ -339,8 +344,7 @@ codex exec \
   -C "<work_root>" \
   --dangerously-bypass-approvals-and-sandbox \
   --skip-git-repo-check \
-  --model "<resolved_model>" \
-  -c model_reasoning_effort='"<resolved_effort>"' \
+  <codex_model_or_profile_flags> \
   --json \
   -o "$FINAL_PATH" \
   < "$PROMPT_PATH" \
@@ -363,6 +367,12 @@ Flag meanings:
 - `--skip-git-repo-check` allows doc or artifact consults outside a git root.
 - `--json` streams Codex event JSONL to `events.jsonl` while the child works.
 - `-o "$FINAL_PATH"` captures the final assistant message.
+
+Set `<codex_model_or_profile_flags>` this way:
+
+- Ordinary Codex model id: `--model "<resolved_model>" -c model_reasoning_effort='"<resolved_effort>"'`
+- Fugu profile at its default effort: `-p "<resolved_codex_profile>"`
+- Fugu Ultra explicit non-default effort: `-p "fugu-ultra" -c model_reasoning_effort='"<resolved_effort>"'`
 
 ## Codex Resume
 

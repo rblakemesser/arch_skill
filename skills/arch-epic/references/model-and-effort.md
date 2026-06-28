@@ -73,9 +73,8 @@ the same doctrine used by Stepwise and fresh-consult:
 
 - preserve model family and numeric version exactly
 - infer runtime only from unambiguous family evidence
-- inspect `codex debug models` when Codex model availability matters
-- preserve `fugu` and `fugu-ultra` as exact Codex model ids; Fugu supports
-  `high`, and Fugu Ultra supports `high`, `xhigh`, and `max`
+- inspect `codex debug models` when ordinary Codex model availability matters
+- resolve `fugu` and `fugu-ultra` as Codex profiles, not model-list ids
 - inspect `grok models` when Grok model availability matters
 - prefer `claude-<family>-<version-with-hyphens>` for supported Claude
   family+version
@@ -107,8 +106,8 @@ Treat model text as intent, not a loose alias:
 
 - `gpt 5.5` may normalize to `gpt-5.5`; it must not become `gpt-5.4`.
 - `gpt 5.3 codex` may normalize to `gpt-5.3-codex`.
-- `fugu` and `fugu-ultra` are exact Codex model ids; preserve them as
-  `fugu` and `fugu-ultra`.
+- `fugu` and `fugu-ultra` are Codex profile names; preserve them as `fugu` and
+  `fugu-ultra` and launch them with `codex exec -p`.
 - `fable 5` under Claude may normalize to `claude-fable-5`; `opus 4.7` may
   normalize to `claude-opus-4-7`. Neither may become another Claude family or
   version.
@@ -127,11 +126,16 @@ Treat model text as intent, not a loose alias:
 - If the phrase names multiple runtime families, ask the user to split the role
   choices.
 
+For Fugu profiles, omit Codex `-c model_reasoning_effort=...` at the profile
+default (`fugu` defaults to `high`; `fugu-ultra` defaults to `xhigh`). Add the
+`-c` override only when the user explicitly requests a supported non-default
+Fugu Ultra effort.
+
 Always print the raw-to-resolved mapping before execution:
 
 ```text
 critic: "codex gpt 5.5 xhigh" -> runtime=codex, model=gpt-5.5, effort=xhigh
-critic: "Fugu Ultra xhigh" -> runtime=codex, model=fugu-ultra, effort=xhigh
+critic: "Fugu Ultra xhigh" -> runtime=codex, model=fugu-ultra, codex_profile=fugu-ultra, effort=xhigh
 planner: "Claude Fable 5 high" -> runtime=claude, model=claude-fable-5, effort=high
 implementation_worker: "Grok Build high" -> runtime=grok, model=grok-build, effort=high
 ```

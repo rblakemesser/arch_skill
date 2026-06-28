@@ -50,6 +50,7 @@ if str(_SHARED_DIR) not in sys.path:
 
 from model_resolution import (  # noqa: E402
     ModelResolutionError,
+    codex_model_or_profile_args,
     resolve_role_execution_policy,
 )
 
@@ -822,6 +823,9 @@ def _state_role_execution(state: dict[str, Any], role: str) -> dict[str, str]:
         if not isinstance(value, str) or not value:
             _die(f"role {role!r} policy missing {key}")
         out[key] = value
+    codex_profile = block.get("codex_profile", "")
+    if isinstance(codex_profile, str):
+        out["codex_profile"] = codex_profile
     return out
 
 
@@ -837,6 +841,8 @@ def _codex_worker_argv(
     effort: str,
     final_path: Path,
     prompt: str,
+    *,
+    codex_profile: str = "",
 ) -> list[str]:
     return [
         "codex",
@@ -847,10 +853,11 @@ def _codex_worker_argv(
         "codex_hooks",
         "--dangerously-bypass-approvals-and-sandbox",
         "--skip-git-repo-check",
-        "--model",
-        model,
-        "-c",
-        f'model_reasoning_effort="{effort}"',
+        *codex_model_or_profile_args(
+            model,
+            effort,
+            codex_profile=codex_profile,
+        ),
         "--json",
         "-o",
         str(final_path),
@@ -932,6 +939,8 @@ def _codex_critic_argv(
     schema_path: Path,
     final_path: Path,
     prompt: str,
+    *,
+    codex_profile: str = "",
 ) -> list[str]:
     return [
         "codex",
@@ -943,10 +952,11 @@ def _codex_critic_argv(
         "codex_hooks",
         "--dangerously-bypass-approvals-and-sandbox",
         "--skip-git-repo-check",
-        "--model",
-        model,
-        "-c",
-        f'model_reasoning_effort="{effort}"',
+        *codex_model_or_profile_args(
+            model,
+            effort,
+            codex_profile=codex_profile,
+        ),
         "--output-schema",
         str(schema_path),
         "--json",
@@ -1262,6 +1272,7 @@ def _run_worker(
                 execution["effort"],
                 final_path,
                 prompt,
+                codex_profile=execution.get("codex_profile", ""),
             )
         cwd = None
     elif runtime == "grok":
@@ -1293,6 +1304,7 @@ def _run_worker(
             "runtime": runtime,
             "model": execution["model"],
             "effort": execution["effort"],
+            "codex_profile": execution.get("codex_profile", ""),
             "session_id": None,
             "input_session_id": session_id,
             "resumed": session_id is not None,
@@ -1399,6 +1411,7 @@ def cmd_auto_critic_spawn(args: argparse.Namespace) -> int:
             schema_path,
             final_path,
             prompt,
+            codex_profile=execution.get("codex_profile", ""),
         )
         cwd = None
     elif runtime == "grok":
@@ -1432,6 +1445,7 @@ def cmd_auto_critic_spawn(args: argparse.Namespace) -> int:
             "runtime": runtime,
             "model": execution["model"],
             "effort": execution["effort"],
+            "codex_profile": execution.get("codex_profile", ""),
             "run_mode": selected_run_mode,
             "expected_duration": args.expected_duration,
             "final_path": str(final_path),
@@ -1708,6 +1722,7 @@ def cmd_critic_spawn(args: argparse.Namespace) -> int:
             schema_path,
             final_path,
             prompt,
+            codex_profile=args.codex_profile,
         )
         subprocess_cwd = None
     elif args.runtime == "grok":
@@ -1739,6 +1754,7 @@ def cmd_critic_spawn(args: argparse.Namespace) -> int:
             "runtime": args.runtime,
             "model": args.model,
             "effort": args.effort,
+            "codex_profile": args.codex_profile,
             "run_mode": selected_run_mode,
             "expected_duration": args.expected_duration,
             "final_path": str(final_path),
@@ -1941,6 +1957,7 @@ def _build_parser() -> argparse.ArgumentParser:
     critic.add_argument(
         "--runtime", required=True, choices=["claude", "codex", "grok"]
     )
+    critic.add_argument("--codex-profile", default="")
     critic.add_argument(
         "--orchestrator-root",
         required=False,

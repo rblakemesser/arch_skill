@@ -9,6 +9,10 @@ Six base values must be known before Phase 2 can draft a runnable manifest:
 - `execution_defaults.critic.model` - model for critics
 - `execution_defaults.critic.effort` - reasoning effort for critics
 
+When a Codex lane uses Fugu, the resolved execution block also stores
+`codex_profile` as `fugu` or `fugu-ultra`. Normal Codex model ids leave that
+field empty.
+
 These are defaults, not a promise that every step uses the same runtime. The
 manifest may contain per-step overrides resolved from explicit user
 preferences or hard target-repo doctrine. See `execution-routing.md`.
@@ -58,12 +62,13 @@ This is reasoning, not a lookup table:
   `claude-fable-5`; "opus 4.7" resolves to `claude-opus-4-7`. Family-only
   aliases such as `fable` or `opus` are acceptable only when the user did not
   pin a version.
-- For Codex, inspect the installed CLI's model list when needed
-  (`codex debug models`) and choose the available identifier with the same
-  family and exact version. For example, "gpt 5.5" resolves to `gpt-5.5` if
-  that exact model appears, and "gpt 5.3 codex" resolves to `gpt-5.3-codex`.
-  `fugu` and `fugu-ultra` are exact Codex model ids; preserve them exactly.
-  Fugu supports `high`; Fugu Ultra supports `high`, `xhigh`, and `max`.
+- For ordinary Codex model ids, inspect the installed CLI's model list when
+  needed (`codex debug models`) and choose the available identifier with the
+  same family and exact version. For example, "gpt 5.5" resolves to
+  `gpt-5.5` if that exact model appears, and "gpt 5.3 codex" resolves to
+  `gpt-5.3-codex`. Fugu is different: resolve `fugu` and `fugu-ultra` as
+  Codex profiles, preserve those profile names exactly, and launch them with
+  `-p`.
 - For Grok, use `grok-build` by default when the user says `grok`,
   `grok cli`, `grok build`, or `grok-build`. Use
   `grok-composer-2.5-fast` only when the user names Grok Composer, such as
@@ -85,8 +90,14 @@ Always announce the raw-to-resolved mapping before execution, for example:
 `Claude Fable 5 high -> runtime=claude, model=claude-fable-5,
 effort=high` or `Grok Build high -> runtime=grok, model=grok-build,
 effort=high`.
-`Fugu Ultra xhigh -> runtime=codex, model=fugu-ultra, effort=xhigh` is the
-same kind of exact Codex mapping.
+`Fugu Ultra xhigh -> runtime=codex, model=fugu-ultra,
+codex_profile=fugu-ultra, effort=xhigh` is the same kind of exact Codex
+mapping.
+
+For Fugu profiles, omit Codex `-c model_reasoning_effort=...` at the profile
+default (`fugu` defaults to `high`; `fugu-ultra` defaults to `xhigh`). Add the
+`-c` override only when the user explicitly requests a supported non-default
+Fugu Ultra effort.
 
 For deterministic script plumbing that needs these same resolution rules, use
 `skills/_shared/model_resolution.py` instead of adding another hidden model

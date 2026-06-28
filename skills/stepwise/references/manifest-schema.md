@@ -24,12 +24,14 @@ at Phase 3 confirmation and does not change during execution.
     "step": {
       "runtime": "codex",
       "model": "gpt-5.5",
+      "codex_profile": "",
       "effort": "high",
       "source": "user prompt"
     },
     "critic": {
       "runtime": "codex",
       "model": "gpt-5.5",
+      "codex_profile": "",
       "effort": "xhigh",
       "source": "user prompt"
     }
@@ -55,6 +57,7 @@ Resolved execution blocks appear on every step for both worker and critic:
 {
   "runtime": "claude",
   "model": "claude-fable-5",
+  "codex_profile": "",
   "effort": "xhigh",
   "source": "execution_preferences[0]",
   "reason": "Matched learner-facing copy artifact."
@@ -65,6 +68,8 @@ Fields:
 
 - `runtime`: `"claude"`, `"codex"`, or `"grok"`.
 - `model`: CLI model name to pass to the runtime.
+- `codex_profile`: Codex profile name for Fugu (`"fugu"` or
+  `"fugu-ultra"`), otherwise `""`.
 - `effort`: reasoning effort to pass to the runtime.
 - `source`: where the value came from.
 - `reason`: one sentence explaining why the execution block applies.
@@ -95,6 +100,7 @@ defaults.
   "step_execution": {
     "runtime": "codex",
     "model": "gpt-5.5",
+    "codex_profile": "",
     "effort": "high",
     "source": "execution_defaults.step",
     "reason": "No step-specific execution preference applied."
@@ -102,6 +108,7 @@ defaults.
   "critic_execution": {
     "runtime": "codex",
     "model": "gpt-5.5",
+    "codex_profile": "",
     "effort": "xhigh",
     "source": "execution_defaults.critic",
     "reason": "No critic-specific execution preference was provided."

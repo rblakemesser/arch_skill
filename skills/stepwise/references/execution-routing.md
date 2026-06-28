@@ -45,8 +45,10 @@ responsibly, ask.
 
 The user's raw wording stays in `source_quote`; `step_execution.model` and
 `critic_execution.model` store runnable model identifiers resolved by
-`model-and-effort.md`. Do not pass raw shorthand such as `opus-4-7` to a
-subprocess when the runtime requires `claude-fable-5`.
+`model-and-effort.md`. When Codex uses Fugu, `step_execution.codex_profile` or
+`critic_execution.codex_profile` stores the profile name; the subprocess
+command uses `codex exec -p <profile>`. Do not pass raw shorthand such as
+`opus-4-7` to a subprocess when the runtime requires `claude-fable-5`.
 
 ## Resolution order
 

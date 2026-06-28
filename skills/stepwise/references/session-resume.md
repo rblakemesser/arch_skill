@@ -130,8 +130,7 @@ codex exec \
   --cd <target_repo> \
   --dangerously-bypass-approvals-and-sandbox \
   --skip-git-repo-check \
-  --model <resolved_step_model> \
-  -c model_reasoning_effort='"<resolved_step_effort>"' \
+  <codex_model_or_profile_flags> \
   --json \
   -o <final_message_file> \
   <step_prompt>
@@ -165,8 +164,8 @@ codex exec resume <thread_id> \
 ```
 
 `codex exec resume` does not accept `--cd` — the session carries the cwd from
-its original invocation. It keeps `--model` optional; omit it to reuse the
-session's model, or pass it if you want to force a specific model on resume.
+its original invocation. Omit model/profile and effort flags on ordinary
+resumes so Codex reuses the session's original execution choice.
 
 ## Codex — critic (stateless, structured)
 
@@ -176,8 +175,7 @@ codex exec \
   --ephemeral \
   --dangerously-bypass-approvals-and-sandbox \
   --skip-git-repo-check \
-  --model <resolved_critic_model> \
-  -c model_reasoning_effort='"<resolved_critic_effort>"' \
+  <codex_model_or_profile_flags> \
   --output-schema <schema_file> \
   --json \
   -o <verdict_json_file> \
@@ -191,6 +189,12 @@ every object level and requires every object property to be listed in
 required-but-nullable. `scripts/run_stepwise.py` writes a normalized
 `critic/schema.codex.json` before invoking Codex, then validates the returned
 observational StepVerdict semantically.
+
+Set `<codex_model_or_profile_flags>` this way:
+
+- Ordinary Codex model id: `--model <resolved_model> -c model_reasoning_effort='"<resolved_effort>"'`
+- Fugu profile at its default effort: `-p <resolved_codex_profile>`
+- Fugu Ultra explicit non-default effort: `-p fugu-ultra -c model_reasoning_effort='"<resolved_effort>"'`
 
 ## Grok — step session (resumable)
 
@@ -259,8 +263,12 @@ final text as JSON, and then runs the same semantic verdict validation.
 - Claude's `--effort` accepts: `low`, `medium`, `high`, `xhigh`, `max`.
 - Claude's `--permission-mode` is separate from `--dangerously-skip-permissions`;
   do not set both.
-- Codex uses `-c model_reasoning_effort='"<level>"'` — note the TOML-quoted
-  string inside a shell-quoted argument. The inner double quotes are required.
+- For ordinary Codex model ids, Codex uses
+  `-c model_reasoning_effort='"<level>"'` — note the TOML-quoted string inside
+  a shell-quoted argument. The inner double quotes are required.
+- For Fugu profiles, use `-p fugu` or `-p fugu-ultra`. Omit `-c` at the
+  profile default (`fugu=high`, `fugu-ultra=xhigh`); add `-c` only for an
+  explicit supported non-default Fugu Ultra effort.
 - Codex 0.124 rejects schema files where properties exist in `properties` but
   not in `required`. This is recoverable orchestration drift: normalize the
   schema and retry, do not halt the whole run if the schema semantics are

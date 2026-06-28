@@ -36,6 +36,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+_SHARED_DIR = Path(__file__).resolve().parents[2] / "_shared"
+if str(_SHARED_DIR) not in sys.path:
+    sys.path.insert(0, str(_SHARED_DIR))
+
+from model_resolution import codex_model_or_profile_args  # noqa: E402
+
 
 def _utc_now_iso() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -843,10 +849,11 @@ def cmd_step_spawn(args: argparse.Namespace) -> int:
             target_repo,
             "--dangerously-bypass-approvals-and-sandbox",
             "--skip-git-repo-check",
-            "--model",
-            args.model,
-            "-c",
-            f'model_reasoning_effort="{args.effort}"',
+            *codex_model_or_profile_args(
+                args.model,
+                args.effort,
+                codex_profile=args.codex_profile,
+            ),
             "--json",
             "-o",
             str(final_path),
@@ -1199,10 +1206,11 @@ def cmd_critic_spawn(args: argparse.Namespace) -> int:
             "--ephemeral",
             "--dangerously-bypass-approvals-and-sandbox",
             "--skip-git-repo-check",
-            "--model",
-            args.model,
-            "-c",
-            f'model_reasoning_effort="{args.effort}"',
+            *codex_model_or_profile_args(
+                args.model,
+                args.effort,
+                codex_profile=args.codex_profile,
+            ),
             "--output-schema",
             str(codex_schema_path),
             "--json",
@@ -1507,6 +1515,7 @@ def _build_parser() -> argparse.ArgumentParser:
     for a in ["--run-dir", "--target-repo", "--prompt-file", "--model", "--effort"]:
         step.add_argument(a, required=True)
     step.add_argument("--runtime", required=True, choices=["claude", "codex", "grok"])
+    step.add_argument("--codex-profile", default="")
     step.add_argument("--step-n", required=True, type=int)
     step.add_argument("--try-k", required=True, type=int)
     step.add_argument(
@@ -1554,6 +1563,7 @@ def _build_parser() -> argparse.ArgumentParser:
               "--effort", "--schema-file"]:
         critic.add_argument(a, required=True)
     critic.add_argument("--runtime", required=True, choices=["claude", "codex", "grok"])
+    critic.add_argument("--codex-profile", default="")
     critic.add_argument("--step-n", required=True, type=int)
     critic.add_argument("--try-k", required=True, type=int)
     critic.set_defaults(func=cmd_critic_spawn)

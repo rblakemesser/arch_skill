@@ -1,6 +1,6 @@
 ---
 name: agent-delegate
-description: "Delegate one or more concrete tasks to Claude Fable/Opus, Codex GPT/GBT/Fugu, Cursor Composer, or Grok subprocesses with full local agent capabilities. Use when the user wants another agent, multiple agents, or parallel agents to implement, edit, investigate-and-fix, run commands, use installed skills, or resume one previously delegated same-runtime worker session by exact handle. Fresh-resumable is the default; ask once if runtime, model, effort, work root, write scope, task, or required resume handle is missing. Run hook-suppressed where supported and unsandboxed in the shared worktree. Do NOT use for read-only second opinions (`fresh-consult`), Codex `-p yolo` reviews (`codex-review-yolo`), two-model plan convergence (`model-consensus`), ordered workflow orchestration (`stepwise`/`arch-epic`), or detached/background delegation."
+description: "Delegate one or more concrete tasks to Claude Fable/Opus, Codex GPT/GBT models or Fugu profiles, Cursor Composer, or Grok subprocesses with full local agent capabilities. Use when the user wants another agent, multiple agents, or parallel agents to implement, edit, investigate-and-fix, run commands, use installed skills, or resume one previously delegated same-runtime worker session by exact handle. Fresh-resumable is the default; ask once if runtime, model/profile, effort, work root, write scope, task, or required resume handle is missing. Run hook-suppressed where supported and unsandboxed in the shared worktree. Do NOT use for read-only second opinions (`fresh-consult`), Codex `-p yolo` reviews (`codex-review-yolo`), two-model plan convergence (`model-consensus`), ordered workflow orchestration (`stepwise`/`arch-epic`), or detached/background delegation."
 metadata:
   short-description: "Claude, Codex, Cursor, or Grok worker"
 ---
@@ -8,8 +8,8 @@ metadata:
 # Agent Delegate
 
 Use this skill when the user wants one or more Claude Fable/Opus, Codex
-GPT/GBT/Fugu, Cursor Composer, or Grok subprocesses to do concrete tasks with normal
-local agent capabilities. Fresh-resumable delegation is the default: each child
+GPT/GBT models or Fugu profiles, Cursor Composer, or Grok subprocesses to do
+concrete tasks with normal local agent capabilities. Fresh-resumable delegation is the default: each child
 starts from disk and the delegation prompt, not from the current chat history,
 and the parent captures a session handle for later exact resume. When the
 caller supplies an exact handle, resume the same runtime's previously delegated
@@ -60,13 +60,14 @@ automation.
 - Resolve each delegated task, success bar, work root, allowed write scope,
   constraints, delegation mode, and exact user-named inputs before launching
   child processes.
-- Runtime, model, and effort must be known. Codex runs GPT/GBT/OpenAI and Fugu
-  models, Claude Code runs supported Claude models, Cursor Agent runs
-  `composer-2.5-fast`, and Grok CLI runs `grok-build` or
+- Runtime, model or profile, and effort must be known. Codex runs
+  GPT/GBT/OpenAI model ids and Fugu profiles, Claude Code runs supported
+  Claude models, Cursor Agent runs `composer-2.5-fast`, and Grok CLI runs
+  `grok-build` or
   `grok-composer-2.5-fast`. If any value is missing or ambiguous, ask one
   consolidated question before invoking.
-- Never run GPT/GBT/Fugu or Claude models through Cursor Agent or Grok. Do not
-  pass Grok model ids to Codex, Claude, or Cursor Agent.
+- Never run GPT/GBT model ids, Fugu profiles, or Claude models through Cursor
+  Agent or Grok. Do not pass Grok model ids to Codex, Claude, or Cursor Agent.
 - Delegation mode is one of `fresh-one-shot`, `fresh-resumable`, or `resume`.
   Default to `fresh-resumable`. Use `fresh-one-shot` only when the caller
   explicitly asks for a stateless, ephemeral, no-resume, or throwaway worker.

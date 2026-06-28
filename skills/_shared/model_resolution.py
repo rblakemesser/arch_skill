@@ -1,7 +1,7 @@
 """Shared runtime/model/effort resolution for arch_skill subprocesses.
 
 This module is deterministic plumbing for skill scripts. It encodes the
-provider-owned routing rule: Codex runs GPT/GBT/OpenAI and Fugu models,
+provider-owned routing rule: Codex runs GPT/GBT/OpenAI models and Fugu profiles,
 Claude Code runs supported Claude models, Cursor Agent runs Composer 2.5 Fast,
 and Grok CLI runs Grok models.
 Cross-provider phrases fail loud instead of routing an expensive model through
@@ -34,6 +34,10 @@ _FUGU_EFFORTS = {
     "fugu": {"high"},
     "fugu-ultra": {"high", "xhigh", "max"},
 }
+_FUGU_PROFILE_DEFAULT_EFFORTS = {
+    "fugu": "high",
+    "fugu-ultra": "xhigh",
+}
 _CLAUDE_FAMILY_RE = re.compile(
     r"\b(?P<family>fable|opus|sonnet|haiku)"
     r"(?:[\s_-]*(?P<version>\d+(?:[\.-]\d+)*))?\b",
@@ -62,12 +66,14 @@ class ResolvedExecution:
     effort_source: str
     source_quote: str
     resolution_reason: str
+    codex_profile: str = ""
 
     def to_dict(self) -> dict[str, str]:
         return {
             "runtime": self.runtime,
             "model": self.model,
             "effort": self.effort,
+            "codex_profile": self.codex_profile,
             "runtime_source": self.runtime_source,
             "model_source": self.model_source,
             "effort_source": self.effort_source,
@@ -85,6 +91,28 @@ def execution_sha256(payload: dict[str, Any]) -> str:
 
     encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
+
+
+def codex_model_or_profile_args(
+    model: str,
+    effort: str,
+    *,
+    codex_profile: str = "",
+) -> list[str]:
+    """Return Codex CLI argv for a normal model id or local profile.
+
+    Fugu runs through Codex profiles so the selected provider and custom model
+    catalog load from `$CODEX_HOME/<profile>.config.toml`. Ordinary Codex
+    models still use `--model`.
+    """
+
+    if codex_profile:
+        args = ["-p", codex_profile]
+        default_effort = _FUGU_PROFILE_DEFAULT_EFFORTS.get(codex_profile)
+        if effort and effort != default_effort:
+            args.extend(["-c", f'model_reasoning_effort="{effort}"'])
+        return args
+    return ["--model", model, "-c", f'model_reasoning_effort="{effort}"']
 
 
 def discover_codex_models() -> list[str]:
@@ -108,7 +136,7 @@ def discover_codex_models() -> list[str]:
     if proc.returncode != 0:
         return []
     candidates: set[str] = set()
-    for token in re.findall(r"\b(?:gpt|gbt|o|fugu)\S+", proc.stdout, re.IGNORECASE):
+    for token in re.findall(r"\b(?:gpt|gbt|o)\S+", proc.stdout, re.IGNORECASE):
         cleaned = token.strip("`'\",:;()[]{}")
         if cleaned:
             candidates.add(cleaned.lower())
@@ -152,8 +180,8 @@ def resolve_execution_phrase(
     - "Claude Opus 4.7 xhigh" -> claude / claude-opus-4-7 / xhigh
     - "codex gpt 5.4 mini high" -> codex / gpt-5.4-mini / high
     - "GBT55XI" -> codex / gpt-5.5 / xhigh
-    - "Fugu high" -> codex / fugu / high
-    - "Fugu Ultra xhigh" -> codex / fugu-ultra / xhigh
+    - "Fugu high" -> codex / profile fugu / high
+    - "Fugu Ultra xhigh" -> codex / profile fugu-ultra / xhigh
     - "cursor agent composer-2.5-fast" -> agent / composer-2.5-fast / encoded-in-model
     - "cursor agent composer 2.5" -> agent / composer-2.5-fast / encoded-in-model
     - "grok build high" -> grok / grok-build / high
@@ -175,15 +203,27 @@ def resolve_execution_phrase(
         raise ModelResolutionError(
             f"could not infer runtime from {raw!r}; name claude, codex, agent, or grok"
         )
+    fugu_candidate = (
+        _extract_fugu_model_candidate(lowered) if runtime == "codex" else None
+    )
+    effort_source = "explicit"
+    if effort is None and fugu_candidate is not None:
+        effort = _FUGU_PROFILE_DEFAULT_EFFORTS[fugu_candidate]
+        effort_source = "profile_default"
     if effort is None and runtime != "agent":
         raise ModelResolutionError(
             f"could not infer effort from {raw!r}; use one of {sorted(VALID_EFFORTS)}"
         )
 
+    codex_profile = ""
+    model_source = "explicit"
     if runtime == "claude":
         model = _resolve_claude_model(raw)
     elif runtime == "codex":
         model = _resolve_codex_model(raw, codex_models=codex_models)
+        if fugu_candidate is not None:
+            codex_profile = model
+            model_source = "codex_profile"
         _validate_codex_effort(model, effort or "", raw)
     elif runtime == "agent":
         model = _resolve_agent_model(raw, agent_models=agent_models)
@@ -196,13 +236,15 @@ def resolve_execution_phrase(
         model=model,
         effort=effort or "",
         runtime_source=runtime_source,
-        model_source="explicit",
-        effort_source="explicit",
+        model_source=model_source,
+        effort_source=effort_source,
         source_quote=source_quote,
         resolution_reason=(
             f"{source_quote!r} resolved to runtime={runtime}, model={model}, "
-            f"effort={effort} with exact model family/version preservation."
+            f"effort={effort}, codex_profile={codex_profile or '<none>'} "
+            "with exact model family/version preservation."
         ),
+        codex_profile=codex_profile,
     )
 
 
@@ -333,8 +375,9 @@ def _infer_runtime(lowered: str) -> tuple[str | None, str]:
         )
     if has_agent and (has_codex or has_claude):
         raise ModelResolutionError(
-            "execution phrase mixes Cursor Agent with a GPT/GBT/Fugu/Claude model; "
-            "Codex runs GPT/GBT/Fugu, Claude Code runs supported Claude models, "
+            "execution phrase mixes Cursor Agent with GPT/GBT model ids, Fugu profiles, "
+            "or Claude models; Codex runs GPT/GBT model ids and Fugu profiles, "
+            "Claude Code runs supported Claude models, "
             "and Cursor Agent runs composer-2.5-fast"
         )
     if has_grok:
@@ -376,7 +419,7 @@ def _resolve_claude_model(raw: str) -> str:
 def _resolve_codex_model(raw: str, *, codex_models: list[str] | None) -> str:
     candidate = _extract_fugu_model_candidate(raw.lower())
     if candidate is not None:
-        return _resolve_codex_candidate(raw, candidate, codex_models=codex_models)
+        return candidate
 
     match = _CODEX_FAMILY_RE.search(raw)
     compact = _GBT_COMPACT_RE.search(raw)

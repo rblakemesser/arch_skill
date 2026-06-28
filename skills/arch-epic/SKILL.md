@@ -37,8 +37,8 @@ The spawned harness lane is also explicit and opt-in. After the user approves th
 decomposition, arch-epic asks for a role-based execution table:
 `epic_planner`, `implementation_worker`, and `critic`.
 It resolves shorthand such as `opus 4.7 xhigh`, `gpt 5.5 high`, or
-`fugu-ultra xhigh` to
-runnable model IDs using the shared resolver doctrine, pins the resolved
+`fugu-ultra xhigh` to runnable model ids or Codex profiles using the shared
+resolver doctrine, pins the resolved
 policy, then drives sub-plans depth-first with spawned child harnesses whose
 hooks are disabled for subprocess isolation. Spawned workers apply arch-step
 doctrine directly from disk; they do not invoke nested `auto-plan`,
@@ -355,6 +355,7 @@ python3 scripts/run_arch_epic.py critic-spawn \
   --runtime claude|codex|grok \
   --model <model> \
   --effort <effort> \
+  [--codex-profile <profile>] \
   [--orchestrator-root <dir>]
 ```
 

@@ -3,16 +3,16 @@
 `model-consensus` invokes Claude, Codex, Cursor Agent, or Grok child models
 directly from the parent agent. It does not create a new runner script, model
 alias table, harness, or deterministic controller.
-Provider routing is fixed: Codex runs GPT/GBT/OpenAI and Fugu models, Claude
-Code runs supported Claude models, Cursor Agent runs Composer 2.5 Fast, and
-Grok CLI runs Grok models.
+Provider routing is fixed: Codex runs GPT/GBT/OpenAI model ids and Fugu
+profiles, Claude Code runs supported Claude models, Cursor Agent runs Composer
+2.5 Fast, and Grok CLI runs Grok models.
 
 ## Required Participant Values
 
 Each participant needs:
 
 - `runtime`: `claude`, `codex`, `agent`, or `grok`
-- `model`: runnable model id or exact model phrase
+- `model`: runnable model id, Codex profile name, or exact model phrase
 - `effort`: `low`, `medium`, `high`, `xhigh`, or `max` when supported by the
   selected runtime/model
 - `role`: `collaborator` or `adversary`
@@ -44,20 +44,23 @@ Follow the shared model-resolution doctrine:
   `claude opus`, or `opus` implies Claude; `agent`, `cursor`, `cursor agent`,
   or `cursor-agent` implies Cursor Agent only for Composer.
   `grok`, `grok-build`, `grok build`, or `grok composer` implies Grok.
-  If a phrase mixes Cursor Agent with GPT/GBT/Fugu or Claude, fail loud
-  instead of choosing a side. If a phrase mixes Grok with GPT/GBT/Fugu,
-  Claude, or Cursor Agent, fail loud instead of choosing a side.
-- For Codex, inspect `codex debug models` when model availability matters and
-  choose an available id with the same family and exact version. `fugu` and
-  `fugu-ultra` are exact runnable model ids; preserve them exactly.
+  If a phrase mixes Cursor Agent with GPT/GBT model ids, Fugu profiles, or
+  Claude, fail loud instead of choosing a side. If a phrase mixes Grok with
+  GPT/GBT model ids, Fugu profiles, Claude, or Cursor Agent, fail loud instead
+  of choosing a side.
+- For ordinary Codex model ids, inspect `codex debug models` when model
+  availability matters and choose an available id with the same family and
+  exact version. For Fugu, resolve `fugu` and `fugu-ultra` as Codex profiles,
+  not model-list ids; preserve the profile names exactly and launch them with
+  `-p`.
 - For Claude, preserve the named supported Claude family and version. Fable 5
   resolves to `claude-fable-5`; Opus 4.7 resolves to `claude-opus-4-7`. If the
   user names Sonnet or Haiku, fail loud and ask for a supported Claude choice.
 - For Cursor Agent, always use `composer-2.5-fast`. Accept `composer`,
   `composer 2.5`, `composer-2.5`, `composer-2.5-fast`, or bare `2.5` in a
   Cursor Agent context as that runnable id. Do not use Cursor model discovery
-  for non-Composer routing, and do not pass GPT/GBT/Fugu or Claude model ids to
-  Cursor Agent.
+  for non-Composer routing, and do not pass GPT/GBT model ids, Fugu profiles,
+  or Claude model ids to Cursor Agent.
 - For Grok, use `grok-build` by default when the user says `grok`,
   `grok cli`, `grok build`, or `grok-build`. Use
   `grok-composer-2.5-fast` only when the user names Grok Composer, such as
@@ -79,7 +82,7 @@ Always announce the mapping before execution:
 Model A: "Claude Fable 5 high" -> runtime=claude, model=claude-fable-5, effort=high
 Model B: "Claude Opus 4.7 xhigh" -> runtime=claude, model=claude-opus-4-7, effort=xhigh
 Model C: "gpt 5.5 xhigh" -> runtime=codex, model=gpt-5.5, effort=xhigh
-Model D: "Fugu Ultra xhigh" -> runtime=codex, model=fugu-ultra, effort=xhigh
+Model D: "Fugu Ultra xhigh" -> runtime=codex, model=fugu-ultra, codex_profile=fugu-ultra, effort=xhigh
 Model E: "Grok Build high" -> runtime=grok, model=grok-build, effort=high
 ```
 
@@ -115,8 +118,7 @@ codex exec \
   --disable codex_hooks \
   --dangerously-bypass-approvals-and-sandbox \
   --skip-git-repo-check \
-  --model "<resolved_model>" \
-  -c model_reasoning_effort='"<resolved_effort>"' \
+  <codex_model_or_profile_flags> \
   --json \
   -o "$RUN_DIR/round-01/model-a-final.md" \
   < "$RUN_DIR/round-01/model-a-prompt.md" \
@@ -127,6 +129,12 @@ codex exec \
 Read the `thread.started` event from `events.jsonl` and keep its `thread_id`.
 Codex streams JSONL events on stdout and writes the final assistant message to
 the path passed with `-o`.
+
+Set `<codex_model_or_profile_flags>` this way:
+
+- Ordinary Codex model id: `--model "<resolved_model>" -c model_reasoning_effort='"<resolved_effort>"'`
+- Fugu profile at its default effort: `-p "<resolved_codex_profile>"`
+- Fugu Ultra explicit non-default effort: `-p "fugu-ultra" -c model_reasoning_effort='"<resolved_effort>"'`
 
 ## Codex: Resume Turn
 

@@ -325,6 +325,145 @@ class ClaudeInvocationFlags(unittest.TestCase):
         self.assert_claude_stream_json_verbose(argv)
 
 
+class CodexProfileInvocationFlags(unittest.TestCase):
+    def _capture_step_spawn_argv(self, args_list: list[str]) -> list[str]:
+        old_run_subprocess = rs._run_subprocess
+        captured: dict[str, list[str]] = {}
+
+        def fake_run(argv, stdout_stream_path, out_dir, cwd=None, stamp_prefix=None):
+            captured["argv"] = argv
+            stdout = json.dumps({"type": "thread.started", "thread_id": "thread-1"})
+            stdout_stream_path.write_text(stdout, encoding="utf-8")
+            return 0, stdout
+
+        parser = rs._build_parser()
+        args = parser.parse_args(args_list)
+        try:
+            rs._run_subprocess = fake_run
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(args.func(args), 0)
+        finally:
+            rs._run_subprocess = old_run_subprocess
+        return captured["argv"]
+
+    def _capture_critic_spawn_argv(self, args_list: list[str]) -> list[str]:
+        old_run_subprocess = rs._run_subprocess
+        captured: dict[str, list[str]] = {}
+
+        def fake_run(argv, stdout_stream_path, out_dir, cwd=None, stamp_prefix=None):
+            captured["argv"] = argv
+            final_path = Path(argv[argv.index("-o") + 1])
+            final_path.write_text(json.dumps(_PASS_VERDICT), encoding="utf-8")
+            stdout_stream_path.write_text("", encoding="utf-8")
+            return 0, ""
+
+        parser = rs._build_parser()
+        args = parser.parse_args(args_list)
+        try:
+            rs._run_subprocess = fake_run
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(args.func(args), 0)
+        finally:
+            rs._run_subprocess = old_run_subprocess
+        return captured["argv"]
+
+    def test_step_spawn_uses_codex_profile_for_fugu_default_effort(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            run_dir = root / "run"
+            target = root / "target"
+            run_dir.mkdir()
+            target.mkdir()
+            (run_dir / "state.json").write_text("{}\n", encoding="utf-8")
+            prompt = root / "prompt.md"
+            prompt.write_text("do the step\n", encoding="utf-8")
+
+            argv = self._capture_step_spawn_argv(
+                [
+                    "step-spawn",
+                    "--run-dir", str(run_dir),
+                    "--target-repo", str(target),
+                    "--prompt-file", str(prompt),
+                    "--model", "fugu-ultra",
+                    "--effort", "xhigh",
+                    "--runtime", "codex",
+                    "--codex-profile", "fugu-ultra",
+                    "--step-n", "1",
+                    "--try-k", "1",
+                ]
+            )
+
+        self.assertIn("-p", argv)
+        self.assertIn("fugu-ultra", argv)
+        self.assertNotIn("--model", argv)
+        self.assertNotIn('model_reasoning_effort="xhigh"', argv)
+
+    def test_step_spawn_can_override_codex_profile_effort(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            run_dir = root / "run"
+            target = root / "target"
+            run_dir.mkdir()
+            target.mkdir()
+            (run_dir / "state.json").write_text("{}\n", encoding="utf-8")
+            prompt = root / "prompt.md"
+            prompt.write_text("do the step\n", encoding="utf-8")
+
+            argv = self._capture_step_spawn_argv(
+                [
+                    "step-spawn",
+                    "--run-dir", str(run_dir),
+                    "--target-repo", str(target),
+                    "--prompt-file", str(prompt),
+                    "--model", "fugu-ultra",
+                    "--effort", "high",
+                    "--runtime", "codex",
+                    "--codex-profile", "fugu-ultra",
+                    "--step-n", "1",
+                    "--try-k", "1",
+                ]
+            )
+
+        self.assertIn("-p", argv)
+        self.assertIn("fugu-ultra", argv)
+        self.assertNotIn("--model", argv)
+        self.assertIn('model_reasoning_effort="high"', argv)
+
+    def test_critic_spawn_uses_codex_profile_for_fugu(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            run_dir = root / "run"
+            target = root / "target"
+            run_dir.mkdir()
+            target.mkdir()
+            (run_dir / "state.json").write_text("{}\n", encoding="utf-8")
+            prompt = root / "critic.md"
+            prompt.write_text("judge the step\n", encoding="utf-8")
+            schema_file = root / "schema.json"
+            schema_file.write_text(json.dumps({"type": "object"}), encoding="utf-8")
+
+            argv = self._capture_critic_spawn_argv(
+                [
+                    "critic-spawn",
+                    "--run-dir", str(run_dir),
+                    "--target-repo", str(target),
+                    "--prompt-file", str(prompt),
+                    "--model", "fugu-ultra",
+                    "--effort", "xhigh",
+                    "--runtime", "codex",
+                    "--codex-profile", "fugu-ultra",
+                    "--schema-file", str(schema_file),
+                    "--step-n", "1",
+                    "--try-k", "1",
+                ]
+            )
+
+        self.assertIn("--ephemeral", argv)
+        self.assertIn("-p", argv)
+        self.assertIn("fugu-ultra", argv)
+        self.assertNotIn("--model", argv)
+
+
 class CodexSchemaNormalization(unittest.TestCase):
     def test_optional_schema_fields_become_required_nullable(self):
         schema = {
