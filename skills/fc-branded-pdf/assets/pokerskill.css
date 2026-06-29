@@ -1,0 +1,283 @@
+/* FC / Poker Skill PDF Theme (HTML/CSS) */
+
+:root {
+  --ps-navy: #10141C;
+  --ps-ink: #111827;
+  --ps-muted: #6B7280;
+  --ps-border: #E5E7EB;
+  --ps-surface: #F9FAFB;
+  --ps-code-bg: #F6F8FA;
+
+  --ps-cyan: #5CC9E8;
+  --ps-cyan-dark: #1C7891;
+  --ps-orange: #F4511E;
+
+  --ps-radius: 14px;
+  --ps-shadow: rgba(0, 0, 0, 0.08);
+
+  --ps-font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --ps-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+@page {
+  /* Amir request: very tight margins (~25–50px depending on render DPI). */
+  margin: 0.17in;
+}
+
+body {
+  background: #ffffff;
+  color: var(--ps-ink);
+  font-family: var(--ps-font-sans);
+  font-size: 10.5pt;
+  line-height: 1.5;
+
+  /* Override pandoc's default HTML template constraints:
+     it sets max-width: 36em and 50px padding, which creates a huge empty
+     right column in PDFs. */
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Chrome print-to-PDF sometimes behaves as if it only respects @media print
+   overrides. Duplicate the critical width constraints here to prevent a narrow
+   "36em" column in PDF output. */
+@media print {
+  body {
+    font-size: 10.5pt;
+    line-height: 1.5;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+}
+
+/* Top brand ribbon injected by render_markdown_to_pdf.sh */
+.ps-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--ps-border);
+  border-radius: var(--ps-radius);
+  background: linear-gradient(90deg, rgba(92, 201, 232, 0.12), rgba(244, 81, 30, 0.06));
+  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.05);
+  margin: 0 0 1.0rem 0;
+}
+
+.ps-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.ps-logo {
+  height: 18px;
+  width: auto;
+  display: block;
+
+  /* Logo should not inherit the generic content-image styling (rounded
+     corners/border/shadow), which can clip the wordmark edges. */
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.ps-topbar-tag {
+  font-size: 9.5pt;
+  color: var(--ps-muted);
+  border-left: 1px solid var(--ps-border);
+  padding-left: 0.75rem;
+  white-space: nowrap;
+}
+
+.ps-topbar-right {
+  text-align: right;
+  font-size: 9.5pt;
+  color: var(--ps-muted);
+  white-space: nowrap;
+}
+
+.ps-topbar-doc-title {
+  font-weight: 650;
+  color: var(--ps-navy);
+}
+
+.ps-topbar-date {
+  color: var(--ps-muted);
+}
+
+h1, h2, h3, h4 {
+  line-height: 1.2;
+  color: var(--ps-navy);
+}
+
+h1 {
+  font-size: 20.5pt;
+  margin: 0 0 0.75rem 0;
+  letter-spacing: -0.01em;
+}
+
+h1::after {
+  content: "";
+  display: block;
+  height: 4px;
+  width: 72px;
+  background: var(--ps-cyan);
+  border-radius: 999px;
+  margin-top: 0.55rem;
+}
+
+h2 {
+  font-size: 13.5pt;
+  margin: 1.35rem 0 0.55rem 0;
+  padding-left: 0.6rem;
+  border-left: 5px solid var(--ps-cyan);
+}
+
+h3 {
+  font-size: 12pt;
+  margin: 1.05rem 0 0.45rem 0;
+}
+
+h4 {
+  font-size: 11.2pt;
+  margin: 1.05rem 0 0.45rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+p {
+  margin: 0.65rem 0;
+}
+
+a {
+  color: var(--ps-cyan-dark);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+blockquote {
+  background: var(--ps-surface);
+  border: 1px solid var(--ps-border);
+  border-left: 5px solid var(--ps-cyan);
+  padding: 0.55rem 0.85rem;
+  margin: 1.05rem 0;
+  border-radius: 12px;
+  color: var(--ps-muted);
+}
+
+code, pre {
+  font-family: var(--ps-font-mono);
+  font-size: 9.75pt;
+}
+
+code {
+  background: var(--ps-code-bg);
+  border: 1px solid var(--ps-border);
+  padding: 0.08rem 0.28rem;
+  border-radius: 8px;
+}
+
+pre {
+  background: var(--ps-code-bg);
+  border: 1px solid var(--ps-border);
+  padding: 0.75rem 0.95rem;
+  border-radius: 14px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--ps-border);
+  margin: 1.35rem 0;
+}
+
+table {
+  border-collapse: collapse;
+  /* Use full content width (margins come from @page). */
+  width: 100%;
+  margin: 0.75rem 0;
+  font-size: 8.2pt;
+  table-layout: fixed; /* prevent wide-content columns from pushing off the page */
+
+  /* Override pandoc default: it sets tables to display:block + overflow-x:auto,
+     which can cause PDF clipping/scroll behavior. */
+  display: table;
+  overflow-x: visible;
+}
+
+/* Pandoc emits <col style="width: …%"> hints that can make tables
+   look artificially narrow / leave slack on the right.
+   Force columns to participate in full-width layout. */
+colgroup col {
+  width: auto !important;
+}
+
+th, td {
+  box-sizing: border-box;
+  border: 1px solid var(--ps-border);
+  padding: 0.18rem 0.25rem;
+  vertical-align: top;
+}
+
+td {
+  /* Keep wide tables on-page even when a cell has long tokens (URLs/paths). */
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Give the first column a little more room; it often contains short labels
+   that look bad when split mid-word (e.g., onboarding / collections). */
+th:first-child, td:first-child {
+  width: 15%;
+}
+
+td:first-child {
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+th {
+  font-size: 8.2pt;
+  background: #F3F4F6;
+  color: var(--ps-navy);
+  /* Pandoc often sets th text-align:right for numeric columns.
+     In PDF rendering this can clip the last characters; force left-align. */
+  text-align: left !important;
+  overflow-wrap: break-word;
+  word-break: normal;
+  hyphens: auto;
+}
+
+/* Wide-table safety: the last header cell is often the longest token
+   (e.g., Launch→Purchase). Force more aggressive wrapping instead of clipping. */
+th:last-child {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+tr:nth-child(even) td {
+  background: #FAFAFB;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 14px;
+  border: 1px solid var(--ps-border);
+  box-shadow: 0 10px 22px rgba(0,0,0,0.06);
+}
+
+/* Small helpers */
+small, .muted {
+  color: var(--ps-muted);
+}
