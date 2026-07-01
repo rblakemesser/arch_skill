@@ -282,11 +282,12 @@ skills in the smallest owning surfaces.
   dispositions in the plan, not only in the implementation log.
 - `skills/plan-implement/references/progressive-implementation-loop.md`: require
   implementation slices to keep dispositions current when code truth changes.
-- `skills/plan-swarm/references/phase-contract.md`: include canonical source
-  truth, competing live surfaces, disposition, and unification proof in worker
-  phase contracts.
-- `skills/plan-swarm/references/arbiter-and-review.md`: ask the arbiter whether
-  unresolved competing patterns or split old/new behavior remain.
+- `skills/plan-conductor/references/plan-intake-and-readiness.md` and
+  `skills/plan-conductor/references/worker-prompt-contract.md`: include
+  canonical source truth, competing live surfaces, disposition, and
+  unification proof in extracted slice contracts.
+- `skills/plan-conductor/references/audit-and-send-back.md`: ask at the final
+  gate whether unresolved competing patterns or split old/new behavior remain.
 - `skills/north-star-investigation/references/shared-doctrine.md`: add only a
   handoff rule: when investigation becomes fixed-scope architecture delivery,
   carry ground-truth anchors, killed hypotheses, and suspected competing paths
@@ -515,12 +516,12 @@ heuristic or a shim. Findings are grounded in the current skill surfaces with
    north-star-investigation → planning handoff *payload* (carry ground-truth
    anchors, killed hypotheses, suspected competing paths — but into "the planning
    skill," not "its catalog," since arch-step/lilarch own no catalog artifact);
-   the plan-swarm arbiter question ("do unresolved competing patterns or split
+   the plan-conductor final-gate question ("do unresolved competing patterns or split
    old/new behavior remain?"); a **one-sentence** arch-epic rule ("don't scatter
    one pattern owner across sub-plans"), respecting that file's explicit
    "no checklist… what you need is judgment" stance
    (`decomposition-principles.md:7-11`); and at most one new *field* (not a gate)
-   in `plan-swarm/phase-contract.md` for "adjacent competing surfaces +
+   in `plan-conductor/references/conductor-log-contract.md` for "adjacent competing surfaces +
    disposition."
 4. **Add the missing ratchet.** Specify how a deferred convergence obligation is
    guaranteed to come due: it must land in an epic destination map, a named

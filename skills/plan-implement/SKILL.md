@@ -41,8 +41,9 @@ state machine, or script-backed completion judge.
   implementation. Use `plan-audit implementation-audit`.
 - The user wants a generic branch, diff, or PR reviewed. Use the host agent's
   normal review response.
-- The user explicitly wants delegated external worker swarms, resumable child
-  sessions, arbiter gates, or phase-swarm orchestration. Use `plan-swarm`.
+- The user explicitly wants delegated external workers, resumable child
+  sessions, or plan-wide worker orchestration with the parent acting as
+  conductor and cynical reviewer. Use `plan-conductor`.
 - The user wants one explicit external worker. Use `agent-delegate`.
 
 ## Non-Negotiables

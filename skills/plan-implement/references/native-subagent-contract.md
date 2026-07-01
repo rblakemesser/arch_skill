@@ -54,8 +54,9 @@ Do not invoke skills whose main effect is to shell out to those binaries unless
 the user explicitly asks for external delegation or local instructions require
 that path.
 
-Use `plan-swarm` when the user wants delegated external worker swarms. Use
-`agent-delegate` when the user wants one explicit external worker.
+Use `plan-conductor` when the user wants plan-wide delegated external
+workers. Use `agent-delegate` when the user wants one explicit external
+worker.
 
 ## Prompt: Code Map Subagent
 

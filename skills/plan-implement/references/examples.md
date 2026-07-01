@@ -89,5 +89,5 @@ parallelism sounds useful.
 Why it is bad: that turns a lightweight implementation habit into a delegation
 workflow.
 
-Better: use native subagents when available. Use `plan-swarm` or
+Better: use native subagents when available. Use `plan-conductor` or
 `agent-delegate` only when the user explicitly asks for external workers.

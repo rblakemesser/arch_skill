@@ -43,7 +43,7 @@ Other shipped skills:
 - `agent-delegate`
 - `plan-audit`
 - `plan-implement`
-- `plan-swarm`
+- `plan-conductor`
 - `agent-history`
 - `model-consensus`
 - `contact-sheet-builder`
@@ -107,7 +107,7 @@ Default local path:
 - `~/.agents/skills/agent-delegate/`
 - `~/.agents/skills/plan-audit/`
 - `~/.agents/skills/plan-implement/`
-- `~/.agents/skills/plan-swarm/`
+- `~/.agents/skills/plan-conductor/`
 - `~/.agents/skills/agent-history/`
 - `~/.agents/skills/model-consensus/`
 - `~/.agents/skills/contact-sheet-builder/`
@@ -159,7 +159,7 @@ Installed skills:
   - `agent-delegate`
   - `plan-audit`
   - `plan-implement`
-  - `plan-swarm`
+  - `plan-conductor`
   - `agent-history`
   - `model-consensus`
   - `contact-sheet-builder`
@@ -204,7 +204,7 @@ Installed skills:
   - `agent-delegate`
   - `plan-audit`
   - `plan-implement`
-  - `plan-swarm`
+  - `plan-conductor`
   - `agent-history`
   - `model-consensus`
   - `contact-sheet-builder`
@@ -249,7 +249,7 @@ Installed skills:
   - `agent-delegate`
   - `plan-audit`
   - `plan-implement`
-  - `plan-swarm`
+  - `plan-conductor`
   - `model-consensus`
   - `contact-sheet-builder`
   - `cynical-code-review`
@@ -262,7 +262,7 @@ Installed skills:
 
 Install removes stale pre-skill command surfaces, removed skill packages, older Codex skill mirrors, old arch_skill-owned hook entries, and source/build internals from installed skill packages. It does not install new hooks.
 
-`arch-loop`, `delay-poll`, `wait`, and `code-review` are removed from the live installed surface; use native `/goal` for free-form completion, the host's native scheduling/reminder surface for timed waiting or polling, and ordinary host review behavior for generic code review. `agent-history` is installed on the agents/Codex and Claude Code surfaces because its storage map covers Codex and Claude Code local history. `contact-sheet-builder` is installed on all three skill surfaces and requires Python with Pillow at runtime. `arch-step-goal-prompt`, `figma-best-practices`, `fal-ai-tools`, `chatgpt-web`, `fresh-consult`, `agent-delegate`, `plan-audit`, `plan-implement`, `model-consensus`, `plan-swarm`, `codex-cleanup`, `codex-babysit`, `cynical-code-review`, `cynical-architecture-review`, `cynical-cruft-removal`, `exhaustive-code-review`, and `thermo-nuclear-code-quality-review` are installed on all three skill surfaces, but subprocess skills still require the selected local `claude`, `codex`, `agent`, or `grok` CLI to exist on the host at invocation time. `chatgpt-web` is prompt-only and requires BrowserOS MCP plus an already logged-in ChatGPT browser session; it does not automate login. `thermo-nuclear-code-quality-review` is sourced unchanged from the vendored Cursor Team Kit plugin at `vendor/cursor/plugins/cursor-team-kit/skills/`; only that skill package is installed, not Cursor Team Kit agents or rules. `fresh-consult` is read-only: first turns start clean, second/third same-line follow-ups resume a captured exact child session id by default, turn four rotates fresh, and explicitly requested parallel consults create multiple child chains. `agent-delegate` may write to the shared worktree when invoked with an allowed write scope and can run multiple fresh-resumable workers when explicitly requested. Provider routing is fixed: Codex runs GPT/GBT/OpenAI model ids plus Fugu profiles (`-p fugu`, `-p fugu-ultra`), Claude Code runs supported Claude models, Cursor Agent runs `composer-2.5-fast`, and Grok CLI runs `grok-build` or `grok-composer-2.5-fast`. `plan-implement` is prompt-first and local: it keeps plan-backed implementation state, proof freshness, and warm review aligned without external worker orchestration. `plan-swarm` is prompt-first: the parent agent coordinates parallel workers through `agent-delegate` and keeps human worklogs next to the plan. `cynical-code-review`, `cynical-architecture-review`, `cynical-cruft-removal`, and `exhaustive-code-review` are prompt-only and review-only: cynical code review owns skeptical implementation-integrity audits under `/tmp/cynical-code-review/`, cynical architecture review owns subtraction-first accidental architecture audits under `/tmp/cynical-architecture-review/`, cynical cruft removal owns deep deletion reports under `/tmp/cynical-cruft-removal/`, and exhaustive review owns coverage-led audits under `/tmp/exhaustive-code-review/`.
+`arch-loop`, `delay-poll`, `wait`, and `code-review` are removed from the live installed surface; use native `/goal` for free-form completion, the host's native scheduling/reminder surface for timed waiting or polling, and ordinary host review behavior for generic code review. `agent-history` is installed on the agents/Codex and Claude Code surfaces because its storage map covers Codex and Claude Code local history. `contact-sheet-builder` is installed on all three skill surfaces and requires Python with Pillow at runtime. `arch-step-goal-prompt`, `figma-best-practices`, `fal-ai-tools`, `chatgpt-web`, `fresh-consult`, `agent-delegate`, `plan-audit`, `plan-implement`, `model-consensus`, `plan-conductor`, `codex-cleanup`, `codex-babysit`, `cynical-code-review`, `cynical-architecture-review`, `cynical-cruft-removal`, `exhaustive-code-review`, and `thermo-nuclear-code-quality-review` are installed on all three skill surfaces, but subprocess skills still require the selected local `claude`, `codex`, `agent`, or `grok` CLI to exist on the host at invocation time. `chatgpt-web` is prompt-only and requires BrowserOS MCP plus an already logged-in ChatGPT browser session; it does not automate login. `thermo-nuclear-code-quality-review` is sourced unchanged from the vendored Cursor Team Kit plugin at `vendor/cursor/plugins/cursor-team-kit/skills/`; only that skill package is installed, not Cursor Team Kit agents or rules. `fresh-consult` is read-only: first turns start clean, second/third same-line follow-ups resume a captured exact child session id by default, turn four rotates fresh, and explicitly requested parallel consults create multiple child chains. `agent-delegate` may write to the shared worktree when invoked with an allowed write scope and can run multiple fresh-resumable workers when explicitly requested. Provider routing is fixed: Codex runs GPT/GBT/OpenAI model ids plus Fugu profiles (`-p fugu`, `-p fugu-ultra`), Claude Code runs supported Claude models, Cursor Agent runs `composer-2.5-fast`, and Grok CLI runs `grok-build` or `grok-composer-2.5-fast`. `plan-implement` is prompt-first and local: it keeps plan-backed implementation state, proof freshness, and warm review aligned without external worker orchestration. `plan-conductor` is prompt-first: the parent agent drives a whole plan (or explicit phase range) through delegated `agent-delegate` workers, keeps a conductor log beside the plan, audits every diff before acceptance, and never edits source code itself. `cynical-code-review`, `cynical-architecture-review`, `cynical-cruft-removal`, and `exhaustive-code-review` are prompt-only and review-only: cynical code review owns skeptical implementation-integrity audits under `/tmp/cynical-code-review/`, cynical architecture review owns subtraction-first accidental architecture audits under `/tmp/cynical-architecture-review/`, cynical cruft removal owns deep deletion reports under `/tmp/cynical-cruft-removal/`, and exhaustive review owns coverage-led audits under `/tmp/exhaustive-code-review/`.
 
 ## Shared conventions
 
@@ -678,29 +678,27 @@ Practical rule:
 
 - Use `plan-implement` for normal plan-backed implementation with lightweight logs, proof freshness, and warm review.
 - Use `plan-audit` for review-only work.
-- Use `plan-swarm` when the user explicitly wants delegated external worker swarms.
+- Use `plan-conductor` when the user explicitly wants delegated external workers executing the plan with the parent as conductor and cynical reviewer.
 
-### `plan-swarm`
+### `plan-conductor`
 
-Use when the user wants to implement one named phase or explicit phase range from an existing plan document as fast as possible without dropping the quality bar. It extracts a compact phase contract, decomposes the work into independently delegable slices, launches or resumes Codex GPT/GBT models or Fugu profiles, Claude, Cursor Agent, or Grok workers through `agent-delegate`, batches review/test findings into delegated repair and impact-aware verification waves, writes human worklogs next to the plan, and closes only after arbiter and thermonuclear findings are triaged.
+Use when the user wants an entire existing plan document, or an explicit phase range, implemented by cheaper and faster delegated workers while the expensive parent agent preserves its own context and acts as architect and deeply cynical reviewer. The parent reads the plan once, extracts requirements, phases, checklists, verification obligations, and delete obligations into `<PLAN_STEM>_CONDUCTOR_LOG.md` beside the plan, and refuses to launch workers if the plan has no observable done-ness anywhere.
 
-The parent agent owns orchestration: plan interpretation, decomposition, worker prompts, parallel delegation, session reuse, review triage, and completion judgment. Coordination stays readable in the phase contract, swarm ledger, worker logs, review notes, and final phase report next to the plan.
+Each wave dispatches phase-sized slices (default one plan phase per worker, split only along plan-named owner boundaries, merged when trivial phases share one design intent) as `agent-delegate` fresh-resumable children. The parent waits patiently without tailing event streams, audits each returned diff assuming the worker cut corners — name-only completion, leftover cruft, un-executed deletes, weakened tests, scope drift, side doors, duplicate truth — and batches accepted findings into one resume prompt against the same worker session. Caps: 3 send-backs, then 1 fresh respawn, then escalate the slice and continue independent work. Verification runs are delegated with proof freshness tracking; the parent commits local checkpoints and never pushes. Closure requires plan-required proof recorded passing plus a final whole-plan audit and an optional fresh-one-shot cold verifier prompted to refute completion.
 
-When the user chooses Codex implementation or review, GPT/GBT/OpenAI model ids run through `codex exec --model`, and Fugu runs through Codex profiles `-p fugu` or `-p fugu-ultra`. When the user chooses Cursor Agent implementation, Composer 2.5 means `composer-2.5-fast`, including shorthand like `composer`, `composer 2.5`, `composer-2.5`, or bare `2.5` in Cursor Agent context. When the user chooses Grok implementation, plain Grok means `grok-build`; Grok Composer means `grok-composer-2.5-fast`. Review runtime/model/effort must be explicit, or the user must say review should use the same execution policy. The skill does not create worktrees, push, open PRs, use latest-session resume, or continue beyond the requested phase boundary. Local commits are ordinary checkpoints.
+The parent never edits source code, never accepts worker self-reports as truth, and never edits the plan's requirements or exit criteria to match what was built. The user supplies worker runtime/model/effort; there is no default worker model, and provider routing is fixed as usual.
 
 Examples:
 
-- `Use $plan-swarm to finish Phase 14 of docs/PACKS/example-plan.md with Cursor Agent workers`
-- `Use $plan-swarm to run the current open phase with Codex workers and a Codex review gate`
+- `Use $plan-conductor to implement docs/PAYMENTS_MIGRATION_2026-07-01.md end to end with Cursor Agent workers`
+- `Use $plan-conductor to drive phases 2-4 of docs/example-plan.md with two Codex gpt-5.3-codex medium workers; you review everything`
 
 Practical rule:
 
-- Use `plan-swarm` for accelerated delegated plan-doc-backed implementation.
-- Use `plan-implement` for ordinary plan-backed implementation with lightweight logs, proof freshness, and warm review but without external worker orchestration.
-- Use `agent-delegate` for one-off delegation.
-- Use `stepwise` for strict ordered external processes.
-- Use `arch-epic` for multi-plan epic decomposition.
-- Use `fresh-consult` for read-only second opinions and completion checks.
+- Use `plan-conductor` for whole-plan cheap-worker execution with parent review.
+- Use `plan-implement` when the parent should implement the plan itself.
+- Use `agent-delegate` for one concrete delegated task.
+- Use `plan-audit` to audit a plan rather than implement it.
 
 ### `model-consensus`
 

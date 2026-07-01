@@ -167,12 +167,16 @@ Claude Code, and Gemini.
   native subagents when helpful, but do not manually spawn `codex`, `claude`,
   `agent`, or `grok` executables or turn the work into an external worker
   swarm.
-- Use `$plan-swarm` when the user wants to implement a named phase or phase
-  range from an existing plan document by having the parent agent decompose
-  the phase into independently delegable slices, launch or resume parallel
-  Codex, Claude, Cursor Agent, or Grok workers through `$agent-delegate`,
-  coordinate scarce verification manually, write worklogs next to the plan,
-  and close only after arbiter and thermonuclear findings are triaged.
+- Use `$plan-conductor` when the user wants an entire existing plan document
+  (or an explicit phase range) driven to verified completion by cheaper,
+  faster delegated workers while the expensive parent agent stays the
+  architect and cynical reviewer: it extracts the plan into a conductor log,
+  delegates phase-sized slices through `$agent-delegate` fresh-resumable
+  sessions, parallelizes only naturally independent slices, waits without
+  tailing streams, audits every diff assuming workers cut corners, resumes
+  the same worker session with batched findings until exit criteria are true
+  in code, and closes with a whole-plan audit plus optional cold verifier. It
+  never writes plans and never implements code in the parent.
 - Use `$model-consensus` when the user wants two selected Claude, Codex,
   Cursor Agent, or Grok models to iterate on a plan, architecture, design, or
   concept until they converge or expose the smallest unresolved decision, including
