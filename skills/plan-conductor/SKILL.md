@@ -31,8 +31,9 @@ log beside the plan is its durable memory.
 - Chunk size balances two failure modes: micro-tasks turn the parent into a
   slow programmer with extra round-trips; mega-tasks produce unreviewable
   diffs. Default one plan phase per worker.
-- Awareness without burn: block on worker completion or check at a
-  minutes-scale cadence with cheap signals. Never tail worker event streams.
+- Awareness without burn: a size-scoped background heartbeat on every slice
+  proves liveness and catches a wedge early with cheap signals. Never tail
+  raw worker event streams.
 - Every worker return starts NOT ACCEPTED. Worker output — status, summary,
   quoted proof, labels — is a claims manifest to falsify against repo truth,
   never a report to consume. Current code is the only authority.
@@ -97,10 +98,16 @@ log beside the plan is its durable memory.
   never micro-tasks, never two workers into one unsettled design decision.
 - Parallelize only dependency-ready slices on disjoint surfaces. Serial
   execution is correct when the plan is serial.
-- Monitor patiently: block on completion or check at a five-minute-or-slower
-  cadence using cheap signals. Never stream `events.jsonl` into parent
-  context during normal operation; read it only post-mortem on failed or
-  malformed runs. Quiet is not stuck.
+- Arm a size-scoped background watchdog on every dispatched slice: heartbeat
+  floor five minutes, ceiling thirty, scaled to the slice's expected
+  duration. Each beat emits one compact liveness-and-progress line, relayed to
+  the user as a brief check-in, plus a wedge alert when the worker dies, stalls
+  with no progress across beats, or overruns its ceiling. This is standing
+  practice on every dispatch, resume, and respawn — never wait for the user to
+  ask for it, and never clear it after a slice and forget to re-arm the next.
+  Cheap signals only; never stream `events.jsonl` into parent context during
+  normal operation. Quiet with a live heartbeat is not stuck; act on evidence,
+  not silence.
 - Audit with inverted burden of proof before accepting any slice: enumerate
   the worker's claims, falsify them against git and current code, trace the
   authority path beyond the diff (side doors live in files the diff did not
@@ -161,7 +168,8 @@ log beside the plan is its durable memory.
    chunking doctrine.
 3. Dispatch each slice as an `$agent-delegate` fresh-resumable child using the
    worker prompt contract; record run directory and session id in the log.
-4. Wait patiently per the monitoring doctrine.
+4. Arm the slice's size-scoped watchdog, then wait patiently per the
+   monitoring doctrine.
 5. On return, audit per `references/audit-and-send-back.md`: enumerate the
    claims to falsify, check them against git, trace the authority path
    beyond the diff, apply the three lens groups, and require decisive proof

@@ -40,19 +40,41 @@ decision, not a silent substitution.
 
 ## Patient Monitoring
 
-- Prefer waiting on process completion over polling at all: launch the
-  delegate command and consume results when it exits. Where the host only
-  supports polling, check at a **five-minute-or-slower cadence**.
-- When checking, read only cheap signals: process liveness, `stderr.log`
-  size, file mtimes, `git status --short`. **Never stream `events.jsonl`
-  into conductor context during normal operation.** It is a diagnostic
-  artifact for post-mortems on non-zero exits or malformed output.
+Every dispatched slice gets a background watchdog, armed as part of the
+dispatch itself and re-armed on every resume and respawn. Tear it down only
+when the slice is accepted, escalated, or abandoned. This is standing
+practice — the conductor does not wait for the user to ask for a monitor, and
+does not clear one after a slice and then forget to arm the next. Its job is
+twofold: prove the worker is alive and moving, and catch a wedge early,
+without pulling the raw event stream into conductor context. Where the host
+provides a background-monitor capability, arm it so heartbeats push to you
+while you wait or work; where it does not, poll at the scoped interval.
+
+- **Scope the heartbeat interval to the slice's expected duration**, floor
+  five minutes, ceiling thirty. A narrow single-owner slice that should finish
+  in minutes gets a ~5-minute beat; a broad, high-effort slice that reasonably
+  runs 20-40 minutes beats toward the 30-minute ceiling. Match the beat to the
+  work: frequent enough to catch a wedge, rare enough to stay cheap. Still
+  consume the real result when the delegate process exits — the heartbeat is a
+  liveness and wedge signal, not the account of what the worker did.
+- **Each beat emits one compact line from cheap signals only**: process
+  liveness, `git diff --stat` shape, changed-file mtimes, `stderr.log` growth.
+  Relay it to the user as a brief "still moving, N files touched" check-in.
+  **Never stream `events.jsonl` into conductor context during normal
+  operation** — it is a diagnostic artifact for post-mortems on non-zero exits
+  or malformed output.
+- **The watchdog must speak up on failure, not just progress.** Emit a wedge
+  alert when the process dies unexpectedly, when it is alive but cheap signals
+  show zero progress across consecutive beats, or when it overruns the slice's
+  expected ceiling. A quiet healthy worker and a dead one must not produce the
+  same silence.
 - **Quiet is not stuck.** Big slices, high-effort thinking, long tests,
-  installs, and simulators go silent for minutes. Normal delegated work takes
-  5+ minutes; broad slices at high effort reasonably take 20-40 minutes.
-  Roughly five quiet minutes starts *inspection*, not replacement. Replace or
-  respawn only on evidence the worker is stuck, harmful, or dead — never on
-  silence alone.
+  installs, and simulators go silent for minutes. A heartbeat showing the
+  process alive with fresh mtimes is progress even with no new diff yet. A
+  wedge alert is the trigger to *inspect* — cheap signals first, then
+  `events.jsonl` if needed — not to reflexively replace. Replace or respawn
+  only on evidence the worker is stuck, harmful, or dead — never on silence
+  alone.
 
 ## Conductor Token Economy
 

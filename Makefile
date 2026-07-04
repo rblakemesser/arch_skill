@@ -378,7 +378,7 @@ remote_install:
 		for skill in $(VENDORED_GEMINI_SKILLS); do \
 			scp -r $(CURSOR_TEAM_KIT_SKILLS_DIR)/$$skill $(HOST):~/.gemini/skills/; \
 		done; \
-		ssh $(HOST) "for skill in $(GEMINI_SKILLS); do f=~/.gemini/skills/\$$skill/SKILL.md; tmp=\$$f.tmp; awk 'NR==1 && $$0==\"---\" {front=1; next} front && $$0==\"---\" {front=0; next} !front {print}' \"\$$f\" > \"\$$tmp\" && mv \"\$$tmp\" \"\$$f\"; done"; \
+		ssh $(HOST) "for skill in $(GEMINI_SKILLS); do f=~/.gemini/skills/\$$skill/SKILL.md; tmp=\$$f.tmp; awk 'NR==1 && \$$0==\"---\" {front=1; next} front && \$$0==\"---\" {front=0; next} !front {print}' \"\$$f\" > \"\$$tmp\" && mv \"\$$tmp\" \"\$$f\"; done"; \
 		for shared in $(SHARED_DIRS); do \
 			ssh $(HOST) "rm -rf ~/.gemini/skills/$$shared"; \
 			scp -r skills/$$shared $(HOST):~/.gemini/skills/; \
