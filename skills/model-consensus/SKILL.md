@@ -66,7 +66,7 @@ patterns when the task is architectural, and avoids kitchen-sink plans.
   the children should choose and cite the evidence trail themselves.
 - Ask once for missing model choices. Each participant needs runtime, runnable
   model id or exact model phrase, and effort. If the user names shorthand such
-  as "gpt 5.5 xhigh" or "Claude Fable 5 high", resolve it with the shared
+  as "gpt-5.6-sol xhigh" or "Claude Fable 5 high", resolve it with the shared
   model-resolution rules and announce the raw-to-resolved mapping.
 - Provider routing is fixed: Codex runs GPT/GBT/OpenAI model ids and Fugu
   profiles, Claude Code runs supported Claude models, Cursor Agent runs

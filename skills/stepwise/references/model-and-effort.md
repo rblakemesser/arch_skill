@@ -32,12 +32,12 @@ under-powers hard work.
 
 The intake phase parses whatever the user wrote. Any of these is clear:
 
-- "use Claude Fable 5 high for steps and Codex gpt-5.5 xhigh for critic"
+- "use Claude Fable 5 high for steps and Codex gpt-5.6-sol xhigh for critic"
 - "use Codex Fugu high for steps and Codex Fugu Ultra xhigh for critic"
-- "Codex gpt-5.5 high everywhere" (one value reused for all defaults)
-- "Grok Build high for steps and Codex gpt-5.5 xhigh for critic"
-- "steps on gpt-5.5 high, critic on gpt-5.5 xhigh"
-- "default to Codex gpt-5.5 high, but use Claude Fable 5 for copywriting"
+- "Codex gpt-5.6-sol high everywhere" (one value reused for all defaults)
+- "Grok Build high for steps and Codex gpt-5.6-sol xhigh for critic"
+- "steps on gpt-5.6-sol high, critic on gpt-5.6-sol xhigh"
+- "default to Codex gpt-5.6-sol high, but use Claude Fable 5 for copywriting"
 
 None of these is magic. The intake reads the phrase, maps the baseline into
 execution defaults, records routing preferences separately, and prints back
@@ -64,8 +64,8 @@ This is reasoning, not a lookup table:
   pin a version.
 - For ordinary Codex model ids, inspect the installed CLI's model list when
   needed (`codex debug models`) and choose the available identifier with the
-  same family and exact version. For example, "gpt 5.5" resolves to
-  `gpt-5.5` if that exact model appears, and "gpt 5.3 codex" resolves to
+  same family and exact version. For example, "gpt-5.6-sol" resolves to
+  `gpt-5.6-sol` if that exact model appears, and "gpt 5.3 codex" resolves to
   `gpt-5.3-codex`. Fugu is different: resolve `fugu` and `fugu-ultra` as
   Codex profiles, preserve those profile names exactly, and launch them with
   `-p`.
@@ -76,10 +76,10 @@ This is reasoning, not a lookup table:
   `grok models` when availability matters.
 - Bare `composer`, `composer 2.5`, or bare `2.5` is ambiguous unless the user
   explicitly names Cursor Agent or Grok in the same execution choice.
-- If the user says `gpt 5.4` or a `gpt-5.4` variant while choosing a model,
-  pause before execution and ask whether they meant `gpt-5.5` or explicitly
-  want `gpt-5.4`. This is an intent check, not an alias rule: do not rewrite
-  the version yourself.
+- If the user says `gpt 5.4`, `gpt 5.5`, or a variant of either while choosing
+  a model, do not execute it. Say that the old model is blocked and ask whether
+  they meant `gpt-5.6-sol`. This is an intent check, not an alias rule: do not
+  rewrite the version yourself.
 - If the runtime is unavailable, model discovery is unavailable, the exact
   version is not present, or the phrase could map to multiple runnable
   identifiers, ask the user for the runnable model id.
@@ -125,7 +125,7 @@ What should I use?
 Do not ask six separate questions. Do not default to a favorite model "just
 this once". Ask and wait.
 
-If the user answers with one complete value ("Codex gpt-5.5 medium
+If the user answers with one complete value ("Codex gpt-5.6-sol medium
 everywhere"), apply it to both worker and critic defaults and announce that
 before executing. If they answer with a worker-only override ("copywriting on
 Claude Fable 5") but no baseline, still ask for the missing defaults.
@@ -140,7 +140,7 @@ Runtime is separate from model and effort.
 Infer runtime only when the evidence is unambiguous:
 
 - a target repo says "run with Codex"
-- the user says "Claude Fable 5", "Codex gpt-5.5", or "Grok Build"
+- the user says "Claude Fable 5", "Codex gpt-5.6-sol", or "Grok Build"
 - the user says "Codex Fugu", "Fugu high", or "Fugu Ultra xhigh"
 - an installed CLI supports only the named model family and the user clearly
   intended that family

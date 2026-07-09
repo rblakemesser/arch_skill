@@ -1,8 +1,8 @@
 # Model And Invocation
 
 Use this reference to resolve what the user meant by "Claude", "Codex",
-"Cursor Agent", "Grok", "fable 5 high", "opus high", "gpt 5.5 xhigh",
-"GBT55XI", "fugu high", "fugu-ultra xhigh", "composer-2.5-fast",
+"Cursor Agent", "Grok", "fable 5 high", "opus high", "gpt-5.6-sol xhigh",
+"GPT56SOLXI", "fugu high", "fugu-ultra xhigh", "composer-2.5-fast",
 "grok-build", or similar phrasing, and to run the
 selected read-only consult subprocess.
 
@@ -36,8 +36,8 @@ Add only the missing facts to the question when some values are already known.
 
 Infer runtime only when the user's wording makes it unambiguous:
 
-- `codex`, `openai`, `gpt`, `gbt`, `gpt-5.5`, `GBT55XI`,
-  `gpt 5.5 high`, `gpt-5.3-codex`, `fugu high`, or
+- `codex`, `openai`, `gpt`, `gbt`, `gpt-5.6-sol`, `GPT56SOLXI`,
+  `gpt-5.6-sol high`, `gpt-5.3-codex`, `fugu high`, or
   `fugu-ultra xhigh` implies `runtime=codex`.
 - `claude fable`, `fable`, `claude opus`, or `opus` implies
   `runtime=claude`.
@@ -67,14 +67,14 @@ quality, so the user supplies it.
 
 Treat model text as intent, not a loose alias:
 
-- Preserve model family and numeric version exactly. `gpt 5.5` may normalize to
-  `gpt-5.5`; it must not become `gpt-5.4`. `fable 5` may normalize to
+- Preserve model family and numeric version exactly. `gpt-5.6-sol` may normalize to
+  `gpt-5.6-sol`; it must not become `gpt-5.4` or `gpt-5.5`. `fable 5` may normalize to
   `claude-fable-5`, and `opus 4.7` may normalize to `claude-opus-4-7`;
   neither may become another Claude family or version.
-- If the user says `gpt 5.4` or a `gpt-5.4` variant while choosing a model,
-  pause before execution and ask whether they meant `gpt-5.5` or explicitly
-  want `gpt-5.4`. This is an intent check, not an alias rule: do not rewrite
-  the version yourself.
+- If the user says `gpt 5.4`, `gpt 5.5`, or a variant of either while choosing
+  a model, do not execute it. Say that the old model is blocked and ask whether
+  they meant `gpt-5.6-sol`. This is an intent check, not an alias rule: do not
+  rewrite the version yourself.
 - For ordinary Codex model ids, inspect `codex debug models` when needed and
   choose an available identifier with the same family and exact version. For
   Fugu, resolve `fugu` and `fugu-ultra` as Codex profiles, not model-list ids;

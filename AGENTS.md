@@ -16,6 +16,17 @@ Claude Code, and Gemini.
   commands or paths you added with `rg`. Do not imply that code verification
   ran when it did not.
 
+## Code Review Graph
+
+- `make crg-setup`, also run by `make install`, installs the
+  `code-review-graph` CLI and builds this repo's local structural graph.
+- Use the graph for unfamiliar-area orientation, multi-hop change impact, and
+  duplicate-pattern searches. Use `rg` for one exact identifier.
+- If results look stale, run `code-review-graph update`. If
+  `.code-review-graph/graph.db` is missing or reports only a handful of files,
+  run `code-review-graph build` before trusting structural results.
+- If CRG is unavailable, say so and continue with normal repository search.
+
 ## Definition Of Done
 
 - The touched surface is internally consistent.

@@ -1,6 +1,6 @@
 ---
 name: codex-review-yolo
-description: "Invoke the local codex CLI with profile `yolo` (gpt-5.4 xhigh, fast tier) to get an independent, context-free review of a substantial artifact or completion state: diffs, commit stacks, implementation-plan completion, docs, or cross-repo changes. Use when the user says \"have codex review\", \"get a second opinion from codex\", \"audit completion of this plan with codex -p yolo\", or asks for an external/fresh-eyes review. Do NOT use for: asking codex to write code (this is review-only), generic LLM-as-judge evaluations where codex adds nothing, or any case where there is no concrete artifact or completion target to inspect."
+description: "Invoke the local codex CLI with profile `yolo` (gpt-5.6-sol xhigh, fast tier) to get an independent, context-free review of a substantial artifact or completion state: diffs, commit stacks, implementation-plan completion, docs, or cross-repo changes. Use when the user says \"have codex review\", \"get a second opinion from codex\", \"audit completion of this plan with codex -p yolo\", or asks for an external/fresh-eyes review. Do NOT use for: asking codex to write code (this is review-only), generic LLM-as-judge evaluations where codex adds nothing, or any case where there is no concrete artifact or completion target to inspect."
 metadata:
   short-description: "Request an independent review from codex -p yolo"
 ---
@@ -29,7 +29,7 @@ This skill is intentionally narrow in mechanism, not in review subject. It teach
 
 ## Non-negotiables
 
-- **Run codex with `-p yolo` explicitly.** The profile carries gpt-5.4 + xhigh reasoning + fast service tier + `danger-full-access` sandbox. Any other profile changes the contract.
+- **Run codex with `-p yolo` explicitly.** The profile carries gpt-5.6-sol + xhigh reasoning + fast service tier + `danger-full-access` sandbox. Any other profile changes the contract.
 - **Use `codex exec` (non-interactive), not `codex` (interactive TUI).** You are orchestrating, not babysitting a session.
 - **Brief codex like a colleague who just walked in.** It has no memory of your session. Name the review goal, work root, exact user-named artifacts or target paths, hard constraints, and the verdict contract.
 - **Require a structured verdict block at the end.** Without it, codex drifts into narrative and you cannot act on the result.

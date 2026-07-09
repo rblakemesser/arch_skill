@@ -23,14 +23,14 @@ at Phase 3 confirmation and does not change during execution.
   "execution_defaults": {
     "step": {
       "runtime": "codex",
-      "model": "gpt-5.5",
+      "model": "gpt-5.6-sol",
       "codex_profile": "",
       "effort": "high",
       "source": "user prompt"
     },
     "critic": {
       "runtime": "codex",
-      "model": "gpt-5.5",
+      "model": "gpt-5.6-sol",
       "codex_profile": "",
       "effort": "xhigh",
       "source": "user prompt"
@@ -99,7 +99,7 @@ defaults.
   },
   "step_execution": {
     "runtime": "codex",
-    "model": "gpt-5.5",
+    "model": "gpt-5.6-sol",
     "codex_profile": "",
     "effort": "high",
     "source": "execution_defaults.step",
@@ -107,7 +107,7 @@ defaults.
   },
   "critic_execution": {
     "runtime": "codex",
-    "model": "gpt-5.5",
+    "model": "gpt-5.6-sol",
     "codex_profile": "",
     "effort": "xhigh",
     "source": "execution_defaults.critic",
@@ -179,7 +179,7 @@ The manifest is a read-then-think product, not a template.
 
 The user said: "Work in ../lessons_studio. Ramp up on track 3 section 3 and
 implement lesson 2 strictly according to the skill order, no fabrication.
-Default steps on Codex gpt-5.5 high, critic on Codex gpt-5.5 xhigh. Use
+Default steps on Codex gpt-5.6-sol high, critic on Codex gpt-5.6-sol xhigh. Use
 Claude Fable 5 for copywriting steps."
 
 After reading target doctrine, Stepwise drafts an abbreviated manifest:
@@ -196,13 +196,13 @@ After reading target doctrine, Stepwise drafts an abbreviated manifest:
   "execution_defaults": {
     "step": {
       "runtime": "codex",
-      "model": "gpt-5.5",
+      "model": "gpt-5.6-sol",
       "effort": "high",
       "source": "user prompt"
     },
     "critic": {
       "runtime": "codex",
-      "model": "gpt-5.5",
+      "model": "gpt-5.6-sol",
       "effort": "xhigh",
       "source": "user prompt"
     }
@@ -234,14 +234,14 @@ After reading target doctrine, Stepwise drafts an abbreviated manifest:
       },
       "step_execution": {
         "runtime": "codex",
-        "model": "gpt-5.5",
+        "model": "gpt-5.6-sol",
         "effort": "high",
         "source": "execution_defaults.step",
         "reason": "Ramp-up is context gathering, not learner-facing copy."
       },
       "critic_execution": {
         "runtime": "codex",
-        "model": "gpt-5.5",
+        "model": "gpt-5.6-sol",
         "effort": "xhigh",
         "source": "execution_defaults.critic",
         "reason": "No critic override was provided."

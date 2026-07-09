@@ -38,8 +38,8 @@ Example table:
 
 ```text
 epic_planner: claude fable 5 high
-implementation_worker: codex gpt 5.5 xhigh
-critic: codex gpt 5.5 xhigh
+implementation_worker: codex gpt-5.6-sol xhigh
+critic: codex gpt-5.6-sol xhigh
 poll_seconds: 180
 quiet_floor_seconds: 900
 stuck_floor_seconds: 1800
@@ -90,11 +90,11 @@ needs to change, update the shared helper and the shared doctrine references.
 All of these are valid when they include a role:
 
 - "planner on Claude Fable 5 high"
-- "implementation worker on Codex gpt-5.5 xhigh"
+- "implementation worker on Codex gpt-5.6-sol xhigh"
 - "implementation worker on Codex Fugu Ultra xhigh"
 - "planner on Grok Build high"
-- "critics on gpt 5.5 xhigh"
-- "codex gpt-5.5 high everywhere"
+- "critics on gpt-5.6-sol xhigh"
+- "codex gpt-5.6-sol high everywhere"
 
 If the user gives one complete "everywhere" value, the orchestrator may fill
 all three required roles with that value, but it must announce the interpretation before
@@ -104,7 +104,8 @@ running.
 
 Treat model text as intent, not a loose alias:
 
-- `gpt 5.5` may normalize to `gpt-5.5`; it must not become `gpt-5.4`.
+- `gpt-5.6-sol` may normalize to `gpt-5.6-sol`; it must not become `gpt-5.4`
+  or `gpt-5.5`.
 - `gpt 5.3 codex` may normalize to `gpt-5.3-codex`.
 - `fugu` and `fugu-ultra` are Codex profile names; preserve them as `fugu` and
   `fugu-ultra` and launch them with `codex exec -p`.
@@ -117,10 +118,10 @@ Treat model text as intent, not a loose alias:
   normalize to `grok-composer-2.5-fast`.
 - Bare `composer`, `composer 2.5`, or bare `2.5` is ambiguous unless the user
   explicitly names Cursor Agent or Grok in the same execution choice.
-- If the user says `gpt 5.4` or a `gpt-5.4` variant while choosing a model,
-  pause before execution and ask whether they meant `gpt-5.5` or explicitly
-  want `gpt-5.4`. This is an intent check, not an alias rule: do not rewrite
-  the version yourself.
+- If the user says `gpt 5.4`, `gpt 5.5`, or a variant of either while choosing
+  a model, do not execute it. Say that the old model is blocked and ask whether
+  they meant `gpt-5.6-sol`. This is an intent check, not an alias rule: do not
+  rewrite the version yourself.
 - Family-only supported Claude aliases such as `fable` or `opus` are allowed
   only when the user did not pin a version.
 - If the phrase names multiple runtime families, ask the user to split the role
@@ -134,7 +135,7 @@ Fugu Ultra effort.
 Always print the raw-to-resolved mapping before execution:
 
 ```text
-critic: "codex gpt 5.5 xhigh" -> runtime=codex, model=gpt-5.5, effort=xhigh
+critic: "codex gpt-5.6-sol xhigh" -> runtime=codex, model=gpt-5.6-sol, effort=xhigh
 critic: "Fugu Ultra xhigh" -> runtime=codex, model=fugu-ultra, codex_profile=fugu-ultra, effort=xhigh
 planner: "Claude Fable 5 high" -> runtime=claude, model=claude-fable-5, effort=high
 implementation_worker: "Grok Build high" -> runtime=grok, model=grok-build, effort=high

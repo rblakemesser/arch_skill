@@ -131,7 +131,7 @@ Every StepDescriptor gets both resolved execution blocks:
   },
   "critic_execution": {
     "runtime": "codex",
-    "model": "gpt-5.5",
+    "model": "gpt-5.6-sol",
     "effort": "xhigh",
     "source": "execution_defaults.critic",
     "reason": "No critic-specific override was provided."

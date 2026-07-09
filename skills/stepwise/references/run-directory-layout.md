@@ -97,13 +97,13 @@ the `try-<k>` name alone.
     "execution_defaults": {
       "step": {
         "runtime": "codex",
-        "model": "gpt-5.5",
+        "model": "gpt-5.6-sol",
         "effort": "high",
         "source": "user prompt"
       },
       "critic": {
         "runtime": "codex",
-        "model": "gpt-5.5",
+        "model": "gpt-5.6-sol",
         "effort": "xhigh",
         "source": "user prompt"
       }

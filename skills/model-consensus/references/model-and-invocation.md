@@ -31,14 +31,14 @@ you name Grok Composer.
 
 Follow the shared model-resolution doctrine:
 
-- Preserve family and numeric version exactly. `gpt 5.5` may normalize to
-  `gpt-5.5`; it must not become `gpt-5.4`. `fable 5` may normalize to
+- Preserve family and numeric version exactly. `gpt-5.6-sol` may normalize to
+  `gpt-5.6-sol`; it must not become `gpt-5.4` or `gpt-5.5`. `fable 5` may normalize to
   `claude-fable-5`, and `opus 4.7` may normalize to `claude-opus-4-7`;
   neither may become another Claude family or version.
-- If the user says `gpt 5.4` or a `gpt-5.4` variant while choosing a model,
-  pause before execution and ask whether they meant `gpt-5.5` or explicitly
-  want `gpt-5.4`. This is an intent check, not an alias rule: do not rewrite
-  the version yourself.
+- If the user says `gpt 5.4`, `gpt 5.5`, or a variant of either while choosing
+  a model, do not execute it. Say that the old model is blocked and ask whether
+  they meant `gpt-5.6-sol`. This is an intent check, not an alias rule: do not
+  rewrite the version yourself.
 - Infer runtime only from unambiguous family evidence: `gpt`/`gbt`/`fugu`/
   `fugu-ultra`/`codex` implies Codex; `claude fable`, `fable`,
   `claude opus`, or `opus` implies Claude; `agent`, `cursor`, `cursor agent`,
@@ -81,7 +81,7 @@ Always announce the mapping before execution:
 ```text
 Model A: "Claude Fable 5 high" -> runtime=claude, model=claude-fable-5, effort=high
 Model B: "Claude Opus 4.7 xhigh" -> runtime=claude, model=claude-opus-4-7, effort=xhigh
-Model C: "gpt 5.5 xhigh" -> runtime=codex, model=gpt-5.5, effort=xhigh
+Model C: "gpt-5.6-sol xhigh" -> runtime=codex, model=gpt-5.6-sol, effort=xhigh
 Model D: "Fugu Ultra xhigh" -> runtime=codex, model=fugu-ultra, codex_profile=fugu-ultra, effort=xhigh
 Model E: "Grok Build high" -> runtime=grok, model=grok-build, effort=high
 ```

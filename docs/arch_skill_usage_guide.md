@@ -408,7 +408,7 @@ Practical rule:
 - Same-session `auto-plan` is explicit and opt-in after decomposition approval. It is a strict sequential driver: it sets up the next sub-plan DOC_PATH, runs the real `$arch-step auto-plan <DOC_PATH>` sequence, requires `arch_stage_gate.py ready --doc <DOC_PATH>` to pass, marks that sub-plan `planned` only after generated receipts prove readiness, and does not start implementation. Marker-only or copied planning text is not enough.
 - Same-session `auto-implement` requires all non-complete sub-plans to be `planned`, then handles one planned sub-plan at a time. It re-checks ArcStep readiness, runs real `$arch-step auto-implement <DOC_PATH>` until `audit-implementation` is COMPLETE, runs the epic critic, and marks that sub-plan `complete` only after critic `pass`. One invocation, local proof, worklog text, or ArcStep audit alone is not enough.
 - The separate spawned-harness automatic mode is explicit and opt-in after decomposition approval. It asks once for a role execution table: `epic_planner`, `implementation_worker`, and `critic`.
-- Role choices are resolved with the shared exact-version model resolver. Shorthand such as `fable 5 high` becomes `claude-fable-5`; `gpt 5.5 high` becomes `gpt-5.5`; `Fugu Ultra xhigh` becomes Codex profile `fugu-ultra`. There is no silent downgrade, provider switch, or effort substitution. If the user says `gpt 5.4` while choosing a model, clarify whether they meant `gpt-5.5` before launching children.
+- Role choices are resolved with the shared exact-version model resolver. Shorthand such as `fable 5 high` becomes `claude-fable-5`; `gpt-5.6-sol high` becomes `gpt-5.6-sol`; `Fugu Ultra xhigh` becomes Codex profile `fugu-ultra`. There is no silent downgrade, provider switch, or effort substitution. `gpt-5.4` and `gpt-5.5` are blocked execution choices; if the user names either while choosing a model, stop and ask whether they meant `gpt-5.6-sol` before launching children.
 - Spawned-harness automatic mode drives sub-plans depth-first. It does not plan or implement sub-plan N+1 until sub-plan N has passed the relevant critic gates.
 - Spawned automatic workers apply arch-step doctrine directly from disk and do not invoke nested `auto-plan`, `implement-loop`, or other automatic continuation commands.
 - Planner and implementation worker sessions are resumable. When a fresh critic finds ordinary in-scope unfinished work, the orchestrator resumes the same planner or implementation session with observation-only evidence instead of starting a separate repair worker.
@@ -606,7 +606,7 @@ Examples:
 
 Use when the user or another skill wants one or more read-only second opinions from Claude, Codex GPT/GBT models or Fugu profiles, Cursor Agent, or Grok subprocesses on concrete artifacts, completion checks, flow consistency questions, or readability/confusion checks. It is prompt-only: it writes consult prompts, runs the selected local CLI hook-suppressed where supported and unsandboxed, captures each child chain under `/tmp/fresh-consult/...`, and reports each child verdict back to the parent.
 
-The user supplies runtime, model or profile, and effort, or the skill asks once before invoking. Runtime can be inferred only from unambiguous model families such as `gpt-5.5`, `GBT55XI`, `fugu`, or `fugu-ultra` for Codex, `Claude Fable 5` for Claude, `Cursor Agent composer 2.5` for Cursor Agent, or `Grok Build` for Grok. Cursor Agent Composer resolves to `composer-2.5-fast`; Grok resolves to `grok-build` unless Grok Composer is named. Exact model versions and profile names are preserved; there is no silent downgrade, provider switch, or effort substitution. Cursor Agent effort is encoded in the model id.
+The user supplies runtime, model or profile, and effort, or the skill asks once before invoking. Runtime can be inferred only from unambiguous model families such as `gpt-5.6-sol`, `GPT56SOLXI`, `fugu`, or `fugu-ultra` for Codex, `Claude Fable 5` for Claude, `Cursor Agent composer 2.5` for Cursor Agent, or `Grok Build` for Grok. Cursor Agent Composer resolves to `composer-2.5-fast`; Grok resolves to `grok-build` unless Grok Composer is named. Exact model versions and profile names are preserved; there is no silent downgrade, provider switch, or effort substitution. Cursor Agent effort is encoded in the model id.
 
 The first request in a consult line starts clean and captures a session handle. The second and third same-line requests resume that exact child session by default. The fourth same-line request starts a new clean chain unless the user explicitly asks to continue. Cold, independent, fresh-eyes, changed-runtime, changed-model, changed-effort, or changed-work-root requests start a new chain. The skill never resumes a "latest" session.
 
@@ -614,7 +614,7 @@ Each chain keeps `chain.json` plus per-turn `prompt.md`, `final.txt`, `events.js
 
 Examples:
 
-- `Use $fresh-consult with Codex gpt-5.5 xhigh to audit whether this plan is complete`
+- `Use $fresh-consult with Codex gpt-5.6-sol xhigh to audit whether this plan is complete`
 - `Use $fresh-consult with Fugu Ultra xhigh to audit whether this plan is complete`
 - `Use $fresh-consult with Claude Fable 5 high for a cold read of this skill flow`
 - `Use $fresh-consult to tell me whether this doc is linear and not confusing`
@@ -631,13 +631,13 @@ Practical rule:
 
 Use when the user wants one or more fresh-resumable Claude, Codex GPT/GBT models or Fugu profiles, Cursor Agent, or Grok subprocesses to do concrete work in the current workspace: implementation, editing, investigation-and-fix, command execution, verification, or installed-skill use. It is prompt-only: it writes delegation prompts, runs the selected local CLI hook-suppressed where supported and unsandboxed in the shared worktree, captures each child `prompt.md`, `final.txt`, `events.jsonl`, `stderr.log`, `execution.json`, and normally `session_id.txt` under `/tmp/agent-delegate/...`, then reports status, changed files, verification, blockers, follow-up, run directories, and session id when present.
 
-The user supplies runtime, model or profile, and effort, or the skill asks once before invoking. Runtime can be inferred only from unambiguous model families such as `gpt-5.5`, `GBT55XI`, `fugu`, or `fugu-ultra` for Codex, `Claude Fable 5` for Claude, `Cursor Agent composer 2.5` for Cursor Agent, or `Grok Build` for Grok. Cursor Agent Composer resolves to `composer-2.5-fast`; Grok resolves to `grok-build` unless Grok Composer is named. Exact model versions and profile names are preserved; there is no silent downgrade, provider switch, effort substitution, detached fallback, or separate-worktree fallback. Cursor Agent effort is encoded in the model id.
+The user supplies runtime, model or profile, and effort, or the skill asks once before invoking. Runtime can be inferred only from unambiguous model families such as `gpt-5.6-sol`, `GPT56SOLXI`, `fugu`, or `fugu-ultra` for Codex, `Claude Fable 5` for Claude, `Cursor Agent composer 2.5` for Cursor Agent, or `Grok Build` for Grok. Cursor Agent Composer resolves to `composer-2.5-fast`; Grok resolves to `grok-build` unless Grok Composer is named. Exact model versions and profile names are preserved; there is no silent downgrade, provider switch, effort substitution, detached fallback, or separate-worktree fallback. Cursor Agent effort is encoded in the model id.
 
 Delegated children commonly take 5+ minutes; broad edits, verification, `xhigh`, or `max` can reasonably take 20-40 minutes. Poll live streams every few minutes, not every few seconds.
 
 Examples:
 
-- `Use $agent-delegate with Codex gpt-5.5 xhigh to implement this README and Makefile update`
+- `Use $agent-delegate with Codex gpt-5.6-sol xhigh to implement this README and Makefile update`
 - `Use $agent-delegate with Fugu high to implement this README and Makefile update`
 - `Use $agent-delegate with Claude Fable 5 high to fix this failing test`
 - `Use $agent-delegate to run $skill-authoring on this one skill package`
@@ -704,7 +704,7 @@ Practical rule:
 
 Use when the user wants two selected Claude, Codex GPT/GBT models or Fugu profiles, Cursor Agent, or Grok models to cross-check, critique, and iterate on a plan, architecture, investigation, design, or concept until they converge, or until they expose the smallest unresolved decision. It is prompt-only: the parent agent is the runner, orchestrates directly, launches resumable hook-suppressed child sessions where supported, and relays critiques. Do not add a deterministic runner, script, controller, or harness layer.
 
-The user supplies runtime/model-or-profile/effort for both participants, or the skill asks once. Shorthand such as `gpt 5.5 xhigh`, `Fugu Ultra xhigh`, `Claude Fable 5 high`, `Cursor Agent composer 2.5`, or `Grok Build high` follows the shared model-resolution doctrine: Cursor Agent Composer resolves to `composer-2.5-fast`, Grok resolves to `grok-build` unless Grok Composer is named, exact versions and profile names are preserved, CLI model discovery is used for ordinary model ids when availability matters, and ambiguous IDs fail loud instead of silently downgrading.
+The user supplies runtime/model-or-profile/effort for both participants, or the skill asks once. Shorthand such as `gpt-5.6-sol xhigh`, `Fugu Ultra xhigh`, `Claude Fable 5 high`, `Cursor Agent composer 2.5`, or `Grok Build high` follows the shared model-resolution doctrine: Cursor Agent Composer resolves to `composer-2.5-fast`, Grok resolves to `grok-build` unless Grok Composer is named, exact versions and profile names are preserved, CLI model discovery is used for ordinary model ids when availability matters, and ambiguous IDs fail loud instead of silently downgrading.
 
 For repo-backed investigations, root-cause work, and "read everything" cross-checks, both participants must read real evidence before agreeing. The parent records the raw user goal, exact user-named artifacts, desired output, and hard constraints. The child models choose and cite the code, docs, research, tests, commands, and local evidence they need.
 
@@ -714,10 +714,10 @@ Participant sessions preserve live event streams by default. Normal rounds often
 
 Examples:
 
-- `Use $model-consensus with Claude Fable 5 high and Codex gpt-5.5 xhigh to find the simplest architecture for this repo change`
+- `Use $model-consensus with Claude Fable 5 high and Codex gpt-5.6-sol xhigh to find the simplest architecture for this repo change`
 - `Use $model-consensus with Fugu Ultra xhigh and Claude Fable 5 high to test this plan`
-- `Use $model-consensus with Codex gpt-5.5 xhigh in adversarial mode against Claude Sonnet 4.6 high`
-- `Use $model-consensus with gpt 5.5 xhigh and Opus 4.7 max to read everything and figure out why this training path is failing`
+- `Use $model-consensus with Codex gpt-5.6-sol xhigh in adversarial mode against Claude Sonnet 4.6 high`
+- `Use $model-consensus with gpt-5.6-sol xhigh and Opus 4.7 max to read everything and figure out why this training path is failing`
 - `Use $model-consensus to have two models iterate on this concept until they agree or name the unresolved tradeoff`
 
 Practical rule:

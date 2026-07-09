@@ -329,8 +329,8 @@ Before I run the epic automatically, I need the role execution table.
 
 ### User replies
 
-> "Planner Claude Fable 5 high, implementation Codex gpt 5.5
-> xhigh, critic Codex gpt 5.5 xhigh."
+> "Planner Claude Fable 5 high, implementation Codex gpt-5.6-sol
+> xhigh, critic Codex gpt-5.6-sol xhigh."
 
 ### `auto-run` mode
 
@@ -338,8 +338,8 @@ The skill resolves and announces:
 
 ```text
 epic_planner -> runtime=claude, model=claude-fable-5, effort=high
-implementation_worker -> runtime=codex, model=gpt-5.5, effort=xhigh
-critic -> runtime=codex, model=gpt-5.5, effort=xhigh
+implementation_worker -> runtime=codex, model=gpt-5.6-sol, effort=xhigh
+critic -> runtime=codex, model=gpt-5.6-sol, effort=xhigh
 poll_seconds -> 180
 quiet_floor_seconds -> 900
 stuck_floor_seconds -> 1800

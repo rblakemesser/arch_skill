@@ -10,7 +10,7 @@ Common failure modes when invoking codex exec for review, and what to do.
 ## Profile `yolo` not found
 
 - `grep -A2 '^\[profiles.yolo\]' ~/.codex/config.toml` must return the profile block.
-- If missing, the user needs to configure it before this skill is usable. Do not invent a substitute profile — the model (gpt-5.4) and reasoning effort (xhigh) are the point of this skill.
+- If missing, the user needs to configure it before this skill is usable. Do not invent a substitute profile — the model (gpt-5.6-sol) and reasoning effort (xhigh) are the point of this skill.
 
 ## The namespaced final-output file never appears
 
