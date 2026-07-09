@@ -1,6 +1,6 @@
 ---
 name: agent-delegate
-description: "Delegate one or more concrete tasks to Claude Fable/Opus, Codex GPT/GBT models or Fugu profiles, Cursor Composer, or Grok subprocesses with full local agent capabilities. Use when the user wants another agent, multiple agents, or parallel agents to implement, edit, investigate-and-fix, run commands, use installed skills, or resume one previously delegated same-runtime worker session by exact handle. Fresh-resumable is the default; ask once if runtime, model/profile, effort, work root, write scope, task, or required resume handle is missing. Run hook-suppressed where supported and unsandboxed in the shared worktree. Do NOT use for read-only second opinions (`fresh-consult`), Codex `-p yolo` reviews (`codex-review-yolo`), two-model plan convergence (`model-consensus`), ordered workflow orchestration (`stepwise`/`arch-epic`), or detached/background delegation."
+description: "Delegate one or more concrete tasks to Claude Fable/Opus, Codex GPT/GBT models or Fugu profiles, Cursor Composer, or Grok subprocesses with full local agent capabilities. Use when the user wants another agent, multiple agents, or parallel agents to implement, edit, investigate-and-fix, run commands, use installed skills, or resume one previously delegated same-runtime worker session by exact handle. Fresh-resumable is the default; an omitted Codex model defaults to gpt-5.6-sol. Ask once for other missing execution or task values. Run hook-suppressed where supported and unsandboxed in the shared worktree. Do NOT use for read-only second opinions (`fresh-consult`), Codex `-p yolo` reviews (`codex-review-yolo`), two-model plan convergence (`model-consensus`), ordered workflow orchestration (`stepwise`/`arch-epic`), or detached/background delegation."
 metadata:
   short-description: "Claude, Codex, Cursor, or Grok worker"
 ---
@@ -60,12 +60,13 @@ automation.
 - Resolve each delegated task, success bar, work root, allowed write scope,
   constraints, delegation mode, and exact user-named inputs before launching
   child processes.
-- Runtime, model or profile, and effort must be known. Codex runs
+- Runtime and effort must be known. Model or profile must also be known except
+  that a Codex lane with no named model defaults to `gpt-5.6-sol`. Codex runs
   GPT/GBT/OpenAI model ids and Fugu profiles, Claude Code runs supported
   Claude models, Cursor Agent runs `composer-2.5-fast`, and Grok CLI runs
   `grok-build` or
-  `grok-composer-2.5-fast`. If any value is missing or ambiguous, ask one
-  consolidated question before invoking.
+  `grok-composer-2.5-fast`. If any other required value is missing or
+  ambiguous, ask one consolidated question before invoking.
 - Never run GPT/GBT model ids, Fugu profiles, or Claude models through Cursor
   Agent or Grok. Do not pass Grok model ids to Codex, Claude, or Cursor Agent.
 - Delegation mode is one of `fresh-one-shot`, `fresh-resumable`, or `resume`.
@@ -121,9 +122,10 @@ automation.
 4. Identify the delegation mode. Use `fresh-resumable` unless the caller
    explicitly asks for a stateless one-shot worker or to resume a previous
    delegate.
-5. If runtime/model/effort, write scope, or a required resume handle is
-   incomplete, ask one question that names exactly what is missing and what it
-   controls.
+5. Apply the `gpt-5.6-sol` default when the lane is Codex and no model was
+   named. If another required execution value, write scope, or resume handle
+   is incomplete, ask one question that names exactly what is missing and what
+   it controls.
 6. Confirm the selected CLI exists with `command -v codex`, `command -v
    claude`, `command -v agent`, or `command -v grok`.
 7. Create the run directory or group directory and write each delegation prompt

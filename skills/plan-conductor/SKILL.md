@@ -69,11 +69,14 @@ log beside the plan is its durable memory.
   (`<PLAN_STEM>_CONDUCTOR_LOG.md` beside the plan) is schedule, evidence, and
   resume state — never a second plan.
 - Whole plan is the default boundary; honor an explicit phase range exactly.
-- Worker runtime, model, and effort are supplied by the user. If missing, ask
-  one consolidated question before launching. Never choose a favorite default
-  model. Provider routing is fixed: Codex runs GPT/GBT/OpenAI ids and Fugu
-  profiles, Claude Code runs supported Claude models, Cursor Agent runs
-  `composer-2.5-fast`, Grok runs `grok-build` or `grok-composer-2.5-fast`.
+- Worker runtime and effort are supplied by the user. Model or profile is also
+  supplied except that a Codex worker with no named model defaults to
+  `gpt-5.6-sol`. Accept `sol`, `luna`, and `terra` as `gpt-5.6-sol`,
+  `gpt-5.6-luna`, and `gpt-5.6-terra`. Ask one consolidated question for other
+  missing execution values before launching. Provider routing is fixed: Codex
+  runs GPT/GBT/OpenAI ids and Fugu profiles, Claude Code runs supported Claude
+  models, Cursor Agent runs `composer-2.5-fast`, Grok runs `grok-build` or
+  `grok-composer-2.5-fast`.
 - Read the plan once, end to end, at intake. If it yields no observable
   done-ness anywhere — no requirements, checklists, exit criteria, or
   verification obligations — stop before dispatching any worker and report
@@ -147,8 +150,8 @@ log beside the plan is its durable memory.
 2. Read `references/plan-intake-and-readiness.md`.
 3. Resolve the plan path, boundary (whole plan unless the user named a phase
    range), worker runtime/model/effort, max parallelism, wave cap, and cold
-   verifier toggle. Ask one consolidated question only for missing execution
-   values.
+   verifier toggle. Default an omitted Codex model to `gpt-5.6-sol`; ask one
+   consolidated question only for other missing execution values.
 4. Read the plan once end to end. Create or update
    `<PLAN_STEM>_CONDUCTOR_LOG.md` with the extracted execution map, and apply
    the readiness gate.

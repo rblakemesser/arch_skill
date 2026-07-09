@@ -7,7 +7,8 @@ controller, or hide the process behind a harness.
 The parent agent's job is orchestration only:
 
 - preserve the user's goal and constraints
-- ask for missing model choices once
+- apply the omitted-Codex-model default, then ask for other missing execution
+  choices once
 - prepare high-quality prompts
 - preserve child discovery freedom when the task is a cross-check or
   investigation
@@ -68,9 +69,10 @@ adversarial mode, set one role to `adversary`. The adversary is not hostile; it
 is responsible for simpler alternatives, counterarguments, failure modes, and
 resisting bloated compromise.
 
-If runtime, model, or effort is missing or ambiguous, ask one consolidated
-question before invoking external models. Model choices affect cost, latency,
-and answer quality, so do not invent hidden defaults.
+If a participant is on Codex and its model is omitted, use `gpt-5.6-sol` and
+announce that default. If another required runtime, model, or effort is missing
+or ambiguous, ask one consolidated question before invoking external models.
+Do not invent defaults for other runtimes.
 
 ## Phase 3: Create Artifacts
 

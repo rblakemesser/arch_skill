@@ -51,7 +51,7 @@ patterns when the task is architectural, and avoids kitchen-sink plans.
   models have actually converged. It must not reduce the work to a brittle
   script or fake state machine.
 - The parent agent must not solve the problem itself. It may restate the goal,
-  enforce the process, ask for missing model choices, request repo evidence,
+  enforce the process, ask for missing execution choices, request repo evidence,
   and synthesize only what the child sessions actually agreed on.
 - Preserve child discovery freedom. The parent records the raw goal, resolved
   model mapping, explicit constraints, desired output, and exact user-named
@@ -64,10 +64,12 @@ patterns when the task is architectural, and avoids kitchen-sink plans.
   inputs. If the user wants a plan, the children should find the existing owner
   path before proposing where work belongs. If the user wants an investigation,
   the children should choose and cite the evidence trail themselves.
-- Ask once for missing model choices. Each participant needs runtime, runnable
-  model id or exact model phrase, and effort. If the user names shorthand such
-  as "gpt-5.6-sol xhigh" or "Claude Fable 5 high", resolve it with the shared
-  model-resolution rules and announce the raw-to-resolved mapping.
+- Ask once for missing execution choices. Each participant needs runtime and
+  effort; a non-Codex participant also needs a runnable model id or exact
+  model phrase. A Codex participant with no named model defaults to
+  `gpt-5.6-sol`. Resolve shorthand such as "luna xhigh", "terra high", or
+  "Claude Fable 5 high" with the shared model-resolution rules and announce
+  the raw-to-resolved mapping.
 - Provider routing is fixed: Codex runs GPT/GBT/OpenAI model ids and Fugu
   profiles, Claude Code runs supported Claude models, Cursor Agent runs
   `composer-2.5-fast`, and Grok CLI runs `grok-build` or
@@ -104,8 +106,9 @@ Then:
 2. Build a faithful goal brief using prompt-authoring discipline. Clarify the
    goal, constraints, desired output, and exact user-named inputs without adding
    the caller's diagnosis or investigation frame.
-3. Resolve the two participant execution choices. Ask one concise question if
-   any runtime/model/effort choice is missing or ambiguous. Cursor Agent always
+3. Resolve the two participant execution choices. Default an omitted Codex
+   model to `gpt-5.6-sol`, then ask one concise question if another required
+   runtime/model/effort choice is missing or ambiguous. Cursor Agent always
    means `composer-2.5-fast`; Grok without a Composer model means `grok-build`.
 4. Create a per-run artifact directory by hand, for example
    `.arch_skill/model-consensus/<slug>-<timestamp>/`. Store prompts, final

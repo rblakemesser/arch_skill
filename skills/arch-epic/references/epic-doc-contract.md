@@ -62,10 +62,11 @@ Frontmatter rules:
   decomposition after approval, the skill appends to the log and
   keeps `sub_plans_approved: true`; "approved" means "the user has
   seen and blessed the shape," not "the decomposition is frozen."
-- `critic_runtime`, `critic_model`, `critic_effort` are user-supplied
-  per `model-and-effort.md` for interactive-mode completion critics.
-  They are not defaulted. `critic_model` stores the resolved runnable
-  identifier, not raw shorthand. During same-session `auto-plan`, these fields
+- `critic_runtime` and `critic_effort` are user-supplied per
+  `model-and-effort.md` for interactive-mode completion critics. The model is
+  also user-supplied except that an omitted Codex critic model defaults to
+  `gpt-5.6-sol`. `critic_model` stores the resolved runnable identifier, not
+  raw shorthand. During same-session `auto-plan`, these fields
   may stay `null` because no epic critic runs during planning; same-session
   `auto-implement` must fill them before the first epic critic. When the user
   explicitly asked for spawned-harness end-to-end execution, these fields may

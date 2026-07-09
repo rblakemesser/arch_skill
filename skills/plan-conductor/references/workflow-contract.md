@@ -22,7 +22,8 @@ boundary, or lower the plan's quality bar to finish faster.
 ## Lifecycle
 
 1. Intake: plan path, boundary (whole plan default), worker
-   runtime/model/effort, max parallelism, wave cap, cold verifier toggle.
+   runtime/model/effort, max parallelism, wave cap, cold verifier toggle. A
+   Codex worker with no named model uses `gpt-5.6-sol`.
 2. Plan read and extraction into the conductor log; readiness gate.
 3. Initial or resume checkpoint commit.
 4. Wave loop:

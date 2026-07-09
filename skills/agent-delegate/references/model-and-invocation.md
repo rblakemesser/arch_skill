@@ -2,7 +2,8 @@
 
 Use this reference to resolve what the user meant by "Claude", "Codex",
 "Cursor Agent", "Grok", "fable 5 high", "opus high", "gpt-5.6-sol xhigh",
-"fugu high", "fugu-ultra xhigh", "composer-2.5-fast", "grok-build", or
+"luna xhigh", "terra high", "fugu high", "fugu-ultra xhigh",
+"composer-2.5-fast", "grok-build", or
 similar phrasing, and to run the
 selected worker subprocess or explicit parallel group of worker subprocesses.
 Fresh-resumable is the default: new children start cold but capture a session
@@ -17,7 +18,8 @@ Every delegation child needs:
 - `mode` - `fresh-one-shot`, `fresh-resumable`, or `resume`
 - `runtime` - `claude`, `codex`, `agent`, or `grok`
 - `model` - the runnable CLI model identifier or Codex profile name, or the
-  previous session model/profile when a resume intentionally reuses it
+  previous session model/profile when a resume intentionally reuses it.
+  An omitted model on a Codex lane resolves to `gpt-5.6-sol`.
 - `effort` - the reasoning effort level, or the previous session effort when a
   resume intentionally reuses it
 
@@ -28,13 +30,14 @@ Resume mode also needs either:
 - `run_dir` - a previous `agent-delegate` run directory containing
   `session_id.txt` and `execution.json`
 
-If any value is missing or ambiguous, ask one consolidated question before
-invoking:
+If any required value is missing or ambiguous after applying the Codex model
+default, ask one consolidated question before invoking:
 
 ```text
-I need the delegate runtime, model, effort, and resume handle before invoking
-an external agent. The delegate runs as a foreground subprocess, can edit the
-shared worktree, and can spend real model budget. What should I use?
+I need the delegate runtime, effort, non-Codex model/profile when applicable,
+and resume handle before invoking an external agent. The delegate runs as a
+foreground subprocess, can edit the shared worktree, and can spend real model
+budget. What should I use?
 ```
 
 Add only the missing facts to the question when some values are already known.
@@ -70,9 +73,10 @@ skill.
 
 Infer runtime only when the user's wording makes it unambiguous:
 
-- `codex`, `openai`, `gpt`, `gbt`, `gpt-5.6-sol`, `GPT56SOLXI`,
-  `gpt-5.6-sol high`, `gpt-5.3-codex`, `fugu high`, or `fugu-ultra xhigh` implies
-  `runtime=codex`.
+- `codex`, `openai`, `gpt`, `gbt`, `sol`, `luna`, `terra`,
+  `gpt-5.6-sol`, `gpt-5.6-luna`, `gpt-5.6-terra`, `GPT56SOLXI`,
+  `GPT56LUNAXI`, `GPT56TERRAXI`, `gpt-5.3-codex`, `fugu high`, or
+  `fugu-ultra xhigh` implies `runtime=codex`.
 - `claude fable`, `fable`, `claude opus`, or `opus` implies
   `runtime=claude`.
 - `sonnet` and `haiku` are not supported by this repo's subprocess doctrine;
@@ -89,20 +93,27 @@ Infer runtime only when the user's wording makes it unambiguous:
   Fugu profiles, or Claude models through Cursor Agent.
 - If a phrase mixes Grok with GPT/GBT model ids, Fugu profiles, Claude, or
   Cursor Agent, fail loud instead of choosing a side.
-- If the user names only an effort level, such as "xhigh", ask for runtime and
-  model.
+- If the user names only an effort level, such as "xhigh", ask for runtime.
+  If the answer is Codex and still omits a model, use `gpt-5.6-sol`.
 - If the user says only "delegate this" or "have another agent do this", ask
-  for runtime, model, and effort.
+  for runtime and effort; ask for a model/profile only when the selected lane
+  is not Codex.
 
-Do not choose a favorite default. The selected model changes both cost and
-quality, so the user supplies it.
+The Codex default is deliberately narrow: when the lane is Codex and no model
+or profile is named, use `gpt-5.6-sol`. Do not default the runtime itself, and
+do not invent defaults for Claude, Cursor Agent, Grok, or Fugu profiles.
 
 ## Model Phrase Resolution
 
 Treat model text as intent, not a loose alias:
 
-- Preserve model family and numeric version exactly. `gpt-5.6-sol` may normalize to
-  `gpt-5.6-sol`; it must not become `gpt-5.4` or `gpt-5.5`. `fable 5` may normalize to
+- Accept `sol`, `luna`, and `terra` as the Codex 5.6 choices. They resolve to
+  `gpt-5.6-sol`, `gpt-5.6-luna`, and `gpt-5.6-terra`; compact forms such as
+  `GPT56LUNAXI` and `GPT56TERRAXI` preserve the named variant and imply
+  `xhigh`. If a Codex lane names no model or profile, resolve it to
+  `gpt-5.6-sol` and report that the model came from the default.
+- Preserve model family and numeric version exactly. `gpt-5.6-luna` may normalize to
+  `gpt-5.6-luna`; it must not become `gpt-5.6-sol`, `gpt-5.4`, or `gpt-5.5`. `fable 5` may normalize to
   `claude-fable-5`, and `opus 4.7` may normalize to `claude-opus-4-7`;
   neither may become another Claude family or version.
 - If the user says `gpt 5.4`, `gpt 5.5`, or a variant of either while choosing
@@ -136,6 +147,9 @@ Always announce the raw-to-resolved mapping before execution:
 ```text
 Claude Fable 5 high -> runtime=claude, model=claude-fable-5, effort=high
 Claude Opus 4.7 xhigh -> runtime=claude, model=claude-opus-4-7, effort=xhigh
+Codex high -> runtime=codex, model=gpt-5.6-sol, effort=high, model_source=default
+Luna xhigh -> runtime=codex, model=gpt-5.6-luna, effort=xhigh
+Terra high -> runtime=codex, model=gpt-5.6-terra, effort=high
 Fugu Ultra xhigh -> runtime=codex, model=fugu-ultra, codex_profile=fugu-ultra, effort=xhigh
 Grok Build high -> runtime=grok, model=grok-build, effort=high
 ```

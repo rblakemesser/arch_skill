@@ -22,17 +22,24 @@ from typing import Any
 VALID_RUNTIMES = {"agent", "claude", "codex", "grok"}
 VALID_EFFORTS = {"low", "medium", "high", "xhigh", "max"}
 PREFERRED_CODEX_MODEL = "gpt-5.6-sol"
+CODEX_56_VARIANTS = ("sol", "luna", "terra")
 BLOCKED_CODEX_MODELS = frozenset({"gpt-5.4", "gpt-5.5"})
 
 _CLAUDE_FAMILIES = {"fable", "opus"}
+_CODEX_56_VARIANT_PATTERN = "|".join(CODEX_56_VARIANTS)
+_CODEX_SUFFIX_PATTERN = "|".join(("mini", "codex", "spark", *CODEX_56_VARIANTS))
 _CODEX_FAMILY_RE = re.compile(
     r"\b(?:gpt|gbt)[\s_-]*(?P<version>\d+(?:\.\d+)?)"
-    r"(?P<suffix>(?:[\s_-]*(?:mini|codex|spark|sol))*)\b",
+    rf"(?P<suffix>(?:[\s_-]*(?:{_CODEX_SUFFIX_PATTERN}))*)\b",
     re.IGNORECASE,
 )
-_PREFERRED_CODEX_COMPACT_RE = re.compile(
-    r"\b(?:gpt|gbt)[\s_-]*56[\s_-]*sol(?:[\s_-]*(?:xhigh|xi|x))?\b",
+_CODEX_56_COMPACT_RE = re.compile(
+    rf"\b(?:gpt|gbt)[\s_-]*56[\s_-]*(?P<variant>{_CODEX_56_VARIANT_PATTERN})"
+    r"(?:[\s_-]*(?:xhigh|xi|x))?\b",
     re.IGNORECASE,
+)
+_CODEX_56_BARE_VARIANT_RE = re.compile(
+    rf"\b(?P<variant>{_CODEX_56_VARIANT_PATTERN})\b", re.IGNORECASE
 )
 _BLOCKED_GPT55_COMPACT_RE = re.compile(
     r"\b(?:gpt|gbt)[\s_-]*55(?:[\s_-]*(?:xhigh|xi|x))?\b",
@@ -145,8 +152,25 @@ def discover_codex_models() -> list[str]:
     )
     if proc.returncode != 0:
         return []
+
     candidates: set[str] = set()
-    for token in re.findall(r"\b(?:gpt|gbt|o)\S+", proc.stdout, re.IGNORECASE):
+    try:
+        payload = json.loads(proc.stdout)
+    except json.JSONDecodeError:
+        payload = None
+    if isinstance(payload, dict):
+        for item in payload.get("models", []):
+            slug = item.get("slug") if isinstance(item, dict) else item
+            if isinstance(slug, str) and slug.strip():
+                candidates.add(slug.strip().lower())
+        if candidates:
+            return sorted(candidates)
+
+    for token in re.findall(
+        r"\b(?:(?:gpt|gbt)-[a-z0-9._-]+|o\d[a-z0-9._-]*)\b",
+        proc.stdout,
+        re.IGNORECASE,
+    ):
         cleaned = token.strip("`'\",:;()[]{}")
         if cleaned:
             candidates.add(cleaned.lower())
@@ -190,6 +214,9 @@ def resolve_execution_phrase(
     - "Claude Opus 4.7 xhigh" -> claude / claude-opus-4-7 / xhigh
     - "codex gpt 5.4 mini high" -> codex / gpt-5.4-mini / high
     - "GPT56SOLXI" -> codex / gpt-5.6-sol / xhigh
+    - "luna xhigh" -> codex / gpt-5.6-luna / xhigh
+    - "GPT56TERRAXI" -> codex / gpt-5.6-terra / xhigh
+    - "codex high" -> codex / gpt-5.6-sol / high
     - "Fugu high" -> codex / profile fugu / high
     - "Fugu Ultra xhigh" -> codex / profile fugu-ultra / xhigh
     - "cursor agent composer-2.5-fast" -> agent / composer-2.5-fast / encoded-in-model
@@ -230,10 +257,11 @@ def resolve_execution_phrase(
     if runtime == "claude":
         model = _resolve_claude_model(raw)
     elif runtime == "codex":
-        model = _resolve_codex_model(raw, codex_models=codex_models)
+        model, model_source = _resolve_codex_model(
+            raw, codex_models=codex_models
+        )
         if fugu_candidate is not None:
             codex_profile = model
-            model_source = "codex_profile"
         _validate_codex_effort(model, effort or "", raw)
     elif runtime == "agent":
         model = _resolve_agent_model(raw, agent_models=agent_models)
@@ -251,7 +279,8 @@ def resolve_execution_phrase(
         source_quote=source_quote,
         resolution_reason=(
             f"{source_quote!r} resolved to runtime={runtime}, model={model}, "
-            f"effort={effort}, codex_profile={codex_profile or '<none>'} "
+            f"effort={effort}, model_source={model_source}, "
+            f"codex_profile={codex_profile or '<none>'} "
             "with exact model family/version preservation."
         ),
         codex_profile=codex_profile,
@@ -351,7 +380,8 @@ def _extract_effort(lowered: str) -> str | None:
     if re.search(r"\b(?:extra[\s_-]*high|x[\s_-]*high)\b", lowered):
         return "xhigh"
     if re.search(
-        r"\b(?:gpt|gbt)[\s_-]*(?:55|56[\s_-]*sol)[\s_-]*(?:xi|x)\b",
+        rf"\b(?:gpt|gbt)[\s_-]*(?:55|56[\s_-]*(?:{_CODEX_56_VARIANT_PATTERN}))"
+        r"[\s_-]*(?:xi|x)\b",
         lowered,
     ):
         return "xhigh"
@@ -364,7 +394,8 @@ def _extract_effort(lowered: str) -> str | None:
 def _infer_runtime(lowered: str) -> tuple[str | None, str]:
     has_codex = bool(
         re.search(r"\b(codex|openai|gpt|gbt|sakana)\b", lowered)
-        or _PREFERRED_CODEX_COMPACT_RE.search(lowered)
+        or _CODEX_56_COMPACT_RE.search(lowered)
+        or _CODEX_56_BARE_VARIANT_RE.search(lowered)
         or _BLOCKED_GPT55_COMPACT_RE.search(lowered)
         or _FUGU_MODEL_RE.search(lowered)
     )
@@ -430,31 +461,43 @@ def _resolve_claude_model(raw: str) -> str:
     return f"claude-{family}-{normalized_version}"
 
 
-def _resolve_codex_model(raw: str, *, codex_models: list[str] | None) -> str:
+def _resolve_codex_model(
+    raw: str,
+    *,
+    codex_models: list[str] | None,
+) -> tuple[str, str]:
     candidate = _extract_fugu_model_candidate(raw.lower())
     if candidate is not None:
-        return candidate
+        return candidate, "codex_profile"
 
     match = _CODEX_FAMILY_RE.search(raw)
-    preferred_compact = _PREFERRED_CODEX_COMPACT_RE.search(raw)
+    compact_variant = _CODEX_56_COMPACT_RE.search(raw)
+    bare_variant = _CODEX_56_BARE_VARIANT_RE.search(raw)
     blocked_compact = _BLOCKED_GPT55_COMPACT_RE.search(raw)
-    if not match and not preferred_compact and not blocked_compact:
-        raise ModelResolutionError(f"could not find a Codex model in {raw!r}")
 
-    if preferred_compact:
-        candidate = PREFERRED_CODEX_MODEL
+    model_source = "explicit"
+    if compact_variant:
+        candidate = f"gpt-5.6-{compact_variant.group('variant').lower()}"
     elif blocked_compact:
         candidate = "gpt-5.5"
-    else:
+    elif match:
         version = match.group("version")
         suffix_words = re.findall(
-            r"(mini|codex|spark|sol)", match.group("suffix"), re.IGNORECASE
+            rf"({_CODEX_SUFFIX_PATTERN})",
+            match.group("suffix"),
+            re.IGNORECASE,
         )
         candidate = f"gpt-{version}"
         if suffix_words:
             candidate += "-" + "-".join(word.lower() for word in suffix_words)
+    elif bare_variant:
+        candidate = f"gpt-5.6-{bare_variant.group('variant').lower()}"
+    else:
+        candidate = PREFERRED_CODEX_MODEL
+        model_source = "default"
 
-    return _resolve_codex_candidate(raw, candidate, codex_models=codex_models)
+    resolved = _resolve_codex_candidate(raw, candidate, codex_models=codex_models)
+    return resolved, model_source
 
 
 def _resolve_codex_candidate(

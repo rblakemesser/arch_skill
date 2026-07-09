@@ -1,7 +1,7 @@
 interface:
   display_name: "Plan Conductor"
   short_description: "Whole-plan conductor driving cheap delegated workers"
-  default_prompt: "Use $plan-conductor to drive an entire existing plan document to verified completion: extract the plan into a conductor log, delegate phase-sized slices to cheaper fast workers through $agent-delegate fresh-resumable sessions, parallelize only naturally independent slices, wait patiently without tailing streams, cynically audit every diff against the plan, resume the same worker session with batched findings until exit criteria are true in code, delegate verification runs, and close with a whole-plan audit plus an optional cold verifier."
+  default_prompt: "Use $plan-conductor to drive an entire existing plan document to verified completion: extract the plan into a conductor log, delegate phase-sized slices to cheaper fast workers through $agent-delegate fresh-resumable sessions, parallelize only naturally independent slices, wait patiently without tailing streams, cynically audit every diff against the plan, resume the same worker session with batched findings until exit criteria are true in code, delegate verification runs, and close with a whole-plan audit plus an optional cold verifier. Codex workers accept gpt-5.6-sol, gpt-5.6-luna, and gpt-5.6-terra; when the Codex model is omitted, use gpt-5.6-sol."
 
 policy:
   allow_implicit_invocation: true

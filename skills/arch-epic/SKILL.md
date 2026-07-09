@@ -36,7 +36,7 @@ COMPLETE`, and marks the sub-plan `complete` only after that critic passes.
 The spawned harness lane is also explicit and opt-in. After the user approves the
 decomposition, arch-epic asks for a role-based execution table:
 `epic_planner`, `implementation_worker`, and `critic`.
-It resolves shorthand such as `opus 4.7 xhigh`, `gpt-5.6-sol high`, or
+It resolves shorthand such as `opus 4.7 xhigh`, `luna high`, `terra xhigh`, or
 `fugu-ultra xhigh` to runnable model ids or Codex profiles using the shared
 resolver doctrine, pins the resolved
 policy, then drives sub-plans depth-first with spawned child harnesses whose
@@ -150,7 +150,8 @@ Must happen every run:
   gate. Interactive mode needs critic runtime + model + effort.
   Spawned-harness mode needs role execution for `epic_planner`,
   `implementation_worker`, and `critic`. The skill asks once for
-  missing role values and never silently defaults. Existing policies
+  missing role values. An omitted model on a Codex role defaults to
+  `gpt-5.6-sol`; runtime and effort never silently default. Existing policies
   with legacy `repair_worker` values may load, but ordinary critic
   failures resume the original planner or implementation worker session.
   Same-session `auto-plan` needs no role table. Same-session
@@ -247,9 +248,9 @@ Must never happen:
 
 Detail per mode lives in `references/workflow-contract.md`.
 
-1. **`start`** — epic doc does not yet exist. Propose path, ask for
-   critic model/effort if missing, draft Decomposition, surface for
-   approval.
+1. **`start`** — epic doc does not yet exist. Propose path, apply the Codex
+   model default, ask for other critic execution values if missing, draft the
+   Decomposition, and surface it for approval.
 2. **`approve-decomposition`** — epic doc has
    `sub_plans_approved: false`. Apply user adjustments, flip flag,
    set `status: active`.

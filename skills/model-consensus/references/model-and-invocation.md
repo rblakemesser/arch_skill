@@ -12,27 +12,35 @@ profiles, Claude Code runs supported Claude models, Cursor Agent runs Composer
 Each participant needs:
 
 - `runtime`: `claude`, `codex`, `agent`, or `grok`
-- `model`: runnable model id, Codex profile name, or exact model phrase
+- `model`: runnable model id, Codex profile name, or exact model phrase. An
+  omitted model on a Codex lane resolves to `gpt-5.6-sol`.
 - `effort`: `low`, `medium`, `high`, `xhigh`, or `max` when supported by the
   selected runtime/model
 - `role`: `collaborator` or `adversary`
 
-If any execution choice is missing or ambiguous, ask one consolidated question:
+If any required execution choice is missing or ambiguous after applying the
+Codex model default, ask one consolidated question:
 
 ```text
 Before I run model-consensus, I need the two participant choices. These are
 real external model sessions and can spend model budget. Please give
-runtime/model/effort for Model A and Model B, and say whether either should be
-adversarial. Cursor Agent is Composer-only; Grok defaults to grok-build unless
-you name Grok Composer.
+runtime/effort for Model A and Model B, plus a model/profile for non-Codex
+participants, and say whether either should be adversarial. Codex defaults to
+gpt-5.6-sol when its model is omitted. Cursor Agent is Composer-only; Grok
+defaults to grok-build unless you name Grok Composer.
 ```
 
 ## Model Phrase Resolution
 
 Follow the shared model-resolution doctrine:
 
-- Preserve family and numeric version exactly. `gpt-5.6-sol` may normalize to
-  `gpt-5.6-sol`; it must not become `gpt-5.4` or `gpt-5.5`. `fable 5` may normalize to
+- Accept `sol`, `luna`, and `terra` as the Codex 5.6 choices. They resolve to
+  `gpt-5.6-sol`, `gpt-5.6-luna`, and `gpt-5.6-terra`; compact forms such as
+  `GPT56LUNAXI` and `GPT56TERRAXI` preserve the named variant and imply
+  `xhigh`. If a Codex lane names no model or profile, resolve it to
+  `gpt-5.6-sol` and report that the model came from the default.
+- Preserve family and numeric version exactly. `gpt-5.6-luna` may normalize to
+  `gpt-5.6-luna`; it must not become `gpt-5.6-sol`, `gpt-5.4`, or `gpt-5.5`. `fable 5` may normalize to
   `claude-fable-5`, and `opus 4.7` may normalize to `claude-opus-4-7`;
   neither may become another Claude family or version.
 - If the user says `gpt 5.4`, `gpt 5.5`, or a variant of either while choosing
@@ -40,7 +48,7 @@ Follow the shared model-resolution doctrine:
   they meant `gpt-5.6-sol`. This is an intent check, not an alias rule: do not
   rewrite the version yourself.
 - Infer runtime only from unambiguous family evidence: `gpt`/`gbt`/`fugu`/
-  `fugu-ultra`/`codex` implies Codex; `claude fable`, `fable`,
+  `fugu-ultra`/`codex`/`sol`/`luna`/`terra` implies Codex; `claude fable`, `fable`,
   `claude opus`, or `opus` implies Claude; `agent`, `cursor`, `cursor agent`,
   or `cursor-agent` implies Cursor Agent only for Composer.
   `grok`, `grok-build`, `grok build`, or `grok composer` implies Grok.
@@ -81,9 +89,11 @@ Always announce the mapping before execution:
 ```text
 Model A: "Claude Fable 5 high" -> runtime=claude, model=claude-fable-5, effort=high
 Model B: "Claude Opus 4.7 xhigh" -> runtime=claude, model=claude-opus-4-7, effort=xhigh
-Model C: "gpt-5.6-sol xhigh" -> runtime=codex, model=gpt-5.6-sol, effort=xhigh
-Model D: "Fugu Ultra xhigh" -> runtime=codex, model=fugu-ultra, codex_profile=fugu-ultra, effort=xhigh
-Model E: "Grok Build high" -> runtime=grok, model=grok-build, effort=high
+Model C: "codex high" -> runtime=codex, model=gpt-5.6-sol, effort=high, model_source=default
+Model D: "luna xhigh" -> runtime=codex, model=gpt-5.6-luna, effort=xhigh
+Model E: "terra high" -> runtime=codex, model=gpt-5.6-terra, effort=high
+Model F: "Fugu Ultra xhigh" -> runtime=codex, model=fugu-ultra, codex_profile=fugu-ultra, effort=xhigh
+Model G: "Grok Build high" -> runtime=grok, model=grok-build, effort=high
 ```
 
 For Fable participant prompts, keep the brief direct: state the goal,

@@ -1,7 +1,5 @@
 .PHONY: install crg-setup install_skill agents_install_skill clean_codex_skill_mirror clean_installed_hooks clean_codex_installed_hooks clean_claude_installed_hooks claude_install_skill gemini_install gemini_install_skill verify_install verify_agents_install verify_codex_install verify_claude_install verify_gemini_install remote_install clean_codex_stale_surfaces clean_claude_stale_surfaces clean_gemini_stale_surfaces
 
-CRG_MIN_FILES ?= 20
-
 # Purge removed packages from installed skill dirs before copying the active set.
 REMOVED_SKILLS := arch-skill arch-plan codemagic-builds customerio arch-loop delay-poll wait code-review plan-swarm
 # Shared doctrine directories that ship alongside the named skills. Multiple
@@ -101,7 +99,7 @@ INSTALL_GEMINI := gemini_install
 VERIFY_GEMINI := verify_gemini_install
 endif
 
-install: crg-setup clean_codex_stale_surfaces clean_claude_stale_surfaces clean_installed_hooks install_skill claude_install_skill $(INSTALL_GEMINI)
+install: clean_codex_stale_surfaces clean_claude_stale_surfaces clean_installed_hooks install_skill claude_install_skill $(INSTALL_GEMINI)
 
 # CRG is an optional agent accelerator. Missing tooling is loud but non-fatal.
 crg-setup:
@@ -127,25 +125,8 @@ crg-setup:
 		exit 0; \
 	fi
 	@if command -v code-review-graph >/dev/null 2>&1; then \
-		CRG_SHOULD_BUILD=0; \
-		if [ -f ".code-review-graph/graph.db" ]; then \
-			CRG_FILES=$$(code-review-graph status 2>/dev/null | awk '/^Files:/{print $$2}' | tr -d ','); \
-			if [ "$${CRG_FILES:-0}" -ge "$(CRG_MIN_FILES)" ] 2>/dev/null; then \
-				echo "✅ code-review-graph graph already built ($$CRG_FILES files)"; \
-			else \
-				echo "⚠️  code-review-graph graph looks partial or unreadable; rebuilding..."; \
-				CRG_SHOULD_BUILD=1; \
-			fi; \
-		else \
-			CRG_SHOULD_BUILD=1; \
-		fi; \
-		if [ "$$CRG_SHOULD_BUILD" = "1" ]; then \
-			echo "🕸️  Building code-review-graph graph; this can take a few minutes..."; \
-			code-review-graph build || { \
-				echo "⚠️  WARNING: code-review-graph graph build failed; setup will continue because CRG is optional."; \
-				exit 0; \
-			}; \
-		fi; \
+		bash scripts/code_review_graph.sh ensure || \
+			echo "⚠️  WARNING: code-review-graph graph setup failed; setup will continue because CRG is optional."; \
 	fi
 
 clean_codex_stale_surfaces:

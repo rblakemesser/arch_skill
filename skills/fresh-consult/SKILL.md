@@ -1,6 +1,6 @@
 ---
 name: fresh-consult
-description: "Invoke one or more Claude Fable/Opus, Codex GPT/GBT models or Fugu profiles, Cursor Composer, or Grok subprocesses for prompt-engineered read-only second opinions with strict pass/fail verdicts. First turns start clean from disk and the consult prompt; second/third same-line follow-ups resume the captured child session by default; turn four starts fresh unless the user asks to continue. Use for cold reads, bounded follow-up consults, parallel consults, flow consistency audits, completion checks, readability/confusion checks, or general second opinions. Ask once if runtime, model/profile, effort, or target is missing; run hook-suppressed where supported and unsandboxed; report mode, evidence, verdict, session id, and directories. Do NOT use for Codex `-p yolo` reviews (`codex-review-yolo`), ordered orchestration (`stepwise`/`arch-epic`), or implementation/fixing (`agent-delegate`)."
+description: "Invoke one or more Claude Fable/Opus, Codex GPT/GBT models or Fugu profiles, Cursor Composer, or Grok subprocesses for prompt-engineered read-only second opinions with strict pass/fail verdicts. First turns start clean from disk and the consult prompt; second/third same-line follow-ups resume the captured child session by default; turn four starts fresh unless the user asks to continue. Use for cold reads, bounded follow-up consults, parallel consults, flow consistency audits, completion checks, readability/confusion checks, or general second opinions. An omitted Codex model defaults to gpt-5.6-sol; ask once for other missing execution values or target. Run hook-suppressed where supported and unsandboxed. Do NOT use for Codex `-p yolo` reviews (`codex-review-yolo`), ordered orchestration (`stepwise`/`arch-epic`), or implementation/fixing (`agent-delegate`)."
 metadata:
   short-description: "Fresh Claude, Codex, Cursor, or Grok opinion"
 ---
@@ -57,12 +57,13 @@ controllers, state machines, parsers, or install-time automation.
 
 - Resolve each consult objective, exact user-named artifacts or target paths,
   hard constraints, and the work root before launching child processes.
-- Runtime, model or profile, and effort must be known. Codex runs
+- Runtime and effort must be known. Model or profile must also be known except
+  that a Codex lane with no named model defaults to `gpt-5.6-sol`. Codex runs
   GPT/GBT/OpenAI model ids and Fugu profiles, Claude Code runs supported
   Claude models, Cursor Agent runs `composer-2.5-fast`, and Grok CLI runs
   `grok-build` or
-  `grok-composer-2.5-fast`. If any value is missing or ambiguous, ask one
-  consolidated question before invoking.
+  `grok-composer-2.5-fast`. If any other required value is missing or
+  ambiguous, ask one consolidated question before invoking.
 - Never run GPT/GBT model ids, Fugu profiles, or Claude models through Cursor
   Agent or Grok. Do not pass Grok model ids to Codex, Claude, or Cursor Agent.
 - Treat model text as intent, not a fuzzy alias. Preserve exact family and
@@ -105,8 +106,10 @@ controllers, state machines, parsers, or install-time automation.
 3. Identify the consult objective or parallel consult objectives, work root,
    exact user-named artifacts or target paths, hard constraints, and requested
    runtime/model/effort from the user's words.
-4. If runtime/model/effort or consult target is incomplete, ask one question
-   that names exactly what is missing and what it controls.
+4. Apply the `gpt-5.6-sol` default when the lane is Codex and no model was
+   named. If another required execution value or the consult target is
+   incomplete, ask one question that names exactly what is missing and what it
+   controls.
 5. Confirm the selected CLI exists with `command -v codex`, `command -v
    claude`, `command -v agent`, or `command -v grok`.
 6. Select continuity: reuse an unambiguous healthy same-line chain for turns 2

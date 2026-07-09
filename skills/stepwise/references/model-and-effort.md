@@ -1,6 +1,6 @@
-# Execution defaults: user-supplied, asked if missing
+# Execution defaults: user-supplied, with a Codex model default
 
-Six base values must be known before Phase 2 can draft a runnable manifest:
+Six base values must be resolved before Phase 2 can draft a runnable manifest:
 
 - `execution_defaults.step.runtime` - `claude`, `codex`, or `grok` for worker steps
 - `execution_defaults.step.model` - model for worker steps
@@ -8,6 +8,10 @@ Six base values must be known before Phase 2 can draft a runnable manifest:
 - `execution_defaults.critic.runtime` - `claude`, `codex`, or `grok` for critics
 - `execution_defaults.critic.model` - model for critics
 - `execution_defaults.critic.effort` - reasoning effort for critics
+
+Runtime and effort come from the user or target doctrine. Models do too,
+except that a Codex worker or critic with no named model uses
+`gpt-5.6-sol`.
 
 When a Codex lane uses Fugu, the resolved execution block also stores
 `codex_profile` as `fugu` or `fugu-ultra`. Normal Codex model ids leave that
@@ -17,12 +21,13 @@ These are defaults, not a promise that every step uses the same runtime. The
 manifest may contain per-step overrides resolved from explicit user
 preferences or hard target-repo doctrine. See `execution-routing.md`.
 
-## Why the user supplies defaults
+## Why most defaults come from the user
 
 Different work deserves different price points. A lesson-authoring run may
 want strong worker steps and a strong critic. A many-step drill may want cheap
-workers and a stronger critic. The right baseline is a user judgment, not a
-value the skill should invent.
+workers and a stronger critic. The right runtime and effort baseline is a user
+judgment. The single model exception is the established Codex fallback:
+omitted means `gpt-5.6-sol`.
 
 Asking once at the start is cheap. Guessing wrong is expensive: wrong runtime
 or model wastes money or quality; wrong effort blows budget on trivial work or
@@ -35,6 +40,8 @@ The intake phase parses whatever the user wrote. Any of these is clear:
 - "use Claude Fable 5 high for steps and Codex gpt-5.6-sol xhigh for critic"
 - "use Codex Fugu high for steps and Codex Fugu Ultra xhigh for critic"
 - "Codex gpt-5.6-sol high everywhere" (one value reused for all defaults)
+- "Codex luna high for steps and terra xhigh for critic"
+- "Codex high everywhere" (`gpt-5.6-sol` is the omitted model default)
 - "Grok Build high for steps and Codex gpt-5.6-sol xhigh for critic"
 - "steps on gpt-5.6-sol high, critic on gpt-5.6-sol xhigh"
 - "default to Codex gpt-5.6-sol high, but use Claude Fable 5 for copywriting"
@@ -62,7 +69,11 @@ This is reasoning, not a lookup table:
   `claude-fable-5`; "opus 4.7" resolves to `claude-opus-4-7`. Family-only
   aliases such as `fable` or `opus` are acceptable only when the user did not
   pin a version.
-- For ordinary Codex model ids, inspect the installed CLI's model list when
+- For ordinary Codex model ids, accept `sol`, `luna`, and `terra` as
+  `gpt-5.6-sol`, `gpt-5.6-luna`, and `gpt-5.6-terra`. Compact forms such as
+  `GPT56LUNAXI` and `GPT56TERRAXI` preserve the variant and imply `xhigh`.
+  When a Codex lane names no model or profile, use `gpt-5.6-sol` and report
+  `model_source=default`. Inspect the installed CLI's model list when
   needed (`codex debug models`) and choose the available identifier with the
   same family and exact version. For example, "gpt-5.6-sol" resolves to
   `gpt-5.6-sol` if that exact model appears, and "gpt 5.3 codex" resolves to
@@ -107,23 +118,24 @@ exact-version preservation and fail-loud behavior.
 
 ## Asking when missing
 
-If one or more required defaults is unspecified and cannot be inferred
-unambiguously, ask ONE consolidated question listing what is missing and what
-it controls:
+After applying the omitted-Codex-model default, if one or more required values
+is still unspecified and cannot be inferred unambiguously, ask ONE
+consolidated question listing what is missing and what it controls:
 
 ```
 I need base execution choices before planning steps.
 
-- step runtime/model/effort: runs each step unless a confirmed per-step
-  preference overrides it.
-- critic runtime/model/effort: independently checks each step. Worker routing
+- step runtime/effort plus a model/profile for non-Codex lanes: runs each step
+  unless a confirmed per-step preference overrides it.
+- critic runtime/effort plus a model/profile for non-Codex lanes:
+  independently checks each step. Worker routing
   preferences do not apply to critics unless you say so.
 
 What should I use?
 ```
 
-Do not ask six separate questions. Do not default to a favorite model "just
-this once". Ask and wait.
+Do not ask six separate questions. Do not invent runtime or effort defaults,
+or model defaults for other runtimes. Ask and wait.
 
 If the user answers with one complete value ("Codex gpt-5.6-sol medium
 everywhere"), apply it to both worker and critic defaults and announce that
@@ -140,7 +152,8 @@ Runtime is separate from model and effort.
 Infer runtime only when the evidence is unambiguous:
 
 - a target repo says "run with Codex"
-- the user says "Claude Fable 5", "Codex gpt-5.6-sol", or "Grok Build"
+- the user says "Claude Fable 5", "Codex gpt-5.6-sol", "Luna", "Terra", or
+  "Grok Build"
 - the user says "Codex Fugu", "Fugu high", or "Fugu Ultra xhigh"
 - an installed CLI supports only the named model family and the user clearly
   intended that family

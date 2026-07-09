@@ -316,8 +316,10 @@ the next routing decision.
 - Epic critic returns `incomplete`: keep Status `implementing` and route back
   through `$arch-step auto-implement <DOC_PATH>` unless evidence is unreadable
   or contradictory. Never advance to the next sub-plan.
-- Critic runtime/model/effort is missing: ask the same consolidated critic
-  policy question used by interactive mode.
+- If the critic runtime is Codex and its model is missing, use
+  `gpt-5.6-sol`. If another required critic runtime/model/effort value is
+  missing, ask the same consolidated critic policy question used by
+  interactive mode.
 
 ## Mode: `auto-run`
 
@@ -346,8 +348,9 @@ the next routing decision.
 1. If `auto_execution` is absent, present the role table:
    `epic_planner`, `implementation_worker`, and `critic`. Resolve
    shorthand via `skills/_shared/model_resolution.py`.
-   Ask once if any role is missing, ambiguous, or cannot resolve to a
-   runnable exact-version model.
+   Default an omitted Codex role model to `gpt-5.6-sol`. Ask once if any other
+   role value is missing, ambiguous, or cannot resolve to a runnable
+   exact-version model.
 2. Initialize the auto run directory with
    `scripts/run_arch_epic.py auto-init`.
 3. Select the first sub-plan whose Status is not `complete`.

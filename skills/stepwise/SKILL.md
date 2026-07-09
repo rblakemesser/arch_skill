@@ -76,9 +76,10 @@ break.
 - Both worker and critic subprocesses run dangerous / skip-permissions /
   no-sandbox. The critic's read-only discipline comes from its prompt and
   schema, not a sandbox flag.
-- Base runtime/model/effort are supplied by the user or target doctrine for
-  worker and critic independently. Ask once if required defaults are missing;
-  never silently default.
+- Base runtime and effort are supplied by the user or target doctrine for
+  worker and critic independently. Models are also supplied except that a
+  Codex lane with no named model defaults to `gpt-5.6-sol`. Ask once if other
+  required defaults are missing.
 - Optional execution preferences are interpreted after the Step Manifest is
   drafted. A phrase like "copywriting steps use Claude Fable 5" is a routing
   preference to resolve against real steps, not a built-in category.
@@ -117,8 +118,8 @@ break.
    checks, stop discipline, and broken-step repair limit.
 3. Read `references/model-and-effort.md` and
    `references/execution-routing.md`. Parse base execution defaults and any
-   routing preferences. Ask one consolidated question if required defaults are
-   missing.
+   routing preferences. Apply the omitted-Codex-model default, then ask one
+   consolidated question if other required defaults are missing.
 4. Resolve `target_repo_path` as an absolute path. Fail loud if unresolvable.
 5. Read `references/workflow-contract.md` for the five-phase workflow.
 6. Read `references/diagnose-and-repair.md` before executing any subprocess

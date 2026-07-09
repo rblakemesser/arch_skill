@@ -1,13 +1,15 @@
-# Role execution policy: user-supplied, asked once
+# Role execution policy: user-supplied, with a Codex model default
 
 `arch-epic` uses external Claude, Codex, or Grok subprocesses in two places:
 
 - interactive mode: the epic critic at sub-plan completion
 - spawned-harness automatic mode: planner, implementation worker, and critics
 
-The user supplies runtime/model/effort for every required role, or the skill
-asks once before running. Different roles deserve different price points, so
-spawned-harness automatic mode must not collapse the whole epic into one hidden default.
+The user supplies runtime and effort for every required role plus a model or
+profile for non-Codex roles. When a role is Codex and its model is omitted,
+use `gpt-5.6-sol`. The skill asks once for other missing values before running.
+Different roles deserve different price points, so spawned-harness automatic
+mode must not collapse the whole epic into one hidden runtime or effort default.
 Spawned-harness repair uses same-role session resume: planner failures resume the
 planner session, and implementation failures resume the implementation session.
 
@@ -73,6 +75,8 @@ the same doctrine used by Stepwise and fresh-consult:
 
 - preserve model family and numeric version exactly
 - infer runtime only from unambiguous family evidence
+- accept `sol`, `luna`, and `terra` as the exact Codex 5.6 variants and use
+  `gpt-5.6-sol` when a Codex role omits its model
 - inspect `codex debug models` when ordinary Codex model availability matters
 - resolve `fugu` and `fugu-ultra` as Codex profiles, not model-list ids
 - inspect `grok models` when Grok model availability matters
@@ -91,6 +95,8 @@ All of these are valid when they include a role:
 
 - "planner on Claude Fable 5 high"
 - "implementation worker on Codex gpt-5.6-sol xhigh"
+- "implementation worker on Luna xhigh"
+- "critic on Terra high"
 - "implementation worker on Codex Fugu Ultra xhigh"
 - "planner on Grok Build high"
 - "critics on gpt-5.6-sol xhigh"
@@ -104,8 +110,12 @@ running.
 
 Treat model text as intent, not a loose alias:
 
-- `gpt-5.6-sol` may normalize to `gpt-5.6-sol`; it must not become `gpt-5.4`
-  or `gpt-5.5`.
+- `sol`, `luna`, and `terra` normalize to `gpt-5.6-sol`, `gpt-5.6-luna`, and
+  `gpt-5.6-terra`. Compact forms such as `GPT56LUNAXI` and `GPT56TERRAXI`
+  preserve the named variant and imply `xhigh`. A Codex role with no model or
+  profile uses `gpt-5.6-sol`, reported with `model_source=default`.
+- An explicit `gpt-5.6-luna` may normalize to `gpt-5.6-luna`; it must not
+  become `gpt-5.6-sol`, `gpt-5.4`, or `gpt-5.5`.
 - `gpt 5.3 codex` may normalize to `gpt-5.3-codex`.
 - `fugu` and `fugu-ultra` are Codex profile names; preserve them as `fugu` and
   `fugu-ultra` and launch them with `codex exec -p`.
@@ -136,6 +146,9 @@ Always print the raw-to-resolved mapping before execution:
 
 ```text
 critic: "codex gpt-5.6-sol xhigh" -> runtime=codex, model=gpt-5.6-sol, effort=xhigh
+implementation_worker: "codex high" -> runtime=codex, model=gpt-5.6-sol, effort=high, model_source=default
+implementation_worker: "luna xhigh" -> runtime=codex, model=gpt-5.6-luna, effort=xhigh
+critic: "terra high" -> runtime=codex, model=gpt-5.6-terra, effort=high
 critic: "Fugu Ultra xhigh" -> runtime=codex, model=fugu-ultra, codex_profile=fugu-ultra, effort=xhigh
 planner: "Claude Fable 5 high" -> runtime=claude, model=claude-fable-5, effort=high
 implementation_worker: "Grok Build high" -> runtime=grok, model=grok-build, effort=high
@@ -156,10 +169,11 @@ choices control real spawned subprocesses and model budget.
 - implementation_worker: edits code/docs and runs verification
 - critic: checks North Star, plan readiness, completion, and scope drift
 
-Please give runtime/model/effort for each role, or say which roles should be
-"same as" another role. Ordinary critic failures resume the relevant planner
-or implementation worker session; there is no separate repair-worker choice in
-new spawned-harness policies.
+Please give runtime/effort for each role plus a model/profile for non-Codex
+roles, or say which roles should be "same as" another role. A Codex role with
+no model uses gpt-5.6-sol. Ordinary critic failures resume the relevant planner
+or implementation worker session; there is no separate repair-worker choice
+in new spawned-harness policies.
 ```
 
 If one role is complete and another is missing, preserve the complete role and
