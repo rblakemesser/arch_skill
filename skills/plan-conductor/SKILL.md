@@ -1,8 +1,8 @@
 ---
 name: plan-conductor
-description: "Drive an entire existing plan document, or an explicit phase range, to verified completion: the expensive parent agent acts as conductor and cynical reviewer while cheaper, faster Codex GPT/GBT/Fugu, Claude Fable/Opus, Cursor Composer, or Grok workers implement phase-sized slices through `agent-delegate` fresh-resumable sessions. The parent extracts the plan into a conductor log, parallelizes only naturally independent slices, waits patiently without tailing streams, audits every diff assuming workers cut corners, resumes the same worker session with batched findings until exit criteria are true in code, delegates verification runs, and closes with a whole-plan audit plus optional cold verifier. Do NOT use for writing plans, single delegated tasks (`agent-delegate`), parent-implemented plans (`plan-implement`), plan audits (`plan-audit`), multi-plan epics (`arch-epic`), ordered foreign-doctrine processes (`stepwise`), or read-only opinions (`fresh-consult`)."
+description: "Drive an existing plan or phase range to verified completion with the parent as architect and cynical reviewer while `agent-delegate` workers handle implementation, repair, and proof. Use for whole-plan delegated execution with resumable phase-sized slices, a conductor log, diff audits, send-backs, checkpoint commits, and a final gate. The explicit `plan-conductor terra` preset also selects or creates a dedicated worktree, uses Codex `gpt-5.6-terra` at `xhigh`, runs all three cynical reviews in fresh Terra sessions, repairs accepted findings, publishes with `pr-authoring`, and stays with the PR through `pr-review-followthrough` until merge-ready. Not for plan writing, one delegated task, parent-implemented plans, plan audits, multi-plan epics, foreign ordered processes, or read-only opinions."
 metadata:
-  short-description: "Whole-plan conductor driving cheap delegated workers"
+  short-description: "Whole-plan conductor with Terra delivery shortcut"
 ---
 
 # Plan Conductor
@@ -49,6 +49,9 @@ log beside the plan is its durable memory.
   any format with recoverable requirements, phases, and done-ness.
 - The user wants implementation velocity plus cost control on one long-running
   plan execution.
+- The user explicitly invokes `plan-conductor terra` or asks for their
+  standard Terra delivery path: dedicated worktree, Terra xhigh execution,
+  three fresh cynical reviews, PR publication, and PR follow-through.
 
 ## Do Not Use When
 
@@ -129,8 +132,11 @@ log beside the plan is its durable memory.
   workers. The parent runs only cheap read-only inspection commands. Reuse
   fresh passing proof; rerun only on a real invalidator.
 - The parent commits local checkpoints after accepted slices and meaningful
-  batches. It never pushes, never opens PRs. Workers never commit, push,
-  stash, or revert unrelated work.
+  batches. During the conductor stage it never pushes or opens PRs. Only the
+  explicit Terra delivery shortcut continues past that boundary, by handing
+  the clean implementation to `$pr-authoring` and then
+  `$pr-review-followthrough`. Workers never commit, push, stash, or revert
+  unrelated work.
 - Before phase closure, plan-required proof must be recorded passing. Before
   plan closure, run the final gate: one whole-plan cynical audit sweep plus a
   delegated fresh-one-shot cold verifier (default on; user may disable).
@@ -146,19 +152,24 @@ log beside the plan is its durable memory.
 
 ## First Move
 
-1. Read `references/workflow-contract.md`.
-2. Read `references/plan-intake-and-readiness.md`.
-3. Resolve the plan path, boundary (whole plan unless the user named a phase
+1. If the user explicitly invoked the Terra delivery shortcut, read
+   `references/terra-delivery-shortcut.md` and apply its locked execution and
+   delivery policy. Do not activate the shortcut merely because an ordinary
+   plan-conductor request selected a Terra worker.
+2. Read `references/workflow-contract.md`.
+3. Read `references/plan-intake-and-readiness.md`.
+4. Resolve the plan path, boundary (whole plan unless the user named a phase
    range), worker runtime/model/effort, max parallelism, wave cap, and cold
    verifier toggle. Default an omitted Codex model to `gpt-5.6-sol`; ask one
-   consolidated question only for other missing execution values.
-4. Read the plan once end to end. Create or update
+   consolidated question only for other missing execution values. The Terra
+   shortcut supplies its own execution values, so do not ask for them.
+5. Read the plan once end to end. Create or update
    `<PLAN_STEM>_CONDUCTOR_LOG.md` with the extracted execution map, and apply
    the readiness gate.
-5. Inspect `git status` and commit an initial or resume checkpoint before
+6. Inspect `git status` and commit an initial or resume checkpoint before
    launching workers, unless a concrete safety issue such as secrets blocks
    it.
-6. Read `references/chunking-and-parallelism.md`, then design and dispatch
+7. Read `references/chunking-and-parallelism.md`, then design and dispatch
    the first wave.
 
 ## Workflow
@@ -190,8 +201,14 @@ log beside the plan is its durable memory.
    non-trivial plans, `$cynical-architecture-review` and
    `$cynical-cruft-removal` by judgment from what the plan changed), then
    the delegated cold verifier unless disabled. Triage and repair findings
-   through the same send-back machinery.
-10. Write the final report, commit the final checkpoint, and stop at the
+   through the same send-back machinery. Under the Terra shortcut, defer the
+   instrument portion to step 10's three fresh sessions instead of duplicating
+   those reviews; still run the conductor sweep and cold verifier.
+10. If the Terra delivery shortcut is active, run its stronger delivery gate:
+    all three cynical reviews in independent fresh Terra sessions, repair and
+    re-review accepted findings, then hand off in order to `$pr-authoring` and
+    `$pr-review-followthrough` until the PR is merge-ready.
+11. Write the final report, commit the final checkpoint, and stop at the
     requested boundary.
 
 ## Progress Updates
@@ -228,6 +245,8 @@ Report compactly:
   session handling, patient monitoring, and the parent token economy
 - `references/audit-and-send-back.md` - cynical audit lenses, finding triage,
   send-back caps, escalation, and the final gate
+- `references/terra-delivery-shortcut.md` - explicit standard Terra worktree,
+  implementation, independent review, repair, PR, and follow-through path
 - `references/worker-prompt-contract.md` - worker slice prompt skeleton,
   required footer, and send-back prompt shape
 - `references/conductor-log-contract.md` - conductor log layout, status

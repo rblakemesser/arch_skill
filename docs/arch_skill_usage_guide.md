@@ -686,12 +686,15 @@ Use when the user wants an entire existing plan document, or an explicit phase r
 
 Each wave dispatches phase-sized slices (default one plan phase per worker, split only along plan-named owner boundaries, merged when trivial phases share one design intent) as `agent-delegate` fresh-resumable children. The parent waits patiently without tailing event streams, audits each returned diff assuming the worker cut corners — name-only completion, leftover cruft, un-executed deletes, weakened tests, scope drift, side doors, duplicate truth — and batches accepted findings into one resume prompt against the same worker session. Caps: 3 send-backs, then 1 fresh respawn, then escalate the slice and continue independent work. Verification runs are delegated with proof freshness tracking; the parent commits local checkpoints and never pushes. Closure requires plan-required proof recorded passing plus a final whole-plan audit and an optional fresh-one-shot cold verifier prompted to refute completion.
 
-The parent never edits source code, never accepts worker self-reports as truth, and never edits the plan's requirements or exit criteria to match what was built. The user supplies worker runtime/model/effort; there is no default worker model, and provider routing is fixed as usual.
+The parent never edits source code during the conductor stage, never accepts worker self-reports as truth, and never edits the plan's requirements or exit criteria to match what was built. The user supplies worker runtime and effort plus a model/profile for non-Codex lanes; an omitted Codex model defaults to `gpt-5.6-sol`, and provider routing is fixed as usual.
+
+The explicit `plan-conductor terra` shortcut is the standard end-to-end delivery path. It reuses or creates a safe dedicated worktree, locks implementation, repair, verification, cold-verifier, and review delegates to Codex `gpt-5.6-terra` at `xhigh`, runs all three cynical review skills in independent fresh sessions, repairs findings the conductor accepts, and reruns affected review lanes until clean. It then invokes `pr-authoring` and explicitly follows the resulting PR with `pr-review-followthrough` until merge-ready. A normal conductor request that merely names a Terra worker does not opt into this worktree-and-PR path.
 
 Examples:
 
 - `Use $plan-conductor to implement docs/PAYMENTS_MIGRATION_2026-07-01.md end to end with Cursor Agent workers`
-- `Use $plan-conductor to drive phases 2-4 of docs/example-plan.md with two Codex gpt-5.3-codex medium workers; you review everything`
+- `Use $plan-conductor to drive phases 2-4 of docs/example-plan.md with two Codex gpt-5.6-luna medium workers; you review everything`
+- `Use $plan-conductor terra on docs/example-plan.md`
 
 Practical rule:
 
