@@ -4,14 +4,14 @@ Plan: `docs/HOST_NATIVE_AGENT_POLICY_AND_SKILL_MIGRATION_PLAN_2026-07-11.md`
 Audit log: none
 Active scope: whole approved plan
 Scope contract anchor: plan sections `Implementation plan`, `Acceptance tests for the policy itself`, and `Non-goals`
-Scope status: frozen
-Last updated: 2026-07-11 11:11:13 CDT
-Current checkpoint: `main` at `e43811b15bc2f43c432ec040a2d9fb08abb371cb`
+Scope status: complete
+Last updated: 2026-07-11 11:14:12 CDT
+Implementation payload: `7eaa2ffb5d48cb99bfe644abd7ae12bd419f502f`
 
 ## Resume Snapshot
 
-- Current state: Phases 0-7 are implemented and verified. The shared policy, governance, transport owners, orchestrators, review/loop/arch consumers, intentional external lanes, metadata, installed-relative shared references, public docs, and complete 46-package/182-edge DAG are integrated. Two broad fresh Terra xhigh cold readers plus bounded post-repair checks completed; their five verified findings are repaired, and the final fresh confirmation verdict is `approve` with no required repairs.
-- Next useful move: publish the frozen reviewed payload with `$amir-publish`.
+- Current state: Phases 0-7 are implemented, verified, reviewed, committed, pushed, and installed. The shared policy, governance, transport owners, orchestrators, review/loop/arch consumers, intentional external lanes, metadata, installed-relative shared references, public docs, and complete 46-package/182-edge DAG are integrated. Two broad fresh Terra xhigh cold readers plus bounded post-repair checks completed; their five verified findings are repaired, and the final fresh confirmation verdict is `approve` with no required repairs.
+- Next useful move: none for this scope; hand the publication receipt to the user.
 - Do not redo unless stale: the 46-package inventory, metadata inventory, base commit, install-surface orientation, and skill/prompt authoring reference reads.
 - Known blockers: none. Existing untracked build outputs, vendor expansions, unrelated reports, `.arch_skill/`, `.firecrawl/`, and `uv.lock` are user-owned and outside this scope.
 - Native subagents used or useful next: all migration groups, integration review, and three clean read-only DAG walkers are complete. No additional agent work is required before publication.
@@ -29,7 +29,7 @@ Current checkpoint: `main` at `e43811b15bc2f43c432ec040a2d9fb08abb371cb`
 | DAG extraction and regeneration | Phase 6 | In scope | Complete | `skill-flow` SKILL, metadata, walk/substrate references, regenerated DAG | 46/46 nodes; 182 Mermaid/table edges; zero unresolved; exact multiset/path/label checks; SHA-256 `d19fa544...927b8` | Clean native walker evidence and coordinator aggregation accepted |
 | Whole install verification | Phase 7 | In scope | Complete | Repository and installed surfaces | `npx skills check`, `make install`, `make verify_install`, metadata/frontmatter parsing, script tests/smokes, semantic searches, and link resolution passed | Parent proof review complete; second cold reader independently confirmed runtime coherence |
 | Terra xhigh cold reads | User-requested final gate | In scope | Complete | Serialized fresh consult receipts plus bounded post-repair checks | All readers completed without writes; five verified findings repaired; final verdict `approve` | Final repaired-state release confirmation passed |
-| Cluster publication | User-requested final gate | In scope | Pending | `amir-publish` workflow | Pending | Pending |
+| Cluster publication | User-requested final gate | In scope | Complete | `$amir-publish` workflow and implementation payload `7eaa2ff` | Pushed to `origin/main`; local install/verify passed; `amirs-m3-max-new`, `agents@amirs-mac-studio`, `home`, and `claw` fast-forwarded and installed; current-host `amir-m5` skipped | All checked hosts reported `7eaa2ff` and all three installed shared-policy paths |
 
 ## Code Read Ledger
 
@@ -54,6 +54,7 @@ Current checkpoint: `main` at `e43811b15bc2f43c432ec040a2d9fb08abb371cb`
 | Targeted semantic searches and installed-link resolution | Agent-policy migration | PASS: no stale repo-root shared references, old concurrency claim, or context/continuation schema leak; all installed-relative shared links resolve | Any migrated doctrine or shared-reference edit | Rerun affected searches |
 | Controlled DAG walk | Phase 6 extraction and graph findings | PASS: 46/46 exactly once, 182 edges, zero unresolved, no duplicate tuples | Any skill/ref or extraction-contract edit | Rewalk affected package or full scope as appropriate |
 | Terra cold readers | Whole implementation | PASS: two broad readers and bounded post-repair checks completed without writes; five required repairs applied; final fresh confirmation `approve` with no required repairs | Any accepted-finding repair | Rerun a clean affected-scope confirmation |
+| `$amir-publish` | GitHub, local install, and cluster install | PASS: `origin/main`, local, `amirs-m3-max-new`, `agents@amirs-mac-studio`, `home`, and `claw` reached implementation payload `7eaa2ff`; `amir-m5` skipped as current host | A new publication payload | Repeat publish workflow |
 
 ## Continuous Review Ledger
 
@@ -193,3 +194,12 @@ Current checkpoint: `main` at `e43811b15bc2f43c432ec040a2d9fb08abb371cb`
 - Runtime proof: all 33 Stepwise unit tests passed; Stepwise top-level and `step-spawn` help smokes passed; Arch Epic top-level and `auto-init` help smokes passed.
 - Graph/install proof: the DAG still has 46 nodes, 182 Mermaid edges, 182 evidence rows, and SHA-256 `d19fa544185e4a924ec5d26ea59930aeb6434993e9d37f83afe80cdda5f927b8`. Source and all three installed shared-policy copies still match SHA-256 `92201ac41d0f0641bbefc7f14e1c9886255fa20884ab29a15b4591a874fed4d9`.
 - Next: stage only the intentional tracked edits and five related new source/docs files, inspect the staged payload, then publish.
+
+### 2026-07-11 11:14 CDT — Published across the cluster
+
+- Intent: publish the independently approved payload and prove that every configured target received the live shared policy.
+- Git receipt: committed `Unify native and external agent policy` as `7eaa2ffb5d48cb99bfe644abd7ae12bd419f502f` and pushed it to `origin/main`.
+- Local receipt: `make install` and `make verify_install` passed on the current `Amir-M5` host.
+- Remote receipt: sequential `$amir-publish` runs succeeded on `amirs-m3-max-new`, `agents@amirs-mac-studio`, `home`, and `claw`; `amir-m5` was skipped because it is the current host. Every checked repo reported `7eaa2ff`, and the Agents, Claude, and Gemini shared-policy files existed on every target.
+- Scope protection: unrelated untracked reports, generated build directories, tool state, `uv.lock`, and vendor expansions remained outside the commit.
+- Next: publish this docs-only receipt update so the canonical plan and log describe the completed release state.

@@ -1,6 +1,6 @@
 # Host-Native Agent Policy and Skill Migration Plan
 
-Status: implemented and independently verified; publication ready
+Status: implemented, independently verified, and published
 Date: 2026-07-11
 Repository: `/Users/aelaguiz/workspace/arch_skill`
 Companion substrate: `docs/HOST_NATIVE_AGENT_POLICY_AND_SKILL_MIGRATION_PLAN_2026-07-11_DAG.md`
