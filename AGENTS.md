@@ -125,15 +125,6 @@ Claude Code, and Gemini.
   `implement-loop` → `audit-implementation` arc, and have a new clean critic check
   for scope drift between sub-plans before advancing. Resolve each role under
   the shared agent policy rather than assuming every role is a subprocess.
-- Use `$skill-flow` when the user wants to design, repair, or audit an ordered
-  flow of multiple agent skills with distinct jobs, concrete handoffs, and
-  clear peer boundaries. For 30+ skill suites or any multi-skill audit driven
-  by a scope phrase (e.g. "audit every skill in this project", "audit the
-  skills for flow F1"), the DAG-grounded audit sub-mode walks the suite in
-  clean native subagents with parent-owned fanout, builds a labeled-edge substrate at
-  `<doc-dir>/<doc-slug>_DAG.md`, and surfaces wasted-energy patterns
-  (over-promotion, redundancy, dead skills, broken refs) with `path:line`
-  evidence.
 - Use `$fresh-consult` when the user or another skill wants one or more
   clean independent second opinions on a concrete artifact, completion claim,
   flow consistency question, or readability/confusion check. Use a clean

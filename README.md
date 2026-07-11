@@ -49,7 +49,6 @@ Other shipped skills are:
 - `pr-authoring` — writes and publishes high-quality GitHub pull requests from real repo changes, including an anchor-based frozen-scope receipt for plan-backed work
 - `pr-review-followthrough` — explicit-invocation follow-through loop for an already-open GitHub PR: polls review feedback and checks, classifies comments against the frozen plan scope, replies on-thread with accept/decline/escalation rationale, pushes authorized fixes to the same branch, and stops at merge-ready
 - `commit-history-authoring` — rewrites the current branch's branch-span commit messages from its nearest parent branch into informative history while preserving commit boundaries, patches, trailers, and backup recovery; it never pushes rewritten history
-- `skill-flow` — designs, repairs, and audits ordered multi-skill flows; large-suite DAG audits use clean native read-only walkers, semantic backticked-peer extraction, a labeled-edge substrate, and evidence-backed wasted-energy findings
 - `amir-publish` — personal shortcut for publishing this skills repo across Amir's usual machines
 - `codex-cleanup` — dry-run-first local cleanup skill for stale `~/.codex` state that relieves multi-instance SQLite/WAL and log bloat without touching live config or credentials
 - `codex-babysit` — watches an already-running Codex goal-mode tmux pane, rotates `aim` accounts only on real usage limits, restarts and resumes the same session, and keeps checking until Codex's own goal finishes
@@ -140,7 +139,6 @@ Installed skills:
   - `~/.agents/skills/pr-authoring/`
   - `~/.agents/skills/pr-review-followthrough/`
   - `~/.agents/skills/commit-history-authoring/`
-  - `~/.agents/skills/skill-flow/`
   - `~/.agents/skills/amir-publish/`
   - `~/.agents/skills/codex-cleanup/`
   - `~/.agents/skills/codex-babysit/`
@@ -188,7 +186,6 @@ Installed skills:
   - `~/.claude/skills/pr-authoring/`
   - `~/.claude/skills/pr-review-followthrough/`
   - `~/.claude/skills/commit-history-authoring/`
-  - `~/.claude/skills/skill-flow/`
   - `~/.claude/skills/amir-publish/`
   - `~/.claude/skills/codex-cleanup/`
   - `~/.claude/skills/codex-babysit/`
@@ -235,7 +232,6 @@ Installed skills:
   - `~/.gemini/skills/eli10/`
   - `~/.gemini/skills/pr-authoring/`
   - `~/.gemini/skills/commit-history-authoring/`
-  - `~/.gemini/skills/skill-flow/`
   - `~/.gemini/skills/amir-publish/`
   - `~/.gemini/skills/codex-cleanup/`
   - `~/.gemini/skills/codex-babysit/`
@@ -509,19 +505,6 @@ Use when the user explicitly wants an already-open GitHub pull request followed 
 
 Use when the user wants the current branch's commit messages rewritten into an informative history from the point where the branch diverged from its nearest parent branch. The skill inspects the inferred branch-span range, diffs, old messages, trailers, and any evidenced active arch plan; it then applies a message-only rewrite with a backup branch while preserving commit boundaries, patch content, author metadata, and final tree state. It allows commits already reachable from the current branch's own remote-tracking ref, but refuses dirty worktrees, unrelated shared remote refs, current-branch remotes ahead of local `HEAD`, protected branches by default, and merge commits. It never pushes or force-pushes.
 
-### `skill-flow`
-
-Use when the user wants to design, repair, or audit an ordered flow of multiple
-agent skills so each skill has a distinct job, concrete handoff artifact, clear
-peer boundary, and lean prompt contract. For a large or scope-phrase audit, the
-DAG-grounded sub-mode resolves the full suite, assigns every slug to a clean
-read-only native walker with no nested fanout, and keeps concurrency
-proportionate to host slots and parent integration capacity. Its semantic
-extractor counts live backticked `$skill-name` peer references while excluding
-shell/code variables, then writes the Mermaid graph, labeled edge table, and
-unresolved-reference list at `<doc-dir>/<doc-slug>_DAG.md`. Findings remain
-read-only and evidence-backed. Optional d2/SVG rendering stays a narrow helper.
-
 ### `amir-publish`
 
 Use when Amir wants to publish this skills repo across his usual machines: commit and push the current local work, install locally, then SSH to the fixed host list, skip the current host, pull the same branch from the same directory, and install remotely.
@@ -748,7 +731,7 @@ Practical rule:
 
 ## Usage
 
-- Primary surface: ask the agent to use `arch-step`, `arch-step-goal-prompt`, `miniarch-step`, `arch-epic`, `arch-docs`, `arch-mini-plan`, `lilarch`, `bugs-flow`, `audit-loop`, `comment-loop`, `audit-loop-sim`, `goal-loop`, `north-star-investigation`, `arch-flow`, `arch-skills-guide`, `agent-definition-auditor`, `agents-md-authoring`, `prompt-authoring`, `chatgpt-web`, `skill-authoring`, `figma-best-practices`, `fal-ai-tools`, `flutter-reference`, `eli10`, `pr-authoring`, `pr-review-followthrough`, `commit-history-authoring`, `skill-flow`, `amir-publish`, `codex-cleanup`, `codex-babysit`, `fresh-consult`, `agent-delegate`, `plan-audit`, `plan-implement`, `model-consensus`, `contact-sheet-builder`, `fc-branded-pdf`, `cynical-code-review`, `cynical-architecture-review`, `cynical-cruft-removal`, `exhaustive-code-review`, `thermo-nuclear-code-quality-review`, `stepwise`, or `codex-review-yolo`.
+- Primary surface: ask the agent to use `arch-step`, `arch-step-goal-prompt`, `miniarch-step`, `arch-epic`, `arch-docs`, `arch-mini-plan`, `lilarch`, `bugs-flow`, `audit-loop`, `comment-loop`, `audit-loop-sim`, `goal-loop`, `north-star-investigation`, `arch-flow`, `arch-skills-guide`, `agent-definition-auditor`, `agents-md-authoring`, `prompt-authoring`, `chatgpt-web`, `skill-authoring`, `figma-best-practices`, `fal-ai-tools`, `flutter-reference`, `eli10`, `pr-authoring`, `pr-review-followthrough`, `commit-history-authoring`, `amir-publish`, `codex-cleanup`, `codex-babysit`, `fresh-consult`, `agent-delegate`, `plan-audit`, `plan-implement`, `model-consensus`, `contact-sheet-builder`, `fc-branded-pdf`, `cynical-code-review`, `cynical-architecture-review`, `cynical-cruft-removal`, `exhaustive-code-review`, `thermo-nuclear-code-quality-review`, `stepwise`, or `codex-review-yolo`.
 - Full-arch execution defaults to `miniarch-step` when the trimmed command surface is enough and `arch-step` when the broader or helper-heavy surface is needed.
 - Docs cleanup loops default to `arch-docs`.
 - Read-only checklist and next-step inspection uses `arch-flow`.
@@ -806,7 +789,6 @@ Examples:
 - `Use $pr-authoring to write and publish a PR for this branch`
 - `Use $pr-review-followthrough on PR #1234`
 - `Use $commit-history-authoring to rewrite this branch's WIP commits into informative branch history`
-- `Use $skill-flow to design the authoring and audit flow for this skill suite`
 - `Use $amir-publish`
 - `Use $cynical-code-review to audit this implemented plan and assume we missed the point`
 - `Use $cynical-architecture-review to find accidental architecture and simplify it without changing the UX`

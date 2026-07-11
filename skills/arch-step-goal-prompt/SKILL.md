@@ -36,7 +36,6 @@ reviewers only when they are requested or already required.
 - The user wants ArcStep work executed now. Use `$arch-step`.
 - The user wants a generic prompt unrelated to ArcStep. Use `$prompt-authoring`.
 - The user wants a new or edited skill package. Use `$skill-authoring`.
-- The user wants a multi-skill flow designed or audited. Use `$skill-flow`.
 - The user wants a harness, launcher, controller, script, or deterministic
   runner around ArcStep.
 

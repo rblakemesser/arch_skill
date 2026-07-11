@@ -51,7 +51,6 @@ Other shipped skills:
 - `eli10`
 - `pr-authoring`
 - `commit-history-authoring`
-- `skill-flow`
 - `amir-publish`
 - `codex-cleanup`
 - `codex-babysit`
@@ -115,7 +114,6 @@ Default local path:
 - `~/.agents/skills/eli10/`
 - `~/.agents/skills/pr-authoring/`
 - `~/.agents/skills/commit-history-authoring/`
-- `~/.agents/skills/skill-flow/`
 - `~/.agents/skills/amir-publish/`
 - `~/.agents/skills/codex-cleanup/`
 - `~/.agents/skills/codex-babysit/`
@@ -167,7 +165,6 @@ Installed skills:
   - `eli10`
   - `pr-authoring`
   - `commit-history-authoring`
-  - `skill-flow`
   - `amir-publish`
   - `codex-cleanup`
   - `codex-babysit`
@@ -212,7 +209,6 @@ Installed skills:
   - `eli10`
   - `pr-authoring`
   - `commit-history-authoring`
-  - `skill-flow`
   - `amir-publish`
   - `codex-cleanup`
   - `codex-babysit`
@@ -257,7 +253,6 @@ Installed skills:
   - `eli10`
   - `pr-authoring`
   - `commit-history-authoring`
-  - `skill-flow`
   - `amir-publish`
   - `codex-cleanup`
   - `codex-babysit`
@@ -639,23 +634,6 @@ Use when the user wants the current branch's local-only commit messages rewritte
 Examples:
 
 - `Use $commit-history-authoring to rewrite this branch's WIP commits into informative local history`
-
-### `skill-flow`
-
-Use when the user wants to design, repair, or audit an ordered flow of multiple
-agent skills. For a large or scope-phrase audit, the DAG-grounded sub-mode
-resolves every skill, assigns non-overlapping slices to new clean native
-walkers, keeps them read-only and non-nesting, and bounds concurrency by host
-slots and parent integration capacity. Its semantic extractor counts live
-backticked `$skill-name` peer references while excluding shell/code variables,
-then writes the labeled Mermaid graph, edge table, and unresolved-reference
-list at `<doc-dir>/<doc-slug>_DAG.md` before producing findings.
-
-Examples:
-
-- `Use $skill-flow to design the authoring and audit flow for this skill suite`
-- `Use $skill-flow to audit every skill in /Users/aelaguiz/workspace/lessons_studio/`
-- `Use $skill-flow to audit the skills for flow F1 in lessons_studio and render the DAG`
 
 ### `amir-publish`
 
