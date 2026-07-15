@@ -45,13 +45,13 @@ Other shipped skills are:
 - `figma-best-practices` — prompt-only Figma file-craft doctrine for creating, auditing, or repairing structurally honest Figma files, libraries, variables, components, Dev Mode prep, Code Connect mapping, and Make/Sites/Buzz/Slides/MCP readiness
 - `fal-ai-tools` — prompt-first fal.ai tool workflow for model discovery, schema and pricing lookup, file upload, background removal, media generation or editing, inference, polling, and result receipts using MCP when available and SDK/HTTP fallback otherwise
 - `flutter-reference` — doctrine-only Flutter app and game-building reference for architecture, Dart style, state management, lifecycle, performance, testing, CI, accessibility, localization, security, platform integration, and Flame/game-loop guidance
-- `eli10` — answers in maximum-readability ELI10 style: reduces reader working-memory load, leads with the point, preserves exact technical truth, defines load-bearing jargon, explains mechanisms plainly, avoids fake memory and baby talk, and uses scan markers or tables only when they clarify
+- `eli10` — optional source-retained response-style skill; it is not installed by default
 - `pr-authoring` — writes and publishes high-quality GitHub pull requests from real repo changes, including an anchor-based frozen-scope receipt for plan-backed work
 - `pr-review-followthrough` — explicit-invocation follow-through loop for an already-open GitHub PR: polls review feedback and checks, classifies comments against the frozen plan scope, replies on-thread with accept/decline/escalation rationale, pushes authorized fixes to the same branch, and stops at merge-ready
 - `commit-history-authoring` — rewrites the current branch's branch-span commit messages from its nearest parent branch into informative history while preserving commit boundaries, patches, trailers, and backup recovery; it never pushes rewritten history
 - `amir-publish` — personal shortcut for publishing this skills repo across Amir's usual machines
 - `codex-cleanup` — dry-run-first local cleanup skill for stale `~/.codex` state that relieves multi-instance SQLite/WAL and log bloat without touching live config or credentials
-- `codex-babysit` — watches an already-running Codex goal-mode tmux pane, rotates `aim` accounts only on real usage limits, restarts and resumes the same session, and keeps checking until Codex's own goal finishes
+- `codex-babysit` — optional source-retained skill for watching an already-running Codex goal-mode tmux pane; it is not installed by default
 - `codex-review-yolo` — external Codex `-p yolo` reviewer for substantial diffs, plans, docs, and completion checks, with live `--json` stream logs and strict `approve | not-approved | inconclusive` verdicts
 - `fresh-consult` — transport-neutral clean read-only opinions: ordinary same-host reviews use clean native children, while cross-provider or otherwise deliberate external lanes keep exact model/profile resolution, strict verdicts, resumable follow-ups, and receipts
 - `agent-delegate` — explicit external editful worker/session adapter for cross-provider, load-bearing exact model/profile, durable-session, process-isolation, automation, or receipt benefits; ordinary same-host work uses native children directly
@@ -135,13 +135,11 @@ Installed skills:
   - `~/.agents/skills/figma-best-practices/`
   - `~/.agents/skills/fal-ai-tools/`
   - `~/.agents/skills/flutter-reference/`
-  - `~/.agents/skills/eli10/`
   - `~/.agents/skills/pr-authoring/`
   - `~/.agents/skills/pr-review-followthrough/`
   - `~/.agents/skills/commit-history-authoring/`
   - `~/.agents/skills/amir-publish/`
   - `~/.agents/skills/codex-cleanup/`
-  - `~/.agents/skills/codex-babysit/`
   - `~/.agents/skills/codex-review-yolo/`
   - `~/.agents/skills/fresh-consult/`
   - `~/.agents/skills/agent-delegate/`
@@ -182,13 +180,11 @@ Installed skills:
   - `~/.claude/skills/figma-best-practices/`
   - `~/.claude/skills/fal-ai-tools/`
   - `~/.claude/skills/flutter-reference/`
-  - `~/.claude/skills/eli10/`
   - `~/.claude/skills/pr-authoring/`
   - `~/.claude/skills/pr-review-followthrough/`
   - `~/.claude/skills/commit-history-authoring/`
   - `~/.claude/skills/amir-publish/`
   - `~/.claude/skills/codex-cleanup/`
-  - `~/.claude/skills/codex-babysit/`
   - `~/.claude/skills/codex-review-yolo/`
   - `~/.claude/skills/fresh-consult/`
   - `~/.claude/skills/agent-delegate/`
@@ -229,12 +225,10 @@ Installed skills:
   - `~/.gemini/skills/figma-best-practices/`
   - `~/.gemini/skills/fal-ai-tools/`
   - `~/.gemini/skills/flutter-reference/`
-  - `~/.gemini/skills/eli10/`
   - `~/.gemini/skills/pr-authoring/`
   - `~/.gemini/skills/commit-history-authoring/`
   - `~/.gemini/skills/amir-publish/`
   - `~/.gemini/skills/codex-cleanup/`
-  - `~/.gemini/skills/codex-babysit/`
   - `~/.gemini/skills/codex-review-yolo/`
   - `~/.gemini/skills/fresh-consult/`
   - `~/.gemini/skills/agent-delegate/`
@@ -254,7 +248,7 @@ Installed skills:
 
 Codex reads the same installed skill surface from `~/.agents/skills/`. `make install` also removes stale pre-skill command surfaces, removed skill packages, older `~/.codex/skills/<skill>` mirrors, and local source/build internals so runtime routing stays unambiguous.
 
-`arch-loop`, `delay-poll`, `wait`, and `code-review` are removed from the live installed surface; use native `/goal` for free-form completion, the host's native scheduling/reminder surface for timed waiting or polling, and ordinary host review behavior for generic code review. `agent-history` and `pr-review-followthrough` are installed on the agents/Codex and Claude Code surfaces. `agent-history` covers Codex and Claude Code local history; `pr-review-followthrough` owns live GitHub PR follow-through with replies and same-branch fixes. `contact-sheet-builder` is installed on all three skill surfaces and requires Python with Pillow at runtime. `fc-branded-pdf` is installed on all three skill surfaces and requires `pandoc` plus Chrome or Chromium at runtime. `arch-step-goal-prompt`, `figma-best-practices`, `fal-ai-tools`, `flutter-reference`, `chatgpt-web`, `fresh-consult`, `agent-delegate`, `plan-audit`, `plan-implement`, `model-consensus`, `plan-conductor`, `codex-cleanup`, `codex-babysit`, `cynical-code-review`, `cynical-architecture-review`, `cynical-cruft-removal`, `exhaustive-code-review`, and `thermo-nuclear-code-quality-review` are installed on all three skill surfaces. `chatgpt-web` is prompt-only and requires BrowserOS MCP plus an already logged-in ChatGPT browser session; it does not automate login.
+`arch-loop`, `delay-poll`, `wait`, `code-review`, `codex-babysit`, and `eli10` are removed from the live installed surface; `codex-babysit` and `eli10` remain in this repository for manual use, while `make install` and `make remote_install` remove previously installed copies. Use native `/goal` for free-form completion, the host's native scheduling/reminder surface for timed waiting or polling, and ordinary host review behavior for generic code review. `agent-history` and `pr-review-followthrough` are installed on the agents/Codex and Claude Code surfaces. `agent-history` covers Codex and Claude Code local history; `pr-review-followthrough` owns live GitHub PR follow-through with replies and same-branch fixes. `contact-sheet-builder` is installed on all three skill surfaces and requires Python with Pillow at runtime. `fc-branded-pdf` is installed on all three skill surfaces and requires `pandoc` plus Chrome or Chromium at runtime. `arch-step-goal-prompt`, `figma-best-practices`, `fal-ai-tools`, `flutter-reference`, `chatgpt-web`, `fresh-consult`, `agent-delegate`, `plan-audit`, `plan-implement`, `model-consensus`, `plan-conductor`, `codex-cleanup`, `cynical-code-review`, `cynical-architecture-review`, `cynical-cruft-removal`, `exhaustive-code-review`, and `thermo-nuclear-code-quality-review` are installed on all three skill surfaces. `chatgpt-web` is prompt-only and requires BrowserOS MCP plus an already logged-in ChatGPT browser session; it does not automate login.
 
 External lanes still require the selected local `claude`, `codex`, `agent`, or
 `grok` CLI at invocation time. Ordinary same-host work uses the active host's
@@ -491,7 +485,7 @@ Use when the user wants Flutter-specific guidance for building, reviewing, repai
 
 ### `eli10`
 
-Use when the user wants any answer, explanation, plan, review, recommendation, rewrite, or status update in ELI10/ELI16 maximum-readability style. The skill teaches the agent to spend the reader's working memory on the idea, not on parsing: lead with the point, explain at the right layer, unstack dense phrases, define load-bearing jargon, preserve exact commands/metrics/file names, avoid fake memory and baby talk, and skip next steps unless asked. It uses native tables only when they improve understanding, and avoids tables when long prose, paths, commands, or root-cause explanations would be clearer as bullets or sections. It uses the decision-brief contract only when the answer is asking the user to choose. Use `prompt-authoring` for prompts and reusable prompt contracts and `skill-authoring` for skill packages.
+This package is retained in the repository for manual use but is not installed by `make install` or `make remote_install`. Normal Codex, Claude Code, and Gemini sessions therefore do not discover it from the arch_skill installed surface.
 
 ### `pr-authoring`
 
@@ -515,7 +509,7 @@ Use when `~/.codex` is multi-GB, old session JSONL/log/cache files are bloated, 
 
 ### `codex-babysit`
 
-Use when the user wants to keep an already-running Codex goal-mode tmux pane alive across real usage limits or process death. It watches the pane, rotates `aim` accounts only when Codex is actually blocked, restarts, resumes the same session, and verifies work resumed.
+This package is retained in the repository for manual use but is not installed by `make install` or `make remote_install`. When used manually, it keeps an already-running Codex goal-mode tmux pane alive across real usage limits or process death, rotates `aim` accounts only when Codex is actually blocked, restarts, resumes the same session, and verifies work resumed.
 
 ### `fresh-consult`
 
@@ -731,7 +725,7 @@ Practical rule:
 
 ## Usage
 
-- Primary surface: ask the agent to use `arch-step`, `arch-step-goal-prompt`, `miniarch-step`, `arch-epic`, `arch-docs`, `arch-mini-plan`, `lilarch`, `bugs-flow`, `audit-loop`, `comment-loop`, `audit-loop-sim`, `goal-loop`, `north-star-investigation`, `arch-flow`, `arch-skills-guide`, `agent-definition-auditor`, `agents-md-authoring`, `prompt-authoring`, `chatgpt-web`, `skill-authoring`, `figma-best-practices`, `fal-ai-tools`, `flutter-reference`, `eli10`, `pr-authoring`, `pr-review-followthrough`, `commit-history-authoring`, `amir-publish`, `codex-cleanup`, `codex-babysit`, `fresh-consult`, `agent-delegate`, `plan-audit`, `plan-implement`, `model-consensus`, `contact-sheet-builder`, `fc-branded-pdf`, `cynical-code-review`, `cynical-architecture-review`, `cynical-cruft-removal`, `exhaustive-code-review`, `thermo-nuclear-code-quality-review`, `stepwise`, or `codex-review-yolo`.
+- Primary surface: ask the agent to use `arch-step`, `arch-step-goal-prompt`, `miniarch-step`, `arch-epic`, `arch-docs`, `arch-mini-plan`, `lilarch`, `bugs-flow`, `audit-loop`, `comment-loop`, `audit-loop-sim`, `goal-loop`, `north-star-investigation`, `arch-flow`, `arch-skills-guide`, `agent-definition-auditor`, `agents-md-authoring`, `prompt-authoring`, `chatgpt-web`, `skill-authoring`, `figma-best-practices`, `fal-ai-tools`, `flutter-reference`, `pr-authoring`, `pr-review-followthrough`, `commit-history-authoring`, `amir-publish`, `codex-cleanup`, `fresh-consult`, `agent-delegate`, `plan-audit`, `plan-implement`, `model-consensus`, `contact-sheet-builder`, `fc-branded-pdf`, `cynical-code-review`, `cynical-architecture-review`, `cynical-cruft-removal`, `exhaustive-code-review`, `thermo-nuclear-code-quality-review`, `stepwise`, or `codex-review-yolo`.
 - Full-arch execution defaults to `miniarch-step` when the trimmed command surface is enough and `arch-step` when the broader or helper-heavy surface is needed.
 - Docs cleanup loops default to `arch-docs`.
 - Read-only checklist and next-step inspection uses `arch-flow`.
@@ -784,8 +778,6 @@ Examples:
 - `Use $figma-best-practices to audit this Figma library for Dev Mode and MCP readiness`
 - `Use $fal-ai-tools to remove the background from this image with fal.ai`
 - `Use $flutter-reference to review this Flutter app architecture`
-- `Use $eli10 to explain why this test failed`
-- `Use $eli10 to format this decision question`
 - `Use $pr-authoring to write and publish a PR for this branch`
 - `Use $pr-review-followthrough on PR #1234`
 - `Use $commit-history-authoring to rewrite this branch's WIP commits into informative branch history`

@@ -48,12 +48,12 @@ Other shipped skills:
 - `skill-authoring`
 - `figma-best-practices`
 - `fal-ai-tools`
-- `eli10`
+- `eli10` (source-retained; not installed by default)
 - `pr-authoring`
 - `commit-history-authoring`
 - `amir-publish`
 - `codex-cleanup`
-- `codex-babysit`
+- `codex-babysit` (source-retained; not installed by default)
 - `codex-review-yolo`
 - `fresh-consult`
 - `agent-delegate`
@@ -82,7 +82,7 @@ make install
 
 Automatic skill modes now rely on the host's native goal-mode continuation. Use Codex `/goal` or Claude Code `/goal` when you want a skill to keep moving across turns until its proof bar is met.
 
-Install copies only the live runtime package surface. Source/build internals (`build/`, `prompts/`, `__pycache__/`, `*.pyc`, and hook cleanup helpers) are pruned from installed skills. This package no longer installs `Stop` or `SessionStart` hooks; install removes old arch_skill-owned hook entries from prior installs.
+Install copies only the live runtime package surface. Source/build internals (`build/`, `prompts/`, `__pycache__/`, `*.pyc`, and hook cleanup helpers) are pruned from installed skills. The source-retained `codex-babysit` package is excluded from the default surface, and install removes previously installed copies. This package no longer installs `Stop` or `SessionStart` hooks; install removes old arch_skill-owned hook entries from prior installs.
 
 Restart Codex, Claude Code, or Gemini after install so the running process
 reloads skills and drops any hook list cached before install removed old
@@ -111,12 +111,10 @@ Default local path:
 - `~/.agents/skills/skill-authoring/`
 - `~/.agents/skills/figma-best-practices/`
 - `~/.agents/skills/fal-ai-tools/`
-- `~/.agents/skills/eli10/`
 - `~/.agents/skills/pr-authoring/`
 - `~/.agents/skills/commit-history-authoring/`
 - `~/.agents/skills/amir-publish/`
 - `~/.agents/skills/codex-cleanup/`
-- `~/.agents/skills/codex-babysit/`
 - `~/.agents/skills/codex-review-yolo/`
 - `~/.agents/skills/fresh-consult/`
 - `~/.agents/skills/agent-delegate/`
@@ -162,12 +160,10 @@ Installed skills:
   - `skill-authoring`
   - `figma-best-practices`
   - `fal-ai-tools`
-  - `eli10`
   - `pr-authoring`
   - `commit-history-authoring`
   - `amir-publish`
   - `codex-cleanup`
-  - `codex-babysit`
   - `codex-review-yolo`
   - `fresh-consult`
   - `agent-delegate`
@@ -206,12 +202,10 @@ Installed skills:
   - `skill-authoring`
   - `figma-best-practices`
   - `fal-ai-tools`
-  - `eli10`
   - `pr-authoring`
   - `commit-history-authoring`
   - `amir-publish`
   - `codex-cleanup`
-  - `codex-babysit`
   - `codex-review-yolo`
   - `fresh-consult`
   - `agent-delegate`
@@ -250,12 +244,10 @@ Installed skills:
   - `skill-authoring`
   - `figma-best-practices`
   - `fal-ai-tools`
-  - `eli10`
   - `pr-authoring`
   - `commit-history-authoring`
   - `amir-publish`
   - `codex-cleanup`
-  - `codex-babysit`
   - `codex-review-yolo`
   - `fresh-consult`
   - `agent-delegate`
@@ -272,7 +264,7 @@ Installed skills:
   - `arch-epic`
   - `thermo-nuclear-code-quality-review`
 
-Install removes stale pre-skill command surfaces, removed skill packages, older Codex skill mirrors, old arch_skill-owned hook entries, and source/build internals from installed skill packages. It does not install new hooks.
+Install removes stale pre-skill command surfaces, removed or default-disabled skill packages such as `codex-babysit`, older Codex skill mirrors, old arch_skill-owned hook entries, and source/build internals from installed skill packages. It does not install new hooks.
 
 The shared agent policy is installed on all supported skill surfaces. Ordinary
 same-host work uses native children; deliberate external lanes still require
@@ -620,12 +612,7 @@ Examples:
 
 ### `eli10`
 
-Use when the user wants any answer, explanation, plan, review, recommendation, or status update in ELI10/ELI16 plain-English style. It defines jargon on first use, names stakes, preserves exact commands/metrics/file names, and uses the decision-brief contract only when the answer is asking the user to choose.
-
-Examples:
-
-- `Use $eli10 to explain why this test failed`
-- `Use $eli10 to format this decision question`
+This package remains available in the repository for manual use but is not installed by `make install` or `make remote_install`. Normal Codex, Claude Code, and Gemini sessions therefore do not discover it from the arch_skill installed surface.
 
 ### `commit-history-authoring`
 
@@ -645,7 +632,7 @@ Examples:
 
 ### `codex-babysit`
 
-Use when the user wants to keep an already-running Codex goal-mode tmux pane alive across real usage limits, process death, restarts, and same-session resumes. It watches the pane and verifies that Codex resumed real work after every rotation.
+This package remains available in the repository for manual use but is not installed by `make install` or `make remote_install`. When used manually, it keeps an already-running Codex goal-mode tmux pane alive across real usage limits, process death, restarts, and same-session resumes. It watches the pane and verifies that Codex resumed real work after every rotation.
 
 Examples:
 
