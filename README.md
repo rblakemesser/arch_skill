@@ -62,6 +62,7 @@ Other shipped skills are:
 - `model-consensus` — prompt-only parent-relayed dialogue between two exact participants, resolving native or external transport separately for each, resuming each exact handle across rounds, and converging or exposing the smallest unresolved decision
 - `contact-sheet-builder` — builds quick local contact sheet PNGs from existing images, folders, globs, or attached local image paths using a lean prompt contract plus one Pillow renderer; defaults to dense labeled sheets, dynamic near-native edge-to-edge canvas sizing, safe temp output, Preview opening on macOS, and concise receipts
 - `fc-branded-pdf` — converts Markdown or document content into local FC / Poker Skill branded PDFs using bundled letterhead CSS, logo assets, and a local Markdown-to-PDF renderer; it verifies the rendered file and does not upload or archive to Drive
+- `cf-share` — uploads local artifact files or directories to the team's `fc-share` Cloudflare R2 bucket and returns a public unguessable `https://share.fun.country/<slug>/...` URL; requires a secret env file at `~/.config/cf-share/env` (token scopes and setup in the skill's `references/setup.md`)
 - `cynical-code-review` — prompt-only skeptical implementation-integrity review that also reconstructs human scope provenance and hard-fails unauthorized scope ratchets/cycling as `not-approved`, normally targeting subtraction
 - `cynical-architecture-review` — prompt-only subtraction-first review that requires durable concepts to trace to human scope or the frozen initial closure and hard-fails architecture made "required" through review cycling as `not-approved`
 - `cynical-cruft-removal` — prompt-only skeptical cleanup review that treats current reachability as separate from authorization and reports scope-laundered live code/tests/config/docs/dependencies as a `cruft-found` deletion cluster
@@ -150,6 +151,7 @@ Installed skills:
   - `~/.agents/skills/model-consensus/`
   - `~/.agents/skills/contact-sheet-builder/`
   - `~/.agents/skills/fc-branded-pdf/`
+  - `~/.agents/skills/cf-share/`
   - `~/.agents/skills/cynical-code-review/`
   - `~/.agents/skills/cynical-architecture-review/`
   - `~/.agents/skills/cynical-cruft-removal/`
@@ -195,6 +197,7 @@ Installed skills:
   - `~/.claude/skills/model-consensus/`
   - `~/.claude/skills/contact-sheet-builder/`
   - `~/.claude/skills/fc-branded-pdf/`
+  - `~/.claude/skills/cf-share/`
   - `~/.claude/skills/cynical-code-review/`
   - `~/.claude/skills/cynical-architecture-review/`
   - `~/.claude/skills/cynical-cruft-removal/`
@@ -238,6 +241,7 @@ Installed skills:
   - `~/.gemini/skills/model-consensus/`
   - `~/.gemini/skills/contact-sheet-builder/`
   - `~/.gemini/skills/fc-branded-pdf/`
+  - `~/.gemini/skills/cf-share/`
   - `~/.gemini/skills/cynical-code-review/`
   - `~/.gemini/skills/cynical-architecture-review/`
   - `~/.gemini/skills/cynical-cruft-removal/`
@@ -248,7 +252,7 @@ Installed skills:
 
 Codex reads the same installed skill surface from `~/.agents/skills/`. `make install` also removes stale pre-skill command surfaces, removed skill packages, older `~/.codex/skills/<skill>` mirrors, and local source/build internals so runtime routing stays unambiguous.
 
-`arch-loop`, `delay-poll`, `wait`, `code-review`, `codex-babysit`, and `eli10` are removed from the live installed surface; `codex-babysit` and `eli10` remain in this repository for manual use, while `make install` and `make remote_install` remove previously installed copies. Use native `/goal` for free-form completion, the host's native scheduling/reminder surface for timed waiting or polling, and ordinary host review behavior for generic code review. `agent-history` and `pr-review-followthrough` are installed on the agents/Codex and Claude Code surfaces. `agent-history` covers Codex and Claude Code local history; `pr-review-followthrough` owns live GitHub PR follow-through with replies and same-branch fixes. `contact-sheet-builder` is installed on all three skill surfaces and requires Python with Pillow at runtime. `fc-branded-pdf` is installed on all three skill surfaces and requires `pandoc` plus Chrome or Chromium at runtime. `arch-step-goal-prompt`, `figma-best-practices`, `fal-ai-tools`, `flutter-reference`, `chatgpt-web`, `fresh-consult`, `agent-delegate`, `plan-audit`, `plan-implement`, `model-consensus`, `plan-conductor`, `codex-cleanup`, `cynical-code-review`, `cynical-architecture-review`, `cynical-cruft-removal`, `exhaustive-code-review`, and `thermo-nuclear-code-quality-review` are installed on all three skill surfaces. `chatgpt-web` is prompt-only and requires BrowserOS MCP plus an already logged-in ChatGPT browser session; it does not automate login.
+`arch-loop`, `delay-poll`, `wait`, `code-review`, `codex-babysit`, and `eli10` are removed from the live installed surface; `codex-babysit` and `eli10` remain in this repository for manual use, while `make install` and `make remote_install` remove previously installed copies. Use native `/goal` for free-form completion, the host's native scheduling/reminder surface for timed waiting or polling, and ordinary host review behavior for generic code review. `agent-history` and `pr-review-followthrough` are installed on the agents/Codex and Claude Code surfaces. `agent-history` covers Codex and Claude Code local history; `pr-review-followthrough` owns live GitHub PR follow-through with replies and same-branch fixes. `contact-sheet-builder` is installed on all three skill surfaces and requires Python with Pillow at runtime. `fc-branded-pdf` is installed on all three skill surfaces and requires `pandoc` plus Chrome or Chromium at runtime. `cf-share` is installed on all three skill surfaces and requires `curl`, `python3`, and a secret env file at `~/.config/cf-share/env` at runtime. `arch-step-goal-prompt`, `figma-best-practices`, `fal-ai-tools`, `flutter-reference`, `chatgpt-web`, `fresh-consult`, `agent-delegate`, `plan-audit`, `plan-implement`, `model-consensus`, `plan-conductor`, `codex-cleanup`, `cynical-code-review`, `cynical-architecture-review`, `cynical-cruft-removal`, `exhaustive-code-review`, and `thermo-nuclear-code-quality-review` are installed on all three skill surfaces. `chatgpt-web` is prompt-only and requires BrowserOS MCP plus an already logged-in ChatGPT browser session; it does not automate login.
 
 External lanes still require the selected local `claude`, `codex`, `agent`, or
 `grok` CLI at invocation time. Ordinary same-host work uses the active host's
@@ -663,6 +667,10 @@ Use when the user wants a quick local contact sheet from existing image files, f
 ### `fc-branded-pdf`
 
 Use when the user wants Markdown, a memo, a report, exported document content, pasted notes, or a small packet turned into a local FC / Poker Skill branded PDF. The skill keeps a Markdown source file, renders it with the bundled `scripts/render_markdown_to_pdf.sh` helper, and verifies page count, extracted text, and visual preview when layout matters. It is local-file only: it does not upload to Drive, archive to Drive, or manage Drive folders. It requires `pandoc` plus Chrome or Chromium on the host.
+
+### `cf-share`
+
+Use when the user wants a local artifact — an HTML report, screenshot set, analysis bundle, PDF, or any static files — shared with the team by link. The skill uploads through the bundled `scripts/cf_share.sh` helper to the dedicated `fc-share` Cloudflare R2 bucket and returns a public unguessable `https://share.fun.country/<slug>/...` URL, verified with an HTTP 200 check before it is handed over. Shares are unlisted but public: anyone with the URL can view them, so sensitive material stays off this lane. It requires a secret env file at `~/.config/cf-share/env` holding a Cloudflare API token with Workers R2 Storage: Edit on the FunCountry account; token scopes, file format, and the infrastructure receipt live in the skill's `references/setup.md`. It is not for product content (`ps-content` CDN), app deployments, or claude.ai Artifacts.
 
 ### `cynical-code-review`
 

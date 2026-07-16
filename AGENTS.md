@@ -130,6 +130,12 @@ Claude Code, and Gemini.
   flow consistency question, or readability/confusion check. Use a clean
   same-host native child when capable; use its external lane for another
   provider, an unavailable exact model/profile, or another concrete benefit.
+- Use `$cf-share` when the user wants a local artifact file or directory
+  (HTML report, screenshots, analysis bundle, any static files) uploaded to
+  Cloudflare and shared with the team by a public unguessable
+  `https://share.fun.country/<slug>/...` URL. It reads its secret from
+  `~/.config/cf-share/env`. Not for product content, app deploys, or
+  material that must stay private.
 - Use `$commit-history-authoring` when the user wants the current branch's
   local-only commit messages rewritten into informative history while
   preserving patches and commit boundaries by default.
