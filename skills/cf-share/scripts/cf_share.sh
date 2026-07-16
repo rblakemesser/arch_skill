@@ -33,16 +33,17 @@ usage() {
 
 [ $# -ge 1 ] || usage 1
 
-[ -f "$ENV_FILE" ] || die "missing secret file $ENV_FILE
+load_env() {
+  [ -f "$ENV_FILE" ] || die "missing secret file $ENV_FILE
 Set it up per the cf-share skill references/setup.md (token with Workers R2 Storage: Edit)."
-# shellcheck disable=SC1090
-source "$ENV_FILE"
-for v in CF_SHARE_API_TOKEN CF_SHARE_ACCOUNT_ID CF_SHARE_BUCKET CF_SHARE_BASE_URL; do
-  [ -n "${!v:-}" ] || die "$v is not set in $ENV_FILE"
-done
-
-OBJ_BASE="$API/accounts/$CF_SHARE_ACCOUNT_ID/r2/buckets/$CF_SHARE_BUCKET/objects"
-AUTH=(-H "Authorization: Bearer $CF_SHARE_API_TOKEN")
+  # shellcheck disable=SC1090
+  source "$ENV_FILE"
+  for v in CF_SHARE_API_TOKEN CF_SHARE_ACCOUNT_ID CF_SHARE_BUCKET CF_SHARE_BASE_URL; do
+    [ -n "${!v:-}" ] || die "$v is not set in $ENV_FILE"
+  done
+  OBJ_BASE="$API/accounts/$CF_SHARE_ACCOUNT_ID/r2/buckets/$CF_SHARE_BUCKET/objects"
+  AUTH=(-H "Authorization: Bearer $CF_SHARE_API_TOKEN")
+}
 
 urlencode_path() { # percent-encode each path segment, keep the slashes
   python3 -c 'import sys, urllib.parse; print("/".join(urllib.parse.quote(s, safe="") for s in sys.argv[1].split("/")))' "$1"
@@ -96,17 +97,24 @@ delete_slug() {
 
 SLUG=""
 ENTRY=""
+DELETE_SLUG=""
 PATHS=()
 while [ $# -gt 0 ]; do
   case "$1" in
     --slug)   SLUG="$2"; shift 2 ;;
     --entry)  ENTRY="$2"; shift 2 ;;
-    --delete) [ -n "${2:-}" ] || die "--delete needs a slug"; delete_slug "$2"; exit 0 ;;
+    --delete) [ -n "${2:-}" ] || die "--delete needs a slug"; DELETE_SLUG="$2"; shift 2 ;;
     -h|--help) usage 0 ;;
     -*)       die "unknown flag $1" ;;
     *)        PATHS+=("$1"); shift ;;
   esac
 done
+
+load_env
+if [ -n "$DELETE_SLUG" ]; then
+  delete_slug "$DELETE_SLUG"
+  exit 0
+fi
 [ ${#PATHS[@]} -ge 1 ] || die "nothing to upload"
 
 [ -n "$SLUG" ] || SLUG="$(date +%Y%m%d)-$(openssl rand -hex 6)"
