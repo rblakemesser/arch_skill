@@ -83,9 +83,13 @@ make install
 This installs the live skill surface to `~/.agents/skills/`, removes old
 arch_skill-owned Codex and Claude hook entries from previous installs, removes
 older `~/.codex/skills/<skill>` mirrors, and also installs the Claude Code and
-Gemini CLI skill directories. Run `make crg-setup` separately when you want to
-install `code-review-graph` and build this checkout's local structural graph;
-normal skill installation does not rebuild it. Source/build internals
+Gemini CLI skill directories. When a Hermes Agent home exists, the same
+surface is mirrored into every existing Hermes skill root
+(`~/.hermes/skills/` and each `~/.hermes/profiles/<name>/skills/`) under the
+`arch_skill/` category directory; machines without Hermes are skipped
+automatically. Run `make crg-setup` separately when you want to install
+`code-review-graph` and build this checkout's local structural graph; normal
+skill installation does not rebuild it. Source/build internals
 (`build/`, `prompts/`, `__pycache__/`, `*.pyc`, and hook cleanup helpers) are
 pruned from installed skill packages. The
 `thermo-nuclear-code-quality-review` package is sourced unchanged from the
@@ -109,6 +113,12 @@ To skip Gemini:
 
 ```bash
 make install NO_GEMINI=1
+```
+
+To skip Hermes Agent propagation:
+
+```bash
+make install NO_HERMES=1
 ```
 
 Installed skills:
@@ -281,12 +291,12 @@ make verify_install
 ```
 
 This validates the installed active skill surface, including the shared agent
-orchestration policy under Agents/Codex, Claude, and Gemini; confirms old
-arch_skill-owned Codex and Claude hook entries and old
-`~/.codex/skills/<skill>` mirrors are absent; and confirms removed packages are
-absent for the supported runtimes.
+orchestration policy under Agents/Codex, Claude, Gemini, and every existing
+Hermes Agent skill root; confirms old arch_skill-owned Codex and Claude hook
+entries and old `~/.codex/skills/<skill>` mirrors are absent; and confirms
+removed packages are absent for the supported runtimes.
 
-Restart your Codex, Claude Code, or Gemini CLI session after install so it
+Restart your Codex, Claude Code, Gemini CLI, or Hermes Agent session after install so it
 reloads skills and drops any hook list cached before install removed old
 arch_skill hook entries.
 
