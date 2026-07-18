@@ -201,12 +201,15 @@ log beside the plan is its durable memory.
    ask for runtime/model/effort only when the chosen external lane needs them;
    default an omitted external Codex model to `gpt-5.6-sol`. The Terra shortcut
    supplies its own external execution values, so do not ask for them.
-6. Read the plan once end to end. Create or update
-   `<PLAN_STEM>_CONDUCTOR_LOG.md` with the extracted execution map, and apply
-   the readiness gate.
-7. Inspect `git status` and commit an initial or resume checkpoint before
-   launching workers, unless a concrete safety issue such as secrets blocks
-   it.
+6. Read the plan once end to end and extract the execution map in context.
+7. Before creating or updating the conductor log, inspect `git status` and
+   capture the start commit and inherited worktree state. Then write the
+   extracted execution map to `<PLAN_STEM>_CONDUCTOR_LOG.md` and record the
+   start commit, then apply and record the readiness gate. If the gate passes,
+   take an initial or resume checkpoint before launching workers only when the
+   inherited worktree already held plan work to preserve (per Git Posture) —
+   never an empty checkpoint just to mark intake. Skip it on a concrete safety
+   issue such as secrets or clearly unrelated files.
 8. Read `references/chunking-and-parallelism.md`, then design and dispatch
    the first wave.
 
