@@ -3,7 +3,7 @@
 This module is deterministic plumbing for skill scripts. It encodes the
 provider-owned routing rule: Codex runs GPT/GBT/OpenAI models and Fugu profiles,
 Claude Code runs supported Claude models, Cursor Agent runs Composer 2.5 Fast,
-and Grok CLI runs Grok models.
+Grok CLI runs Grok models, and Kimi Code runs Kimi models.
 Cross-provider phrases fail loud instead of routing an expensive model through
 the wrong harness.
 """
@@ -19,9 +19,14 @@ from dataclasses import dataclass
 from typing import Any
 
 
-VALID_RUNTIMES = {"agent", "claude", "codex", "grok"}
+VALID_RUNTIMES = {"agent", "claude", "codex", "grok", "kimi"}
 VALID_EFFORTS = {"low", "medium", "high", "xhigh", "max"}
 PREFERRED_CODEX_MODEL = "gpt-5.6-sol"
+PREFERRED_GROK_MODEL = "grok-4.5"
+PREFERRED_KIMI_MODEL = "kimi-code/k3"
+KIMI_DEFAULT_EFFORT = "max"
+KIMI_EFFORT_ENV = "KIMI_MODEL_THINKING_EFFORT"
+KIMI_NO_AUTO_UPDATE_ENV = "KIMI_CODE_NO_AUTO_UPDATE"
 CODEX_56_VARIANTS = ("sol", "luna", "terra")
 BLOCKED_CODEX_MODELS = frozenset({"gpt-5.4", "gpt-5.5"})
 
@@ -60,6 +65,25 @@ _CLAUDE_FAMILY_RE = re.compile(
     re.IGNORECASE,
 )
 _GROK_MODEL_RE = re.compile(r"\bgrok(?:[-_][a-z0-9.]+)+\b", re.IGNORECASE)
+_KIMI_MODEL_RE = re.compile(
+    r"(?<![a-z0-9])(?:kimi-code/k3|kimi(?:[-_\s]+code)?[-_\s]+k3|k3)(?![a-z0-9])",
+    re.IGNORECASE,
+)
+_KIMI_ALIAS_RE = re.compile(
+    r"(?<![a-z0-9])kimi-code/(?P<alias>[a-z0-9._-]+)",
+    re.IGNORECASE,
+)
+_KIMI_VERSION_RE = re.compile(
+    r"(?<![a-z0-9])k(?P<version>\d+(?:\.\d+)?)(?![a-z0-9])",
+    re.IGNORECASE,
+)
+_NATURAL_GROK_VERSION_RE = re.compile(
+    r"\bgrok(?:[\s_]+(?:cli|build))?"
+    r"(?:[\s_]+(?:version|model))?[\s_]+v?"
+    r"(?P<version>\d+(?:\.\d+)*)(?![a-z0-9])",
+    re.IGNORECASE,
+)
+_GROK_45_EFFORTS = {"low", "medium", "high"}
 _ROLE_ALIASES = {
     "planner": "epic_planner",
     "plan": "epic_planner",
@@ -132,6 +156,12 @@ def codex_model_or_profile_args(
     return ["--model", model, "-c", f'model_reasoning_effort="{effort}"']
 
 
+def kimi_model_args(model: str) -> list[str]:
+    """Return the Kimi Code CLI argv that pins an exact model alias."""
+
+    return ["-m", model]
+
+
 def discover_codex_models() -> list[str]:
     """Return model ids from `codex debug models` when available.
 
@@ -200,12 +230,48 @@ def discover_grok_models() -> list[str]:
     return sorted(candidates)
 
 
+def discover_kimi_models() -> list[str]:
+    """Return provider/model aliases from `kimi provider list --json`.
+
+    Kimi Code exposes the runnable aliases as keys of the top-level `models`
+    object. Treat any other output shape as unavailable rather than guessing.
+    """
+
+    if shutil.which("kimi") is None:
+        return []
+    proc = subprocess.run(
+        ["kimi", "provider", "list", "--json"],
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        check=False,
+    )
+    if proc.returncode != 0:
+        return []
+    try:
+        payload = json.loads(proc.stdout)
+    except json.JSONDecodeError:
+        return []
+    if not isinstance(payload, dict):
+        return []
+    models = payload.get("models")
+    if not isinstance(models, dict):
+        return []
+    return sorted(
+        alias.strip().lower()
+        for alias in models
+        if isinstance(alias, str) and alias.strip()
+    )
+
+
 def resolve_execution_phrase(
     source_quote: str,
     *,
     codex_models: list[str] | None = None,
     agent_models: list[str] | None = None,
     grok_models: list[str] | None = None,
+    kimi_models: list[str] | None = None,
 ) -> ResolvedExecution:
     """Resolve a compact user phrase into runtime/model/effort.
 
@@ -221,8 +287,10 @@ def resolve_execution_phrase(
     - "Fugu Ultra xhigh" -> codex / profile fugu-ultra / xhigh
     - "cursor agent composer-2.5-fast" -> agent / composer-2.5-fast / encoded-in-model
     - "cursor agent composer 2.5" -> agent / composer-2.5-fast / encoded-in-model
-    - "grok build high" -> grok / grok-build / high
+    - "grok build high" -> grok / grok-4.5 / high
     - "grok composer 2.5 high" -> grok / grok-composer-2.5-fast / high
+    - "kimi k3" -> kimi / kimi-code/k3 / max
+    - "kimi-code/k3 xhigh" -> kimi / kimi-code/k3 / xhigh
 
     The function raises ModelResolutionError when a required value is missing
     or when exact-version-preserving model discovery is impossible. Cursor
@@ -238,7 +306,7 @@ def resolve_execution_phrase(
     runtime, runtime_source = _infer_runtime(lowered)
     if runtime is None:
         raise ModelResolutionError(
-            f"could not infer runtime from {raw!r}; name claude, codex, agent, or grok"
+            f"could not infer runtime from {raw!r}; name claude, codex, agent, grok, or kimi"
         )
     fugu_candidate = (
         _extract_fugu_model_candidate(lowered) if runtime == "codex" else None
@@ -247,6 +315,9 @@ def resolve_execution_phrase(
     if effort is None and fugu_candidate is not None:
         effort = _FUGU_PROFILE_DEFAULT_EFFORTS[fugu_candidate]
         effort_source = "profile_default"
+    if effort is None and runtime == "kimi":
+        effort = KIMI_DEFAULT_EFFORT
+        effort_source = "model_default"
     if effort is None and runtime != "agent":
         raise ModelResolutionError(
             f"could not infer effort from {raw!r}; use one of {sorted(VALID_EFFORTS)}"
@@ -266,8 +337,11 @@ def resolve_execution_phrase(
     elif runtime == "agent":
         model = _resolve_agent_model(raw, agent_models=agent_models)
         effort = f"encoded-in-model:{effort}" if effort else "encoded-in-model"
+    elif runtime == "grok":
+        model, model_source = _resolve_grok_model(raw, grok_models=grok_models)
+        _validate_grok_effort(model, effort or "", raw)
     else:
-        model = _resolve_grok_model(raw, grok_models=grok_models)
+        model, model_source = _resolve_kimi_model(raw, kimi_models=kimi_models)
 
     return ResolvedExecution(
         runtime=runtime,
@@ -293,6 +367,7 @@ def resolve_role_execution_policy(
     codex_models: list[str] | None = None,
     agent_models: list[str] | None = None,
     grok_models: list[str] | None = None,
+    kimi_models: list[str] | None = None,
     poll_seconds: int = 180,
     quiet_floor_seconds: int = 900,
     stuck_floor_seconds: int = 1800,
@@ -351,6 +426,7 @@ def resolve_role_execution_policy(
                     codex_models=codex_models,
                     agent_models=agent_models,
                     grok_models=grok_models,
+                    kimi_models=kimi_models,
                 ).to_dict()
                 block["source"] = "user_table"
                 resolved[role] = block
@@ -377,17 +453,29 @@ def resolve_role_execution_policy(
 
 
 def _extract_effort(lowered: str) -> str | None:
-    if re.search(r"\b(?:extra[\s_-]*high|x[\s_-]*high)\b", lowered):
-        return "xhigh"
-    if re.search(
-        rf"\b(?:gpt|gbt)[\s_-]*(?:55|56[\s_-]*(?:{_CODEX_56_VARIANT_PATTERN}))"
-        r"[\s_-]*(?:xi|x)\b",
+    normalized = re.sub(
+        r"\b(?:extra[\s_-]*high|x[\s_-]*high)\b",
+        " xhigh ",
         lowered,
-    ):
-        return "xhigh"
-    found = [effort for effort in VALID_EFFORTS if re.search(rf"\b{effort}\b", lowered)]
+    )
+    normalized = re.sub(
+        rf"\b(?:gpt|gbt)[\s_-]*(?:55|56[\s_-]*(?:{_CODEX_56_VARIANT_PATTERN}))"
+        r"[\s_-]*(?:xhigh|xi|x)\b",
+        " xhigh ",
+        normalized,
+    )
+    found = sorted(
+        effort
+        for effort in VALID_EFFORTS
+        if re.search(rf"\b{effort}\b", normalized)
+    )
     if len(found) == 1:
         return found[0]
+    if len(found) > 1:
+        raise ModelResolutionError(
+            "execution phrase names multiple distinct effort levels "
+            f"{found}; choose exactly one"
+        )
     return None
 
 
@@ -409,30 +497,35 @@ def _infer_runtime(lowered: str) -> tuple[str | None, str]:
         re.search(r"\b(grok|xai|x\.ai)\b", lowered)
         or _GROK_MODEL_RE.search(lowered)
     )
+    has_kimi = bool(
+        re.search(r"\b(kimi|moonshot|k3)\b", lowered)
+        or _KIMI_MODEL_RE.search(lowered)
+        or _KIMI_ALIAS_RE.search(lowered)
+        or _KIMI_VERSION_RE.search(lowered)
+    )
     has_composer = bool(
         re.search(r"(?<![a-z0-9])composer(?![a-z0-9])", lowered)
         or re.search(r"(?<![\d])2[-_.]5(?![\d])", lowered)
     )
-    if has_grok and (has_codex or has_claude or has_agent):
+    families = {
+        "Codex": has_codex,
+        "Claude": has_claude,
+        "Cursor Agent": has_agent,
+        "Grok": has_grok,
+        "Kimi": has_kimi,
+    }
+    selected = [name for name, present in families.items() if present]
+    if len(selected) > 1:
         raise ModelResolutionError(
-            "execution phrase mixes Grok with another runtime family; split "
-            "the roles"
+            "execution phrase names multiple runtime families "
+            f"({', '.join(selected)}); split the roles"
         )
-    if has_agent and (has_codex or has_claude):
-        raise ModelResolutionError(
-            "execution phrase mixes Cursor Agent with GPT/GBT model ids, Fugu profiles, "
-            "or Claude models; Codex runs GPT/GBT model ids and Fugu profiles, "
-            "Claude Code runs supported Claude models, "
-            "and Cursor Agent runs composer-2.5-fast"
-        )
+    if has_kimi:
+        return "kimi", "inferred_from_model_family"
     if has_grok:
         return "grok", "inferred_from_model_family"
     if has_agent:
         return "agent", "inferred_from_runtime_name"
-    if sum(bool(v) for v in [has_codex, has_claude, has_agent, has_grok]) > 1:
-        raise ModelResolutionError(
-            "execution phrase names multiple runtime families; split the roles"
-        )
     if has_codex:
         return "codex", "inferred_from_model_family"
     if has_claude:
@@ -592,41 +685,104 @@ def _resolve_agent_model(raw: str, *, agent_models: list[str] | None) -> str:
     )
 
 
-def _resolve_grok_model(raw: str, *, grok_models: list[str] | None) -> str:
+def _resolve_grok_model(
+    raw: str,
+    *,
+    grok_models: list[str] | None,
+) -> tuple[str, str]:
     models = grok_models
     if models is None:
         models = discover_grok_models()
     normalized_models = [model.lower() for model in models]
-    candidate = _extract_grok_model_candidate(raw.lower())
+    candidate, model_source = _extract_grok_model_candidate(raw.lower())
     if candidate is None:
         raise ModelResolutionError(f"could not find a Grok model in {raw!r}")
 
     if not normalized_models or candidate in normalized_models:
-        return candidate
+        return candidate, model_source
     raise ModelResolutionError(
         f"{raw!r} did not match an available Grok model id; candidate was {candidate!r}"
     )
 
 
-def _extract_grok_model_candidate(lowered: str) -> str | None:
-    if re.search(
-        r"\bgrok[-_\s]*composer(?:[-_\s]*2[-_\s]*5(?:[-_\s]*fast)?)?\b",
-        lowered,
-    ):
-        return "grok-composer-2.5-fast"
-    if re.search(r"\bgrok[-_\s]*build\b", lowered):
-        return "grok-build"
-
+def _extract_grok_model_candidate(lowered: str) -> tuple[str | None, str]:
     match = _GROK_MODEL_RE.search(lowered)
     if match:
         token = match.group(0).replace("_", "-")
         if token == "grok-composer" or token.startswith("grok-composer-2-5"):
-            return "grok-composer-2.5-fast"
-        return token
+            return "grok-composer-2.5-fast", "explicit"
+        return token, "explicit"
+
+    if re.search(
+        r"\bgrok[-_\s]*composer(?:[-_\s]*2[-_\s]*5(?:[-_\s]*fast)?)?\b",
+        lowered,
+    ):
+        return "grok-composer-2.5-fast", "explicit"
+    if re.search(r"\bgrok[\s_]+build\b", lowered):
+        _validate_natural_grok_version(lowered)
+        return PREFERRED_GROK_MODEL, "default"
 
     if re.search(r"\bgrok\b", lowered):
-        return "grok-build"
-    return None
+        _validate_natural_grok_version(lowered)
+        return PREFERRED_GROK_MODEL, "default"
+    return None, "unresolved"
+
+
+def _validate_natural_grok_version(lowered: str) -> None:
+    match = _NATURAL_GROK_VERSION_RE.search(lowered)
+    if match is None or match.group("version") == "4.5":
+        return
+    raise ModelResolutionError(
+        "natural Grok wording names unsupported numeric version "
+        f"{match.group('version')!r}; use {PREFERRED_GROK_MODEL!r} or an exact "
+        "grok-* model id"
+    )
+
+
+def _validate_grok_effort(model: str, effort: str, raw: str) -> None:
+    if model != PREFERRED_GROK_MODEL or effort in _GROK_45_EFFORTS:
+        return
+    allowed_text = ", ".join(sorted(_GROK_45_EFFORTS))
+    raise ModelResolutionError(
+        f"{raw!r} uses effort {effort!r}, but {model!r} supports only: {allowed_text}"
+    )
+
+
+def _resolve_kimi_model(
+    raw: str,
+    *,
+    kimi_models: list[str] | None,
+) -> tuple[str, str]:
+    lowered = raw.lower()
+    alias_match = _KIMI_ALIAS_RE.search(lowered)
+    if alias_match and alias_match.group("alias") != "k3":
+        raise ModelResolutionError(
+            f"unsupported Kimi model id {alias_match.group(0)!r}; this rollout "
+            f"supports only {PREFERRED_KIMI_MODEL!r}, so name K3"
+        )
+    version_match = _KIMI_VERSION_RE.search(lowered)
+    if version_match and version_match.group("version") != "3":
+        raise ModelResolutionError(
+            f"unsupported Kimi K{version_match.group('version')} model phrase; "
+            f"this rollout supports only {PREFERRED_KIMI_MODEL!r}, so name K3"
+        )
+    if not (
+        re.search(r"\b(kimi|moonshot|k3)\b", lowered)
+        or _KIMI_MODEL_RE.search(lowered)
+    ):
+        raise ModelResolutionError(f"could not find a Kimi model in {raw!r}")
+
+    models = kimi_models
+    if models is None:
+        models = discover_kimi_models()
+    normalized_models = [model.strip().lower() for model in models if model.strip()]
+    if normalized_models and PREFERRED_KIMI_MODEL not in normalized_models:
+        raise ModelResolutionError(
+            f"{raw!r} did not match an available Kimi model id; "
+            f"candidate was {PREFERRED_KIMI_MODEL!r}"
+        )
+    explicit = bool(re.search(r"\bk3\b", lowered) or _KIMI_MODEL_RE.search(lowered))
+    return PREFERRED_KIMI_MODEL, "explicit" if explicit else "default"
 
 
 def _extract_agent_model_candidate(lowered: str) -> str | None:

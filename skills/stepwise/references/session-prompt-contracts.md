@@ -196,7 +196,10 @@ run record only.
 Initial prompt goes to a new clean child. Diagnostic and repair prompts resume
 the exact relevant child through its original transport. Native follow-ups use
 the host's exact child handle. External Claude uses `-r <session-id>` and
-external Codex uses `codex exec resume <session-id>`.
+external Codex uses `codex exec resume <session-id>`. External Grok uses
+`--resume <session-id>`. External Kimi runs from the original cwd and uses
+`kimi -r <session-id>`; never use `-c`/`--continue`, and require a fresh
+`session.resume_hint` rather than falling back to the input id.
 
 After an upstream repair, downstream steps start new clean replacements. Do not
 resume a downstream child whose history was built on broken upstream input.

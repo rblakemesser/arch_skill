@@ -7,15 +7,15 @@ sections only when an external provider, exact model/profile, lifecycle,
 isolation, automation, or receipt benefit justifies the added process.
 
 For the external lane, use this reference to resolve what the user meant by
-"Claude", "Codex", "Cursor Agent", "Grok", "fable 5 high", "opus high",
+"Claude", "Codex", "Cursor Agent", "Grok", "Kimi", "fable 5 high", "opus high",
 "gpt-5.6-sol xhigh", "luna xhigh", "terra high", "GPT56SOLXI", "fugu high",
-"fugu-ultra xhigh", "composer-2.5-fast", "grok-build", or similar phrasing,
+"fugu-ultra xhigh", "composer-2.5-fast", "grok-4.5", "kimi k3", or similar phrasing,
 and to run the selected read-only consult subprocess.
 
 Fresh consult is review/second-opinion work. Provider routing is fixed: Codex
 runs GPT/GBT/OpenAI model ids and Fugu profiles, Claude Code runs supported
-Claude models, Cursor Agent runs Composer 2.5 Fast, and Grok CLI runs Grok
-models. The first turn in a consult line starts clean from disk and the prompt;
+Claude models, Cursor Agent runs Composer 2.5 Fast, Grok CLI runs Grok models,
+and Kimi Code runs Kimi K3. The first turn in a consult line starts clean from disk and the prompt;
 bounded same-line follow-ups resume the captured child session by exact session
 id.
 
@@ -63,19 +63,22 @@ read-only enforcement, filesystem isolation, or a separate worktree.
 
 Every external consult child needs three execution values:
 
-- `runtime` - `claude`, `codex`, `agent`, or `grok`
+- `runtime` - `claude`, `codex`, `agent`, `grok`, or `kimi`
 - `model` - the runnable CLI model identifier, or the Codex profile name for
-  Fugu. An omitted model on a Codex lane resolves to `gpt-5.6-sol`.
-- `effort` - the reasoning effort level, or `encoded-in-model` for Cursor Agent
+  Fugu. An omitted model on a Codex lane resolves to `gpt-5.6-sol`; an omitted
+  Kimi model resolves to `kimi-code/k3`.
+- `effort` - the reasoning effort level, `encoded-in-model` for Cursor Agent,
+  or Kimi K3's `max` model default when omitted
 
 If external transport has been selected and a required value is missing or
-ambiguous after applying the Codex model default, ask one consolidated
+ambiguous after applying the Codex and Kimi defaults, ask one consolidated
 question before invoking. Do not ask for CLI values for an ordinary native
 review. For Cursor Agent Composer, effort resolves to `encoded-in-model`; do
 not ask for a separate effort level.
 
 ```text
-I need the fresh consult runtime, effort, and non-Codex model/profile when
+I need the fresh consult runtime, effort, and model/profile outside the Codex
+and Kimi defaults when
 applicable before invoking an external model. The consult runs as a clean
 subprocess and can spend real model budget. What should I use?
 ```
@@ -97,24 +100,28 @@ Infer runtime only when the user's wording makes it unambiguous:
 - `agent`, `cursor`, `cursor agent`, or `cursor-agent` implies
   `runtime=agent` only for Composer. Cursor Agent always resolves to
   `composer-2.5-fast`.
-- `grok`, `grok build`, `grok-build`, `grok composer`, or
-  `grok-composer-2.5-fast` implies `runtime=grok`.
+- `grok`, natural `grok build`, natural `grok cli`, `grok-4.5`, or an explicit
+  legacy `grok-*` slug implies `runtime=grok`.
+- `kimi`, `kimi code`, `kimi k3`, `k3`, or `moonshot` implies `runtime=kimi`.
+  Kimi defaults to `kimi-code/k3` at `max` when model or effort is omitted.
 - Bare `composer`, `composer 2.5`, or bare `2.5` is ambiguous unless the user
   explicitly names Cursor Agent or Grok in the same execution choice.
 - If a phrase mixes Cursor Agent with GPT/GBT model ids, Fugu profiles, or
   Claude, fail loud instead of choosing a side. Never run GPT/GBT model ids,
   Fugu profiles, or Claude models through Cursor Agent.
-- If a phrase mixes Grok with GPT/GBT model ids, Fugu profiles, Claude, or
+- If a phrase mixes Grok or Kimi with GPT/GBT model ids, Fugu profiles, Claude, or
   Cursor Agent, fail loud instead of choosing a side.
 - If the user names only an effort level, such as "xhigh", ask for runtime.
   If the answer is Codex and still omits a model, use `gpt-5.6-sol`.
 - If the user says only "run a fresh consult" or "get a second opinion", use a
   clean native child of the active host when it can satisfy the role. Ask for
-  runtime/effort and a non-Codex model/profile only after an external lane is
+  runtime, any non-default effort, and a model/profile outside the Codex and
+  Kimi defaults only after an external lane is
   selected and those values are load-bearing.
 
-The Codex default is deliberately narrow: when the lane is Codex and no model
-or profile is named, use `gpt-5.6-sol`. Do not default the runtime itself, and
+The defaults are deliberately narrow: when the lane is Codex and no model or
+profile is named, use `gpt-5.6-sol`; when the lane is Kimi, use `kimi-code/k3`
+and default an omitted effort to `max`. Do not default the runtime itself, and
 do not invent defaults for Claude, Cursor Agent, Grok, or Fugu profiles.
 
 ## Model Phrase Resolution
@@ -147,12 +154,17 @@ Treat model text as intent, not a loose alias:
   context as that runnable id. Do not use Cursor model discovery for
   non-Composer routing, and do not pass GPT/GBT model ids, Fugu profiles,
   Claude, or Grok model ids to Cursor Agent.
-- For Grok, use `grok-build` by default when the user says `grok`,
-  `grok cli`, `grok build`, or `grok-build`. Use
-  `grok-composer-2.5-fast` only when the user names Grok Composer, such as
-  `grok composer`, `grok composer 2.5`, or `grok-composer-2.5-fast`. Inspect
-  `grok models` when availability matters, and do not pass GPT/GBT model ids,
-  Fugu profiles, Claude, or Cursor Agent model ids to Grok.
+- For Grok, natural `grok`, `grok cli`, and `grok build` wording resolves to
+  `grok-4.5`. “Grok Build” names the harness, not a model id. If that wording
+  names a numeric version other than `4.5`, fail loud rather than discarding
+  it. Preserve an
+  explicit legacy slug such as `grok-build` or `grok-composer-2.5-fast`
+  exactly and require discovery to confirm it; never rewrite it to `grok-4.5`.
+- For Kimi, `kimi`, `kimi code`, `kimi k3`, `k3`, and `moonshot` resolve to
+  the exact callable alias `kimi-code/k3`. Do not auto-resolve older
+  Kimi-for-coding/K2.7 aliases and do not cross provider model ids. When
+  availability matters, inspect the top-level `.models` keys from
+  `kimi provider list --json`.
 - Do not run paid trial prompts to discover whether a Claude model exists. Use
   the CLI help/config surface when available; otherwise ask.
 
@@ -166,7 +178,9 @@ Luna xhigh -> runtime=codex, model=gpt-5.6-luna, effort=xhigh
 Terra high -> runtime=codex, model=gpt-5.6-terra, effort=high
 Fugu Ultra xhigh -> runtime=codex, model=fugu-ultra, codex_profile=fugu-ultra, effort=xhigh
 Cursor Agent composer 2.5 -> runtime=agent, model=composer-2.5-fast, effort=encoded-in-model
-Grok Build high -> runtime=grok, model=grok-build, effort=high
+Grok Build high -> runtime=grok, model=grok-4.5, effort=high
+Kimi K3 high -> runtime=kimi, model=kimi-code/k3, effort=high
+Kimi -> runtime=kimi, model=kimi-code/k3, effort=max, effort_source=model_default
 ```
 
 For deterministic script plumbing that needs the same rules, use
@@ -189,15 +203,21 @@ visible output contract to verdict, evidence, session metadata, and directories.
   the profile default (`fugu` defaults to `high`; `fugu-ultra` defaults to
   `xhigh`). Add `-c model_reasoning_effort='"<level>"'` only when the user
   explicitly requests a supported non-default Fugu Ultra effort.
-- Grok accepts `low`, `medium`, `high`, `xhigh`, and `max` via `--effort`.
+- `grok-4.5` accepts only `low`, `medium`, and `high` via `--effort`. Generic
+  CLI effort parsing does not widen that model's catalog contract.
+- Kimi K3 advertises `low`, `high`, and `max`, with `max` as the model default.
+  Set `KIMI_MODEL_THINKING_EFFORT=<level>` on the process; there is no
+  `--effort` flag. Preserve an explicit `medium` or `xhigh` verbatim as a forced
+  override, but never choose either by default or inference.
 - Cursor Agent does not expose a separate `--effort` flag in the local CLI.
   Store effort as `encoded-in-model` and pass only
   `--model "composer-2.5-fast"`.
 - For ordinary Codex model ids, confirm the selected model supports the
   requested effort when `codex debug models` is needed for model resolution.
   `codex debug models` does not prove whether local Fugu profiles exist.
-- If effort is missing for Claude, Codex, or Grok, or the selected model does
-  not support the requested effort, ask.
+- Outside Kimi, if a required effort is missing or the selected model does not
+  support the requested effort, ask. Kimi alone defaults an omitted effort to
+  `max`.
 
 ## Transport-Neutral Consult Continuity
 
@@ -296,14 +316,17 @@ SESSION_PATH="$TURN_DIR/session_id.txt"
 RESUME_FROM_PATH="$TURN_DIR/resume_from.txt"
 ```
 
-Write the prompt to `prompt.md`. Do not pass a long multiline prompt directly
-on the command line.
+Write the prompt to `prompt.md`. Kimi has no verified prompt-file or stdin
+form, so pass that file's contents as one `-p` argv value without a shell and
+recognize the operating-system argv-size limit for unusually large prompts.
 
 `events.jsonl` is the live child stream. `stderr.log` is the diagnostic error
 stream. `final.txt` is the final assistant text: Codex writes it directly with
 `-o`; for Claude and Cursor Agent, copy the `result` text from the final
 `type=result` event after the process exits. For Grok, concatenate streamed
-`type=text` `data` chunks after the process exits.
+`type=text` `data` chunks after the process exits. For Kimi, concatenate
+`role=assistant` event contents after exit and capture the `session_id` from
+the `role=meta`, `type=session.resume_hint` event.
 
 Write `execution.json` before invocation with at least:
 
@@ -311,7 +334,7 @@ Write `execution.json` before invocation with at least:
 {
   "schema_version": 1,
   "mode": "fresh-resumable | resume | fresh-forced | fresh-rotated",
-  "runtime": "claude | codex | agent | grok",
+  "runtime": "claude | codex | agent | grok | kimi",
   "model": "<resolved model or reused-from-session>",
   "effort": "<resolved effort or reused-from-session>",
   "work_root": "<absolute path>",
@@ -339,7 +362,7 @@ defensible:
   "created_at_utc": "2026-06-05T00:00:00Z",
   "updated_at_utc": "2026-06-05T00:00:00Z",
   "work_root": "<absolute path>",
-  "runtime": "claude | codex | agent | grok",
+  "runtime": "claude | codex | agent | grok | kimi",
   "model": "<resolved model>",
   "effort": "<resolved effort or encoded-in-model>",
   "max_chain_turns": 3,
@@ -397,7 +420,7 @@ EXECUTION_PATH="$TURN_DIR/execution.json"
 SESSION_PATH="$TURN_DIR/session_id.txt"
 ```
 
-Launch each child with the same Codex, Claude, Cursor Agent, or Grok command
+Launch each child with the same Codex, Claude, Cursor Agent, Grok, or Kimi command
 shape below, using that child's paths. Record the shell PID and exit status in
 the child directory if the host shell makes that convenient, but do not
 introduce a script, controller, detached monitor, or state machine.
@@ -654,6 +677,58 @@ Use `--resume <session_id>` only. Do not use any latest-session selection.
 After Grok exits, write the final text to `final.txt` and preserve the returned
 `sessionId` in `session_id.txt` when present.
 
+## External Kimi Fresh Resumable
+
+Use this shape for `fresh-resumable`, `fresh-forced`, and `fresh-rotated` Kimi
+turns. A fresh Kimi turn starts without prior conversation but still persists a
+session:
+
+```bash
+KIMI_CODE_NO_AUTO_UPDATE=1 \
+KIMI_MODEL_THINKING_EFFORT="<resolved_effort>" \
+kimi \
+  -m "<resolved_kimi_model>" \
+  -p "$(cat "$PROMPT_PATH")" \
+  --output-format stream-json \
+  > "$EVENTS_PATH" \
+  2> "$STDERR_PATH"
+```
+
+Run from `work_root`; Kimi has no cwd flag and sessions are cwd-scoped. Build
+argv directly rather than evaluating untrusted prompt text through a shell.
+Kimi always persists a session, so this lane cannot satisfy a load-bearing
+stateless/no-persist review requirement.
+Set `KIMI_CODE_NO_AUTO_UPDATE=1` for every run. Print mode performs automatic
+approval, but it is not a full permission, hook, or static-denial bypass. Do
+not add `--yolo`, `--auto`, or `--plan`, which conflict with `-p`. Kimi has no
+documented hook-suppression flag and inherits configured hooks and MCP servers.
+
+Concatenate string `content` from every `role=assistant` event into `final.txt`.
+Write the `session_id` from the `role=meta`, `type=session.resume_hint` event to
+`session_id.txt`. Missing final text or a missing resume hint is malformed for
+this resumable consult; preserve the turn directory.
+
+## External Kimi Resume
+
+Resume the exact captured Kimi session from the same `work_root`:
+
+```bash
+KIMI_CODE_NO_AUTO_UPDATE=1 \
+KIMI_MODEL_THINKING_EFFORT="<resolved_effort>" \
+kimi \
+  -r "<session_id>" \
+  -m "<resolved_kimi_model>" \
+  -p "$(cat "$PROMPT_PATH")" \
+  --output-format stream-json \
+  > "$EVENTS_PATH" \
+  2> "$STDERR_PATH"
+```
+
+Use `-r <session_id>`, never `-c`/`--continue` or any latest-session selector.
+Parse final text and require a fresh returned resume hint with the fresh-turn
+rules. A missing hint is unrecoverable for continuation; do not reuse the input
+id as a fallback.
+
 ## External Monitoring Posture
 
 Consults are not instant. A normal repo-backed consult commonly takes 5+
@@ -688,16 +763,19 @@ For external review, fail loud and preserve the chain and turn directory when:
 - the caller asks for cross-runtime resume
 - the caller asks for Claude `--continue`, Codex `--last`, Cursor Agent
   `--continue`, `agent resume`, `agent ls`, Grok latest-session selection, or
-  any other latest-session resume selection
+  Kimi `-c`/`--continue`, or any other latest-session resume selection
 - the child exits non-zero
 - `final.txt` is empty
 - Claude exits without a final `type=result` event
 - Cursor Agent exits without a final `type=result` event
 - Grok exits without final text
+- Kimi exits without any `role=assistant` text
+- a caller requires truly stateless/no-persist Kimi execution
+- a fresh Kimi turn emits no `session.resume_hint` session id
 - the child omits the required verdict footer
 
 When the prior same-line chain is already at three turns, start a new
 `fresh-rotated` chain instead of failing.
 
-Do not silently fall back between Claude, Codex, Cursor Agent, and Grok, one
+Do not silently fall back between Claude, Codex, Cursor Agent, Grok, and Kimi, one
 model to another model, one effort level to another, or one session to another.

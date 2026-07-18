@@ -81,7 +81,7 @@ broader workflow.
   skills unless the parent explicitly assigns a nested scope and budget.
 - The parent owns child accounting, deduplication, integration, scope
   disposition, the saved artifact, and the final verdict.
-- Do not manually spawn `codex`, `claude`, `agent`, `grok`, or any other
+- Do not manually spawn `codex`, `claude`, `agent`, `grok`, `kimi`, or any other
   coding-harness executable.
 - Do not invoke external agent, delegation, consult, or review skills as the
   review mechanism.

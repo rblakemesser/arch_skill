@@ -52,6 +52,8 @@ intended to be visible and shareable.
 │           ├── exit_code
 │           ├── critic/
 │           │   ├── prompt.md
+│           │   ├── prompt.grok.md        # external Grok only; schema inline
+│           │   ├── prompt.kimi.md        # external Kimi only; schema inline
 │           │   ├── dispatch.json
 │           │   ├── child_handle.txt
 │           │   ├── schema.codex.json     # external Codex only

@@ -7,7 +7,7 @@ new clean same-host child.
 
 Do not replace ordinary same-host native slices by manually spawning separate
 coding-harness executables or by invoking skills whose main effect is to shell
-out to `codex`, `claude`, `agent`, or `grok`. If an external provider, model,
+out to `codex`, `claude`, `agent`, `grok`, or `kimi`. If an external provider, model,
 lifecycle, isolation, or receipt is actually load-bearing, the parent chooses
 that transport deliberately under the shared policy; the child never chooses
 it for itself.

@@ -12,7 +12,7 @@ per-sub-plan user approval, so those critics must check that the raw
 epic goal and approved decomposition are still represented.
 
 The critic is always a new clean child with no inherited completion narrative.
-Prefer the active host's native child; use an external Claude, Codex, or Grok
+Prefer the active host's native child; use an external Claude, Codex, Grok, or Kimi
 critic only when its provider, exact model/profile, lifecycle, isolation,
 automation, structured receipt, or another concrete benefit is deliberate. It
 reads the sub-plan's DOC_PATH, worklog, and arch-step audit block directly,
@@ -153,8 +153,8 @@ The critic computes each check's status (`pass` / `fail` /
 
 Lives at `references/epic-verdict-schema.json`. Inlined here for
 reference. Claude (`--json-schema`) and Codex (`--output-schema`) expect
-`additionalProperties: false` at every object level; Grok receives the schema
-inline and the script post-validates the returned JSON.
+`additionalProperties: false` at every object level; Grok and Kimi receive the
+schema inline and the script post-validates the returned JSON.
 
 ```json
 {

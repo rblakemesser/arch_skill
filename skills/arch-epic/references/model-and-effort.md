@@ -6,7 +6,7 @@ the epic doc, sub-plan DOC_PATH, worklog, and relevant arch-step references.
 Do not invent a native model, effort, permission set, worktree, or lifecycle the
 host cannot confirm.
 
-An external Claude, Codex, or Grok process remains valid when a concrete
+An external Claude, Codex, Grok, or Kimi process remains valid when a concrete
 provider, exact model/profile, durable or detached lifecycle, worktree/process
 isolation, automation surface, structured receipt, or another deliberate
 benefit warrants the additional process and integration cost. These examples
@@ -18,7 +18,7 @@ planner or implementation session; every external critic starts clean.
 Interactive and same-session modes prefer one clean native critic. The legacy
 frontmatter still supports an external critic execution block:
 
-- `critic_runtime`: `claude`, `codex`, or `grok`
+- `critic_runtime`: `claude`, `codex`, `grok`, or `kimi`
 - `critic_model`: runnable CLI model identifier
 - `critic_effort`: `low | medium | high | xhigh | max`
 
@@ -81,6 +81,11 @@ the same doctrine used by Stepwise and fresh-consult:
 - inspect `codex debug models` when ordinary Codex model availability matters
 - resolve `fugu` and `fugu-ultra` as Codex profiles, not model-list ids
 - inspect `grok models` when Grok model availability matters
+- resolve natural Grok/Grok Build wording to `grok-4.5`, while preserving an
+  explicitly named legacy `grok-*` id exactly
+- resolve Kimi/K3 wording to `runtime=kimi`, `model=kimi-code/k3`; default an
+  omitted Kimi effort to `max`
+- inspect `kimi provider list --json` when Kimi model availability matters
 - prefer `claude-<family>-<version-with-hyphens>` for supported Claude
   family+version
   phrases
@@ -102,6 +107,7 @@ include a role:
 - "critic on Terra high"
 - "implementation worker on Codex Fugu Ultra xhigh"
 - "planner on Grok Build high"
+- "implementation worker on Kimi K3 max"
 - "critics on gpt-5.6-sol xhigh"
 - "codex gpt-5.6-sol high everywhere"
 
@@ -125,10 +131,15 @@ Treat model text as intent, not a loose alias:
 - `fable 5` under Claude may normalize to `claude-fable-5`; `opus 4.7` may
   normalize to `claude-opus-4-7`. Neither may become another Claude family or
   version.
-- `grok`, `grok cli`, `grok build`, or `grok-build` may normalize to
-  `grok-build`.
-- `grok composer`, `grok composer 2.5`, or `grok-composer-2.5-fast` may
-  normalize to `grok-composer-2.5-fast`.
+- Natural `grok`, `grok cli`, and `grok build` wording normalizes to
+  `grok-4.5`. “Grok Build” identifies the harness, not a model id. If that
+  wording names a numeric version other than `4.5`, fail loud rather than
+  discarding it. Preserve an
+  explicitly named legacy id such as `grok-build` or
+  `grok-composer-2.5-fast` exactly and require discovery to confirm it.
+- `kimi`, `kimi code`, `kimi k3`, `k3`, and `moonshot` normalize to
+  `runtime=kimi`, `model=kimi-code/k3`. Do not auto-resolve older
+  Kimi-for-coding/K2.7 aliases.
 - Bare `composer`, `composer 2.5`, or bare `2.5` is ambiguous unless the user
   explicitly names Cursor Agent or Grok in the same execution choice.
 - If the user says `gpt 5.4`, `gpt 5.5`, or a variant of either while choosing
@@ -145,6 +156,23 @@ default (`fugu` defaults to `high`; `fugu-ultra` defaults to `xhigh`). Add the
 `-c` override only when the user explicitly requests a supported non-default
 Fugu Ultra effort.
 
+`grok-4.5` supports only `low`, `medium`, and `high`; generic CLI effort parsing
+does not widen that model's catalog contract. Kimi K3 advertises `low`, `high`,
+and `max`, with omitted effort defaulting to `max`. Pass Kimi effort through
+`KIMI_MODEL_THINKING_EFFORT`, not a nonexistent `--effort` flag. Preserve an
+explicit `medium` or `xhigh` verbatim as a forced override, but never choose
+either by default or inference.
+
+Every Kimi process also sets `KIMI_CODE_NO_AUTO_UPDATE=1`, passes
+`-m kimi-code/k3`, and runs from the role's work root. Print mode's automatic
+approval is not a full permission, hook, or static-denial bypass; do not invent
+hook, sandbox, memory, or approval flags. Fresh Kimi turns still persist a
+session. Resume only with `kimi -r <exact-session-id>` from the same cwd, take
+final text from ordered `role=assistant` contents, and require a fresh
+`session.resume_hint` id for continued work. Missing text or a required hint is
+unrecoverable, with no latest-session, input-id, model, effort, or provider
+fallback. Kimi critics receive the verdict schema inline in their prompt.
+
 Always print the raw-to-resolved mapping before execution:
 
 ```text
@@ -154,7 +182,9 @@ implementation_worker: "luna xhigh" -> runtime=codex, model=gpt-5.6-luna, effort
 critic: "terra high" -> runtime=codex, model=gpt-5.6-terra, effort=high
 critic: "Fugu Ultra xhigh" -> runtime=codex, model=fugu-ultra, codex_profile=fugu-ultra, effort=xhigh
 planner: "Claude Fable 5 high" -> runtime=claude, model=claude-fable-5, effort=high
-implementation_worker: "Grok Build high" -> runtime=grok, model=grok-build, effort=high
+implementation_worker: "Grok Build high" -> runtime=grok, model=grok-4.5, effort=high
+implementation_worker: "Kimi K3 high" -> runtime=kimi, model=kimi-code/k3, effort=high
+critic: "Kimi" -> runtime=kimi, model=kimi-code/k3, effort=max, effort_source=model_default
 ```
 
 ## Asking when missing
@@ -174,9 +204,10 @@ choices control real external processes and model budget.
 - implementation_worker: edits code/docs and runs verification
 - critic: checks North Star, plan readiness, completion, and scope drift
 
-Please give runtime/effort for each role plus a model/profile for non-Codex
-roles, or say which roles should be "same as" another role. A Codex role with
-no model uses gpt-5.6-sol. Ordinary critic failures resume the exact relevant
+Please give runtime plus any non-default effort for each role and a model/profile
+outside the Codex and Kimi defaults, or say which roles should be "same as" another role. A Codex
+role with no model uses gpt-5.6-sol; a Kimi role uses kimi-code/k3 and defaults
+an omitted effort to max. Ordinary critic failures resume the exact relevant
 planner or implementation worker session; there is no separate repair-worker
 choice in new external-harness policies.
 ```

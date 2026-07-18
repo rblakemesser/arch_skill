@@ -64,6 +64,16 @@ operational evidence, not a competing source of product truth: the epic doc
 remains the approved goal/decomposition/decision surface, and sub-plan DOC_PATHs
 remain the implementation contract.
 
+For a Kimi external role, every turn runs from the original work root because
+sessions are cwd-scoped. A fresh turn still persists a session; Kimi cannot
+satisfy a load-bearing stateless/no-persist requirement. Capture `session_id`
+from the `role=meta`, `type=session.resume_hint` event and resume only with
+`kimi -r <exact-session-id>`. Never use `-c`/`--continue`. A continuation turn
+without a fresh resume hint is unrecoverable: preserve the run artifacts and do
+not reuse the input id, select a latest session, or fall back to another
+provider. Final text is the ordered concatenation of `role=assistant` event
+contents.
+
 Artifact-level resume works across CLI restarts because disk remains the state.
 Exact native-child continuation additionally depends on the active host still
 recognizing the recorded handle; do not pretend a durable artifact recreates a

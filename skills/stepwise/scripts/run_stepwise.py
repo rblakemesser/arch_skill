@@ -2,7 +2,7 @@
 """Stepwise run-state and external-session adapter plumbing.
 
 This script is deterministic infrastructure for Stepwise run-state plus its
-deliberately selected external Claude, Codex, or Grok lane. It does NOT choose
+deliberately selected external Claude, Codex, Grok, or Kimi lane. It does NOT choose
 transport or make judgments about strictness, manifests, verdicts,
 advance/resume, or stop discipline. Those decisions live in the orchestrator's
 prose reasoning.
@@ -10,12 +10,13 @@ prose reasoning.
 Subcommands:
 
   init-run     Create the run directory and initial state.json.
-  step-spawn   Spawn a fresh external worker session (claude, codex, or grok).
+  step-spawn   Spawn a fresh external worker session (claude, codex, grok, or kimi).
   step-resume  Resume an existing external worker session with a repair prompt.
   step-diagnose
                Resume an existing external worker session with a read-only
                diagnostic prompt and write diagnostic artifacts.
-  critic-spawn Spawn an ephemeral external critic with a structured schema.
+  critic-spawn Spawn a new clean external critic that is never resumed, using
+               a structured schema.
   latest-session
                Print the latest session metadata for a step.
   upstream-for Print manifest-declared upstream artifacts for a step.
@@ -42,7 +43,12 @@ _SHARED_DIR = Path(__file__).resolve().parents[2] / "_shared"
 if str(_SHARED_DIR) not in sys.path:
     sys.path.insert(0, str(_SHARED_DIR))
 
-from model_resolution import codex_model_or_profile_args  # noqa: E402
+from model_resolution import (  # noqa: E402
+    KIMI_EFFORT_ENV,
+    KIMI_NO_AUTO_UPDATE_ENV,
+    codex_model_or_profile_args,
+    kimi_model_args,
+)
 
 
 def _utc_now_iso() -> str:
@@ -700,6 +706,77 @@ def _parse_codex_thread_id(stdout_text: str) -> str | None:
     return None
 
 
+def _kimi_argv(
+    model: str,
+    effort: str,
+    prompt: str,
+    *,
+    session_id: str | None = None,
+) -> list[str]:
+    argv = [
+        "env",
+        f"{KIMI_NO_AUTO_UPDATE_ENV}=1",
+        f"{KIMI_EFFORT_ENV}={effort}",
+        "kimi",
+    ]
+    if session_id:
+        argv.extend(["-r", session_id])
+    argv.extend(
+        [
+            *kimi_model_args(model),
+            "-p",
+            prompt,
+            "--output-format",
+            "stream-json",
+        ]
+    )
+    return argv
+
+
+def _parse_kimi_final_json(stdout_text: str) -> dict | None:
+    text_parts: list[str] = []
+    session_id: str | None = None
+    saw_error = False
+    for line in stdout_text.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            ev = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if not isinstance(ev, dict):
+            continue
+        if ev.get("role") == "error" or ev.get("type") == "error":
+            saw_error = True
+            continue
+        if ev.get("role") == "assistant" and isinstance(ev.get("content"), str):
+            text_parts.append(ev["content"])
+        if (
+            ev.get("role") == "meta"
+            and ev.get("type") == "session.resume_hint"
+            and isinstance(ev.get("session_id"), str)
+            and ev["session_id"]
+        ):
+            session_id = ev["session_id"]
+    text = "".join(text_parts)
+    if saw_error or not text.strip():
+        return None
+    return {
+        "type": "kimi_result",
+        "result": text,
+        "session_id": session_id,
+    }
+
+
+def _parse_kimi_session_id(stdout_text: str) -> str | None:
+    final = _parse_kimi_final_json(stdout_text)
+    if final is None:
+        return None
+    sid = final.get("session_id")
+    return sid if isinstance(sid, str) and sid else None
+
+
 def _grok_argv(
     target_repo: str,
     model: str,
@@ -739,6 +816,7 @@ def _parse_grok_final_json(stdout_text: str) -> dict | None:
     text_parts: list[str] = []
     session_id: str | None = None
     fallback_text: str | None = None
+    saw_error = False
     for line in stdout_text.splitlines():
         line = line.strip()
         if not line:
@@ -747,15 +825,21 @@ def _parse_grok_final_json(stdout_text: str) -> dict | None:
             ev = json.loads(line)
         except json.JSONDecodeError:
             continue
-        sid = ev.get("sessionId") or ev.get("session_id")
-        if isinstance(sid, str) and sid:
-            session_id = sid
+        if not isinstance(ev, dict):
+            continue
+        if ev.get("type") == "error":
+            saw_error = True
+            continue
+        if ev.get("type") == "end":
+            sid = ev.get("sessionId") or ev.get("session_id")
+            if isinstance(sid, str) and sid:
+                session_id = sid
         if ev.get("type") == "text" and isinstance(ev.get("data"), str):
             text_parts.append(ev["data"])
         elif isinstance(ev.get("text"), str):
             fallback_text = ev["text"]
     text = "".join(text_parts) if text_parts else fallback_text
-    if text is None and session_id is None:
+    if saw_error or not isinstance(text, str) or not text.strip():
         return None
     return {
         "type": "grok_result",
@@ -865,6 +949,9 @@ def cmd_step_spawn(args: argparse.Namespace) -> int:
     elif args.runtime == "grok":
         argv = _grok_argv(target_repo, args.model, args.effort, prompt_path)
         spawn_cwd = None
+    elif args.runtime == "kimi":
+        argv = _kimi_argv(args.model, args.effort, prompt)
+        spawn_cwd = target_repo
     else:
         _die(f"unknown runtime: {args.runtime}")
 
@@ -884,7 +971,7 @@ def cmd_step_spawn(args: argparse.Namespace) -> int:
         sid = _parse_claude_session_id(stdout_text)
     elif args.runtime == "codex":
         sid = _parse_codex_thread_id(stdout_text)
-    else:
+    elif args.runtime == "grok":
         final = _parse_grok_final_json(stdout_text)
         if final is None:
             _die(
@@ -893,6 +980,17 @@ def cmd_step_spawn(args: argparse.Namespace) -> int:
             )
         _write_json(final_path, final)
         sid = _parse_grok_session_id(stdout_text)
+    elif args.runtime == "kimi":
+        final = _parse_kimi_final_json(stdout_text)
+        if final is None:
+            _die(
+                "kimi stdout did not include a parseable final event; see stream.log",
+                code=3,
+            )
+        _write_json(final_path, final)
+        sid = _parse_kimi_session_id(stdout_text)
+    else:
+        _die(f"unknown runtime: {args.runtime}")
 
     if sid is None:
         _write_text(try_dir / "session_id.txt", "UNRECOVERABLE\n")
@@ -990,6 +1088,14 @@ def cmd_step_resume(args: argparse.Namespace) -> int:
             session_id=sid,
         )
         resume_cwd = None
+    elif args.runtime == "kimi":
+        argv = _kimi_argv(
+            args.model,
+            args.effort,
+            prompt,
+            session_id=sid,
+        )
+        resume_cwd = target_repo
     else:
         _die(f"unknown runtime: {args.runtime}")
 
@@ -1008,7 +1114,7 @@ def cmd_step_resume(args: argparse.Namespace) -> int:
         out_sid = _parse_claude_session_id(stdout_text) or sid
     elif args.runtime == "codex":
         out_sid = _parse_codex_thread_id(stdout_text) or sid
-    else:
+    elif args.runtime == "grok":
         final = _parse_grok_final_json(stdout_text)
         if final is None:
             _die(
@@ -1017,7 +1123,34 @@ def cmd_step_resume(args: argparse.Namespace) -> int:
             )
         _write_json(final_path, final)
         out_sid = _parse_grok_session_id(stdout_text) or sid
+    elif args.runtime == "kimi":
+        final = _parse_kimi_final_json(stdout_text)
+        if final is None:
+            _die(
+                "kimi stdout did not include a parseable final event; see stream.log",
+                code=3,
+            )
+        _write_json(final_path, final)
+        out_sid = _parse_kimi_session_id(stdout_text)
+    else:
+        _die(f"unknown runtime: {args.runtime}")
 
+    if out_sid is None:
+        _write_text(try_dir / "session_id.txt", "UNRECOVERABLE\n")
+        _write_try_origin(
+            try_dir,
+            kind="repair-resume",
+            session_mode="same-session",
+            consumes_repair_bounce=True,
+            triggered_by=triggered_by,
+            created_by_subcommand="step-resume",
+            session_id="UNRECOVERABLE",
+            prompt_path=prompt_path,
+        )
+        _die(
+            f"session id not captured (runtime={args.runtime}, exit={code})",
+            code=4,
+        )
     _write_text(try_dir / "session_id.txt", out_sid + "\n")
     _write_try_origin(
         try_dir,
@@ -1099,6 +1232,14 @@ def cmd_step_diagnose(args: argparse.Namespace) -> int:
             session_id=sid,
         )
         resume_cwd = None
+    elif args.runtime == "kimi":
+        argv = _kimi_argv(
+            args.model,
+            args.effort,
+            prompt,
+            session_id=sid,
+        )
+        resume_cwd = target_repo
     else:
         _die(f"unknown runtime: {args.runtime}")
 
@@ -1130,7 +1271,7 @@ def cmd_step_diagnose(args: argparse.Namespace) -> int:
         out_sid = _parse_codex_thread_id(stdout_text) or sid
         if not response_path.is_file():
             _die(f"codex diagnostic did not write -o file: {response_path}", code=5)
-    else:
+    elif args.runtime == "grok":
         final = _parse_grok_final_json(stdout_text)
         if final is None:
             _die(
@@ -1144,7 +1285,29 @@ def cmd_step_diagnose(args: argparse.Namespace) -> int:
             result_text if isinstance(result_text, str) else json.dumps(final, indent=2),
         )
         out_sid = _parse_grok_session_id(stdout_text) or sid
+    elif args.runtime == "kimi":
+        final = _parse_kimi_final_json(stdout_text)
+        if final is None:
+            _die(
+                "kimi stdout did not include a parseable final event; see diagnostic stream log",
+                code=3,
+            )
+        _write_json(final_path, final)
+        result_text = final.get("result")
+        _write_text(
+            response_path,
+            result_text if isinstance(result_text, str) else json.dumps(final, indent=2),
+        )
+        out_sid = _parse_kimi_session_id(stdout_text)
+    else:
+        _die(f"unknown runtime: {args.runtime}")
 
+    if out_sid is None:
+        _write_text(session_path, "UNRECOVERABLE\n")
+        _die(
+            f"session id not captured (runtime={args.runtime}, exit={code})",
+            code=4,
+        )
     _write_text(session_path, out_sid + "\n")
     print(str(response_path))
     return 0 if code == 0 else code
@@ -1231,6 +1394,15 @@ def cmd_critic_spawn(args: argparse.Namespace) -> int:
             grok_prompt_path,
         )
         critic_cwd = None
+    elif args.runtime == "kimi":
+        kimi_prompt = _prompt_with_schema(prompt, schema)
+        _write_text(crit_dir / "prompt.kimi.md", kimi_prompt)
+        argv = _kimi_argv(
+            args.model,
+            args.effort,
+            kimi_prompt,
+        )
+        critic_cwd = target_repo
     else:
         _die(f"unknown runtime: {args.runtime}")
 
@@ -1264,7 +1436,7 @@ def cmd_critic_spawn(args: argparse.Namespace) -> int:
         except json.JSONDecodeError as e:
             _die(f"codex critic output is not valid JSON: {e}", code=5)
         _write_json(verdict_path, verdict)
-    else:
+    elif args.runtime == "grok":
         final = _parse_grok_final_json(stdout_text)
         if final is None:
             _die(
@@ -1277,6 +1449,21 @@ def cmd_critic_spawn(args: argparse.Namespace) -> int:
         if verdict is None:
             _die("grok critic output is not valid JSON; see stdout.final.json", code=5)
         _write_json(verdict_path, verdict)
+    elif args.runtime == "kimi":
+        final = _parse_kimi_final_json(stdout_text)
+        if final is None:
+            _die(
+                "kimi critic stdout did not include a parseable final event; see stream.log",
+                code=3,
+            )
+        _write_json(final_path, final)
+        result_text = final.get("result")
+        verdict = _json_object_from_text(result_text if isinstance(result_text, str) else "")
+        if verdict is None:
+            _die("kimi critic output is not valid JSON; see stdout.final.json", code=5)
+        _write_json(verdict_path, verdict)
+    else:
+        _die(f"unknown runtime: {args.runtime}")
 
     validation_errors = _validate_step_verdict(verdict)
     if validation_errors:
@@ -1519,7 +1706,9 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     for a in ["--run-dir", "--target-repo", "--prompt-file", "--model", "--effort"]:
         step.add_argument(a, required=True)
-    step.add_argument("--runtime", required=True, choices=["claude", "codex", "grok"])
+    step.add_argument(
+        "--runtime", required=True, choices=["claude", "codex", "grok", "kimi"]
+    )
     step.add_argument("--codex-profile", default="")
     step.add_argument("--step-n", required=True, type=int)
     step.add_argument("--try-k", required=True, type=int)
@@ -1539,7 +1728,9 @@ def _build_parser() -> argparse.ArgumentParser:
     for a in ["--run-dir", "--target-repo", "--prompt-file", "--model",
               "--effort", "--session-id"]:
         resume.add_argument(a, required=True)
-    resume.add_argument("--runtime", required=True, choices=["claude", "codex", "grok"])
+    resume.add_argument(
+        "--runtime", required=True, choices=["claude", "codex", "grok", "kimi"]
+    )
     resume.add_argument("--step-n", required=True, type=int)
     resume.add_argument("--try-k", required=True, type=int)
     resume.add_argument(
@@ -1559,7 +1750,9 @@ def _build_parser() -> argparse.ArgumentParser:
     for a in ["--run-dir", "--target-repo", "--prompt-file", "--model",
               "--effort", "--session-id"]:
         diagnose.add_argument(a, required=True)
-    diagnose.add_argument("--runtime", required=True, choices=["claude", "codex", "grok"])
+    diagnose.add_argument(
+        "--runtime", required=True, choices=["claude", "codex", "grok", "kimi"]
+    )
     diagnose.add_argument("--step-n", required=True, type=int)
     diagnose.add_argument("--try-k", required=True, type=int)
     diagnose.add_argument("--round-k", required=True, type=int)
@@ -1568,12 +1761,14 @@ def _build_parser() -> argparse.ArgumentParser:
 
     critic = sub.add_parser(
         "critic-spawn",
-        help="Spawn a new clean ephemeral external critic",
+        help="Spawn a new clean external critic that is never resumed",
     )
     for a in ["--run-dir", "--target-repo", "--prompt-file", "--model",
               "--effort", "--schema-file"]:
         critic.add_argument(a, required=True)
-    critic.add_argument("--runtime", required=True, choices=["claude", "codex", "grok"])
+    critic.add_argument(
+        "--runtime", required=True, choices=["claude", "codex", "grok", "kimi"]
+    )
     critic.add_argument("--codex-profile", default="")
     critic.add_argument("--step-n", required=True, type=int)
     critic.add_argument("--try-k", required=True, type=int)

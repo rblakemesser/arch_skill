@@ -84,7 +84,7 @@ The parent owns child accounting, synthesis, finding scope disposition,
 source-truth updates, artifact updates, proof claims, and final claims.
 
 Do not manually spawn separate coding-harness executables such as `codex`,
-`claude`, or `agent` for ordinary acceleration.
+`claude`, `agent`, `grok`, or `kimi` for ordinary acceleration.
 
 ## 5. Implement The Slice
 

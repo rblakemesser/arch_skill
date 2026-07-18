@@ -273,7 +273,7 @@ Install removes stale pre-skill command surfaces, removed or default-disabled sk
 
 The shared agent policy is installed on all supported skill surfaces. Ordinary
 same-host work uses native children; deliberate external lanes still require
-the matching local `claude`, `codex`, `agent`, or `grok` CLI. Provider and
+the matching local `claude`, `codex`, `agent`, `grok`, or `kimi` CLI. Provider and
 model ids remain exact and never cross runtimes. `agent-delegate` owns external
 editful sessions, while `fresh-consult`, `model-consensus`, `plan-conductor`,
 `stepwise`, and `arch-epic` select transport for each role under the shared
@@ -461,7 +461,7 @@ Practical rule:
   Same-host planner, implementation-worker, and critic roles prefer clean
   native children; the separate external harness is selected only for a
   deliberate external benefit.
-- Role choices are resolved with the shared exact-version model resolver. Shorthand such as `fable 5 high` becomes `claude-fable-5`; `gpt-5.6-sol high` becomes `gpt-5.6-sol`; `Fugu Ultra xhigh` becomes Codex profile `fugu-ultra`. There is no silent downgrade, provider switch, or effort substitution. `gpt-5.4` and `gpt-5.5` are blocked execution choices; if the user names either while choosing a model, stop and ask whether they meant `gpt-5.6-sol` before launching children.
+- Role choices are resolved with the shared exact-version model resolver. Shorthand such as `fable 5 high` becomes `claude-fable-5`; `gpt-5.6-sol high` becomes `gpt-5.6-sol`; `Fugu Ultra xhigh` becomes Codex profile `fugu-ultra`; `Kimi` becomes `kimi-code/k3` at `max`; and natural Grok wording selects `grok-4.5`. There is no silent downgrade, provider switch, or effort substitution. `gpt-5.4` and `gpt-5.5` are blocked execution choices; if the user names either while choosing a model, stop and ask whether they meant `gpt-5.6-sol` before launching children.
 - Role-based automatic mode drives sub-plans depth-first. Planner and
   implementation roles are resumable by exact handle; a new clean critic's
   accepted findings return to the owning role instead of creating a repair
@@ -669,8 +669,10 @@ Cross-provider, unavailable exact-model/profile, lifecycle, isolation,
 automation, or receipt needs use the external CLI lane. The parent owns fanout,
 workspace-state checks, and synthesis.
 
-For an external consult, the user supplies runtime, model/profile, and effort,
-or the skill asks once. Exact versions and profiles are preserved without
+For an external consult, the user supplies enough information to resolve the
+runtime, model/profile, and effort, or the skill asks once. Bare Kimi defaults
+to `kimi-code/k3` at `max`; natural Grok wording selects `grok-4.5` and still
+requires an explicit effort. Exact versions and profiles are preserved without
 silent downgrade or provider switch.
 
 The first request starts clean and preserves the exact native child handle or
@@ -688,6 +690,7 @@ Examples:
 - `Use $fresh-consult with Codex gpt-5.6-sol xhigh to audit whether this plan is complete`
 - `Use $fresh-consult with Fugu Ultra xhigh to audit whether this plan is complete`
 - `Use $fresh-consult with Claude Fable 5 high for a cold read of this skill flow`
+- `Use $fresh-consult with Kimi K3 max for a cold read of this skill flow`
 - `Use $fresh-consult to tell me whether this doc is linear and not confusing`
 - `Use $fresh-consult to run three parallel cold reads on this plan`
 - `Use $fresh-consult to resume that same consult and check the edited section`
@@ -709,7 +712,7 @@ same-host work uses native children directly. The adapter preserves exact model
 resolution, CLI invocation, namespaced receipts, shared-worktree reporting, and
 exact-handle resume.
 
-The user supplies runtime, model or profile, and effort, or the skill asks once before invoking. Runtime can be inferred only from unambiguous model families such as `gpt-5.6-sol`, `GPT56SOLXI`, `fugu`, or `fugu-ultra` for Codex, `Claude Fable 5` for Claude, `Cursor Agent composer 2.5` for Cursor Agent, or `Grok Build` for Grok. Cursor Agent Composer resolves to `composer-2.5-fast`; Grok resolves to `grok-build` unless Grok Composer is named. Exact model versions and profile names are preserved; there is no silent downgrade, provider switch, effort substitution, detached fallback, or separate-worktree fallback. Cursor Agent effort is encoded in the model id.
+The user supplies enough information to resolve runtime, model/profile, and effort, or the skill asks once before invoking. Runtime can be inferred only from unambiguous model families such as `gpt-5.6-sol`, `GPT56SOLXI`, `fugu`, or `fugu-ultra` for Codex, `Claude Fable 5` for Claude, `Cursor Agent composer 2.5` for Cursor Agent, `Grok Build` for Grok, or `Kimi K3` for Kimi Code. Cursor Agent Composer resolves to `composer-2.5-fast`; natural Grok wording resolves to `grok-4.5`; bare Kimi resolves to `kimi-code/k3` at `max`. K3 advertises `low`, `high`, and `max`, while explicit `medium` and `xhigh` requests remain forced overrides. Exact model versions and profile names are preserved; there is no silent downgrade, provider switch, effort substitution, detached fallback, or separate-worktree fallback. Cursor Agent effort is encoded in the model id.
 
 Delegated children commonly take 5+ minutes; broad edits, verification, `xhigh`, or `max` can reasonably take 20-40 minutes. Poll live streams every few minutes, not every few seconds.
 
@@ -718,6 +721,7 @@ Examples:
 - `Use $agent-delegate with Codex gpt-5.6-sol xhigh to implement this README and Makefile update`
 - `Use $agent-delegate with Fugu high to implement this README and Makefile update`
 - `Use $agent-delegate with Claude Fable 5 high to fix this failing test`
+- `Use $agent-delegate with Kimi K3 max to fix this failing test`
 - `Use $agent-delegate to run $skill-authoring on this one skill package`
 - `Use $agent-delegate to run two parallel workers on these fixes`
 
@@ -813,7 +817,9 @@ default topology, and no deterministic runner or controller is added.
 
 The user names the participant identities. Native roles use only model
 capabilities the host can confirm; an unavailable load-bearing identity selects
-the external lane. External shorthand follows the shared exact model resolver.
+the external lane. External shorthand follows the shared exact model resolver:
+bare Kimi selects `kimi-code/k3` at `max`, and natural Grok wording selects
+`grok-4.5` while retaining Grok's explicit-effort requirement.
 
 For repo-backed investigations, root-cause work, and "read everything" cross-checks, both participants must read real evidence before agreeing. The parent records the raw user goal, exact user-named artifacts, desired output, and hard constraints. The child models choose and cite the code, docs, research, tests, commands, and local evidence they need.
 
@@ -826,6 +832,7 @@ Examples:
 
 - `Use $model-consensus with Claude Fable 5 high and Codex gpt-5.6-sol xhigh to find the simplest architecture for this repo change`
 - `Use $model-consensus with Fugu Ultra xhigh and Claude Fable 5 high to test this plan`
+- `Use $model-consensus with Kimi K3 max and Grok 4.5 high to test this plan`
 - `Use $model-consensus with Codex gpt-5.6-sol xhigh in adversarial mode against Claude Sonnet 4.6 high; use an external Claude participant if the active host cannot confirm that exact native model`
 - `Use $model-consensus with gpt-5.6-sol xhigh and Opus 4.7 max to read everything and figure out why this training path is failing`
 - `Use $model-consensus to have two models iterate on this concept until they agree or name the unresolved tradeoff`

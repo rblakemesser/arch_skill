@@ -1,7 +1,7 @@
 # Native continuation and external session adapter
 
-Verified against Claude Code CLI 2.1.119, Codex CLI 0.124.0-alpha.3, and Grok
-CLI 0.2.22. When a CLI version drifts, re-run the relevant verification block
+Verified against Claude Code CLI 2.1.119, Codex CLI 0.124.0-alpha.3, Grok CLI
+0.2.91, and Kimi Code CLI 0.26.0. When a CLI version drifts, re-run the relevant verification block
 at the bottom of this file before trusting that invocation.
 
 ## Transport ownership
@@ -35,15 +35,17 @@ another deliberate benefit warrants an external process.
 
 On failure, Stepwise may resume an external worker in two ways: read-only
 diagnostic conversation, then operational repair after root cause is located.
-Claude, Codex, and Grok expose different external session handles; this
+Claude, Codex, Grok, and Kimi expose different external session handles; this
 reference is the single place those exact mechanics live.
 
 ## External runtime behavior contract
 
 - External worker sessions are resumable. Do not pass `--ephemeral` (Codex) or
   `--no-session-persistence` (Claude) to them.
-- External critic sessions are stateless. Pass `--ephemeral` for Codex, rely on
-  a new clean process for Claude and Grok, and never resume a critic.
+- External critics always start clean and are never resumed. Pass `--ephemeral`
+  for Codex and use new clean processes for Claude and Grok. Kimi always
+  persists a session, so its critic is fresh-but-persisted rather than
+  stateless/no-persist; ignore that handle and never resume it.
 - Diagnostic and repair turns both resume exact external worker sessions.
   Diagnostic turns are read-only by prompt contract and do not consume repair
   bounces. Repair turns are operational and do consume repair bounces.
@@ -285,6 +287,76 @@ Grok has no schema-enforcement flag in the local CLI. The script writes a
 Grok-specific prompt file that appends the StepVerdict JSON Schema, parses the
 final text as JSON, and then runs the same semantic verdict validation.
 
+## Kimi — step session (resumable)
+
+Kimi has no cwd or prompt-file flag. Run it from `<target_repo>` and pass the
+saved prompt text as one direct argv value, without a shell:
+
+```
+KIMI_CODE_NO_AUTO_UPDATE=1 \
+KIMI_MODEL_THINKING_EFFORT=<resolved_step_effort> \
+kimi \
+  -m <resolved_step_model> \
+  -p <step_prompt_text> \
+  --output-format stream-json
+```
+
+Kimi always persists a session. A caller whose load-bearing requirement is
+truly stateless/no-persist cannot use this lane. K3's catalog advertises
+`low`, `high`, and `max`, with `max` as the default. An explicit `medium` or
+`xhigh` is a forced override passed verbatim through
+`KIMI_MODEL_THINKING_EFFORT`; never infer or remap either value.
+
+Concatenate string `content` from every `role=assistant` JSONL event for the
+final answer. Capture the durable `session_id` from the `role=meta`,
+`type=session.resume_hint` event. A resumable worker with no assistant text or
+no resume hint is malformed and unrecoverable; preserve its run artifacts.
+
+Print mode performs automatic approval, but it is not a full permission, hook,
+or static-denial bypass. `--yolo`, `--auto`, and `--plan` conflict with `-p` and
+must not be added. Kimi has no documented hook-suppression flag and inherits
+configured hooks and MCP servers; do not invent hook, sandbox, memory, or
+permission flags.
+
+## Kimi — step resume
+
+Resume the exact worker from the same `<target_repo>` cwd:
+
+```
+KIMI_CODE_NO_AUTO_UPDATE=1 \
+KIMI_MODEL_THINKING_EFFORT=<resolved_step_effort> \
+kimi \
+  -r <session_id> \
+  -m <resolved_step_model> \
+  -p <diagnostic_or_repair_prompt_text> \
+  --output-format stream-json
+```
+
+Use `-r <session_id>` only. Never use `-c`/`--continue`, which selects the
+latest session. Require both assistant text and a fresh `session.resume_hint`
+after every diagnostic or repair turn. A missing hint is unrecoverable for
+continuation; do not reuse the input id, select another session, change the
+model or effort, or fall back to another provider.
+
+## Kimi — critic (fresh, schema inline)
+
+Append the StepVerdict schema to the critic prompt and start a new clean Kimi
+session from `<target_repo>`:
+
+```
+KIMI_CODE_NO_AUTO_UPDATE=1 \
+KIMI_MODEL_THINKING_EFFORT=<resolved_critic_effort> \
+kimi \
+  -m <resolved_critic_model> \
+  -p <critic_prompt_with_schema_text> \
+  --output-format stream-json
+```
+
+Kimi has no schema-enforcement flag. Concatenate `role=assistant` content,
+parse the final text as JSON, and apply the same semantic StepVerdict
+validation as Grok. The critic's persisted session is ignored and never
+resumed.
+
 ## Notes on flag drift
 
 - Claude's `--effort` accepts: `low`, `medium`, `high`, `xhigh`, `max`.
@@ -310,6 +382,13 @@ final text as JSON, and then runs the same semantic verdict validation.
   mode is unsandboxed. Use `RUST_LOG=off` to suppress noisy success stderr
   while preserving useful failure errors.
 - Grok has no documented hook-suppression flag. Do not invent one.
+- Kimi effort is process-local environment, not a CLI flag. Set both
+  `KIMI_MODEL_THINKING_EFFORT=<resolved_effort>` and
+  `KIMI_CODE_NO_AUTO_UPDATE=1` on every launch.
+- Kimi sessions are cwd-scoped. Resume from the original target repo and use
+  only the exact `session.resume_hint` id.
+- Kimi takes prompt text as one `-p` argv value. The operating-system argv-size
+  limit is real; do not claim arbitrarily large prompts are supported.
 
 ## Verification block
 
@@ -358,7 +437,7 @@ codex exec --cd /tmp/smoke --ephemeral \
 printf 'Say PING.' > /tmp/smoke/grok-step.prompt
 RUST_LOG=off grok --cwd /tmp/smoke --no-auto-update --no-memory \
   --no-subagents --disable-web-search --permission-mode bypassPermissions \
-  --always-approve --model grok-build --effort low \
+  --always-approve --model grok-4.5 --effort low \
   --output-format streaming-json --prompt-file /tmp/smoke/grok-step.prompt \
   | tee /tmp/smoke/grok-step.events.jsonl
 
@@ -366,7 +445,7 @@ RUST_LOG=off grok --cwd /tmp/smoke --no-auto-update --no-memory \
 printf 'Say PONG.' > /tmp/smoke/grok-resume.prompt
 RUST_LOG=off grok --cwd /tmp/smoke --no-auto-update --no-memory \
   --no-subagents --disable-web-search --permission-mode bypassPermissions \
-  --always-approve --model grok-build --effort low \
+  --always-approve --model grok-4.5 --effort low \
   --output-format streaming-json --resume <SESSION_ID> \
   --prompt-file /tmp/smoke/grok-resume.prompt \
   | tee /tmp/smoke/grok-resume.events.jsonl
@@ -375,11 +454,30 @@ RUST_LOG=off grok --cwd /tmp/smoke --no-auto-update --no-memory \
 printf 'Return JSON only: {"verdict":"pass"}' > /tmp/smoke/grok-critic.prompt
 RUST_LOG=off grok --cwd /tmp/smoke --no-auto-update --no-memory \
   --no-subagents --disable-web-search --permission-mode bypassPermissions \
-  --always-approve --model grok-build --effort low \
+  --always-approve --model grok-4.5 --effort low \
   --output-format streaming-json --prompt-file /tmp/smoke/grok-critic.prompt \
   | tee /tmp/smoke/grok-critic.events.jsonl
+
+# 10 Kimi step (run all Kimi commands from the same cwd)
+cd /tmp/smoke
+KIMI_CODE_NO_AUTO_UPDATE=1 KIMI_MODEL_THINKING_EFFORT=low \
+  kimi -m kimi-code/k3 -p "Say PING." --output-format stream-json \
+  | tee /tmp/smoke/kimi-step.events.jsonl
+jq -r 'select(.role=="meta" and .type=="session.resume_hint") | .session_id' \
+  /tmp/smoke/kimi-step.events.jsonl
+
+# 11 Kimi resume (reuse the exact session_id from step 10)
+KIMI_CODE_NO_AUTO_UPDATE=1 KIMI_MODEL_THINKING_EFFORT=low \
+  kimi -r <SESSION_ID> -m kimi-code/k3 -p "Say PONG." \
+  --output-format stream-json | tee /tmp/smoke/kimi-resume.events.jsonl
+
+# 12 Kimi critic (schema is appended to the prompt, then output is parsed)
+KIMI_CODE_NO_AUTO_UPDATE=1 KIMI_MODEL_THINKING_EFFORT=low \
+  kimi -m kimi-code/k3 \
+  -p 'Return JSON only: {"verdict":"pass"}' --output-format stream-json \
+  | tee /tmp/smoke/kimi-critic.events.jsonl
 ```
 
-If any of the six fails or emits a different shape than described above,
+If any relevant probe fails or emits a different shape than described above,
 update this file before editing anything else — other files in the skill
 refer back here as the source of truth.

@@ -1,6 +1,6 @@
 # Model And Invocation
 
-`model-consensus` dispatches each Claude, Codex, Cursor Agent, or Grok
+`model-consensus` dispatches each Claude, Codex, Cursor Agent, Grok, or Kimi
 participant directly from the parent agent. It resolves transport independently:
 same-host participants use separate clean native children when the active host
 can satisfy the requested model capability; cross-provider or unavailable
@@ -8,7 +8,7 @@ exact-model/profile participants use external sessions. It does not create a
 new runner script, model alias table, harness, or deterministic controller.
 Provider routing is fixed: Codex runs GPT/GBT/OpenAI model ids and Fugu
 profiles, Claude Code runs supported Claude models, Cursor Agent runs Composer
-2.5 Fast, and Grok CLI runs Grok models.
+2.5 Fast, Grok CLI runs Grok models, and Kimi Code runs Kimi K3.
 
 ## Resolve Transport Per Participant
 
@@ -50,11 +50,13 @@ and concurrency budget are explicit.
 
 Each participant needs a requested identity and role:
 
-- `runtime`: `claude`, `codex`, `agent`, or `grok`
+- `runtime`: `claude`, `codex`, `agent`, `grok`, or `kimi`
 - `model`: runnable model id, Codex profile name, or exact model phrase. An
-  omitted model on a Codex lane resolves to `gpt-5.6-sol`.
+  omitted model on a Codex lane resolves to `gpt-5.6-sol`; an omitted model on
+  a Kimi lane resolves to `kimi-code/k3`.
 - `effort`: `low`, `medium`, `high`, `xhigh`, or `max` when supported by the
-  selected runtime/model
+  selected runtime/model; omitted Kimi effort resolves to the K3 model default,
+  `max`
 - `role`: `collaborator` or `adversary`
 - `transport`: active-host native child or external runtime session, chosen
   after inspecting whether native model capability suffices
@@ -62,18 +64,18 @@ Each participant needs a requested identity and role:
 - `continuation`: the exact child/session handle after launch
 
 If any load-bearing participant choice is missing or ambiguous after applying
-the Codex model default, ask one consolidated question. Explain that only
+the Codex and Kimi defaults, ask one consolidated question. Explain that only
 participants resolved to the external lane create external model sessions:
 
 ```text
 Before I run model-consensus, I need the two participant choices. Please give
-provider/effort for Model A and Model B, plus a model/profile for non-Codex
-participants, and say whether either should be adversarial. Codex defaults to
-gpt-5.6-sol when its model is omitted. I will use native children where the
+provider/effort for Model A and Model B, plus a model/profile for participants
+outside the Codex and Kimi defaults, and say whether either should be
+adversarial. Codex defaults to gpt-5.6-sol when its model is omitted; Kimi
+defaults to kimi-code/k3 at max. I will use native children where the
 active host can honor the requested capability and external sessions for the
 remaining participants; external sessions spend separate model budget. Cursor
-Agent is Composer-only; Grok defaults to grok-build unless you name Grok
-Composer.
+Agent is Composer-only; natural Grok wording resolves to grok-4.5.
 ```
 
 ## Model Phrase Resolution
@@ -97,9 +99,11 @@ Follow the shared model-resolution doctrine:
   `fugu-ultra`/`codex`/`sol`/`luna`/`terra` implies Codex; `claude fable`, `fable`,
   `claude opus`, or `opus` implies Claude; `agent`, `cursor`, `cursor agent`,
   or `cursor-agent` implies Cursor Agent only for Composer.
-  `grok`, `grok-build`, `grok build`, or `grok composer` implies Grok.
+  natural `grok`, `grok build`, `grok cli`, `grok-4.5`, or an explicit legacy
+  `grok-*` slug implies Grok; `kimi`, `kimi code`, `kimi k3`, `k3`, or
+  `moonshot` implies Kimi.
   If a phrase mixes Cursor Agent with GPT/GBT model ids, Fugu profiles, or
-  Claude, fail loud instead of choosing a side. If a phrase mixes Grok with
+  Claude, fail loud instead of choosing a side. If a phrase mixes Grok or Kimi with
   GPT/GBT model ids, Fugu profiles, Claude, or Cursor Agent, fail loud instead
   of choosing a side.
 - For ordinary Codex model ids, inspect `codex debug models` when model
@@ -115,11 +119,17 @@ Follow the shared model-resolution doctrine:
   Cursor Agent context as that runnable id. Do not use Cursor model discovery
   for non-Composer routing, and do not pass GPT/GBT model ids, Fugu profiles,
   or Claude model ids to Cursor Agent.
-- For Grok, use `grok-build` by default when the user says `grok`,
-  `grok cli`, `grok build`, or `grok-build`. Use
-  `grok-composer-2.5-fast` only when the user names Grok Composer, such as
-  `grok composer`, `grok composer 2.5`, or `grok-composer-2.5-fast`. Inspect
-  `grok models` when availability matters.
+- For Grok, natural `grok`, `grok cli`, and `grok build` wording resolves to
+  `grok-4.5`; “Grok Build” is the harness, not a model id. If that wording
+  names a numeric version other than `4.5`, fail loud rather than discarding
+  it. Preserve explicit
+  legacy slugs such as `grok-build` and `grok-composer-2.5-fast` exactly and
+  require discovery to confirm them. Never rewrite an explicit slug.
+- For Kimi, `kimi`, `kimi code`, `kimi k3`, `k3`, and `moonshot` resolve to
+  `kimi-code/k3`. Preserve that callable alias exactly; do not auto-resolve
+  older Kimi-for-coding/K2.7 aliases or cross provider model ids. When
+  availability matters, inspect the top-level `.models` keys from
+  `kimi provider list --json`.
 - Bare `composer`, `composer 2.5`, or bare `2.5` is ambiguous unless the user
   explicitly names Cursor Agent or Grok in the same execution choice.
 - Do not run paid trial prompts to discover Claude model availability.
@@ -139,8 +149,18 @@ Model C: "codex high" -> runtime=codex, model=gpt-5.6-sol, effort=high, model_so
 Model D: "luna xhigh" -> runtime=codex, model=gpt-5.6-luna, effort=xhigh
 Model E: "terra high" -> runtime=codex, model=gpt-5.6-terra, effort=high
 Model F: "Fugu Ultra xhigh" -> runtime=codex, model=fugu-ultra, codex_profile=fugu-ultra, effort=xhigh
-Model G: "Grok Build high" -> runtime=grok, model=grok-build, effort=high
+Model G: "Grok Build high" -> runtime=grok, model=grok-4.5, effort=high
+Model H: "Kimi K3 high" -> runtime=kimi, model=kimi-code/k3, effort=high
+Model I: "Kimi" -> runtime=kimi, model=kimi-code/k3, effort=max, effort_source=model_default
 ```
+
+Effort follows the selected model's real contract. `grok-4.5` supports
+`low`, `medium`, and `high`; do not infer support for `xhigh` or `max` from the
+generic CLI parser. Kimi K3 advertises `low`, `high`, and `max`, with omitted
+effort defaulting to `max`. Pass Kimi effort through
+`KIMI_MODEL_THINKING_EFFORT`; there is no `--effort` flag. Preserve an explicit
+`medium` or `xhigh` as a forced override, but never choose either by default or
+inference and never remap one effort to another.
 
 For Fable participant prompts, keep the brief direct: state the goal,
 constraints, evidence obligations, and done-ness clearly. Do not ask the child
@@ -159,7 +179,9 @@ mkdir -p "$RUN_DIR"
 ```
 
 Write prompts to files. Long multiline prompts should go through stdin or a
-prompt file, not a huge shell argument. Keep event streams and final messages
+prompt file where the runtime supports it. Kimi has no verified prompt-file or
+stdin form, so it takes the saved prompt as one `-p` argv value without a shell;
+recognize the operating-system argv-size limit. Keep event streams and final messages
 separate enough that the parent can inspect progress without reading long
 transcripts into context.
 
@@ -370,6 +392,59 @@ RUST_LOG=off grok \
 Use `--resume <session_id>`, not latest-session selection, because multiple
 child sessions may exist in the same repo.
 
+## External Kimi: First Turn
+
+Use a resumable Kimi session for each Kimi participant. A fresh turn starts
+without prior conversation but still persists a session:
+
+```bash
+KIMI_CODE_NO_AUTO_UPDATE=1 \
+KIMI_MODEL_THINKING_EFFORT="<resolved_effort>" \
+kimi \
+  -m "<resolved_kimi_model>" \
+  -p "$(cat "$RUN_DIR/round-01/model-a-prompt.md")" \
+  --output-format stream-json \
+  > "$RUN_DIR/round-01/model-a-events.jsonl" \
+  2> "$RUN_DIR/round-01/model-a-stderr.log"
+```
+
+Run from `work_root`; Kimi has no cwd flag and its sessions are cwd-scoped.
+Build argv directly rather than evaluating untrusted prompt text through a
+shell. Kimi always persists a session, so it cannot satisfy a load-bearing
+stateless/no-persist participant requirement. Set `KIMI_CODE_NO_AUTO_UPDATE=1`
+on every run. Print mode performs
+automatic approval, but it is not a full permission, hook, or static-denial
+bypass. Do not add `--yolo`, `--auto`, or `--plan`, which conflict with `-p`.
+Kimi has no documented hook-suppression flag and inherits configured hooks and
+MCP servers.
+
+Concatenate string `content` from every `role=assistant` event into the
+participant final. Capture the durable `session_id` from the `role=meta`,
+`type=session.resume_hint` event. Missing final text or a missing hint makes a
+resumable turn malformed; preserve its receipts and do not replace the
+participant silently.
+
+## External Kimi: Resume Turn
+
+Resume from the same `work_root` with the exact captured id:
+
+```bash
+KIMI_CODE_NO_AUTO_UPDATE=1 \
+KIMI_MODEL_THINKING_EFFORT="<resolved_effort>" \
+kimi \
+  -r "<session_id>" \
+  -m "<resolved_kimi_model>" \
+  -p "$(cat "$RUN_DIR/round-02/model-a-prompt.md")" \
+  --output-format stream-json \
+  > "$RUN_DIR/round-02/model-a-events.jsonl" \
+  2> "$RUN_DIR/round-02/model-a-stderr.log"
+```
+
+Use `-r <session_id>`, never `-c`/`--continue` or another latest-session
+selector. Parse final text and require a fresh `session.resume_hint` exactly as
+on the first turn. A missing hint is unrecoverable for continuation; do not
+reuse the input id as a fallback.
+
 ## Monitoring Posture
 
 Choose foreground or background intentionally for each participant:
@@ -393,9 +468,12 @@ Choose foreground or background intentionally for each participant:
   permission or input prompt.
 
 Failure is explicit: unavailable native capability needed by the requested
-participant, missing external CLI, unresolved exact model, child non-zero exit,
-empty final result after process exit, missing terminal result event, or a
+participant, missing external CLI, unresolved exact model/effort, child non-zero
+exit, empty final result after process exit, missing terminal result event,
+Kimi output without `role=assistant` text or a fresh resumable-turn
+`session.resume_hint`, latest-session selection such as Kimi `-c`, or a
 participant refusing the prompt contract. If native capability is unavailable,
 select the external lane deliberately rather than pretending the native child
-honors it. Do not silently switch providers, downgrade models, reduce effort,
+honors it. Do not silently switch among Claude, Codex, Cursor Agent, Grok, and
+Kimi, downgrade models, reduce effort,
 or replace a long-running participant with the parent agent's own answer.

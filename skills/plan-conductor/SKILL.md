@@ -83,14 +83,16 @@ log beside the plan is its durable memory.
   isolation, automation surface, structured receipt, or another real benefit
   is worth the added process and integration cost. These are recognition aids,
   not an allowlist. Honor explicit user choices.
-- For an external lane, runtime and effort are supplied by the user. Model or
-  profile is also supplied except that an external Codex worker with no named
-  model defaults to `gpt-5.6-sol`. Accept `sol`, `luna`, and `terra` as
+- For an external lane, runtime and normally model/profile plus effort are
+  supplied by the user. An external Codex worker with no named model defaults
+  to `gpt-5.6-sol`; a Kimi worker with omitted model and effort defaults to
+  `kimi-code/k3` at `max`. Accept `sol`, `luna`, and `terra` as
   `gpt-5.6-sol`, `gpt-5.6-luna`, and `gpt-5.6-terra`. Ask one consolidated
   question only for load-bearing external values. Provider routing remains:
   Codex runs GPT/GBT/OpenAI ids and Fugu profiles, Claude Code runs supported
-  Claude models, Cursor Agent runs `composer-2.5-fast`, and Grok runs
-  `grok-build` or `grok-composer-2.5-fast`.
+  Claude models, Cursor Agent runs `composer-2.5-fast`, natural Grok wording
+  resolves to `grok-4.5`, and Kimi runs `kimi-code/k3` with an omitted-effort
+  default of `max`. Explicit legacy Grok ids remain exact and discovery-gated.
 - Read the plan once, end to end, at intake. If it yields no observable
   done-ness anywhere — no requirements, checklists, exit criteria, or
   verification obligations — stop before dispatching any worker and report
@@ -199,8 +201,9 @@ log beside the plan is its durable memory.
    range), per-role transport and starting context, max parallelism, wave cap,
    and cold-verifier toggle. Prefer clean native same-host roles. Resolve and
    ask for runtime/model/effort only when the chosen external lane needs them;
-   default an omitted external Codex model to `gpt-5.6-sol`. The Terra shortcut
-   supplies its own external execution values, so do not ask for them.
+   default an omitted external Codex model to `gpt-5.6-sol`, and an omitted
+   Kimi model/effort pair to `kimi-code/k3`/`max`. The Terra shortcut supplies
+   its own external execution values, so do not ask for them.
 6. Read the plan once end to end and extract the execution map in context.
 7. Before creating or updating the conductor log, inspect `git status` and
    capture the start commit and inherited worktree state. Then write the

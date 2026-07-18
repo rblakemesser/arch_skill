@@ -42,7 +42,7 @@ Do not:
 - search history looking for hidden intent
 - turn the audit into a generic diff or PR review
 - manually spawn separate coding-harness executables such as `codex`,
-  `claude`, or `agent` for ordinary acceleration
+  `claude`, `agent`, `grok`, or `kimi` for ordinary acceleration
 - edit code
 - silently rewrite the plan
 - create a second implementation plan

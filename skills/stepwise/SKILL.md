@@ -1,6 +1,6 @@
 ---
 name: stepwise
-description: "Run an ordered multi-step process inside a target repo with one clean worker per independent step, a new clean observational critic, and a Stepwise-owned diagnose-and-repair loop that resumes the exact worker, walks upstream when inputs are suspect, and repairs at root cause. Same-host roles prefer native children; external Claude, Codex, or Grok sessions remain available when their provider, model, lifecycle, isolation, automation, or structured receipt provides a deliberate benefit. Use for named process execution with strict step ordering and evidence. Do NOT use for plan-doc implementation (arch-step), bet-and-learn optimization (goal-loop), one-shot reviews, or single-turn work."
+description: "Run an ordered multi-step process inside a target repo with one clean worker per independent step, a new clean observational critic, and a Stepwise-owned diagnose-and-repair loop that resumes the exact worker, walks upstream when inputs are suspect, and repairs at root cause. Same-host roles prefer native children; external Claude, Codex, Grok, or Kimi sessions remain available when their provider, model, lifecycle, isolation, automation, or structured receipt provides a deliberate benefit. Use for named process execution with strict step ordering and evidence. Do NOT use for plan-doc implementation (arch-step), bet-and-learn optimization (goal-loop), one-shot reviews, or single-turn work."
 metadata:
   short-description: "Diagnostic multi-step orchestrator with critics"
 ---
@@ -9,8 +9,8 @@ metadata:
 
 Execute an ordered multi-step process in a target repo. Each independent step
 runs in a new clean child using transport selected for that step. Same-host
-work normally uses an active-host native child; the existing Claude, Codex, and
-Grok subprocess harness is the explicit external adapter. A new clean critic
+work normally uses an active-host native child; the existing Claude, Codex,
+Grok, and Kimi subprocess harness is the explicit external adapter. A new clean critic
 judges whether each attempt honored its declared contract. When a critic fails
 or abstains with inspectable evidence, Stepwise diagnoses the failure before
 repair: it reads the evidence, talks directly to the exact relevant child,
@@ -97,10 +97,12 @@ break.
   dangerous / skip-permissions / no-sandbox convention; that convention does
   not describe native children.
 - Native same-host roles need no invented runtime/model promise. For an
-  external lane, base runtime and effort are supplied by the user or target
+  external lane, base runtime and normally effort are supplied by the user or target
   doctrine for worker and critic independently. Models are also supplied
   except that an external Codex lane with no named model defaults to
-  `gpt-5.6-sol`. Ask once only for missing load-bearing external values.
+  `gpt-5.6-sol`; Kimi defaults to `kimi-code/k3` and an omitted effort to `max`.
+  Natural Grok wording resolves to `grok-4.5`, while explicit legacy Grok ids
+  stay exact. Ask once only for missing load-bearing external values.
 - Optional execution preferences are interpreted after the Step Manifest is
   drafted. A phrase like "copywriting steps use Claude Fable 5" is a routing
   preference to resolve against real steps, not a built-in category.
@@ -116,7 +118,8 @@ break.
   prompts do.
 - In the external lane, do not use stateless-only worker flags because workers
   must be resumable. External critics use the runtime's fresh/stateless command
-  shape where supported.
+  shape where supported. Kimi always persists a session, so a Kimi critic is a
+  new clean session that is never resumed, not a stateless/no-persist process.
 - Silent worker repair past the resolved repair limit, silent skipping, and
   silent advance on fail are forbidden. Apply `stop_discipline` when repair
   capacity is exhausted.
@@ -206,7 +209,7 @@ Five phases. Detail lives in `references/workflow-contract.md`.
 - `references/session-prompt-contracts.md` - initial, diagnostic, and repair
   prompt contracts for worker sessions.
 - `references/session-resume.md` - native context/continuation mapping plus the
-  external Claude, Codex, and Grok session adapter.
+  external Claude, Codex, Grok, and Kimi session adapter.
 - `references/run-directory-layout.md` - on-disk artifact layout.
 - `references/learnings.md` - persistent process-learning ledger.
 - `references/examples.md` - worked examples of local diagnosis and upstream

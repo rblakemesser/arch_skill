@@ -3,7 +3,7 @@
 Interactive mode and the explicit same-session `arch-epic auto-plan` /
 `arch-epic auto-implement` drivers invoke `$arch-step` commands in the
 orchestrator's visible session. They do not shell out to `claude -p` or
-`codex exec` merely to emulate the same-session lane.
+`codex exec`—or any other external model CLI—merely to emulate the same-session lane.
 
 Role-based automatic execution is a separate transport-neutral lane. Planner
 and implementation roles apply arch-step doctrine directly against the durable

@@ -140,7 +140,7 @@ Claude Code, and Gemini.
   local-only commit messages rewritten into informative history while
   preserving patches and commit boundaries by default.
 - Use `$agent-delegate` when the user explicitly wants an external Claude,
-  Codex, Cursor Agent, or Grok worker/session, or when an external provider,
+  Codex, Cursor Agent, Grok, or Kimi worker/session, or when an external provider,
   exact model/profile, durable session, isolation, automation, or receipt is
   the concrete benefit. Ordinary same-host delegated work should use native
   children directly under the shared policy.
@@ -196,7 +196,7 @@ Claude Code, and Gemini.
   plan, plan-audit log, implementation log, proof freshness, and warm
   plan-backed review aligned. It is the lightweight implementation lane: use
   native subagents when helpful, and do not manually spawn `codex`, `claude`,
-  `agent`, or `grok` executables for ordinary acceleration. Route a deliberate
+  `agent`, `grok`, or `kimi` executables for ordinary acceleration. Route a deliberate
   external worker or conductor through `$agent-delegate` or
   `$plan-conductor` under the shared policy.
 - Use `$plan-conductor` when the user wants an entire existing plan document
@@ -211,7 +211,7 @@ Claude Code, and Gemini.
   cold verifier. The explicit Terra preset remains an external exact-model
   lane. The parent never writes plans or implements code.
 - Use `$model-consensus` when the user wants two selected Claude, Codex,
-  Cursor Agent, or Grok models to iterate on a plan, architecture, design, or
+  Cursor Agent, Grok, or Kimi models to iterate on a plan, architecture, design, or
   concept until they converge or expose the smallest unresolved decision, including
   adversarial simplification. Resolve transport separately for each participant,
   keep each participant's exact continuation, and let the parent relay; do not

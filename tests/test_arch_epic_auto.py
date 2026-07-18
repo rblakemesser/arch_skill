@@ -7,6 +7,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -166,6 +167,232 @@ class ArchEpicAutoModeTests(unittest.TestCase):
                 agent_models=["composer-2.5-slow"],
             )
 
+    def test_kimi_k3_defaults_to_max_with_model_default_provenance(self):
+        for phrase in ("kimi", "Kimi Code", "Kimi K3", "kimi-code/k3"):
+            with self.subTest(phrase=phrase):
+                resolved = self.model_resolution.resolve_execution_phrase(
+                    phrase,
+                    kimi_models=["kimi-code/k3"],
+                )
+
+                self.assertEqual(resolved.runtime, "kimi")
+                self.assertEqual(resolved.model, "kimi-code/k3")
+                self.assertEqual(resolved.effort, "max")
+                self.assertEqual(resolved.effort_source, "model_default")
+
+    def test_kimi_k3_preserves_every_explicit_effort_override(self):
+        for effort in ("low", "medium", "high", "xhigh", "max"):
+            with self.subTest(effort=effort):
+                resolved = self.model_resolution.resolve_execution_phrase(
+                    f"kimi k3 {effort}",
+                    kimi_models=["kimi-code/k3"],
+                )
+
+                self.assertEqual(resolved.effort, effort)
+                self.assertEqual(resolved.effort_source, "explicit")
+
+    def test_kimi_xhigh_alias_normalizes_without_counting_high_twice(self):
+        for alias in ("extra-high", "extra high", "x-high", "x high"):
+            with self.subTest(alias=alias):
+                resolved = self.model_resolution.resolve_execution_phrase(
+                    f"kimi k3 {alias}",
+                    kimi_models=["kimi-code/k3"],
+                )
+
+                self.assertEqual(resolved.effort, "xhigh")
+                self.assertEqual(resolved.effort_source, "explicit")
+
+    def test_kimi_contradictory_efforts_fail_instead_of_defaulting(self):
+        for phrase in (
+            "kimi k3 low high",
+            "kimi k3 medium xhigh",
+            "kimi k3 extra-high low",
+        ):
+            with self.subTest(phrase=phrase):
+                with self.assertRaisesRegex(
+                    self.model_resolution.ModelResolutionError,
+                    "multiple distinct effort levels",
+                ):
+                    self.model_resolution.resolve_execution_phrase(
+                        phrase,
+                        kimi_models=["kimi-code/k3"],
+                    )
+
+    def test_kimi_discovery_reads_top_level_model_alias_keys(self):
+        payload = {
+            "models": {
+                "kimi-code/kimi-for-coding": {"name": "Kimi for coding"},
+                "kimi-code/kimi-for-coding-highspeed": {},
+                "kimi-code/k3": {"defaultEffort": "max"},
+            }
+        }
+        completed = mock.Mock(returncode=0, stdout=json.dumps(payload))
+        with mock.patch.object(
+            self.model_resolution.shutil,
+            "which",
+            return_value="/usr/local/bin/kimi",
+        ), mock.patch.object(
+            self.model_resolution.subprocess,
+            "run",
+            return_value=completed,
+        ) as run:
+            models = self.model_resolution.discover_kimi_models()
+
+        self.assertEqual(
+            models,
+            [
+                "kimi-code/k3",
+                "kimi-code/kimi-for-coding",
+                "kimi-code/kimi-for-coding-highspeed",
+            ],
+        )
+        self.assertEqual(
+            run.call_args.args[0],
+            ["kimi", "provider", "list", "--json"],
+        )
+
+    def test_kimi_discovery_fails_safe_for_unavailable_or_invalid_catalogs(self):
+        completed_cases = [
+            mock.Mock(returncode=1, stdout='{"models":{"kimi-code/k3":{}}}'),
+            mock.Mock(returncode=0, stdout="not json"),
+            mock.Mock(returncode=0, stdout='{"models":[]}'),
+        ]
+        with mock.patch.object(
+            self.model_resolution.shutil,
+            "which",
+            return_value=None,
+        ), mock.patch.object(self.model_resolution.subprocess, "run") as run:
+            self.assertEqual(self.model_resolution.discover_kimi_models(), [])
+            run.assert_not_called()
+
+        for completed in completed_cases:
+            with self.subTest(completed=completed), mock.patch.object(
+                self.model_resolution.shutil,
+                "which",
+                return_value="/usr/local/bin/kimi",
+            ), mock.patch.object(
+                self.model_resolution.subprocess,
+                "run",
+                return_value=completed,
+            ):
+                self.assertEqual(self.model_resolution.discover_kimi_models(), [])
+
+    def test_kimi_resolution_refuses_catalog_without_k3(self):
+        with self.assertRaisesRegex(
+            self.model_resolution.ModelResolutionError,
+            "available Kimi model id",
+        ):
+            self.model_resolution.resolve_execution_phrase(
+                "kimi k3",
+                kimi_models=["kimi-code/kimi-for-coding"],
+            )
+
+    def test_kimi_resolution_refuses_explicit_non_k3_identity(self):
+        for phrase in (
+            "kimi-code/kimi-for-coding high",
+            "Kimi K2.7 high",
+            "K2.7 high",
+            "Kimi K4 high",
+        ):
+            with self.subTest(phrase=phrase):
+                with self.assertRaisesRegex(
+                    self.model_resolution.ModelResolutionError,
+                    "name K3",
+                ):
+                    self.model_resolution.resolve_execution_phrase(
+                        phrase,
+                        kimi_models=[
+                            "kimi-code/k3",
+                            "kimi-code/kimi-for-coding",
+                        ],
+                    )
+
+    def test_kimi_mixed_provider_phrases_fail_loud(self):
+        for phrase in (
+            "kimi k3 and grok-4.5 high",
+            "kimi k3 codex high",
+            "moonshot k3 claude opus 4.7 high",
+        ):
+            with self.subTest(phrase=phrase):
+                with self.assertRaisesRegex(
+                    self.model_resolution.ModelResolutionError,
+                    "multiple runtime families",
+                ):
+                    self.model_resolution.resolve_execution_phrase(phrase)
+
+    def test_natural_grok_harness_names_default_to_grok_45(self):
+        for phrase in (
+            "grok high",
+            "Grok CLI medium",
+            "Grok Build low",
+            "Grok 4.5 high",
+            "Grok CLI 4.5 medium",
+            "Grok Build 4.5 low",
+        ):
+            with self.subTest(phrase=phrase):
+                resolved = self.model_resolution.resolve_execution_phrase(
+                    phrase,
+                    grok_models=["grok-4.5"],
+                )
+
+                self.assertEqual(resolved.runtime, "grok")
+                self.assertEqual(resolved.model, "grok-4.5")
+                self.assertEqual(resolved.model_source, "default")
+
+    def test_natural_grok_build_refuses_non_45_numeric_versions(self):
+        for phrase in (
+            "Grok Build 2.5 high",
+            "Grok Build version 4.6 medium",
+            "Grok Build v3 high",
+            "Grok Build model 2.5 high",
+        ):
+            with self.subTest(phrase=phrase):
+                with self.assertRaisesRegex(
+                    self.model_resolution.ModelResolutionError,
+                    "unsupported numeric version",
+                ):
+                    self.model_resolution.resolve_execution_phrase(
+                        phrase,
+                        grok_models=["grok-4.5"],
+                    )
+
+    def test_natural_grok_ignores_unrelated_later_numbers(self):
+        for phrase, effort in (
+            ("Grok Build high for 2 reviewers", "high"),
+            ("Grok CLI medium with 3 passes", "medium"),
+            ("Grok high in 2026", "high"),
+            ("Grok Build 4.5 low for 2 reviewers", "low"),
+        ):
+            with self.subTest(phrase=phrase):
+                resolved = self.model_resolution.resolve_execution_phrase(
+                    phrase,
+                    grok_models=["grok-4.5"],
+                )
+
+                self.assertEqual(resolved.model, "grok-4.5")
+                self.assertEqual(resolved.effort, effort)
+
+    def test_explicit_grok_slug_stays_exact(self):
+        resolved = self.model_resolution.resolve_execution_phrase(
+            "grok-build high",
+            grok_models=["grok-build", "grok-4.5"],
+        )
+
+        self.assertEqual(resolved.model, "grok-build")
+        self.assertEqual(resolved.model_source, "explicit")
+
+    def test_grok_45_rejects_efforts_outside_cli_catalog(self):
+        for effort in ("xhigh", "max"):
+            with self.subTest(effort=effort):
+                with self.assertRaisesRegex(
+                    self.model_resolution.ModelResolutionError,
+                    "supports only: high, low, medium",
+                ):
+                    self.model_resolution.resolve_execution_phrase(
+                        f"grok-4.5 {effort}",
+                        grok_models=["grok-4.5"],
+                    )
+
     def test_role_policy_defaults_to_long_run_monitoring_and_allows_same_as(self):
         policy = self.model_resolution.resolve_role_execution_policy(
             {
@@ -205,6 +432,37 @@ class ArchEpicAutoModeTests(unittest.TestCase):
         self.assertEqual(policy["roles"]["epic_planner"]["model"], "claude-fable-5")
         self.assertEqual(policy["roles"]["epic_planner"]["effort"], "high")
 
+    def test_arch_policy_file_threads_kimi_catalog_and_default_effort(self):
+        with tempfile.TemporaryDirectory() as td:
+            policy_path = Path(td) / "policy.json"
+            policy_path.write_text(
+                json.dumps(
+                    {
+                        "roles": {
+                            "epic_planner": "kimi k3",
+                            "implementation_worker": "kimi code high",
+                            "critic": "same as epic_planner",
+                        },
+                        "kimi_models": ["kimi-code/k3"],
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            policy = self.run_arch_epic._policy_from_file(policy_path)
+
+        self.assertEqual(policy["roles"]["epic_planner"]["runtime"], "kimi")
+        self.assertEqual(policy["roles"]["epic_planner"]["effort"], "max")
+        self.assertEqual(
+            policy["roles"]["epic_planner"]["effort_source"],
+            "model_default",
+        )
+        self.assertEqual(
+            policy["roles"]["implementation_worker"]["effort"],
+            "high",
+        )
+        self.assertEqual(policy["roles"]["critic"]["source"], "same_as:epic_planner")
+
     def test_codex_worker_command_is_resumable_and_hook_suppressed(self):
         argv = self.run_arch_epic._codex_worker_argv(
             Path("/repo"),
@@ -221,6 +479,20 @@ class ArchEpicAutoModeTests(unittest.TestCase):
         self.assertIn("--model", argv)
         self.assertIn("gpt-5.6-sol", argv)
         self.assertIn('model_reasoning_effort="xhigh"', argv)
+
+    def test_shared_kimi_cli_primitives_are_canonical(self):
+        self.assertEqual(
+            self.model_resolution.KIMI_EFFORT_ENV,
+            "KIMI_MODEL_THINKING_EFFORT",
+        )
+        self.assertEqual(
+            self.model_resolution.KIMI_NO_AUTO_UPDATE_ENV,
+            "KIMI_CODE_NO_AUTO_UPDATE",
+        )
+        self.assertEqual(
+            self.model_resolution.kimi_model_args("kimi-code/k3"),
+            ["-m", "kimi-code/k3"],
+        )
 
     def test_codex_worker_command_uses_profile_for_fugu_default_effort(self):
         argv = self.run_arch_epic._codex_worker_argv(
@@ -320,6 +592,434 @@ class ArchEpicAutoModeTests(unittest.TestCase):
             "--verbose",
         )
         self.assertIn("claude-sonnet-4-6", critic_argv)
+
+    def test_kimi_worker_command_pins_model_effort_and_exact_resume(self):
+        prompt = "Implement this exact scope."
+        argv = self.run_arch_epic._kimi_worker_argv(
+            "kimi-code/k3",
+            "medium",
+            prompt,
+            session_id="session_abc123",
+        )
+
+        self.assertEqual(argv[0], "env")
+        self.assertIn("KIMI_CODE_NO_AUTO_UPDATE=1", argv)
+        self.assertIn("KIMI_MODEL_THINKING_EFFORT=medium", argv)
+        self.assertEqual(argv[argv.index("-m") + 1], "kimi-code/k3")
+        self.assertEqual(argv[argv.index("-r") + 1], "session_abc123")
+        self.assertEqual(argv[argv.index("-p") + 1], prompt)
+        self.assertEqual(argv[argv.index("--output-format") + 1], "stream-json")
+        self.assertNotIn("--cwd", argv)
+
+    def test_kimi_critic_command_carries_inline_schema_prompt(self):
+        prompt = self.run_arch_epic._prompt_with_schema(
+            "Review this.",
+            {"type": "object", "required": ["verdict"]},
+        )
+        argv = self.run_arch_epic._kimi_critic_argv(
+            "kimi-code/k3",
+            "max",
+            prompt,
+        )
+
+        self.assertEqual(argv[argv.index("-p") + 1], prompt)
+        self.assertIn("## JSON Schema", prompt)
+        self.assertNotIn("-r", argv)
+
+    def test_kimi_parser_collects_assistant_text_and_resume_hint(self):
+        stream = "\n".join(
+            [
+                "not json",
+                json.dumps({"role": "assistant", "content": "hello "}),
+                json.dumps({"role": "assistant", "content": "world"}),
+                json.dumps(
+                    {
+                        "role": "meta",
+                        "type": "session.resume_hint",
+                        "session_id": "session_xyz",
+                        "command": "kimi -r session_xyz",
+                    }
+                ),
+            ]
+        )
+
+        final = self.run_arch_epic._parse_kimi_final_json(stream)
+
+        self.assertEqual(final["result"], "hello world")
+        self.assertEqual(final["session_id"], "session_xyz")
+        self.assertEqual(
+            self.run_arch_epic._parse_kimi_session_id(stream),
+            "session_xyz",
+        )
+
+    def test_kimi_parser_rejects_errors_and_empty_assistant_output(self):
+        cases = [
+            json.dumps(
+                {
+                    "role": "meta",
+                    "type": "session.resume_hint",
+                    "session_id": "session_only",
+                }
+            ),
+            "\n".join(
+                [
+                    json.dumps({"role": "assistant", "content": "partial"}),
+                    json.dumps({"role": "error", "content": "failed"}),
+                ]
+            ),
+            json.dumps({"role": "assistant", "content": "   "}),
+        ]
+        for stream in cases:
+            with self.subTest(stream=stream):
+                self.assertIsNone(
+                    self.run_arch_epic._parse_kimi_final_json(stream)
+                )
+
+    def test_grok_parser_requires_nonempty_text_and_rejects_errors(self):
+        session_only = json.dumps({"type": "end", "sessionId": "grok-session"})
+        explicit_error = "\n".join(
+            [
+                json.dumps({"type": "text", "data": "partial"}),
+                json.dumps({"type": "error", "error": "failed"}),
+            ]
+        )
+        success = "\n".join(
+            [
+                json.dumps({"type": "text", "data": "done"}),
+                json.dumps({"type": "end", "sessionId": "grok-session"}),
+            ]
+        )
+        nonterminal_session = "\n".join(
+            [
+                json.dumps(
+                    {
+                        "type": "text",
+                        "data": "done",
+                        "sessionId": "not-authoritative",
+                    }
+                ),
+                json.dumps({"type": "end"}),
+            ]
+        )
+
+        self.assertIsNone(self.run_arch_epic._parse_grok_final_json(session_only))
+        self.assertIsNone(self.run_arch_epic._parse_grok_final_json(explicit_error))
+        self.assertEqual(
+            self.run_arch_epic._parse_grok_final_json(success),
+            {
+                "type": "grok_result",
+                "result": "done",
+                "session_id": "grok-session",
+            },
+        )
+        self.assertIsNone(
+            self.run_arch_epic._parse_grok_final_json(nonterminal_session)[
+                "session_id"
+            ]
+        )
+
+    def test_critic_spawn_parser_accepts_kimi_runtime(self):
+        parser = self.run_arch_epic._build_parser()
+        args = parser.parse_args(
+            [
+                "critic-spawn",
+                "--epic-doc",
+                "/tmp/epic.md",
+                "--sub-plan-name",
+                "one",
+                "--sub-plan-doc-path",
+                "/tmp/sub-plan.md",
+                "--prompt-file",
+                "/tmp/prompt.md",
+                "--schema-file",
+                "/tmp/schema.json",
+                "--model",
+                "kimi-code/k3",
+                "--effort",
+                "max",
+                "--runtime",
+                "kimi",
+            ]
+        )
+
+        self.assertEqual(args.runtime, "kimi")
+
+    def test_kimi_worker_finalization_persists_result_and_session(self):
+        with tempfile.TemporaryDirectory() as td:
+            try_dir = Path(td) / "workers" / "implementation_worker" / "one" / "try-1"
+            try_dir.mkdir(parents=True)
+            final_path = try_dir / "stdout.final.json"
+            (try_dir / "metadata.json").write_text(
+                json.dumps(
+                    {
+                        "runtime": "kimi",
+                        "role": "implementation_worker",
+                        "sub_plan_name": "one",
+                        "final_path": str(final_path),
+                        "input_session_id": None,
+                    }
+                ),
+                encoding="utf-8",
+            )
+            (try_dir / "events.jsonl").write_text(
+                "\n".join(
+                    [
+                        json.dumps({"role": "assistant", "content": "complete"}),
+                        json.dumps(
+                            {
+                                "role": "meta",
+                                "type": "session.resume_hint",
+                                "session_id": "session_final",
+                            }
+                        ),
+                    ]
+                ),
+                encoding="utf-8",
+            )
+
+            session_id = self.run_arch_epic._finalize_worker_try_dir(try_dir)
+            final = json.loads(final_path.read_text(encoding="utf-8"))
+
+        self.assertEqual(session_id, "session_final")
+        self.assertEqual(final["result"], "complete")
+
+    def test_kimi_worker_finalization_requires_new_resume_hint(self):
+        with tempfile.TemporaryDirectory() as td:
+            try_dir = Path(td) / "workers" / "implementation_worker" / "one" / "try-2"
+            try_dir.mkdir(parents=True)
+            (try_dir / "metadata.json").write_text(
+                json.dumps(
+                    {
+                        "runtime": "kimi",
+                        "role": "implementation_worker",
+                        "sub_plan_name": "one",
+                        "final_path": str(try_dir / "stdout.final.json"),
+                        "input_session_id": "session_previous",
+                    }
+                ),
+                encoding="utf-8",
+            )
+            (try_dir / "events.jsonl").write_text(
+                json.dumps({"role": "assistant", "content": "complete"}),
+                encoding="utf-8",
+            )
+
+            with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(
+                SystemExit
+            ) as raised:
+                self.run_arch_epic._finalize_worker_try_dir(try_dir)
+
+            receipt = (try_dir / "session_id.txt").read_text(encoding="utf-8")
+
+        self.assertEqual(raised.exception.code, 4)
+        self.assertEqual(receipt, "UNRECOVERABLE\n")
+
+    def test_kimi_critic_finalization_extracts_json_verdict(self):
+        with tempfile.TemporaryDirectory() as td:
+            critic_dir = Path(td) / "critic"
+            critic_dir.mkdir()
+            final_path = critic_dir / "stdout.final.json"
+            verdict_path = critic_dir / "verdict.json"
+            (critic_dir / "metadata.json").write_text(
+                json.dumps(
+                    {
+                        "runtime": "kimi",
+                        "final_path": str(final_path),
+                        "verdict_path": str(verdict_path),
+                    }
+                ),
+                encoding="utf-8",
+            )
+            (critic_dir / "events.jsonl").write_text(
+                json.dumps(
+                    {
+                        "role": "assistant",
+                        "content": '{"verdict":"PASS","findings":[]}',
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            returned_path = self.run_arch_epic._finalize_critic_run_dir(critic_dir)
+            verdict = json.loads(verdict_path.read_text(encoding="utf-8"))
+
+        self.assertEqual(returned_path, verdict_path)
+        self.assertEqual(verdict, {"findings": [], "verdict": "PASS"})
+
+    def test_kimi_worker_dispatch_uses_target_repo_as_subprocess_cwd(self):
+        with tempfile.TemporaryDirectory() as td:
+            base = Path(td)
+            run_dir = base / "run"
+            run_dir.mkdir()
+            target_repo = base / "target"
+            target_repo.mkdir()
+            prompt_path = base / "prompt.md"
+            prompt_path.write_text("Implement.", encoding="utf-8")
+            (run_dir / "state.json").write_text(
+                json.dumps(
+                    {
+                        "auto_execution": {
+                            "roles": {
+                                "implementation_worker": {
+                                    "runtime": "kimi",
+                                    "model": "kimi-code/k3",
+                                    "effort": "max",
+                                }
+                            }
+                        },
+                        "latest_worker_attempts": {},
+                    }
+                ),
+                encoding="utf-8",
+            )
+            with mock.patch.object(
+                self.run_arch_epic,
+                "_run_subprocess",
+                return_value=(0, ""),
+            ) as run, contextlib.redirect_stdout(io.StringIO()):
+                code = self.run_arch_epic._run_worker(
+                    run_dir=run_dir,
+                    target_repo=target_repo,
+                    role="implementation_worker",
+                    sub_plan_name="one",
+                    prompt_file=prompt_path,
+                    try_k=1,
+                    run_mode="detached",
+                )
+
+        self.assertEqual(code, 0)
+        self.assertEqual(
+            Path(run.call_args.kwargs["cwd"]).resolve(),
+            target_repo.resolve(),
+        )
+        self.assertTrue(run.call_args.kwargs["detached"])
+        self.assertIn("kimi", run.call_args.args[0])
+
+    def test_kimi_auto_critic_dispatch_uses_target_repo_as_subprocess_cwd(self):
+        with tempfile.TemporaryDirectory() as td:
+            base = Path(td)
+            run_dir = base / "run"
+            run_dir.mkdir()
+            target_repo = base / "target"
+            target_repo.mkdir()
+            prompt_path = base / "prompt.md"
+            prompt_path.write_text("Review.", encoding="utf-8")
+            schema_path = base / "schema.json"
+            schema_path.write_text('{"type":"object"}', encoding="utf-8")
+            (run_dir / "state.json").write_text(
+                json.dumps(
+                    {
+                        "auto_execution": {
+                            "roles": {
+                                "critic": {
+                                    "runtime": "kimi",
+                                    "model": "kimi-code/k3",
+                                    "effort": "max",
+                                }
+                            }
+                        }
+                    }
+                ),
+                encoding="utf-8",
+            )
+            args = self.run_arch_epic.argparse.Namespace(
+                run_dir=str(run_dir),
+                target_repo=str(target_repo),
+                role="critic",
+                gate="completion",
+                sub_plan_name="one",
+                prompt_file=str(prompt_path),
+                schema_file=str(schema_path),
+                run_mode="detached",
+                expected_duration="short",
+            )
+            with mock.patch.object(
+                self.run_arch_epic,
+                "_run_subprocess",
+                return_value=(0, ""),
+            ) as run, contextlib.redirect_stdout(io.StringIO()):
+                code = self.run_arch_epic.cmd_auto_critic_spawn(args)
+            submitted_prompt = run.call_args.args[0][
+                run.call_args.args[0].index("-p") + 1
+            ]
+            [persisted_prompt_path] = list(
+                (run_dir / "critics" / "completion" / "one").glob(
+                    "run-*/prompt.kimi.md"
+                )
+            )
+            persisted_prompt = persisted_prompt_path.read_text(encoding="utf-8")
+            self.assertEqual(persisted_prompt, submitted_prompt)
+            self.assertIn("## JSON Schema", persisted_prompt)
+
+        self.assertEqual(code, 0)
+        self.assertEqual(
+            Path(run.call_args.kwargs["cwd"]).resolve(),
+            target_repo.resolve(),
+        )
+        self.assertTrue(run.call_args.kwargs["detached"])
+        argv = run.call_args.args[0]
+        self.assertIn("kimi", argv)
+        self.assertIn("## JSON Schema", argv[argv.index("-p") + 1])
+
+    def test_kimi_standalone_critic_dispatch_uses_orchestrator_root_cwd(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            epic_path = root / "epic.md"
+            epic_path.write_text("# Epic", encoding="utf-8")
+            sub_plan_path = root / "sub-plan.md"
+            sub_plan_path.write_text("# Sub-plan", encoding="utf-8")
+            prompt_path = root / "prompt.md"
+            prompt_path.write_text("Review.", encoding="utf-8")
+            schema_path = root / "schema.json"
+            schema_path.write_text('{"type":"object"}', encoding="utf-8")
+            parser = self.run_arch_epic._build_parser()
+            args = parser.parse_args(
+                [
+                    "critic-spawn",
+                    "--epic-doc",
+                    str(epic_path),
+                    "--sub-plan-name",
+                    "one",
+                    "--sub-plan-doc-path",
+                    str(sub_plan_path),
+                    "--prompt-file",
+                    str(prompt_path),
+                    "--schema-file",
+                    str(schema_path),
+                    "--model",
+                    "kimi-code/k3",
+                    "--effort",
+                    "max",
+                    "--runtime",
+                    "kimi",
+                    "--orchestrator-root",
+                    str(root),
+                    "--run-mode",
+                    "detached",
+                ]
+            )
+            with mock.patch.object(
+                self.run_arch_epic,
+                "_run_subprocess",
+                return_value=(0, ""),
+            ) as run, contextlib.redirect_stdout(io.StringIO()):
+                code = args.func(args)
+            submitted_prompt = run.call_args.args[0][
+                run.call_args.args[0].index("-p") + 1
+            ]
+            [persisted_prompt_path] = list(
+                (root / ".arch_skill" / "arch-epic" / "critics" / "one").glob(
+                    "run-*/prompt.kimi.md"
+                )
+            )
+            persisted_prompt = persisted_prompt_path.read_text(encoding="utf-8")
+            self.assertEqual(persisted_prompt, submitted_prompt)
+            self.assertIn("## JSON Schema", persisted_prompt)
+
+        self.assertEqual(code, 0)
+        self.assertEqual(Path(run.call_args.kwargs["cwd"]).resolve(), root.resolve())
+        self.assertTrue(run.call_args.kwargs["detached"])
+        self.assertIn("kimi", run.call_args.args[0])
 
     def test_default_auto_monitoring_constants_are_long_running(self):
         self.assertEqual(self.run_arch_epic.DEFAULT_AUTO_POLL_SECONDS, 180)

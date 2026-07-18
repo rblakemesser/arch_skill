@@ -90,7 +90,7 @@ Better: review the first narrow integrated slice, repair it, then widen.
 
 ## Anti-Example: External Harness Creep
 
-Bad: manually shell out to `codex`, `claude`, `agent`, or `grok` because
+Bad: manually shell out to `codex`, `claude`, `agent`, `grok`, or `kimi` because
 parallelism sounds useful.
 
 Why it is bad: that turns a lightweight implementation habit into a delegation

@@ -268,12 +268,12 @@ Codex reads the same installed skill surface from `~/.agents/skills/`. `make ins
 
 `arch-loop`, `delay-poll`, `wait`, `code-review`, `codex-babysit`, and `eli10` are removed from the live installed surface; `codex-babysit` and `eli10` remain in this repository for manual use, while `make install` and `make remote_install` remove previously installed copies. Use native `/goal` for free-form completion, the host's native scheduling/reminder surface for timed waiting or polling, and ordinary host review behavior for generic code review. `agent-history` and `pr-review-followthrough` are installed on the agents/Codex and Claude Code surfaces. `agent-history` covers Codex and Claude Code local history; `pr-review-followthrough` owns live GitHub PR follow-through with replies and same-branch fixes. `contact-sheet-builder` is installed on all three skill surfaces and requires Python with Pillow at runtime. `fc-branded-pdf` is installed on all three skill surfaces and requires `pandoc` plus Chrome or Chromium at runtime. `cf-share` is installed on all three skill surfaces and requires `curl`, `python3`, and a secret env file at `~/.config/cf-share/env` at runtime. `arch-step-goal-prompt`, `figma-best-practices`, `fal-ai-tools`, `flutter-reference`, `browseros`, `chatgpt-web`, `fresh-consult`, `agent-delegate`, `plan-audit`, `plan-implement`, `model-consensus`, `plan-conductor`, `codex-cleanup`, `cynical-code-review`, `cynical-architecture-review`, `cynical-cruft-removal`, `exhaustive-code-review`, and `thermo-nuclear-code-quality-review` are installed on all three skill surfaces. `browseros` is the canonical preflight before direct BrowserOS MCP use. `chatgpt-web` applies it for browser mechanics, requires an already logged-in ChatGPT browser session, and does not automate login.
 
-External lanes still require the selected local `claude`, `codex`, `agent`, or
-`grok` CLI at invocation time. Ordinary same-host work uses the active host's
+External lanes still require the selected local `claude`, `codex`, `agent`,
+`grok`, or `kimi` CLI at invocation time. Ordinary same-host work uses the active host's
 native child system instead. External provider routing remains exact: Codex
 runs OpenAI model ids and Fugu profiles, Claude Code runs supported Claude
-models, Cursor Agent runs `composer-2.5-fast`, and Grok runs its own models;
-model ids never cross runtimes.
+models, Cursor Agent runs `composer-2.5-fast`, natural Grok requests use
+`grok-4.5`, and Kimi Code uses `kimi-code/k3`; model ids never cross runtimes.
 
 `agent-delegate` owns external editful sessions and receipts. `fresh-consult`
 and `model-consensus` select native or external transport per role while
@@ -545,11 +545,12 @@ automation, or structured-receipt needs use the external CLI lane. Reviewers
 do not edit or create children; the parent checks workspace state and
 integrates the verdict.
 
-For an external consult, the user supplies runtime and effort plus a
-model/profile for non-Codex lanes, or the skill asks once. Codex aliases remain
+For an external consult, the user supplies enough information to resolve the
+runtime, model/profile, and effort, or the skill asks once. Codex aliases remain
 exact (`sol`, `luna`, `terra`), and an omitted external Codex model defaults to
-`gpt-5.6-sol`. Exact model versions and profiles are preserved without silent
-downgrade or provider switch.
+`gpt-5.6-sol`. Bare Kimi defaults to `kimi-code/k3` at `max`; natural Grok
+requests use `grok-4.5` and still require an explicit effort. Exact model
+versions and profiles are preserved without silent downgrade or provider switch.
 
 The first request in a consult line starts clean and preserves the exact native
 child handle or external session id. The second and third same-line requests
@@ -580,9 +581,9 @@ directly. The adapter preserves exact model resolution, hook-suppressed CLI
 invocation, namespaced receipts, shared-worktree reporting, and exact-handle
 resume.
 
-Fresh-resumable is the default. When the caller explicitly requests parallel workers, `agent-delegate` creates a group directory and launches ordinary fresh-resumable child workers, then inspects repo state before reporting the combined result. Stateless one-shot is available only when explicitly requested. Explicit resume uses a same-runtime session id or prior run directory. Claude resume uses `-r <session_id>` from the original work root; Codex resume uses `codex exec resume <thread_id>` and never `--last`; Cursor Agent and Grok resume use `--resume <session_id>` and never latest-session selection. The skill does not resume "latest" sessions, cross runtimes, or use external continuation controllers as a strategy.
+Fresh-resumable is the default. When the caller explicitly requests parallel workers, `agent-delegate` creates a group directory and launches ordinary fresh-resumable child workers, then inspects repo state before reporting the combined result. Stateless one-shot is available only when explicitly requested and the selected CLI can honor it; Kimi always persists a session, even when its receipt is ignored. Explicit resume uses a same-runtime session id or prior run directory. Claude and Kimi resume use `-r <session_id>` from the original work root; Codex resume uses `codex exec resume <thread_id>` and never `--last`; Cursor Agent and Grok resume use `--resume <session_id>` and never latest-session selection. The skill does not resume "latest" sessions, cross runtimes, or use external continuation controllers as a strategy.
 
-The user supplies runtime and effort plus a model/profile for non-Codex lanes, or the skill asks once before invoking. A Codex lane accepts `sol`, `luna`, and `terra` as the exact `gpt-5.6-sol`, `gpt-5.6-luna`, and `gpt-5.6-terra` choices; an omitted Codex model defaults to `gpt-5.6-sol`. Runtime can be inferred from unambiguous model families such as `Luna`, `Terra`, `GPT56SOLXI`, `fugu`, or `fugu-ultra` for Codex, `Claude Fable 5` for Claude, `Cursor Agent composer 2.5` for Cursor Agent, or `Grok Build` for Grok. Cursor Agent Composer resolves to `composer-2.5-fast`; Grok resolves to `grok-build` unless Grok Composer is named. Exact model versions and profile names are preserved; there is no silent downgrade, provider switch, effort substitution, detached fallback, separate-worktree fallback, or ambiguous resume fallback.
+The user supplies enough information to resolve runtime, model/profile, and effort, or the skill asks once before invoking. A Codex lane accepts `sol`, `luna`, and `terra` as the exact `gpt-5.6-sol`, `gpt-5.6-luna`, and `gpt-5.6-terra` choices; an omitted Codex model defaults to `gpt-5.6-sol`. Runtime can be inferred from unambiguous model families such as `Luna`, `Terra`, `GPT56SOLXI`, `fugu`, or `fugu-ultra` for Codex, `Claude Fable 5` for Claude, `Cursor Agent composer 2.5` for Cursor Agent, `Grok Build` for Grok, or `Kimi K3` for Kimi Code. Cursor Agent Composer resolves to `composer-2.5-fast`; natural Grok requests resolve to `grok-4.5`; bare Kimi resolves to `kimi-code/k3` at `max`. K3 advertises `low`, `high`, and `max`; an explicit `medium` or `xhigh` is preserved as a forced override. Exact model versions and profile names are preserved; there is no silent downgrade, provider switch, effort substitution, detached fallback, separate-worktree fallback, or ambiguous resume fallback.
 
 Delegated children commonly take 5+ minutes; broad edits, verification, `xhigh`, or `max` can reasonably take 20-40 minutes. Poll live streams every few minutes, not every few seconds.
 
@@ -668,7 +669,9 @@ The user names the two participant identities. Native roles use only model
 capabilities the active host can confirm; an unavailable load-bearing exact
 identity selects the external lane. External shorthand follows the shared
 model resolver, preserves exact versions/profiles, and defaults an omitted
-external Codex model to `gpt-5.6-sol`.
+external Codex model to `gpt-5.6-sol`. Bare Kimi selects `kimi-code/k3` at
+`max`; natural Grok wording selects `grok-4.5` and keeps the explicit-effort
+requirement.
 
 External participants preserve event/final receipts; native participants
 preserve exact host child handles. Both remain read-only, and the parent checks
@@ -695,7 +698,7 @@ Use when the user wants a local artifact — an HTML report, screenshot set, ana
 
 Use when the user wants a prompt-only skeptical implementation-integrity code review over implemented code, a branch, diff, path set, completion claim, or optional plan-backed implementation and wants the review saved to disk. The skill assumes the completion story may be misleading, treats names/docs/status/tests as claims rather than proof, hunts name-only completion, split-brain owners, side doors, partial unification, stale authority paths, stopped-short user workflows, overbuilt machinery, scope contamination, fake proof receipts, and docs/status/tests that mask broken code, then writes `target.md`, `suspicion-map.md`, `coverage.md`, `findings.md`, and `verdict.md` under `/tmp/cynical-code-review/...`. Its verdicts are `approve`, `not-approved`, or `coverage-incomplete`.
 
-It is review-only and workflow-neutral. It does not fix code, run a runner, dictate the user's next workflow, invoke external review/delegation skills, manually spawn `codex`, `claude`, `agent`, or `grok` subprocesses, or turn review into a test/doc nit pass.
+It is review-only and workflow-neutral. It does not fix code, run a runner, dictate the user's next workflow, invoke external review/delegation skills, manually spawn `codex`, `claude`, `agent`, `grok`, or `kimi` subprocesses, or turn review into a test/doc nit pass.
 
 Use `cynical-code-review` when distrust of the implementation story is the job. Use `exhaustive-code-review` when coverage is the deliverable, `plan-audit implementation-audit` when plan fit is the main question, `codex-review-yolo` for an explicit Codex `-p yolo` fresh-eyes review, and `thermo-nuclear-code-quality-review` for maintainability-only review.
 
@@ -703,7 +706,7 @@ Use `cynical-code-review` when distrust of the implementation story is the job. 
 
 Use when the user wants a prompt-only skeptical architecture review over a branch, diff, subsystem, plan-backed implementation, or code area and wants the review saved to disk. The skill assumes the architecture may have emerged accidentally through iteration, preserves the intended UX and hard experiment requirements, hunts sprawl, invalid split ownership, duplicate truth, accidental abstractions, compatibility shims, flags-as-architecture, registries, adapters, state spread, wrong decomposition, and needless complexity, then writes `target.md`, `architecture-map.md`, `complexity-ledger.md`, `subtraction-map.md`, `coverage.md`, `findings.md`, and `verdict.md` under `/tmp/cynical-architecture-review/...`. Its verdicts are `approve`, `not-approved`, or `scope-incomplete`.
 
-It is review-only and workflow-neutral. It does not fix code, run a runner, dictate the user's next workflow, invoke external review/delegation skills, manually spawn `codex`, `claude`, `agent`, or `grok` subprocesses, redesign the product, or turn review into a QA/test/doc pass unless the user explicitly asks.
+It is review-only and workflow-neutral. It does not fix code, run a runner, dictate the user's next workflow, invoke external review/delegation skills, manually spawn `codex`, `claude`, `agent`, `grok`, or `kimi` subprocesses, redesign the product, or turn review into a QA/test/doc pass unless the user explicitly asks.
 
 Use `cynical-architecture-review` when accidental architecture and subtraction are the job. Use `cynical-code-review` when distrust of the implementation story is the job, `exhaustive-code-review` when coverage is the deliverable, `plan-audit implementation-audit` when plan fit is the main question, and `thermo-nuclear-code-quality-review` for maintainability-only review.
 
@@ -711,7 +714,7 @@ Use `cynical-architecture-review` when accidental architecture and subtraction a
 
 Use when the user wants a prompt-only skeptical cleanup review over a repo, branch, diff, subsystem, test suite, dependency set, generated artifact set, or docs/examples/prompt surface and wants a deep deletion report saved to disk. The skill assumes references are not proof of value, identifies live roots and current purpose, hunts dead code, self-referential islands, retired V1/V2 paths, stale feature flags, worthless tests, fake coverage, unused dependencies, obsolete configs/scripts, stale generated artifacts, point-in-time docs/examples, and other low-value artifacts, then writes `target.md`, `live-root-map.md`, `purpose-map.md`, `reference-graph-notes.md`, `low-value-catalog.md`, `test-bloat-report.md`, `deletion-candidates.md`, `keep-decisions.md`, `coverage.md`, `findings.md`, and `verdict.md` under `/tmp/cynical-cruft-removal/...`. Its verdicts are `cruft-found`, `no-material-cruft-found`, `scope-incomplete`, or `unsafe-to-judge`.
 
-It is review-only and workflow-neutral. It does not fix code, delete files, run a runner, dictate the user's next workflow, invoke external review/delegation skills, manually spawn `codex`, `claude`, `agent`, or `grok` subprocesses, or turn review into a QA/test/doc pass.
+It is review-only and workflow-neutral. It does not fix code, delete files, run a runner, dictate the user's next workflow, invoke external review/delegation skills, manually spawn `codex`, `claude`, `agent`, `grok`, or `kimi` subprocesses, or turn review into a QA/test/doc pass.
 
 Use `cynical-cruft-removal` when deletion value and low-value artifact discovery are the job. Use `cynical-code-review` when distrust of the implementation story is the job, `cynical-architecture-review` when accidental architecture and subtraction are the job, `arch-docs` for docs-only cleanup, `exhaustive-code-review` when coverage is the deliverable, and `thermo-nuclear-code-quality-review` for maintainability-only review.
 
@@ -726,7 +729,7 @@ integration capacity, and accounts for every return before writing `target.md`,
 `/tmp/exhaustive-code-review/...`. Its verdicts are `approve`, `not-approved`,
 or `coverage-incomplete`.
 
-It is review-only and workflow-neutral. It does not fix code, run a runner, dictate the user's next workflow, invoke external review/delegation skills, or manually spawn `codex`, `claude`, `agent`, or `grok` subprocesses.
+It is review-only and workflow-neutral. It does not fix code, run a runner, dictate the user's next workflow, invoke external review/delegation skills, or manually spawn `codex`, `claude`, `agent`, `grok`, or `kimi` subprocesses.
 
 Use `exhaustive-code-review` when coverage is the deliverable. Use `cynical-code-review` when distrust of the implementation story is the main question, `plan-audit implementation-audit` for plan-backed code review, `codex-review-yolo` for an explicit Codex `-p yolo` fresh-eyes review, and `thermo-nuclear-code-quality-review` for maintainability-only review.
 

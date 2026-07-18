@@ -55,6 +55,26 @@ _STREAM_EVENTS = [
 ]
 
 
+_PASS_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": list(_PASS_VERDICT.keys()),
+    "properties": {
+        "step_n": {"type": "integer"},
+        "verdict": {"enum": ["pass", "fail", "abstain"]},
+        "checks": {"type": "array", "items": {"type": "object"}},
+        "observed_breach": {"type": ["string", "null"]},
+        "evidence_pointers": {"type": "array", "items": {"type": "string"}},
+        "contract_clauses_implicated": {
+            "type": "array",
+            "items": {"type": "string"},
+        },
+        "summary": {"type": "string"},
+        "abstain_reason": {"type": ["string", "null"]},
+    },
+}
+
+
 def _stdout_from(obj) -> str:
     return "\n".join(["(prior lifecycle noise)", json.dumps(obj)])
 
@@ -87,6 +107,140 @@ class ClaudeShapeParsing(unittest.TestCase):
     def test_extract_verdict_from_final(self):
         self.assertEqual(rs._extract_verdict_from_final(_RESULT_EVENT), _PASS_VERDICT)
         self.assertEqual(rs._extract_verdict_from_final(_STREAM_EVENTS), _PASS_VERDICT)
+
+
+class KimiShapeParsing(unittest.TestCase):
+    def test_concatenates_assistant_content_and_uses_only_resume_hint_id(self):
+        stdout = "\n".join(
+            [
+                "combined stderr noise",
+                json.dumps(
+                    {
+                        "role": "meta",
+                        "type": "unrelated",
+                        "session_id": "wrong-session",
+                    }
+                ),
+                json.dumps(
+                    {
+                        "role": "assistant",
+                        "content": "first ",
+                        "session_id": "also-wrong",
+                    }
+                ),
+                json.dumps({"role": "tool", "content": "ignored"}),
+                json.dumps({"role": "assistant", "content": "second"}),
+                json.dumps(
+                    {
+                        "role": "meta",
+                        "type": "session.resume_hint",
+                        "session_id": "kimi-session-1",
+                    }
+                ),
+            ]
+        )
+
+        self.assertEqual(
+            rs._parse_kimi_final_json(stdout),
+            {
+                "type": "kimi_result",
+                "result": "first second",
+                "session_id": "kimi-session-1",
+            },
+        )
+        self.assertEqual(rs._parse_kimi_session_id(stdout), "kimi-session-1")
+
+    def test_final_text_without_resume_hint_is_valid_but_not_resumable(self):
+        stdout = json.dumps({"role": "assistant", "content": "critic result"})
+
+        self.assertEqual(
+            rs._parse_kimi_final_json(stdout),
+            {
+                "type": "kimi_result",
+                "result": "critic result",
+                "session_id": None,
+            },
+        )
+        self.assertIsNone(rs._parse_kimi_session_id(stdout))
+
+    def test_rejects_explicit_errors_and_empty_or_missing_final_text(self):
+        cases = {
+            "no assistant": json.dumps(
+                {
+                    "role": "meta",
+                    "type": "session.resume_hint",
+                    "session_id": "kimi-session-1",
+                }
+            ),
+            "empty assistant": json.dumps({"role": "assistant", "content": "  \n"}),
+            "type error": "\n".join(
+                [
+                    json.dumps({"role": "assistant", "content": "partial"}),
+                    json.dumps({"type": "error", "message": "failed"}),
+                ]
+            ),
+            "role error": "\n".join(
+                [
+                    json.dumps({"role": "assistant", "content": "partial"}),
+                    json.dumps({"role": "error", "content": "failed"}),
+                ]
+            ),
+        }
+        for label, stdout in cases.items():
+            with self.subTest(label=label):
+                self.assertIsNone(rs._parse_kimi_final_json(stdout))
+
+
+class GrokShapeParsing(unittest.TestCase):
+    def test_concatenates_text_and_captures_end_session(self):
+        stdout = "\n".join(
+            [
+                "combined stderr noise",
+                json.dumps(
+                    {
+                        "type": "text",
+                        "data": "first ",
+                        "sessionId": "wrong-session",
+                    }
+                ),
+                json.dumps({"type": "thought", "data": "ignored"}),
+                json.dumps({"type": "text", "data": "second"}),
+                json.dumps({"type": "end", "sessionId": "grok-session-1"}),
+            ]
+        )
+
+        self.assertEqual(
+            rs._parse_grok_final_json(stdout),
+            {
+                "type": "grok_result",
+                "result": "first second",
+                "session_id": "grok-session-1",
+            },
+        )
+
+    def test_rejects_errors_session_only_and_empty_text(self):
+        cases = {
+            "error": "\n".join(
+                [
+                    json.dumps({"type": "text", "data": "partial"}),
+                    json.dumps({"type": "error", "data": "failed"}),
+                    json.dumps({"type": "end", "sessionId": "grok-session-1"}),
+                ]
+            ),
+            "session only": json.dumps(
+                {"type": "end", "sessionId": "grok-session-1"}
+            ),
+            "empty text": "\n".join(
+                [
+                    json.dumps({"type": "text", "data": "  \n"}),
+                    json.dumps({"type": "end", "sessionId": "grok-session-1"}),
+                ]
+            ),
+            "noise only": "not json\nstill not json\n",
+        }
+        for label, stdout in cases.items():
+            with self.subTest(label=label):
+                self.assertIsNone(rs._parse_grok_final_json(stdout))
 
 
 class StepVerdictValidation(unittest.TestCase):
@@ -323,6 +477,365 @@ class ClaudeInvocationFlags(unittest.TestCase):
             )
 
         self.assert_claude_stream_json_verbose(argv)
+
+
+class KimiInvocationFlags(unittest.TestCase):
+    @staticmethod
+    def _kimi_stdout(
+        result: str,
+        session_id: str | None = "kimi-session-new",
+    ) -> str:
+        events = [
+            "combined stderr warning",
+            json.dumps({"role": "assistant", "content": result}),
+        ]
+        if session_id is not None:
+            events.append(
+                json.dumps(
+                    {
+                        "role": "meta",
+                        "type": "session.resume_hint",
+                        "session_id": session_id,
+                    }
+                )
+            )
+        return "\n".join(events)
+
+    def _run_and_capture(
+        self,
+        args_list: list[str],
+        *,
+        result: str,
+        session_id: str | None = "kimi-session-new",
+        expected_exit: int | None = None,
+    ) -> dict[str, object]:
+        old_run_subprocess = rs._run_subprocess
+        captured: dict[str, object] = {}
+
+        def fake_run(argv, stdout_stream_path, out_dir, cwd=None, stamp_prefix=None):
+            captured["argv"] = argv
+            captured["cwd"] = cwd
+            captured["stamp_prefix"] = stamp_prefix
+            stdout = self._kimi_stdout(result, session_id)
+            stdout_stream_path.write_text(stdout, encoding="utf-8")
+            return 0, stdout
+
+        parser = rs._build_parser()
+        args = parser.parse_args(args_list)
+        try:
+            rs._run_subprocess = fake_run
+            with (
+                contextlib.redirect_stdout(io.StringIO()),
+                contextlib.redirect_stderr(io.StringIO()),
+            ):
+                if expected_exit is None:
+                    self.assertEqual(args.func(args), 0)
+                else:
+                    with self.assertRaises(SystemExit) as raised:
+                        args.func(args)
+                    self.assertEqual(raised.exception.code, expected_exit)
+        finally:
+            rs._run_subprocess = old_run_subprocess
+        return captured
+
+    def test_step_spawn_uses_exact_argv_and_preserves_shell_metacharacters(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            run_dir = root / "run"
+            target = root / "target"
+            run_dir.mkdir()
+            target.mkdir()
+            (run_dir / "state.json").write_text("{}\n", encoding="utf-8")
+            prompt = root / "prompt.md"
+            prompt_text = "do $(touch nope); `echo bad` '$HOME' \"quoted\"\nnext line\n"
+            prompt.write_text(prompt_text, encoding="utf-8")
+
+            captured = self._run_and_capture(
+                [
+                    "step-spawn",
+                    "--run-dir", str(run_dir),
+                    "--target-repo", str(target),
+                    "--prompt-file", str(prompt),
+                    "--model", "kimi-code/k3",
+                    "--effort", "max",
+                    "--runtime", "kimi",
+                    "--step-n", "1",
+                    "--try-k", "1",
+                ],
+                result="completed",
+            )
+
+            self.assertEqual(
+                captured["argv"],
+                [
+                    "env",
+                    "KIMI_CODE_NO_AUTO_UPDATE=1",
+                    "KIMI_MODEL_THINKING_EFFORT=max",
+                    "kimi",
+                    "-m",
+                    "kimi-code/k3",
+                    "-p",
+                    prompt_text,
+                    "--output-format",
+                    "stream-json",
+                ],
+            )
+            self.assertEqual(captured["cwd"], str(target.resolve()))
+            final = json.loads(
+                (run_dir / "steps" / "1" / "try-1" / "stdout.final.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            self.assertEqual(final["result"], "completed")
+            self.assertEqual(final["session_id"], "kimi-session-new")
+            self.assertEqual(
+                (run_dir / "steps" / "1" / "try-1" / "session_id.txt").read_text(
+                    encoding="utf-8"
+                ),
+                "kimi-session-new\n",
+            )
+
+    def test_step_resume_uses_exact_session_and_refreshes_receipts(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            run_dir = root / "run"
+            target = root / "target"
+            run_dir.mkdir()
+            target.mkdir()
+            (run_dir / "state.json").write_text("{}\n", encoding="utf-8")
+            prompt = root / "repair.md"
+            prompt.write_text("repair the step\n", encoding="utf-8")
+
+            captured = self._run_and_capture(
+                [
+                    "step-resume",
+                    "--run-dir", str(run_dir),
+                    "--target-repo", str(target),
+                    "--prompt-file", str(prompt),
+                    "--model", "kimi-code/k3",
+                    "--effort", "high",
+                    "--runtime", "kimi",
+                    "--step-n", "1",
+                    "--try-k", "2",
+                    "--session-id", "kimi-session-old",
+                ],
+                result="repaired",
+                session_id="kimi-session-refreshed",
+            )
+
+            self.assertEqual(
+                captured["argv"],
+                [
+                    "env",
+                    "KIMI_CODE_NO_AUTO_UPDATE=1",
+                    "KIMI_MODEL_THINKING_EFFORT=high",
+                    "kimi",
+                    "-r",
+                    "kimi-session-old",
+                    "-m",
+                    "kimi-code/k3",
+                    "-p",
+                    "repair the step\n",
+                    "--output-format",
+                    "stream-json",
+                ],
+            )
+            self.assertNotIn("-c", captured["argv"])
+            self.assertEqual(captured["cwd"], str(target.resolve()))
+            try_dir = run_dir / "steps" / "1" / "try-2"
+            self.assertEqual(
+                (try_dir / "session_id.txt").read_text(encoding="utf-8"),
+                "kimi-session-refreshed\n",
+            )
+            self.assertEqual(
+                json.loads((try_dir / "stdout.final.json").read_text(encoding="utf-8"))[
+                    "result"
+                ],
+                "repaired",
+            )
+
+    def test_step_diagnose_resumes_in_target_cwd_and_writes_response(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            run_dir = root / "run"
+            target = root / "target"
+            run_dir.mkdir()
+            target.mkdir()
+            (run_dir / "state.json").write_text("{}\n", encoding="utf-8")
+            prompt = root / "diagnose.md"
+            prompt.write_text("diagnose only\n", encoding="utf-8")
+
+            captured = self._run_and_capture(
+                [
+                    "step-diagnose",
+                    "--run-dir", str(run_dir),
+                    "--target-repo", str(target),
+                    "--prompt-file", str(prompt),
+                    "--model", "kimi-code/k3",
+                    "--effort", "low",
+                    "--runtime", "kimi",
+                    "--step-n", "2",
+                    "--try-k", "1",
+                    "--session-id", "kimi-session-2",
+                    "--round-k", "3",
+                    "--with-step-m", "1",
+                ],
+                result="diagnostic response",
+                session_id="kimi-session-2",
+            )
+
+            self.assertEqual(
+                captured["argv"],
+                [
+                    "env",
+                    "KIMI_CODE_NO_AUTO_UPDATE=1",
+                    "KIMI_MODEL_THINKING_EFFORT=low",
+                    "kimi",
+                    "-r",
+                    "kimi-session-2",
+                    "-m",
+                    "kimi-code/k3",
+                    "-p",
+                    "diagnose only\n",
+                    "--output-format",
+                    "stream-json",
+                ],
+            )
+            self.assertEqual(captured["cwd"], str(target.resolve()))
+            self.assertEqual(captured["stamp_prefix"], "turn-3.with-step-1")
+            diag_dir = run_dir / "steps" / "2" / "try-1" / "diagnostic"
+            self.assertEqual(
+                (diag_dir / "turn-3.with-step-1.response.md").read_text(
+                    encoding="utf-8"
+                ),
+                "diagnostic response",
+            )
+            self.assertEqual(
+                (diag_dir / "turn-3.with-step-1.session_id.txt").read_text(
+                    encoding="utf-8"
+                ),
+                "kimi-session-2\n",
+            )
+
+    def test_continuation_commands_require_a_fresh_resume_hint(self):
+        for command in ("step-spawn", "step-resume", "step-diagnose"):
+            with self.subTest(command=command), tempfile.TemporaryDirectory() as td:
+                root = Path(td)
+                run_dir = root / "run"
+                target = root / "target"
+                run_dir.mkdir()
+                target.mkdir()
+                (run_dir / "state.json").write_text("{}\n", encoding="utf-8")
+                prompt = root / "prompt.md"
+                prompt.write_text("turn without hint\n", encoding="utf-8")
+                args_list = [
+                    command,
+                    "--run-dir", str(run_dir),
+                    "--target-repo", str(target),
+                    "--prompt-file", str(prompt),
+                    "--model", "kimi-code/k3",
+                    "--effort", "max",
+                    "--runtime", "kimi",
+                    "--step-n", "1",
+                    "--try-k", "1",
+                ]
+                if command in {"step-resume", "step-diagnose"}:
+                    args_list.extend(["--session-id", "kimi-session-old"])
+                if command == "step-diagnose":
+                    args_list.extend(["--round-k", "1", "--with-step-m", "1"])
+
+                captured = self._run_and_capture(
+                    args_list,
+                    result="completed without receipt",
+                    session_id=None,
+                    expected_exit=4,
+                )
+
+                if command == "step-diagnose":
+                    receipt_path = (
+                        run_dir
+                        / "steps"
+                        / "1"
+                        / "try-1"
+                        / "diagnostic"
+                        / "turn-1.with-step-1.session_id.txt"
+                    )
+                else:
+                    receipt_path = (
+                        run_dir / "steps" / "1" / "try-1" / "session_id.txt"
+                    )
+                self.assertEqual(
+                    receipt_path.read_text(encoding="utf-8"),
+                    "UNRECOVERABLE\n",
+                )
+                if command == "step-resume":
+                    origin = json.loads(
+                        (
+                            run_dir / "steps" / "1" / "try-1" / "origin.json"
+                        ).read_text(encoding="utf-8")
+                    )
+                    self.assertEqual(origin["session_id"], "UNRECOVERABLE")
+                if command == "step-spawn":
+                    self.assertNotIn("-r", captured["argv"])
+                else:
+                    self.assertIn("-r", captured["argv"])
+
+    def test_critic_inlines_schema_and_writes_verdict_receipts(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            run_dir = root / "run"
+            target = root / "target"
+            run_dir.mkdir()
+            target.mkdir()
+            (run_dir / "state.json").write_text("{}\n", encoding="utf-8")
+            prompt = root / "critic.md"
+            prompt.write_text("judge the step\n", encoding="utf-8")
+            schema_file = root / "schema.json"
+            schema_file.write_text(json.dumps(_PASS_SCHEMA), encoding="utf-8")
+
+            captured = self._run_and_capture(
+                [
+                    "critic-spawn",
+                    "--run-dir", str(run_dir),
+                    "--target-repo", str(target),
+                    "--prompt-file", str(prompt),
+                    "--model", "kimi-code/k3",
+                    "--effort", "max",
+                    "--runtime", "kimi",
+                    "--schema-file", str(schema_file),
+                    "--step-n", "4",
+                    "--try-k", "1",
+                ],
+                result=json.dumps(_PASS_VERDICT),
+                session_id=None,
+            )
+
+            argv = captured["argv"]
+            self.assertIsInstance(argv, list)
+            submitted_prompt = argv[argv.index("-p") + 1]
+            self.assertIn("judge the step", submitted_prompt)
+            self.assertIn("## JSON Schema", submitted_prompt)
+            self.assertIn(
+                json.dumps(_PASS_SCHEMA, indent=2, sort_keys=True),
+                submitted_prompt,
+            )
+            self.assertNotIn("--json-schema", argv)
+            self.assertEqual(captured["cwd"], str(target.resolve()))
+            critic_dir = run_dir / "steps" / "4" / "try-1" / "critic"
+            self.assertEqual(
+                (critic_dir / "prompt.kimi.md").read_text(encoding="utf-8"),
+                submitted_prompt,
+            )
+            self.assertEqual(
+                json.loads((critic_dir / "verdict.json").read_text(encoding="utf-8")),
+                _PASS_VERDICT,
+            )
+            self.assertEqual(
+                json.loads(
+                    (critic_dir / "stdout.final.json").read_text(encoding="utf-8")
+                )["type"],
+                "kimi_result",
+            )
 
 
 class CodexProfileInvocationFlags(unittest.TestCase):

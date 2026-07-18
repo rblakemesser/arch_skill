@@ -2,14 +2,14 @@
 """arch-epic external-harness adapter plumbing.
 
 This script is deterministic infrastructure for arch-epic's deliberately
-selected external Claude, Codex, or Grok lane. It does NOT choose transport or
+selected external Claude, Codex, Grok, or Kimi lane. It does NOT choose transport or
 make judgments about decomposition, scope changes, verdicts, or routing. Those
 decisions live in the orchestrator's prose reasoning.
 
 Subcommands:
 
-  critic-spawn   Spawn a fresh ephemeral external critic session (claude,
-                 codex, or grok), capture the EpicVerdict JSON, and write
+  critic-spawn   Spawn a new clean, never-resumed external critic session
+                 (claude, codex, grok, or kimi), capture the EpicVerdict JSON, and write
                  run-directory artifacts.
   resolve-execution
                  Resolve external-harness role execution policy.
@@ -49,8 +49,11 @@ if str(_SHARED_DIR) not in sys.path:
     sys.path.insert(0, str(_SHARED_DIR))
 
 from model_resolution import (  # noqa: E402
+    KIMI_EFFORT_ENV,
+    KIMI_NO_AUTO_UPDATE_ENV,
     ModelResolutionError,
     codex_model_or_profile_args,
+    kimi_model_args,
     resolve_role_execution_policy,
 )
 
@@ -622,10 +625,43 @@ def _grok_argv(
     return argv
 
 
+def _kimi_argv(
+    model: str,
+    effort: str,
+    prompt: str,
+    *,
+    session_id: str | None = None,
+) -> list[str]:
+    """Build Kimi Code argv; the caller owns the subprocess working directory."""
+
+    argv = [
+        "env",
+        f"{KIMI_NO_AUTO_UPDATE_ENV}=1",
+        f"{KIMI_EFFORT_ENV}={effort}",
+        "kimi",
+        *kimi_model_args(model),
+    ]
+    if session_id:
+        argv.extend(["-r", session_id])
+    argv.extend(["-p", prompt, "--output-format", "stream-json"])
+    return argv
+
+
+def _stream_has_explicit_error(event: dict[str, Any]) -> bool:
+    event_type = event.get("type")
+    role = event.get("role")
+    return bool(
+        role == "error"
+        or (isinstance(event_type, str) and "error" in event_type.lower())
+        or event.get("error")
+    )
+
+
 def _parse_grok_final_json(stdout_text: str) -> dict | None:
     text_parts: list[str] = []
     session_id: str | None = None
     fallback_text: str | None = None
+    saw_error = False
     for line in stdout_text.splitlines():
         line = line.strip()
         if not line:
@@ -634,25 +670,76 @@ def _parse_grok_final_json(stdout_text: str) -> dict | None:
             ev = json.loads(line)
         except json.JSONDecodeError:
             continue
-        sid = ev.get("sessionId") or ev.get("session_id")
-        if isinstance(sid, str) and sid:
-            session_id = sid
+        if not isinstance(ev, dict):
+            continue
+        if _stream_has_explicit_error(ev):
+            saw_error = True
+        if ev.get("type") == "end":
+            sid = ev.get("sessionId") or ev.get("session_id")
+            if isinstance(sid, str) and sid:
+                session_id = sid
         if ev.get("type") == "text" and isinstance(ev.get("data"), str):
             text_parts.append(ev["data"])
         elif isinstance(ev.get("text"), str):
             fallback_text = ev["text"]
     text = "".join(text_parts) if text_parts else fallback_text
-    if text is None and session_id is None:
+    if saw_error or not isinstance(text, str) or not text.strip():
         return None
     return {
         "type": "grok_result",
-        "result": text or "",
+        "result": text,
         "session_id": session_id,
     }
 
 
 def _parse_grok_session_id(stdout_text: str) -> str | None:
     final = _parse_grok_final_json(stdout_text)
+    if final is None:
+        return None
+    sid = final.get("session_id")
+    return sid if isinstance(sid, str) and sid else None
+
+
+def _parse_kimi_final_json(stdout_text: str) -> dict | None:
+    text_parts: list[str] = []
+    session_id: str | None = None
+    saw_error = False
+    for line in stdout_text.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            event = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if not isinstance(event, dict):
+            continue
+        if _stream_has_explicit_error(event):
+            saw_error = True
+        if event.get("role") == "assistant" and isinstance(
+            event.get("content"), str
+        ):
+            text_parts.append(event["content"])
+        if (
+            event.get("role") == "meta"
+            and event.get("type") == "session.resume_hint"
+        ):
+            sid = event.get("session_id")
+            if isinstance(sid, str) and sid:
+                session_id = sid
+
+    text = "".join(text_parts)
+    if saw_error or not text.strip():
+        return None
+    return {
+        "type": "kimi_result",
+        "result": text,
+        "session_id": session_id,
+    }
+
+
+def _parse_kimi_session_id(stdout_text: str) -> str | None:
+    final = _parse_kimi_final_json(stdout_text)
     if final is None:
         return None
     sid = final.get("session_id")
@@ -781,11 +868,18 @@ def _policy_from_file(path: Path) -> dict[str, Any]:
             isinstance(item, str) for item in grok_models
         ):
             _die("execution policy grok_models must be an array of strings")
+    kimi_models = payload.get("kimi_models")
+    if kimi_models is not None:
+        if not isinstance(kimi_models, list) or not all(
+            isinstance(item, str) for item in kimi_models
+        ):
+            _die("execution policy kimi_models must be an array of strings")
     try:
         return resolve_role_execution_policy(
             role_sources,
             codex_models=codex_models,
             grok_models=grok_models,
+            kimi_models=kimi_models,
             poll_seconds=poll_seconds,
             quiet_floor_seconds=quiet_floor_seconds,
             stuck_floor_seconds=stuck_floor_seconds,
@@ -911,6 +1005,16 @@ def _grok_worker_argv(
     )
 
 
+def _kimi_worker_argv(
+    model: str,
+    effort: str,
+    prompt: str,
+    *,
+    session_id: str | None = None,
+) -> list[str]:
+    return _kimi_argv(model, effort, prompt, session_id=session_id)
+
+
 def _codex_worker_resume_argv(
     session_id: str,
     final_path: Path,
@@ -1000,6 +1104,14 @@ def _grok_critic_argv(
     prompt_path: Path,
 ) -> list[str]:
     return _grok_argv(target_repo, model, effort, prompt_path)
+
+
+def _kimi_critic_argv(
+    model: str,
+    effort: str,
+    prompt: str,
+) -> list[str]:
+    return _kimi_argv(model, effort, prompt)
 
 
 def cmd_resolve_execution(args: argparse.Namespace) -> int:
@@ -1158,6 +1270,13 @@ def _finalize_worker_try_dir(try_dir: Path) -> str:
             _die("grok worker stdout did not include a final event; see stream.log", code=3)
         _write_json(final_path, final)
         out_sid = _parse_grok_session_id(stdout_text) or input_session_id
+    elif runtime == "kimi":
+        final = _parse_kimi_final_json(stdout_text)
+        if final is None:
+            _write_text(try_dir / "session_id.txt", "UNRECOVERABLE\n")
+            _die("kimi worker stdout did not include a final event; see stream.log", code=3)
+        _write_json(final_path, final)
+        out_sid = _parse_kimi_session_id(stdout_text)
     else:
         _die(f"unknown worker runtime in metadata: {runtime!r}")
 
@@ -1216,6 +1335,16 @@ def _finalize_critic_run_dir(crit_dir: Path) -> Path:
         verdict = _json_object_from_text(result_text if isinstance(result_text, str) else "")
         if verdict is None:
             _die("grok critic output is not valid JSON; see stdout.final.json", code=5)
+        _write_json(verdict_path, verdict)
+    elif runtime == "kimi":
+        final = _parse_kimi_final_json(stdout_text)
+        if final is None:
+            _die("kimi critic stdout did not include a final event; see stream.log", code=3)
+        _write_json(final_path, final)
+        result_text = final.get("result")
+        verdict = _json_object_from_text(result_text if isinstance(result_text, str) else "")
+        if verdict is None:
+            _die("kimi critic output is not valid JSON; see stdout.final.json", code=5)
         _write_json(verdict_path, verdict)
     else:
         _die(f"unknown critic runtime in metadata: {runtime!r}")
@@ -1284,6 +1413,14 @@ def _run_worker(
             session_id=session_id,
         )
         cwd = None
+    elif runtime == "kimi":
+        argv = _kimi_worker_argv(
+            execution["model"],
+            execution["effort"],
+            prompt,
+            session_id=session_id,
+        )
+        cwd = str(target_repo)
     else:
         _die(f"unknown worker runtime: {runtime}")
 
@@ -1425,6 +1562,17 @@ def cmd_auto_critic_spawn(args: argparse.Namespace) -> int:
             grok_prompt_path,
         )
         cwd = None
+    elif runtime == "kimi":
+        schema = json.loads(schema_path.read_text(encoding="utf-8"))
+        kimi_prompt = _prompt_with_schema(prompt, schema)
+        kimi_prompt_path = crit_dir / "prompt.kimi.md"
+        _write_text(kimi_prompt_path, kimi_prompt)
+        argv = _kimi_critic_argv(
+            execution["model"],
+            execution["effort"],
+            kimi_prompt,
+        )
+        cwd = str(target_repo)
     else:
         _die(f"unknown critic runtime: {runtime}")
 
@@ -1736,6 +1884,17 @@ def cmd_critic_spawn(args: argparse.Namespace) -> int:
             grok_prompt_path,
         )
         subprocess_cwd = None
+    elif args.runtime == "kimi":
+        schema = json.loads(schema_path.read_text(encoding="utf-8"))
+        kimi_prompt = _prompt_with_schema(prompt, schema)
+        kimi_prompt_path = run_dir / "prompt.kimi.md"
+        _write_text(kimi_prompt_path, kimi_prompt)
+        argv = _kimi_critic_argv(
+            args.model,
+            args.effort,
+            kimi_prompt,
+        )
+        subprocess_cwd = str(orch_root)
     else:
         _die(f"unknown runtime: {args.runtime}")
 
@@ -1942,7 +2101,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
     critic = sub.add_parser(
         "critic-spawn",
-        help="Spawn a fresh ephemeral external critic session",
+        help="Spawn a new clean external critic session that is never resumed",
     )
     for a in [
         "--epic-doc",
@@ -1955,7 +2114,7 @@ def _build_parser() -> argparse.ArgumentParser:
     ]:
         critic.add_argument(a, required=True)
     critic.add_argument(
-        "--runtime", required=True, choices=["claude", "codex", "grok"]
+        "--runtime", required=True, choices=["claude", "codex", "grok", "kimi"]
     )
     critic.add_argument("--codex-profile", default="")
     critic.add_argument(

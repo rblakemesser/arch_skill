@@ -12,16 +12,17 @@ another concrete benefit is deliberate. These examples are not an allowlist.
 Resolve the following values for each role assigned to the external adapter; a
 fully external worker-and-critic policy has six values:
 
-- `execution_defaults.step.runtime` - `claude`, `codex`, or `grok`
+- `execution_defaults.step.runtime` - `claude`, `codex`, `grok`, or `kimi`
 - `execution_defaults.step.model` - external model or Codex profile
 - `execution_defaults.step.effort` - external reasoning effort
 - `execution_defaults.critic.runtime` - external critic runtime
 - `execution_defaults.critic.model` - external critic model or profile
 - `execution_defaults.critic.effort` - external critic reasoning effort
 
-External runtime and effort come from the user or target doctrine. Models do
+External runtime and normally effort come from the user or target doctrine. Models do
 too, except that an external Codex worker or critic with no named model uses
-`gpt-5.6-sol`. When an external Codex lane uses Fugu, its execution block also
+`gpt-5.6-sol`; an external Kimi lane uses `kimi-code/k3` and defaults an omitted
+effort to `max`. When an external Codex lane uses Fugu, its execution block also
 stores `codex_profile` as `fugu` or `fugu-ultra`.
 
 The manifest may contain per-step transport and external-execution overrides
@@ -53,6 +54,7 @@ requested capability. Any of these is clear:
 - "Codex luna high for steps and terra xhigh for critic"
 - "Codex high everywhere" (`gpt-5.6-sol` is the omitted model default)
 - "Grok Build high for steps and Codex gpt-5.6-sol xhigh for critic"
+- "Kimi K3 high for steps and Kimi max for critic"
 - "steps on gpt-5.6-sol high, critic on gpt-5.6-sol xhigh"
 - "default to Codex gpt-5.6-sol high, but use Claude Fable 5 for copywriting"
 
@@ -90,11 +92,16 @@ This is reasoning, not a lookup table:
   `gpt-5.3-codex`. Fugu is different: resolve `fugu` and `fugu-ultra` as
   Codex profiles, preserve those profile names exactly, and launch them with
   `-p`.
-- For Grok, use `grok-build` by default when the user says `grok`,
-  `grok cli`, `grok build`, or `grok-build`. Use
-  `grok-composer-2.5-fast` only when the user names Grok Composer, such as
-  `grok composer`, `grok composer 2.5`, or `grok-composer-2.5-fast`. Inspect
-  `grok models` when availability matters.
+- For Grok, natural `grok`, `grok cli`, and `grok build` wording resolves to
+  `grok-4.5`. “Grok Build” names the harness, not a model id. If that wording
+  names a numeric version other than `4.5`, fail loud rather than discarding
+  it. Preserve an
+  explicit legacy slug such as `grok-build` or `grok-composer-2.5-fast`
+  exactly and require discovery to confirm it; never rewrite it.
+- For Kimi, `kimi`, `kimi code`, `kimi k3`, `k3`, and `moonshot` resolve to
+  `runtime=kimi`, `model=kimi-code/k3`. Do not auto-resolve older
+  Kimi-for-coding/K2.7 aliases. Inspect top-level `.models` keys from
+  `kimi provider list --json` when availability matters.
 - Bare `composer`, `composer 2.5`, or bare `2.5` is ambiguous unless the user
   explicitly names Cursor Agent or Grok in the same execution choice.
 - If the user says `gpt 5.4`, `gpt 5.5`, or a variant of either while choosing
@@ -109,8 +116,9 @@ This is reasoning, not a lookup table:
 
 Always announce the raw-to-resolved mapping before execution, for example:
 `Claude Fable 5 high -> runtime=claude, model=claude-fable-5,
-effort=high` or `Grok Build high -> runtime=grok, model=grok-build,
-effort=high`.
+effort=high` or `Grok Build high -> runtime=grok, model=grok-4.5,
+effort=high`. `Kimi -> runtime=kimi, model=kimi-code/k3, effort=max,
+effort_source=model_default` records the K3 default explicitly.
 `Fugu Ultra xhigh -> runtime=codex, model=fugu-ultra,
 codex_profile=fugu-ultra, effort=xhigh` is the same kind of exact Codex
 mapping.
@@ -119,6 +127,13 @@ For Fugu profiles, omit Codex `-c model_reasoning_effort=...` at the profile
 default (`fugu` defaults to `high`; `fugu-ultra` defaults to `xhigh`). Add the
 `-c` override only when the user explicitly requests a supported non-default
 Fugu Ultra effort.
+
+`grok-4.5` supports only `low`, `medium`, and `high`. Kimi K3 advertises `low`,
+`high`, and `max`, with omitted effort defaulting to `max`; pass it through
+`KIMI_MODEL_THINKING_EFFORT`. Preserve an explicit `medium` or `xhigh` verbatim
+as a forced override, but never choose either by default or inference. Every
+Kimi process also sets `KIMI_CODE_NO_AUTO_UPDATE=1`. Print mode's automatic
+approval is not a full permission, hook, or static-denial bypass.
 
 For deterministic script plumbing that needs these same resolution rules, use
 `../../_shared/model_resolution.py` instead of adding another hidden model
@@ -130,16 +145,18 @@ exact-version preservation and fail-loud behavior.
 
 Do not ask for runtime/model/effort merely to run a capable same-host native
 child. After an external lane has been selected, apply the omitted-Codex-model
-default; if a load-bearing external value is still unspecified and cannot be
+default and Kimi's `kimi-code/k3`/`max` defaults; if a load-bearing external value is still unspecified and cannot be
 inferred unambiguously, ask ONE consolidated question listing what is missing
 and what it controls:
 
 ```
 I need the external execution choices before dispatching these roles.
 
-- step runtime/effort plus a model/profile for non-Codex lanes: runs each step
+- step runtime plus any non-default effort and a model/profile outside the
+  Codex and Kimi defaults: runs each step
   unless a confirmed per-step preference overrides it.
-- critic runtime/effort plus a model/profile for non-Codex lanes:
+- critic runtime plus any non-default effort and a model/profile outside the
+  Codex and Kimi defaults:
   independently checks each step. Worker routing
   preferences do not apply to critics unless you say so.
 
@@ -147,7 +164,7 @@ What should I use?
 ```
 
 Do not ask six separate questions. Do not invent runtime or effort defaults,
-or model defaults for other runtimes. Ask and wait. If native children can do
+or model defaults beyond the two documented exceptions. Ask and wait. If native children can do
 the job and no external benefit was requested or discovered, proceed natively
 instead of manufacturing this question.
 
@@ -167,8 +184,8 @@ External runtime is separate from model and effort.
 Infer runtime only when the evidence is unambiguous:
 
 - a target repo says "run with Codex"
-- the user says "Claude Fable 5", "Codex gpt-5.6-sol", "Luna", "Terra", or
-  "Grok Build"
+- the user says "Claude Fable 5", "Codex gpt-5.6-sol", "Luna", "Terra",
+  "Grok Build", "Kimi", or "K3"
 - the user says "Codex Fugu", "Fugu high", or "Fugu Ultra xhigh"
 - an installed CLI supports only the named model family and the user clearly
   intended that family
@@ -196,3 +213,11 @@ transport and reuse the same resolved execution block. A user who wants a
 different external model for repair attempts should
 re-invoke the skill with new execution choices; this skill does not change
 horses mid-stream.
+
+Kimi worker turns run from the original target-repo cwd and resume only through
+`kimi -r <exact-session-id>`. Require a fresh `session.resume_hint` receipt
+after every continuation turn. Missing assistant text or a required hint is
+unrecoverable; never reuse the input id, select the latest session, or fall back
+to another runtime, model, or effort. Kimi critics receive the verdict schema
+inline and are new clean sessions that are never resumed, although Kimi still
+persists them on disk.

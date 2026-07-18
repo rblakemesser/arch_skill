@@ -1,6 +1,6 @@
 ---
 name: model-consensus
-description: "Orchestrate a prompt-only dialogue between two selected Claude, Codex, Cursor Agent, or Grok participants until they converge on a lean plan, architecture, debugging strategy, investigation, design, or concept. Resolve transport independently per participant: use separate clean native children for same-host participants when native model capability suffices, and external sessions for cross-provider or unavailable exact-model/profile needs. Resume each exact participant between rounds; relay through the parent by default. Not for one-shot cold opinions, ordinary code review, ordered implementation loops, or broad idea tournaments."
+description: "Orchestrate a prompt-only dialogue between two selected Claude, Codex, Cursor Agent, Grok, or Kimi participants until they converge on a lean plan, architecture, debugging strategy, investigation, design, or concept. Resolve transport independently per participant: use separate clean native children for same-host participants when native model capability suffices, and external sessions for cross-provider or unavailable exact-model/profile needs. Resume each exact participant between rounds; relay through the parent by default. Not for one-shot cold opinions, ordinary code review, ordered implementation loops, or broad idea tournaments."
 metadata:
   short-description: "Two-participant consensus with per-role transport"
 ---
@@ -27,7 +27,7 @@ architecture, and avoids kitchen-sink plans.
 
 ## Use When
 
-- The user wants two Claude, Codex, Cursor Agent, or Grok participants to
+- The user wants two Claude, Codex, Cursor Agent, Grok, or Kimi participants to
   iterate on a plan, architecture, design, migration, debugging strategy,
   investigation, or concept.
 - The value comes from independent first passes, critique, and convergence
@@ -92,10 +92,10 @@ architecture, and avoids kitchen-sink plans.
   ban, approval gate, or fixed process-count limit.
 - Preserve exact participant model resolution. Codex runs GPT/GBT/OpenAI model
   ids and Fugu profiles; Claude Code runs supported Claude models; Cursor Agent
-  runs `composer-2.5-fast`; Grok runs `grok-build` or
-  `grok-composer-2.5-fast`. An omitted Codex participant model defaults to
-  `gpt-5.6-sol`. Never silently substitute model family/version or cross
-  runtimes.
+  runs `composer-2.5-fast`; natural Grok wording resolves to `grok-4.5`; Kimi
+  runs `kimi-code/k3` and defaults an omitted effort to `max`. An omitted Codex
+  participant model defaults to `gpt-5.6-sol`. Preserve explicit legacy Grok
+  ids exactly. Never silently substitute model family/version or cross runtimes.
 - Keep the runner intelligent. The parent may tighten a round, require missing
   evidence, or stop on genuine agreement. It must not reduce the work to
   mechanical alternation or solve the problem itself.
@@ -135,8 +135,9 @@ Then:
 2. Build a faithful goal brief with the goal, hard constraints, desired output,
    and exact user-named inputs, without adding the caller's theory or file map.
 3. Resolve both participant provider/model/profile/effort choices exactly. Use
-   the omitted-Codex-model default, then ask one concise question if another
-   load-bearing participant choice remains ambiguous.
+   the omitted-Codex-model default and Kimi's `kimi-code/k3`/`max` defaults,
+   then ask one concise question if another load-bearing participant choice
+   remains ambiguous.
 4. Inspect the active host's native child capabilities and choose transport for
    each participant separately. Record the concrete reason for any external
    participant and do not promise native model selection the host cannot
