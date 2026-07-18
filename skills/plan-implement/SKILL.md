@@ -43,8 +43,10 @@ state machine, or script-backed completion judge.
   normal review response.
 - The user explicitly wants delegated external workers, resumable child
   sessions, or plan-wide worker orchestration with the parent acting as
-  conductor and cynical reviewer. Use `plan-conductor`.
-- The user wants one explicit external worker. Use `agent-delegate`.
+  conductor and cynical reviewer. Route to `plan-conductor` under the shared
+  agent policy.
+- The user wants one explicit external worker. Route to `agent-delegate` under
+  the shared agent policy.
 
 ## Non-Negotiables
 
@@ -55,32 +57,66 @@ state machine, or script-backed completion judge.
 - The plan audit log owns `PLA-*` and `IMP-*` review findings. Do not turn it
   into an implementation diary.
 - Update artifacts at meaningful boundaries, not after every micro-edit.
-- Choose depth-first slices: make one narrow plan truth real, review it while
-  warm, verify impact, then widen.
+- Choose depth-first slices: make one narrow frozen plan truth real, review it
+  while warm, verify impact, then advance through breadth already authorized by
+  the plan. Depth-first sequencing is not permission to widen scope.
 - Proof freshness matters. Reuse passing proof until a real invalidator makes
   it stale; run checks when the plan, changed code, impacted behavior, or a
   review finding gives a reason.
-- Use native subagents or parallel-agent features for broad independent read,
-  review, or safe low-collision work when available and useful. The parent
-  still owns synthesis, source-of-truth updates, and final claims.
+- Apply `../_shared/agent-orchestration-policy.md` whenever implementation
+  uses child agents.
+- Use a coverage-led set of children for broad independent mapping, review, or
+  safe low-collision implementation work when useful. Start each new
+  independent child as a clean same-host native child when the active host
+  supports it; keep lenses and owned paths non-overlapping and bound fanout by
+  host slots, shared-file or shared-state collision risk, and parent
+  integration capacity.
+- Use bounded or full inherited context only for a named decision that exists
+  solely in chat. Prefer plan, audit-log, implementation-log, and code paths
+  over inheriting the parent's framing or completion story.
+- Use the strongest read-only capability available for mapping and review
+  children, also tell them not to edit or write, and have the parent compare
+  repository status and diffs with the pre-dispatch state before accepting
+  their evidence.
+- Children do not create children or invoke delegation, consult, or review
+  skills unless the parent explicitly assigns a nested scope and budget.
+- The parent owns child accounting, evidence spot-checking, deduplication,
+  integration, finding scope disposition, source-of-truth updates, proof
+  claims, and final completion claims.
+- Resume the exact implementer child for an accepted repair in its owned
+  scope. Every independent recheck uses a new clean critic rather than the
+  implementer's or an earlier critic's context.
 - Do not manually spawn separate coding-harness executables such as `codex`,
-  `claude`, or `agent` for ordinary acceleration. Do not invoke skills whose
-  main effect is to shell out to those binaries unless the user explicitly
-  asks for that kind of delegation.
+  `claude`, or `agent` for ordinary acceleration. This lightweight lane may
+  still hand an explicitly requested external worker or conductor to
+  `agent-delegate` or `plan-conductor` under the shared policy; external
+  execution is a deliberate route, not a blanket ban.
 - Do not claim a plan item complete from logs or checkboxes alone. Read code
   anchors and confirm the outcome is true.
+- Apply `../_shared/scope-and-convergence.md`. Before the first edit,
+  recover the human baseline, initial minimal convergence closure, freeze
+  boundary, and explicit later human approvals. If a legacy plan cannot support
+  a defensible boundary, stop for one human scope decision.
+- A warm review, subagent, test, worklog, or plan edit cannot expand scope.
+  Give every material finding a shared scope disposition. Only `authorized` and
+  `frozen-convergence-required` enter required implementation work; a newly
+  discovered adjacent path is `new-scope-needs-human`, and already-built excess
+  is subtraction work.
 
 ## First Move
 
 1. Read `references/artifact-contract.md`.
 2. Read `references/progressive-implementation-loop.md`.
-3. Resolve the plan artifact, requested scope, stop boundary, repo root, audit
+3. Read `../_shared/scope-and-convergence.md`.
+4. Read `../_shared/agent-orchestration-policy.md` before creating or
+   resuming any child.
+5. Resolve the plan artifact, requested scope, stop boundary, repo root, audit
    log path, and implementation log path.
-4. Read the plan, existing plan audit log if present, existing implementation
+6. Read the plan, existing plan audit log if present, existing implementation
    log if present, local instructions, and current worktree state.
-5. Identify the next narrow depth-first slice and the proof or review likely to
+7. Identify the next narrow depth-first slice and the proof or review likely to
    matter.
-6. If the scope is broad, decide whether native subagents can save real time
+8. If the scope is broad, decide whether native children can save real time
    for independent mapping or review slices.
 
 ## Workflow
@@ -94,13 +130,17 @@ state machine, or script-backed completion judge.
 4. Implement the smallest useful depth-first slice using the repo's existing
    patterns and owner paths.
 5. Review while the work is warm using plan-audit implementation-audit lenses.
-   Use native subagents for independent read-only lenses when that saves time.
+   When children save time, use new clean native critics for independent
+   read-only lenses. Send accepted repairs back to the exact implementer that
+   owns the code, then use a different new clean critic for an independent
+   recheck.
 6. Run, assign, or reuse proof based on impact and freshness. Do not rerun
    checks only because prior context was forgotten.
 7. Update the owning artifact: plan for source-truth changes, audit log for
    `PLA-*` or `IMP-*` findings, implementation log for resumability.
-8. Widen only after the prior slice's code state, plan state, review state, and
-   proof state agree.
+8. Advance to the next already-authorized slice only after the prior slice's
+   code, plan, review, and proof state agree. New breadth requires human approval
+   and re-freeze.
 9. At the requested stop boundary, perform a final lightweight plan-backed
    implementation check and report remaining gaps plainly.
 
@@ -127,5 +167,7 @@ implementation log carries detail so the chat can stay readable.
 - `references/proof-freshness.md` - proof reuse, invalidators, and rerun triggers
 - `references/continuous-review.md` - warm plan-backed review during implementation
 - `references/native-subagent-contract.md` - native subagent use and prompt shapes
+- `../_shared/agent-orchestration-policy.md` - transport, starting context,
+  continuation, isolation, topology, and parent-integration policy
 - `references/output-contract.md` - progress and final report contracts
 - `references/examples.md` - examples and anti-examples

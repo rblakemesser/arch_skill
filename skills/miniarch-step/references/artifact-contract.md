@@ -2,7 +2,7 @@
 
 This artifact is not a loose outline. It is one coherent plan doc that later commands keep sharpening. A command is not successful if it writes its local block but leaves the artifact structurally drifted, internally contradictory, too vague for the next stage to trust, or not decision-complete enough for readiness claims.
 
-Decision-complete means the main artifact has no unresolved plan-shaping decisions left about requested behavior, adjacent surfaces that must stay in sync, compatibility posture, canonical owner path, target architecture, required deletes or migrations, fallback policy, acceptance evidence, required implementation scope, or what must be true to end each planned phase.
+Decision-complete means the main artifact has no unresolved plan-shaping decisions left about requested behavior, adjacent surfaces that must stay in sync, compatibility posture, canonical owner path, target architecture, required deletes or migrations, fallback policy, acceptance evidence, required implementation scope, the smallest sufficient fix, proof sufficiency, prohibited overbuild, or what must be true to end each planned phase.
 
 ## Canonical state objects
 
@@ -27,7 +27,7 @@ Planning commands update `DOC_PATH` only. `auto-plan` also uses `DOC_PATH` as th
 - If the doc is materially non-canonical outside that safe boundary, route to `reformat`.
 - No command may silently delete, displace, or degrade unrelated canonical sections.
 - No command may silently condense instruction-bearing source material in a way that drops operational structure while claiming meaning was preserved.
-- No command may declare the plan ready, complete, or implementation-ready while decision gaps remain in the main artifact.
+- No command may declare the plan ready, complete, or implementation-ready while decision gaps remain in the main artifact or while its scope provenance is missing, contradictory, or unbounded.
 
 ## Required frontmatter
 
@@ -148,12 +148,43 @@ Required content:
   - approved timeboxed bridge with removal plan
 - when the change is agent-backed, explicit capability-first stance for prompt/native-capability work versus deterministic support tooling
 - credible acceptance evidence proportional to the work and risk
+- a visible binding Scope and Simplicity Contract block inside Section 0, preferably after `0.4`, containing:
+  - `Human-authorized outcome` and `Authorization anchors`
+  - `Smallest sufficient solution`: the narrowest real end-to-end change that resolves the demonstrated failure class
+  - `Initial minimal convergence closure`: evidenced same-contract cutovers or deletes found during planning, or explicit `none`
+  - `Scope freeze`: the implementation-ready boundary before code edits
+  - `Enough proof`: the smallest credible evidence set that proves the fix and its important boundary
+  - `Do not build`: the tempting frameworks, harnesses, parallel verifiers, commands, speculative edge-case machinery, or other expansion that must stay out
+  - `Residual risk accepted by this plan`
 - credible behavior-preservation evidence when refactor or consolidation is likely
 - invariant list
   - strong examples include `No fallbacks`, `Fail-loud boundaries`, `No dual sources of truth`, and `No undefined behavior`
 - strict fallback stance:
   - default no fallbacks or runtime shims
   - only approved exceptions with `fallback_policy: approved` plus Decision Log entry, timebox, and removal plan
+
+Canonical Scope and Simplicity Contract shape:
+
+```text
+### Scope and Simplicity Contract
+- Human-authorized outcome: <one concise outcome>
+- Authorization anchors: <original ask and explicit later human decisions>
+- Smallest sufficient solution: <narrowest real end-to-end solution>
+- Initial minimal convergence closure: <same-contract cutovers/deletes found before implementation, or none>
+- Scope freeze: <implementation-ready revision/date or equivalent boundary>
+- Enough proof: <smallest credible proof set>
+- Do not build: <tempting but unnecessary expansion>
+- Residual risk accepted by this plan: <bounded risk that does not justify expansion>
+```
+
+Apply `../../_shared/scope-and-convergence.md`. Initial planning may add only
+the smallest evidenced same-contract convergence closure. The confirmed Scope
+and Simplicity Contract is scope authority for later architecture, phase,
+implementation, and verification text. Freeze it before the first code edit.
+A conflicting later item is plan drift, not an approved obligation. Remove it
+as consistency repair unless a human explicitly approved the expansion and
+Section 10 records `Scope expansion (human-approved)`. Existing `Complexity
+expansion (user-approved)` entries remain valid legacy evidence.
 
 ### `# 1) Key Design Considerations (what matters most)`
 
@@ -284,7 +315,7 @@ Canonical heading plus rule line:
 ```text
 # Depth-First Phased Implementation Plan (authoritative)
 
-> Rule: depth-first implementation protects the full destination while proving the path early. Treat TL;DR, Section 0, Sections 5-6, and approved decisions as the destination map: they preserve final known scope, not a Phase 1 checklist. Section 7 should choose the first working slice that proves one real path through the canonical owner path, highest-risk seam, compatibility or migration posture, and verification shape. Later phases expand along named axes from that proof. Phase boundaries are proof gates: each phase must create evidence that later work can safely rely on. Before a phase plan is valid, run an obligation sweep and either place required work in the current phase, assign it to a named later phase in the expansion map, or stop for an explicit user decision; do not hide unresolved branches. Phase count is an outcome of dependency edges, proof gates, reversibility or migration boundaries, and user-review boundaries; split only when a phase blends separately provable units. `Work` explains the unit and is explanatory only for modern docs. `Checklist (must all be done)` is the authoritative must-do list inside the phase. `Exit criteria (all required)` names the exhaustive concrete done conditions the audit must validate. Refactors, consolidations, and shared-path extractions must preserve existing behavior with credible evidence proportional to the risk. For agent-backed systems, prefer prompt, grounding, and native-capability changes before new harnesses or scripts. No fallbacks/runtime shims - the system must work correctly or fail loudly (delete superseded paths). If a bridge is explicitly approved, timebox it and include removal work; otherwise plan either clean cutover or preservation work directly. Prefer programmatic checks per phase; defer manual/UI verification to finalization. Avoid negative-value tests and heuristic gates (deletion checks, visual constants, doc-driven gates, keyword or absence gates, repo-shape policing). Also: document new patterns/gotchas in code comments at the canonical boundary (high leverage, not comment spam).
+> Rule: depth-first implementation protects the frozen destination while proving the path early. The destination map is the human-authorized outcome plus the initial minimal convergence closure recorded before implementation and any later explicit human approval. The expansion map only sequences that frozen breadth; workers and reviewers cannot add callers, variants, modes, guarantees, proof categories, or adjacent cleanup. Section 7 chooses the first working slice through the canonical owner path and highest-risk seam, then advances through already-authorized axes. Phase boundaries are proof gates, and phase count follows real dependency, proof, reversibility, migration, or user-review boundaries. `Work` is explanatory; `Checklist (must all be done)` and `Exit criteria (all required)` hold every required obligation. Refactors and consolidations preserve behavior with proportionate evidence. Prefer prompt, grounding, and native capability before new agent tooling. No fallback or runtime shim exists without explicit approval and removal work. Prefer focused programmatic checks, defer manual/UI verification to finalization, and avoid deletion proofs, visual constants, doc gates, keyword/absence gates, and repo-shape policing.
 ```
 
 Canonical per-phase fields:
@@ -300,6 +331,7 @@ Canonical per-phase fields:
 Each phase should own one coherent unit with a proof gate that later phases can rely on directly. Earlier phases should prove the risk-bearing seam, canonical owner path, contract, prompt surface, migration posture, or verification shape needed by later work; they should not build unused foundation layers. Phase count is not a target. Split when a phase blends separately provable units; merge units that prove nothing until combined.
 `Work` describes the unit. For modern docs it must not carry standalone required obligations. `Checklist` is the authoritative must-do list within that phase. `Exit criteria` are exhaustive concrete done conditions, and all of them are required. `Verification` names the proof that must run for the phase claims. If deleting or rewriting live docs/comments/instructions is required for phase completeness, that required work must appear in `Checklist` or `Exit criteria`, not only in `Docs/comments`.
 If a required obligation remains visible only in `Work`, `Verification`, `Docs/comments`, migration notes, delete lists, or helper narration, Section 7 is underspecified and not ready for execution.
+Every checklist item and exit criterion must directly serve `Smallest sufficient fix` or `Enough proof`. If it serves neither, remove it from the plan. Do not convert rejected overbuild into an implementation follow-up that keeps pulling the run wider.
 If the change spans a contract family or migration boundary, the phase plan should encode the chosen adjacent-surface follow-through and the chosen cutover, preservation, or approved-bridge work directly instead of leaving that choice implicit.
 For refactor-heavy work, the verification line should say how preserved behavior will be proven.
 Use `Docs/comments` for live docs, comments, and instructions that must be updated or deleted so touched truth surfaces match shipped reality. Do not use it to preserve legacy explanation.
@@ -326,6 +358,7 @@ Principle lines to preserve:
 - avoid verification bureaucracy
 - prefer existing credible signals that genuinely prove the claim
 - keep the proof set lean but sufficient
+- test the demonstrated failure, the successful path, and the most important boundary regression; add more only for a distinct, demonstrated risk
 - for agent-backed systems, prefer prompt, grounding, and native-capability improvements before new scripts or harnesses
 - do not invent new harnesses, frameworks, or scripts unless they already exist and are the cheapest guardrail
 - do not answer "drift resistance" or "enforcement" with docs-audit scripts, stale-term greps, absence checks, repo-structure tests, or CI gates whose main job is policing the tree rather than protecting shipped behavior
@@ -378,7 +411,38 @@ Additional canonical entry shape for user-approved scope cuts (required whenever
 - `User approval:` when asked, how the user responded
 - `Consequences:` plan updates, follow-ups, any phases reopened
 
-This section is append-only. Do not silently rewrite history when real plan drift occurs. Silent narrowing of approved scope is forbidden; every intent-derived resolution and every approved scope cut must appear here.
+Additional canonical entry shape for user-approved complexity expansion (required whenever implementation must exceed the confirmed Simplicity Contract):
+
+- `## <YYYY-MM-DD> - Complexity expansion (user-approved): <title>`
+- `Expansion:` the new framework, harness, verifier, abstraction, command, dependency, operational surface, or test category
+- `Why the smallest sufficient fix cannot work without it:` concrete repo evidence, not general caution
+- `Alternatives rejected:` the smaller existing-path options checked first
+- `User approval:` when asked and how the user responded
+- `Consequences:` plan changes, added proof burden, and any obsolete machinery removed
+
+Additional canonical entry shape for the planning-derived convergence closure
+(written only before scope freeze):
+
+- `## <YYYY-MM-DD> - Initial convergence closure (planning-derived): <title>`
+- `Changed contract:` the exact behavior or data contract being changed
+- `Competing live paths:` repo evidence for the split authority
+- `Minimal closure:` the caller migrations, owner moves, cutovers, or deletes
+- `Why narrower is split-brained:` the concrete failure created or preserved
+- `Freeze effect:` the plan sections updated before implementation readiness
+
+For new post-freeze expansion use:
+
+- `## <YYYY-MM-DD> - Scope expansion (human-approved): <title>`
+- `Expansion:` the newly authorized outcome, constraint, or adjacent path
+- `Tradeoff presented:` what grows and why the frozen solution cannot absorb it
+- `Decision owner:` the human who approved it
+- `Approval:` when and how approval was given
+- `Consequences:` plan sections changed and the new re-freeze boundary
+
+This section is append-only. A Decision Log entry records a decision; an
+agent-authored entry is not human approval. Do not silently rewrite history
+when real plan drift occurs. Silent narrowing is forbidden, and post-freeze
+expansion requires explicit human approval.
 
 ## Stable block inventory
 
@@ -425,7 +489,9 @@ Primary ownership does not override global artifact preservation.
 
 Treat these as hard checks:
 
-- TL;DR, Section 0, and Section 7 may not disagree on goal, requested behavior scope, allowed convergence scope, or plan shape.
+- TL;DR, Section 0, and Section 7 may not disagree on the human-authorized
+  outcome, frozen initial convergence closure, Scope and Simplicity Contract,
+  or plan shape.
 - Section 1 should justify Section 5, not contradict it.
 - Section 2 should explain the current reality that Sections 4 and 6 make concrete.
 - Section 3 and External Research should sharpen Section 5 and Section 8, not float independently.
@@ -452,6 +518,9 @@ Treat these as hard checks:
 - sections `# 1)` through `# 10)` exist with canonical headings
 - command-owned blocks exist or can be inserted safely
 - dependent sections are strong enough for the command to trust
+- the Scope and Simplicity Contract names human authorization, an initial
+  convergence closure or explicit `none`, and a scope-freeze boundary before
+  implementation
 
 ## North Star confirmation rule
 

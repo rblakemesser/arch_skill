@@ -38,6 +38,8 @@ Record:
   docs/examples/prompt surface, or user-named suspicious area
 - baseline and head/current state when known
 - controlling plan, source truth, cleanup claim, or worklog if supplied
+- initial human scope, frozen convergence closure and freeze anchor, later
+  human approvals, and plan/review-wave history when recoverable
 - explicit exclusions
 - local instruction and convention files read
 - unresolved target ambiguity
@@ -60,6 +62,9 @@ Record current roots that can prove value:
 If a likely root is missing or uninspectable, say so. Do not silently treat
 unknown roots as evidence of absence.
 
+For scope-backed work, also state whether each disputed root was authorized.
+Liveness and authorization are separate questions.
+
 ## `purpose-map.md`
 
 Record:
@@ -71,6 +76,7 @@ Record:
 - suspicious keep reason
 - current owner, if found
 - current keep/delete leaning
+- scope provenance and scope-cycle evidence when applicable
 
 Keep this as a review map, not a second plan.
 
@@ -162,7 +168,9 @@ Record what was reviewed:
   styles, locale keys, install surfaces, logs, and status surfaces inspected
   where they affect deletion judgment
 - git history used
-- native parallel agent usage summary and final state for each launched slice
+- child accounting for every launched review slice: lens and path ownership,
+  clean or explicitly justified inherited context, final state, accepted or
+  rejected evidence, and the pre/post-dispatch repository-state check
 - known coverage gaps
 
 Keep this as prose and compact lists. It is not a formal checklist engine.
@@ -182,6 +190,8 @@ Use this shape for each finding:
 - Evidence read: <files, flows, commands, history, source anchors, or child report>
 - Expected risk if removed: <real breakage risk, not vague fear>
 - Recommended action: <delete/rewrite/consolidate/quarantine/owner-check/keep>
+- Scope provenance: <human anchor | frozen closure anchor | later human approval | missing>
+- Scope-cycle evidence: <revision/wave/cluster chain or none>
 ```
 
 Rules:
@@ -190,6 +200,8 @@ Rules:
 - Findings must cite evidence the reviewer actually read.
 - Findings should name clusters when code, tests, docs, examples, generated
   files, configs, and package exports keep each other alive.
+- Scope-laundered live clusters are material findings and force `cruft-found`,
+  even when every artifact is reachable.
 - `DELETE`, `CONSOLIDATE`, `QUARANTINE`, and `OWNER CHECK` are the main useful
   finding types.
 - `KEEP` is only for suspicious artifacts that looked deletable but have a
@@ -247,10 +259,18 @@ VERDICT: cruft-found | no-material-cruft-found | scope-incomplete | unsafe-to-ju
 - Generated/config/package/dependency surfaces:
 - Data/telemetry/ops surfaces:
 
+## Scope Provenance
+
+- Initial human-authorized scope:
+- Frozen initial convergence closure and freeze anchor:
+- Later human approvals:
+- Scope-laundered live clusters:
+- Required disposition:
+
 ## Coverage Summary
 
 - Scope reviewed:
-- Native parallel agents:
+- Native review slices and repository-state check:
 - Files/symbols/artifacts covered:
 - Roots and paths traced:
 - References rejected as weak proof:

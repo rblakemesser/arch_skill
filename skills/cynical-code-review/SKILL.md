@@ -58,8 +58,20 @@ waves, run external review subprocesses, or decide the user's broader workflow.
   for a repo doc path.
 - This is prompt-only doctrine. Do not build a rule engine, runner, controller,
   scorer, harness, script, or formal parameter interface.
-- Maximize native parallel agents for broad review targets when available.
-  Account for every launched lane before finalizing.
+- Apply `../_shared/agent-orchestration-policy.md` whenever the review uses
+  child agents.
+- For broad targets, fan out only across genuinely independent review lenses
+  or path families. Start each independent slice as a new clean same-host
+  native child when the active host supports it, keep the slices
+  non-overlapping, and bound fanout by host slots, shared-file or shared-state
+  collision risk, and the parent's ability to integrate every result.
+- Use the strongest read-only capability the host exposes, also tell every
+  review child not to edit or write, and have the parent compare repository
+  status and diffs with the pre-dispatch state before accepting child evidence.
+- Children do not create children or invoke delegation, consult, or review
+  skills unless the parent explicitly assigns a nested scope and budget.
+- The parent owns child accounting, deduplication, integration, scope
+  disposition, the saved artifact, and the final verdict.
 - Do not manually spawn `codex`, `claude`, `agent`, `grok`, or any other
   coding-harness executable.
 - Do not invoke external agent, delegation, consult, or review skills as the
@@ -67,9 +79,20 @@ waves, run external review subprocesses, or decide the user's broader workflow.
 - Start from distrust: the implementation story, completion claim, names,
   wrappers, comments, status blocks, docs, tests, logs, and reviewer launches
   are claims, not proof.
-- Current code behavior and current code structure are the final authority.
-  Plans, docs, worklogs, tests, and status surfaces help aim review; they do
-  not replace tracing the real code path.
+- Current code behavior and structure are the authority for what exists.
+  Human requests and explicit human approvals are the authority for scope.
+  Plans, docs, worklogs, tests, and status surfaces help aim review; an
+  agent-authored revision cannot retroactively authorize code.
+- Apply `../_shared/scope-and-convergence.md`. For plan-, branch-,
+  conductor-, PR-, or history-backed work with a recoverable baseline,
+  reconstruct the initial human scope, pre-freeze convergence closure, later
+  human approvals, plan/review waves, and final code. Unauthorized post-freeze
+  growth or scope cycling is a `REQUIRED REPAIR` and forces `not-approved`,
+  even when it works and tests pass. The normal repair target is subtraction.
+- If provenance should be available but cannot be recovered, return
+  `coverage-incomplete`. For a standalone code target with no plan, completion
+  claim, or human-scope history, mark the provenance lane not applicable rather
+  than inventing a baseline.
 - Findings must be concrete current-code or requested-scope risks. Drop style
   preferences, generic maintainability advice, missing-test nits, and doc
   hygiene unless they expose a false implementation story.
@@ -85,10 +108,15 @@ waves, run external review subprocesses, or decide the user's broader workflow.
 4. Write the implementation story in plain English: what the work claims is now
    true, which source or plan says so if present, and what current code would
    have to do for that claim to be real.
-5. Read `references/review-catalog.md`.
-6. Read `references/output-contract.md`.
-7. Read `references/agent-slices.md` before launching native parallel agents.
-8. Read `references/examples.md` when the review involves completion claims,
+5. When scope history exists, write its human baseline, initial closure and
+   freeze anchor, explicit later approvals, and revision/review waves before
+   accepting the latest plan as context.
+6. Read `references/review-catalog.md`.
+7. Read `references/output-contract.md`.
+8. Read `../_shared/agent-orchestration-policy.md` before creating or
+   resuming any child.
+9. Read `references/agent-slices.md` before launching native review slices.
+10. Read `references/examples.md` when the review involves completion claims,
    plan-backed implementation, unification, simplification, proof/status
    claims, or confusing peer review lanes.
 
@@ -99,13 +127,16 @@ waves, run external review subprocesses, or decide the user's broader workflow.
    proxy evidence, expected code behavior, old authority paths, duplicate truth
    risks, side doors, adjacent same-contract surfaces, user job, and likely
    scope contamination.
+   For scope-backed work, start from the initial human scope, not the latest
+   plan revision.
 3. Map changed files, changed hunks, touched symbols, touched abstractions,
    visible behavior obligations, relevant old paths, and likely adjacent
    surfaces.
-4. Use native parallel agents for independent read-only slices when the target
-   is broad enough: claim mapping, old-path hunting, runtime flow tracing,
-   split-brain hunting, user-job review, overbuild/scope review, and proof
-   surface review.
+4. When broader coverage warrants children, dispatch a proportional set of new
+   clean native read-only slices with distinct lenses or path families: claim
+   mapping, old-path hunting, runtime flow tracing, split-brain hunting,
+   user-job review, overbuild/scope review, and proof-surface review. Integrate
+   and account for every slice in the parent.
 5. Trace actual control flow, data flow, callers, readers, writers, lifecycle,
    persistence, generated artifacts, prompts, configs, and public entrypoints
    until the current authority path is visible.
@@ -127,10 +158,13 @@ waves, run external review subprocesses, or decide the user's broader workflow.
     docs, worklogs, examples, comments, prompts, logs, and status blocks matter
     when they prove the wrong thing, mask code gaps, keep old paths alive, or
     would mislead the next agent.
-11. Use `references/review-catalog.md` to classify concrete risks. Use
+11. Run the Unauthorized Scope Ratchet Or Cycling pattern whenever scope
+    provenance is recoverable. A reviewer discovery can be real and still lack
+    authority; do not recommend another generalized system as the repair.
+12. Use `references/review-catalog.md` to classify concrete risks. Use
     `references/examples.md` as illustrations of reasoning, not a lookup table.
-12. Save `coverage.md`, `findings.md`, and `verdict.md`.
-13. Return a short findings-first answer with the verdict and run directory.
+13. Save `coverage.md`, `findings.md`, and `verdict.md`.
+14. Return a short findings-first answer with the verdict and run directory.
 
 ## Output Expectations
 
@@ -151,6 +185,8 @@ The full saved artifact follows `references/output-contract.md`.
   guards, and example findings
 - `references/agent-slices.md` - native parallel-agent slice guidance and
   accounting rules
+- `../_shared/agent-orchestration-policy.md` - transport, starting context,
+  continuation, isolation, topology, and parent-integration policy
 - `references/output-contract.md` - required saved files, verdicts, finding
   shape, suspicion map, and final chat summary shape
 - `references/examples.md` - concrete failure-pattern examples and stronger

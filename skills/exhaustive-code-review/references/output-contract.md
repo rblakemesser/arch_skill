@@ -44,7 +44,9 @@ Record what was reviewed:
 - tests, fixtures, proof, docs, examples, comments, schemas, generated
   artifacts, prompts, config, telemetry, stable IDs, install surfaces, and
   package metadata when relevant
-- native parallel agent usage summary
+- child accounting for every launched review slice: lens and path ownership,
+  clean or explicitly justified inherited context, final state, evidence the
+  parent accepted or rejected, and the pre/post-dispatch repository-state check
 - known coverage gaps
 
 Keep this as prose and compact lists. It is not a formal checklist engine.
@@ -60,6 +62,7 @@ Use this shape for each finding:
 - Symbol / line: <symbol or line>
 - Risk: <concrete risk in plain language>
 - Evidence: <diff, file, child report, command output, source anchor, or "see file">
+- Scope disposition: <authorized | frozen-convergence-required | new-scope-needs-human | out-of-scope | unauthorized-built-scope | not applicable>
 - Repair target: <what must change, without writing the patch>
 - Review pattern: <catalog pattern>
 ```
@@ -71,6 +74,13 @@ Rules:
 - Any in-scope competing path, duplicate owner, side door, stale truth surface,
   proof gap, or changed-code risk that must change before approval is a
   `REQUIRED REPAIR`.
+- For a fixed-scope plan or history-backed change, a reviewer-discovered
+  adjacent path is `new-scope-needs-human`, not an instruction to implement
+  that path. If it prevents approval, target subtraction or redesign inside the
+  frozen boundary, or name the human scope decision required. Repeated review
+  agreement does not change the disposition.
+- Unauthorized built scope is a `REQUIRED REPAIR` whose default target is
+  subtraction, even when later code, tests, or plan text depends on it.
 - `OBSERVATION` is only for true informational facts, genuinely different
   contracts, or work excluded by the controlling request or artifact.
 - Do not include suggested patch blocks.
@@ -105,7 +115,7 @@ VERDICT: approve | not-approved | coverage-incomplete
 ## Coverage Summary
 
 - Scope reviewed:
-- Native parallel agents:
+- Native review slices and repository-state check:
 - Files/hunks/abstractions covered:
 - Competing paths, side doors, and adjacent surfaces:
 - Proof/docs/generated/prompt surfaces:

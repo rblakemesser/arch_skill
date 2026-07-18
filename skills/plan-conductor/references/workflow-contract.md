@@ -13,24 +13,29 @@ boundary, or lower the plan's quality bar to finish faster.
   implementation proof itself.
 - **Workers (delegated children).** Own implementation, repair, and assigned
   verification inside their slice contract. They are engineers, not checklist
-  typists — but they run on cheaper models, so their output is treated as a
-  claim until audited.
-- **Cold verifier (optional, final gate only).** One fresh-one-shot delegate
-  with no conductor context, prompted to refute completion from command output
-  and code reality alone. Its value is exactly its ignorance of the run.
+  typists. Their output is treated as a claim until audited regardless of
+  transport or model.
+- **Cold verifier (optional, final gate only).** One new clean child with no
+  conductor narrative, prompted to refute completion from command output and
+  code reality alone. Its value is exactly its ignorance of the run.
 
 ## Lifecycle
 
-1. Intake: plan path, boundary (whole plan default), worker
-   runtime/model/effort, max parallelism, wave cap, cold verifier toggle.
-2. Plan read and extraction into the conductor log; readiness gate.
-3. Initial or resume checkpoint commit when the worktree is already dirty
-   (see Git Posture); otherwise just record the start commit.
+1. Intake: plan path, boundary (whole plan default), per-role transport and
+   starting context, any external runtime/model/effort, max parallelism, wave
+   cap, and cold-verifier toggle. An external Codex worker with no named model
+   uses `gpt-5.6-sol`.
+2. Plan read and extraction in context; capture the start commit and inherited
+   worktree state before writing the conductor log.
+3. Write the log, recording the start commit, then apply and record the
+   proportionality, provenance, and scope-freeze readiness gate. On a passing
+   gate, take an initial or resume checkpoint only when the inherited worktree
+   held plan work to preserve (see Git Posture).
 4. Wave loop:
 
 ```text
 design wave (chunking doctrine)
--> dispatch fresh-resumable workers (parallel group when independent)
+-> dispatch new clean workers (parallel group when independent)
 -> wait patiently (no stream tailing)
 -> evidence intake (footer -> git claims-check -> targeted diff)
 -> cynical audit -> finding triage
@@ -39,6 +44,11 @@ design wave (chunking doctrine)
 -> update log, post compact status table
 -> repeat until execution map clean or hard stop
 ```
+
+Finding triage always separates factual validity from scope authority. Only
+work already authorized by the human outcome or frozen initial convergence
+closure enters a send-back. Review-created expansion never creates another
+wave or plan obligation.
 
 5. Final gate: whole-plan audit sweep by the conductor, then the cold
    verifier unless disabled; findings route through the same send-back
@@ -82,3 +92,6 @@ delegate. The line is hard:
 - Never claim completion while any slice is outside `accepted`/`deferred`,
   any deferral lacks a recorded rationale, plan-required proof is missing, or
   the final gate has open accepted findings.
+- Never claim completion while scope provenance is unresolved, a human scope
+  decision is open, unauthorized built scope remains, or the wave history shows
+  scope cycling.

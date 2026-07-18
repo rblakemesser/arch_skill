@@ -17,9 +17,12 @@ constraints).
 # Plan Conductor Log
 Plan: <path>
 Start commit: <hash>
-Workers: <runtime/model/effort>   Max parallel: <N>   Wave cap: <N>
+Workers: <transport/context; external runtime/model/effort when selected>
+Max parallel: <N>   Wave cap: <N>
 Boundary: <whole plan | phases X-Y>   Cold verifier: <on|off>
 Final gate: <not run | clean | findings open>
+Scope contract: <plan anchor>   Scope status: <frozen-clean | human decision needed | unresolved>
+Human baseline: <plan/user anchor>   Initial closure: <plan anchor or none>
 
 ## Resume Snapshot
 - Current state: <one paragraph>
@@ -28,13 +31,15 @@ Final gate: <not run | clean | findings open>
 - Known blockers: <bullets or none>
 
 ## Execution Map
-| Slice | Plan anchor | Depends on | Size rationale | Status | Worker/session | Attempts | Evidence |
+| Slice | Plan anchor | Depends on | Size rationale | Status | Worker/handle | Attempts | Evidence |
 |---|---|---|---|---|---|---|---|
 
 ## Findings Ledger
 ### PC-001 - <title>
 - Slice: <id>  Lens: <lens>  Evidence: <path:line>
-- Status: accepted | rejected | deferred | resolved
+- Factual status: accepted | rejected | unresolved
+- Scope disposition: authorized | frozen-convergence-required | new-scope-needs-human | out-of-scope | unauthorized-built-scope
+- Route: send-back | observe | human-decision | subtract | resolved
 - Resolution evidence: <anchor>
 
 ## Proof Ledger
@@ -57,15 +62,22 @@ Final gate: <not run | clean | findings open>
 - **Size rationale** is one line saying why this chunk (whole phase, named
   owner-boundary split, merged trivial phases) — it makes the chunking
   judgment visible and reviewable.
-- **Worker/session** names the runtime/model, the agent-delegate run
-  directory, and the captured session id. The run directory path makes the
-  session recoverable even if one record is lost.
+- **Worker/handle** names transport, starting context, and the exact native
+  child handle or external session id. For an external lane it also records
+  runtime/model/effort and the `$agent-delegate` run directory. These receipts
+  preserve exact-role continuation without treating transport as workflow
+  meaning.
 - **Attempts** counts dispatch + send-backs + respawns toward the per-slice
   caps.
 - **Evidence** for an `accepted` slice anchors the proof: diff anchors,
   independently reproduced verification results, checkpoint commit, plus a
   one-line refutation record naming which lens groups and lying-modes were
   checked — so a later reader can distinguish "audited" from "skimmed".
+- **Scope contract fields** are anchors and a compact status only. Never copy
+  or revise the plan's contract in the conductor log.
+- **Finding status** answers whether a finding is technically valid; scope
+  disposition answers whether it is authorized work. A valid finding is not
+  automatically a send-back. Repeated findings keep the same disposition.
 - **Proof Ledger** entries carry the freshness reasoning: what would force a
   rerun. Reuse passing proof until a recorded invalidator fires.
 - **Wave History** is one compact line per wave — enough breadcrumbs to
@@ -83,10 +95,13 @@ the first thing a post-compaction parent reads.
 The run is complete when all three hold:
 
 1. Zero Execution Map rows outside `accepted`/`deferred`, and every
-   `deferred` row carries user approval or an explicit rationale.
+   `deferred` row carries prior plan authority or explicit human approval.
 2. Every phase's plan-required verification is recorded passing in the Proof
    Ledger (fresh, or valid-until untouched).
 3. The `Final gate:` header line reads `clean`.
+4. `Scope status:` reads `frozen-clean`, with no open
+   `new-scope-needs-human` decision, scope-cycle finding, or
+   `unauthorized-built-scope` subtraction.
 
 A cheap approximate probe between waves (matches Execution Map status
 cells; the map itself is authoritative):

@@ -72,6 +72,12 @@ Read:
 Do not treat scope context as a lie to investigate or a claim to re-validate.
 It helps aim the code review; it does not replace reading code.
 
+When the plan, worklog, Decision Log, branch context, or user ask exposes scope
+history, reconstruct the human baseline, initial pre-freeze convergence
+closure, freeze anchor, and explicit human approvals. This is provenance review,
+not an honesty investigation. If required provenance cannot be recovered,
+return the existing non-approving coverage verdict instead of inventing it.
+
 ## Progressive Review Order
 
 1. Resolve the plan artifact, code root, audit log path, and requested scope.
@@ -80,6 +86,8 @@ It helps aim the code review; it does not replace reading code.
    requirements, requirements, non-requirements, constraints, non-constraints,
    phase boundaries, checklists, exit criteria, delete list, compatibility
    posture, and side-door expectations.
+   Also extract human authorization anchors, initial convergence closure,
+   scope-freeze anchor, and explicit later human approvals.
 4. Reconstruct what code should be reviewed from user text, phase labels,
    worklog notes, checked boxes, commit messages, branch names, or explicit
    paths.
@@ -92,8 +100,11 @@ It helps aim the code review; it does not replace reading code.
    adjacent same-contract or same-behavior paths, schemas, adapters, generated
    artifacts, fixtures, config, prompts, docs, changed test files, and install
    or command surfaces.
-7. Use native subagents or parallel-agent features for broad independent
-   read-only code slices when available. The parent owns synthesis.
+7. For broad independent code lenses, follow `child-prompt-contract.md` and the
+   shared agent policy. When the active host supports native children, start
+   each slice as a new clean read-only child over a non-overlapping lens or path
+   family; the parent owns accounting, repository-state checks, synthesis,
+   finding disposition, and verdict.
 8. Review plan obligations against code. Classify each due obligation as
    `satisfied by code`, `missing code`, `implemented differently but
    equivalent`, `implemented differently and not equivalent`, `scope cut`, or
@@ -111,6 +122,16 @@ It helps aim the code review; it does not replace reading code.
 Check that the review target is clear: plan path, audit log path, scope,
 baseline, and local instructions. Block only when the code target cannot be
 resolved or required code cannot be read.
+
+### `scope-provenance-and-no-cycling`
+
+For plan-backed work with recoverable scope history, compare the initial human
+scope and pre-freeze convergence closure with plan revisions, findings,
+worklogs, and final code. A later plan edit cannot retroactively authorize code.
+Treat unauthorized built scope as a required `IMP-*` subtraction repair and
+force `not-approved`, even if it works or tests pass. A new adjacent path found
+by this audit may block approval but cannot be added to repair scope without a
+human decision and re-freeze.
 
 ### `plan-code-fit`
 
@@ -243,6 +264,10 @@ Check whether implementation added variants, modes, frameworks, compatibility
 behavior, or product scope that the plan did not require and that now creates
 bug vectors, live concepts, drift surfaces, or maintenance burden.
 
+Give every material finding a shared scope disposition. Only `authorized` and
+`frozen-convergence-required` are automatic repair work; `new-scope-needs-human`
+is a decision request, and `unauthorized-built-scope` is subtraction work.
+
 ## Audit Log Updates
 
 Use the same audit log as plan-readiness audits:
@@ -260,7 +285,8 @@ For implementation-audit passes, record:
 - Scope
 - Baseline reviewed
 - Test/CI context accepted, if supplied
-- Native subagents/lenses run
+- Review-child accounting, including context choice and final state
+- Pre/post-dispatch repository-state check
 - Code areas read
 - Obligations checked
 - Findings added
@@ -304,8 +330,9 @@ Before returning an approval verdict, confirm:
 - North Star, done-state requirements, phase boundaries, checklists, exit
   criteria, delete list, and side-door expectations were extracted.
 - Changed code and relevant unchanged code were read.
-- Native subagents or parallel-agent features were used for broad read-only
-  slices when available.
+- Broad independent read-only slices, when useful, used new clean native
+  children under the shared policy; every launched child was accounted for and
+  the repository-state check was recorded.
 - Every due code obligation was traced to code or a missing/unclear status.
 - Name-only completion and false simplification were checked wherever the plan
   promised simplification, unification, migration, deletion, SSOT convergence,

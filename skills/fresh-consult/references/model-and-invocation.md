@@ -1,33 +1,83 @@
 # Model And Invocation
 
-Use this reference to resolve what the user meant by "Claude", "Codex",
-"Cursor Agent", "Grok", "fable 5 high", "opus high", "gpt 5.5 xhigh",
-"GBT55XI", "fugu high", "fugu-ultra xhigh", "composer-2.5-fast",
-"grok-build", or similar phrasing, and to run the
-selected read-only consult subprocess.
+This reference separates native review dispatch from the exact external
+invocation lane. Apply `../../_shared/agent-orchestration-policy.md` first.
+For ordinary same-host review, use the native mechanisms below. Use the CLI
+sections only when an external provider, exact model/profile, lifecycle,
+isolation, automation, or receipt benefit justifies the added process.
+
+For the external lane, use this reference to resolve what the user meant by
+"Claude", "Codex", "Cursor Agent", "Grok", "fable 5 high", "opus high",
+"gpt-5.6-sol xhigh", "luna xhigh", "terra high", "GPT56SOLXI", "fugu high",
+"fugu-ultra xhigh", "composer-2.5-fast", "grok-build", or similar phrasing,
+and to run the selected read-only consult subprocess.
 
 Fresh consult is review/second-opinion work. Provider routing is fixed: Codex
 runs GPT/GBT/OpenAI model ids and Fugu profiles, Claude Code runs supported
-Claude models, Cursor Agent runs Composer 2.5 Fast, and Grok CLI runs Grok models. The first turn in a
-consult line starts clean from disk and the prompt; bounded same-line
-follow-ups resume the captured child session by exact session id.
+Claude models, Cursor Agent runs Composer 2.5 Fast, and Grok CLI runs Grok
+models. The first turn in a consult line starts clean from disk and the prompt;
+bounded same-line follow-ups resume the captured child session by exact session
+id.
 
-## Required Values
+## Native Review Dispatch
 
-Every consult child needs three execution values:
+For a new independent Codex consult, create a clean native child with explicit
+`fork_turns: "none"`. Do not omit the field. A positive count carries bounded
+recent turns and `"all"` carries full parent context; those modes are not fresh
+review defaults. Resume a bounded same-line follow-up through that exact child
+handle. A new independent gate gets another child with
+`fork_turns: "none"`.
+
+In Claude Code, use a clean named or custom subagent for a new consult and
+resume that exact subagent for a bounded same-line follow-up. Do not confuse a
+clean named subagent with an explicit full-conversation fork. A skill declared
+with `context: fork` runs in an isolated clean subagent context and does not
+inherit the full conversation. Use a background agent only when work must
+outlive the foreground turn. Do not create an agent team for ordinary
+parent-mediated review; teams are for genuinely requested direct peer
+coordination.
+
+For other hosts, choose the equivalent explicit clean-child and exact-resume
+mechanisms. Do not claim a native model override, permission set, worktree, or
+background lifetime unless the active tool surface confirms it.
+
+Native children commonly share the parent's workspace. Pair the strongest
+available read-only capability with an explicit no-edit/no-write prompt and a
+parent-owned status or diff check. The parent owns fanout and synthesis; child
+prompts prohibit nested fanout unless a bounded scope and concurrency budget
+are explicit.
+
+## Choosing The External Lane
+
+An external session is valid when it provides a concrete benefit the native
+child does not. The examples above are recognition aids, not an allowlist or
+approval gate. Weigh the external-process and same-provider Codex cost described
+in the owning skill and shared policy without turning it into a ban or fixed
+process limit.
+
+External fresh turns start clean from disk and the prompt. External resume
+turns continue only the exact captured session. Neither context choice implies
+read-only enforcement, filesystem isolation, or a separate worktree.
+
+## Required External Values
+
+Every external consult child needs three execution values:
 
 - `runtime` - `claude`, `codex`, `agent`, or `grok`
-- `model` - the runnable CLI model identifier, or the Codex profile name for Fugu
+- `model` - the runnable CLI model identifier, or the Codex profile name for
+  Fugu. An omitted model on a Codex lane resolves to `gpt-5.6-sol`.
 - `effort` - the reasoning effort level, or `encoded-in-model` for Cursor Agent
 
-If any value is missing or ambiguous, ask one consolidated question before
-invoking. For Cursor Agent Composer, effort resolves to `encoded-in-model`; do
+If external transport has been selected and a required value is missing or
+ambiguous after applying the Codex model default, ask one consolidated
+question before invoking. Do not ask for CLI values for an ordinary native
+review. For Cursor Agent Composer, effort resolves to `encoded-in-model`; do
 not ask for a separate effort level.
 
 ```text
-I need the fresh consult runtime, model, and effort before invoking an external
-model. The consult runs as a clean subprocess and can spend real model budget.
-What should I use?
+I need the fresh consult runtime, effort, and non-Codex model/profile when
+applicable before invoking an external model. The consult runs as a clean
+subprocess and can spend real model budget. What should I use?
 ```
 
 Add only the missing facts to the question when some values are already known.
@@ -36,8 +86,9 @@ Add only the missing facts to the question when some values are already known.
 
 Infer runtime only when the user's wording makes it unambiguous:
 
-- `codex`, `openai`, `gpt`, `gbt`, `gpt-5.5`, `GBT55XI`,
-  `gpt 5.5 high`, `gpt-5.3-codex`, `fugu high`, or
+- `codex`, `openai`, `gpt`, `gbt`, `sol`, `luna`, `terra`,
+  `gpt-5.6-sol`, `gpt-5.6-luna`, `gpt-5.6-terra`, `GPT56SOLXI`,
+  `GPT56LUNAXI`, `GPT56TERRAXI`, `gpt-5.3-codex`, `fugu high`, or
   `fugu-ultra xhigh` implies `runtime=codex`.
 - `claude fable`, `fable`, `claude opus`, or `opus` implies
   `runtime=claude`.
@@ -55,26 +106,34 @@ Infer runtime only when the user's wording makes it unambiguous:
   Fugu profiles, or Claude models through Cursor Agent.
 - If a phrase mixes Grok with GPT/GBT model ids, Fugu profiles, Claude, or
   Cursor Agent, fail loud instead of choosing a side.
-- If the user names only an effort level, such as "xhigh", ask for runtime and
-  model.
-- If the user says only "run a fresh consult" or "get a second opinion", ask
-  for runtime, model, and effort.
+- If the user names only an effort level, such as "xhigh", ask for runtime.
+  If the answer is Codex and still omits a model, use `gpt-5.6-sol`.
+- If the user says only "run a fresh consult" or "get a second opinion", use a
+  clean native child of the active host when it can satisfy the role. Ask for
+  runtime/effort and a non-Codex model/profile only after an external lane is
+  selected and those values are load-bearing.
 
-Do not choose a favorite default. The selected model changes both cost and
-quality, so the user supplies it.
+The Codex default is deliberately narrow: when the lane is Codex and no model
+or profile is named, use `gpt-5.6-sol`. Do not default the runtime itself, and
+do not invent defaults for Claude, Cursor Agent, Grok, or Fugu profiles.
 
 ## Model Phrase Resolution
 
 Treat model text as intent, not a loose alias:
 
-- Preserve model family and numeric version exactly. `gpt 5.5` may normalize to
-  `gpt-5.5`; it must not become `gpt-5.4`. `fable 5` may normalize to
+- Accept `sol`, `luna`, and `terra` as the Codex 5.6 choices. They resolve to
+  `gpt-5.6-sol`, `gpt-5.6-luna`, and `gpt-5.6-terra`; compact forms such as
+  `GPT56LUNAXI` and `GPT56TERRAXI` preserve the named variant and imply
+  `xhigh`. If a Codex lane names no model or profile, resolve it to
+  `gpt-5.6-sol` and report that the model came from the default.
+- Preserve model family and numeric version exactly. `gpt-5.6-terra` may normalize to
+  `gpt-5.6-terra`; it must not become `gpt-5.6-sol`, `gpt-5.4`, or `gpt-5.5`. `fable 5` may normalize to
   `claude-fable-5`, and `opus 4.7` may normalize to `claude-opus-4-7`;
   neither may become another Claude family or version.
-- If the user says `gpt 5.4` or a `gpt-5.4` variant while choosing a model,
-  pause before execution and ask whether they meant `gpt-5.5` or explicitly
-  want `gpt-5.4`. This is an intent check, not an alias rule: do not rewrite
-  the version yourself.
+- If the user says `gpt 5.4`, `gpt 5.5`, or a variant of either while choosing
+  a model, do not execute it. Say that the old model is blocked and ask whether
+  they meant `gpt-5.6-sol`. This is an intent check, not an alias rule: do not
+  rewrite the version yourself.
 - For ordinary Codex model ids, inspect `codex debug models` when needed and
   choose an available identifier with the same family and exact version. For
   Fugu, resolve `fugu` and `fugu-ultra` as Codex profiles, not model-list ids;
@@ -102,13 +161,16 @@ Always announce the raw-to-resolved mapping before execution:
 ```text
 Claude Fable 5 high -> runtime=claude, model=claude-fable-5, effort=high
 Claude Opus 4.7 xhigh -> runtime=claude, model=claude-opus-4-7, effort=xhigh
+Codex high -> runtime=codex, model=gpt-5.6-sol, effort=high, model_source=default
+Luna xhigh -> runtime=codex, model=gpt-5.6-luna, effort=xhigh
+Terra high -> runtime=codex, model=gpt-5.6-terra, effort=high
 Fugu Ultra xhigh -> runtime=codex, model=fugu-ultra, codex_profile=fugu-ultra, effort=xhigh
 Cursor Agent composer 2.5 -> runtime=agent, model=composer-2.5-fast, effort=encoded-in-model
 Grok Build high -> runtime=grok, model=grok-build, effort=high
 ```
 
 For deterministic script plumbing that needs the same rules, use
-`skills/_shared/model_resolution.py` instead of creating a local model alias
+`../../_shared/model_resolution.py` instead of creating a local model alias
 table. The helper exists to keep fresh-consult, agent-delegate,
 model-consensus, Stepwise-style orchestrators, and arch-epic automatic
 harnesses aligned on exact-version preservation and fail-loud behavior.
@@ -137,9 +199,18 @@ visible output contract to verdict, evidence, session metadata, and directories.
 - If effort is missing for Claude, Codex, or Grok, or the selected model does
   not support the requested effort, ask.
 
-## Consult Continuity
+## Transport-Neutral Consult Continuity
 
-Use these modes:
+Apply the lifecycle before mapping it to native or external mechanics:
+
+- `new-clean` - a new native child or fresh external session for the first
+  request or any independent gate.
+- `exact-resume` - the exact native child or external session continues a
+  bounded same-line follow-up.
+- `clean-rotation` - a new clean reviewer replaces a three-turn line unless
+  the user explicitly asks to continue it.
+
+The external receipt modes are:
 
 - `fresh-resumable` - default first request in a consult line. It starts clean,
   captures a session id, and writes chain metadata.
@@ -155,19 +226,23 @@ Treat a request as the same consult line when the parent can defend all of
 these:
 
 - same work root
-- same runtime, model, and effort
+- same participant identity and transport; for an external participant, the
+  same runtime, model, and effort
 - same main artifact, claim, flow, or target question family
 - the user asks a follow-up, clarification, rerun after local edits, or narrowed
   check that depends on the previous consult
-- the prior chain has a valid session id and is below `max_chain_turns`
+- the prior native child handle remains valid, or the external chain has a
+  valid exact session id, and the consult line is below `max_chain_turns`
 
 Start fresh instead when:
 
 - the user asks for cold, independent, fresh-eyes, or clean-room review
-- runtime, model, effort, or work root changed
+- participant identity, transport, required capability, or work root changed
 - the new artifact or question is materially different
-- multiple possible prior chains match and the user did not provide a run path
-- the prior `session_id.txt` is missing, empty, or `UNRECOVERABLE`
+- multiple possible prior children or chains match and the user did not provide
+  an exact handle or run path
+- the prior native handle is unavailable, or external `session_id.txt` is
+  missing, empty, or `UNRECOVERABLE`
 - the prior output was malformed or lacks the verdict footer
 - the same-line chain has already reached three turns
 
@@ -175,18 +250,19 @@ Do not start fresh solely because the consult is strict, adversarial, or acting
 as a completion arbiter. Strictness controls the acceptance bar; continuity
 controls whether the same child session should inspect the follow-up.
 
-If the only problem is ambiguity between candidate chains, ask one concise
-question naming the candidate chain directories. Do not silently choose the
-newest chain, do not use runtime "continue latest" features, and do not call
-`agent ls` or similar latest-session discovery. Resume only from a chain path,
-run path, or session id that is already tied to the same fresh-consult line.
+If the only problem is ambiguity between candidate reviewers, ask one concise
+question naming their exact handles or external chain directories. Do not
+silently choose the newest child or chain, use runtime "continue latest"
+features, or call `agent ls` or similar latest-session discovery. Resume only
+the exact participant already tied to the same fresh-consult line.
 
-For explicit parallel consults, each child gets its own chain under the group
-directory. Resume a parallel child only when the follow-up names the child,
-chain directory, run directory, or exact child question. Otherwise start fresh
-or ask.
+For explicit parallel consults, the parent resolves transport independently and
+creates one clean participant per question. External participants each get
+their own chain under the group directory. Resume a participant only when the
+follow-up identifies its exact native handle, external chain/run directory, or
+question. Otherwise start clean or ask.
 
-## Chain And Turn Directories
+## External Chain And Turn Directories
 
 Use one chain directory per consult line:
 
@@ -287,12 +363,15 @@ defensible:
 Do not put secrets, pasted credentials, or raw full prompts in `chain.json`.
 The prompt body stays in `prompt.md`.
 
-## Parallel Consult Group
+## External Parallel Consult Group
 
-Use the parallel group path only when the user asks for parallel consults or
-gives multiple consult questions for this skill. Parallel consults are still
-ordinary consult children; the group only gives the parent a place to organize
-chains, prompts, streams, finals, and the combined report.
+Use the external parallel group path only when the user asks for parallel
+consults or gives multiple consult questions and the parent has selected
+external transport for those participants. Parallel consults are still
+ordinary reviewers; the group only gives the parent a place to organize
+chains, prompts, streams, finals, and the combined report. The parent owns the
+fanout and children do not create further children unless an explicit nested
+scope and budget says otherwise.
 
 Create one group directory:
 
@@ -333,7 +412,7 @@ Wait for all children before reporting. If one child fails or returns malformed
 output, preserve its chain and run directory and include that failure in the
 group report; do not discard the successful sibling consults.
 
-## Codex Fresh Resumable
+## External Codex Fresh Resumable
 
 Use this shape for `fresh-resumable`, `fresh-forced`, and `fresh-rotated`
 Codex consult turns:
@@ -374,7 +453,7 @@ Set `<codex_model_or_profile_flags>` this way:
 - Fugu profile at its default effort: `-p "<resolved_codex_profile>"`
 - Fugu Ultra explicit non-default effort: `-p "fugu-ultra" -c model_reasoning_effort='"<resolved_effort>"'`
 
-## Codex Resume
+## External Codex Resume
 
 Use this shape to resume an explicit Codex thread:
 
@@ -397,7 +476,7 @@ Auto-resume requires the same runtime, model, and effort as the original chain,
 so omit model and effort flags on resume unless the user explicitly requests a
 different execution choice and accepts that the report will call it out.
 
-## Claude Fresh Resumable
+## External Claude Fresh Resumable
 
 Use this shape for `fresh-resumable`, `fresh-forced`, and `fresh-rotated`
 Claude consult turns:
@@ -429,7 +508,7 @@ turn as malformed and preserve the turn directory.
 `--verbose` is required by the Claude CLI when `stream-json` output is used. Do
 not omit it from fresh or resumed Claude consult commands.
 
-## Claude Resume
+## External Claude Resume
 
 Use this shape to resume an explicit Claude session:
 
@@ -458,7 +537,7 @@ After Claude exits, write the final `result` text to `final.txt`. Write the
 returned `session_id` to `session_id.txt` when present; otherwise preserve the
 input session id in `session_id.txt`.
 
-## Cursor Agent Fresh Resumable
+## External Cursor Agent Fresh Resumable
 
 Use this shape for `fresh-resumable`, `fresh-forced`, and `fresh-rotated`
 Cursor Agent consult turns. Cursor Agent has no `--verbose` flag; that flag is
@@ -488,7 +567,7 @@ result event's `session_id` to `session_id.txt`. If no result event exists
 after a zero exit, or no session id is captured, treat the turn as malformed
 and preserve the turn directory.
 
-## Cursor Agent Resume
+## External Cursor Agent Resume
 
 Use this shape to resume an explicit Cursor Agent session. Cursor Agent has no
 `--verbose` flag; that flag is Claude-only. `<resolved_agent_model>` must be
@@ -517,7 +596,7 @@ After Cursor Agent exits, write the final `result` text to `final.txt`. Write
 the returned `session_id` to `session_id.txt` when present; otherwise preserve
 the input session id in `session_id.txt`.
 
-## Grok Fresh Resumable
+## External Grok Fresh Resumable
 
 Use this shape for `fresh-resumable`, `fresh-forced`, and `fresh-rotated` Grok
 consult turns:
@@ -549,7 +628,7 @@ After Grok exits, concatenate streamed `type=text` `data` chunks into
 `session_id.txt`. If no final text exists after a zero exit, or no `sessionId`
 is captured, treat the turn as malformed and preserve the turn directory.
 
-## Grok Resume
+## External Grok Resume
 
 Use this shape to resume an explicit Grok session:
 
@@ -575,7 +654,7 @@ Use `--resume <session_id>` only. Do not use any latest-session selection.
 After Grok exits, write the final text to `final.txt` and preserve the returned
 `sessionId` in `session_id.txt` when present.
 
-## Monitoring Posture
+## External Monitoring Posture
 
 Consults are not instant. A normal repo-backed consult commonly takes 5+
 minutes. Broad artifact reads, `xhigh`, or `max` can reasonably take 20-40
@@ -594,7 +673,13 @@ fresh child.
 
 ## Failure Behavior
 
-Fail loud and preserve the chain and turn directory when:
+For native review, fail loud when the host cannot create the requested clean
+child, cannot resume the exact participant needed for a same-line follow-up, or
+cannot provide a load-bearing requested model/capability. A missing native
+capability may justify the external lane; do not pretend the native dispatch
+honors it.
+
+For external review, fail loud and preserve the chain and turn directory when:
 
 - the selected CLI is missing
 - runtime/model/effort cannot be resolved exactly

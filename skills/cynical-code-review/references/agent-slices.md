@@ -1,15 +1,19 @@
 # Native Agent Slices
 
-Use native parallel agents when the target is broad enough that independent
-read-only review lanes will improve coverage. The parent owns synthesis,
-verdict, and the saved artifact.
+Use this reference with `../../_shared/agent-orchestration-policy.md`. When the
+target is broad enough that independent read-only review lanes will improve
+coverage, prefer new clean same-host native children. The parent owns
+decomposition, accounting, synthesis, finding disposition, verdict, and the
+saved artifact.
 
 Do not manually spawn external coding-harness executables. Do not invoke
 external delegation, consult, or review skills as the mechanism.
 
 ## When To Split
 
-Split when two or more of these are true:
+Split only when distinct lenses or path families will improve coverage enough
+to justify the parent's integration work. The target should determine the
+fanout; do not optimize for child count. Useful signals include:
 
 - the target covers a branch, broad diff, phase, or completion claim
 - more than one authority path may exist
@@ -20,18 +24,37 @@ Split when two or more of these are true:
 - the user explicitly asked for parallel agents
 
 Do not split a tiny review just to perform ceremony. A single careful pass is
-fine when all relevant code fits in one reviewer's head.
+fine when all relevant code fits in one reviewer's head. Bound any fanout by
+the active host's available slots, shared-file or shared-state collision risk,
+and the parent's capacity to inspect every return.
 
 ## Parent Responsibilities
 
 The parent must:
 
 - write the implementation story before splitting
-- give each slice a concrete read-only job
+- capture the pre-dispatch repository status and relevant diff so later writes
+  can be detected without assuming the worktree started clean
+- start every independent slice as a new clean native child; in Codex set
+  `fork_turns: "none"`, and in Claude use a clean named or custom subagent,
+  not a bare conversation fork or skill `context: fork` shorthand
+- use bounded or full inherited context only for a named dependency that
+  exists solely in chat; pass plan and code paths instead when durable source
+  truth exists, and do not inherit the parent's persuasive completion story by
+  default
+- give each slice a concrete, non-overlapping read-only lens and path family
+- select a read-only capability or sandbox when the host exposes one, in
+  addition to the explicit no-edit child prompt
 - tell slices to cite files and code paths they actually read
 - keep slices from doing implementation or patch design
+- keep children from creating children or invoking delegation, consult, or
+  review skills unless the parent has explicitly assigned a nested scope and
+  budget
 - wait for every launched slice to reach a final state
-- synthesize duplicate findings into one required repair
+- spot-check returned evidence, reconcile conflicts, deduplicate findings, and
+  decide the scope disposition of every accepted finding
+- compare repository status and diffs with the pre-dispatch state before
+  accepting a child's read-only claim
 - record gaps honestly in `coverage.md`
 
 Every launched slice ends as exactly one of:
@@ -59,8 +82,11 @@ Target:
 
 Posture:
 - Assume names, comments, docs, tests, status, and wrappers may be misleading.
+- Treat the supplied implementation story as a hypothesis, not a conclusion.
 - Current code behavior is authority.
-- Do not edit files.
+- Do not edit or write files.
+- Do not create child agents or invoke delegation, consult, or review skills
+  unless the parent brief explicitly assigns a nested scope and budget.
 - Do not propose broad refactors unless they are needed to make a false
   implementation story true.
 
@@ -68,11 +94,12 @@ Your job:
 - <one slice-specific job>
 
 Return:
-- result: findings | no-findings | coverage-gap | failed
+- result: findings | no-findings | coverage-gap | failed | intentionally-stopped
 - files-read:
 - code-paths-traced:
 - findings:
 - coverage-gaps:
+- blockers-or-collision-risks:
 ```
 
 This is a prose contract, not a machine protocol.
@@ -148,6 +175,14 @@ Ask:
 - Did a small fix become a policy?
 - Did adjacent behavior change outside the request?
 
+### `scope_provenance_reviewer`
+
+For plan-, conductor-, PR-, or history-backed work, reconstruct the initial
+human scope, frozen convergence closure, later human approvals, plan/review
+waves, and final code. Find work that became "required" only because agents
+built, documented, tested, or repeatedly reviewed it. Return subtraction as the
+default repair; do not turn a new adjacent discovery into automatic scope.
+
 ### `proof_surface_reviewer`
 
 Read changed tests, docs, worklogs, examples, comments, prompts, logs, status
@@ -174,6 +209,7 @@ Slice findings should be compact:
 - Why this means the implementation story is false or incomplete:
 - Repair target:
 - Pattern:
+- Scope provenance and required disposition:
 ```
 
 The parent converts accepted slice findings into the final output contract.

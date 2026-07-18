@@ -1,15 +1,16 @@
-.PHONY: install install_skill agents_install_skill clean_codex_skill_mirror clean_installed_hooks clean_codex_installed_hooks clean_claude_installed_hooks claude_install_skill gemini_install gemini_install_skill verify_install verify_agents_install verify_codex_install verify_claude_install verify_gemini_install remote_install clean_codex_stale_surfaces clean_claude_stale_surfaces clean_gemini_stale_surfaces
+.PHONY: install crg-setup install_skill agents_install_skill clean_codex_skill_mirror clean_installed_hooks clean_codex_installed_hooks clean_claude_installed_hooks claude_install_skill gemini_install gemini_install_skill hermes_install_skill verify_install verify_agents_install verify_codex_install verify_claude_install verify_gemini_install verify_hermes_install remote_install clean_codex_stale_surfaces clean_claude_stale_surfaces clean_gemini_stale_surfaces
 
 # Purge removed packages from installed skill dirs before copying the active set.
-REMOVED_SKILLS := arch-skill arch-plan codemagic-builds customerio arch-loop delay-poll wait code-review plan-swarm
+REMOVED_SKILLS := arch-skill arch-plan codemagic-builds customerio arch-loop delay-poll wait code-review plan-swarm skill-flow codex-babysit eli10
 # Shared doctrine directories that ship alongside the named skills. Multiple
-# SKILL.md files reference shared planning/model-resolution files,
-# so these dirs must land in every install root next to the per-skill dirs.
+# SKILL.md files reference shared planning, agent-orchestration, and
+# model-resolution files, so these directories must land next to the
+# per-skill directories in every install root.
 SHARED_DIRS := _shared
 # `SKILLS` is the active agents/Codex surface. Claude mirrors it.
-SKILLS := arch-step arch-step-goal-prompt miniarch-step arch-docs arch-mini-plan lilarch bugs-flow audit-loop comment-loop audit-loop-sim goal-loop north-star-investigation arch-flow arch-skills-guide agent-definition-auditor agents-md-authoring prompt-authoring chatgpt-web skill-authoring figma-best-practices fal-ai-tools flutter-reference eli10 pr-authoring pr-review-followthrough commit-history-authoring skill-flow amir-publish codex-review-yolo fresh-consult agent-delegate plan-audit plan-implement plan-conductor agent-history model-consensus contact-sheet-builder fc-branded-pdf cynical-code-review cynical-architecture-review cynical-cruft-removal exhaustive-code-review stepwise arch-epic codex-cleanup codex-babysit thermo-nuclear-code-quality-review
-CLAUDE_SKILLS := arch-step arch-step-goal-prompt miniarch-step arch-docs arch-mini-plan lilarch bugs-flow audit-loop comment-loop audit-loop-sim goal-loop north-star-investigation arch-flow arch-skills-guide agent-definition-auditor agents-md-authoring prompt-authoring chatgpt-web skill-authoring figma-best-practices fal-ai-tools flutter-reference eli10 pr-authoring pr-review-followthrough commit-history-authoring skill-flow amir-publish codex-review-yolo fresh-consult agent-delegate plan-audit plan-implement plan-conductor agent-history model-consensus contact-sheet-builder fc-branded-pdf cynical-code-review cynical-architecture-review cynical-cruft-removal exhaustive-code-review stepwise arch-epic codex-cleanup codex-babysit thermo-nuclear-code-quality-review
-GEMINI_SKILLS := arch-step arch-step-goal-prompt miniarch-step arch-docs arch-mini-plan lilarch bugs-flow audit-loop comment-loop audit-loop-sim goal-loop north-star-investigation arch-flow arch-skills-guide agent-definition-auditor agents-md-authoring prompt-authoring chatgpt-web skill-authoring figma-best-practices fal-ai-tools flutter-reference eli10 pr-authoring commit-history-authoring skill-flow amir-publish codex-review-yolo fresh-consult agent-delegate plan-audit plan-implement plan-conductor model-consensus contact-sheet-builder fc-branded-pdf cynical-code-review cynical-architecture-review cynical-cruft-removal exhaustive-code-review stepwise arch-epic codex-cleanup codex-babysit thermo-nuclear-code-quality-review
+SKILLS := arch-step arch-step-goal-prompt miniarch-step arch-docs arch-mini-plan lilarch bugs-flow audit-loop comment-loop audit-loop-sim goal-loop north-star-investigation arch-flow arch-skills-guide agent-definition-auditor agents-md-authoring prompt-authoring chatgpt-web skill-authoring figma-best-practices fal-ai-tools flutter-reference pr-authoring pr-review-followthrough commit-history-authoring amir-publish codex-review-yolo fresh-consult agent-delegate plan-audit plan-implement plan-conductor agent-history model-consensus contact-sheet-builder fc-branded-pdf cf-share cynical-code-review cynical-architecture-review cynical-cruft-removal exhaustive-code-review stepwise arch-epic codex-cleanup thermo-nuclear-code-quality-review
+CLAUDE_SKILLS := arch-step arch-step-goal-prompt miniarch-step arch-docs arch-mini-plan lilarch bugs-flow audit-loop comment-loop audit-loop-sim goal-loop north-star-investigation arch-flow arch-skills-guide agent-definition-auditor agents-md-authoring prompt-authoring chatgpt-web skill-authoring figma-best-practices fal-ai-tools flutter-reference pr-authoring pr-review-followthrough commit-history-authoring amir-publish codex-review-yolo fresh-consult agent-delegate plan-audit plan-implement plan-conductor agent-history model-consensus contact-sheet-builder fc-branded-pdf cf-share cynical-code-review cynical-architecture-review cynical-cruft-removal exhaustive-code-review stepwise arch-epic codex-cleanup thermo-nuclear-code-quality-review
+GEMINI_SKILLS := arch-step arch-step-goal-prompt miniarch-step arch-docs arch-mini-plan lilarch bugs-flow audit-loop comment-loop audit-loop-sim goal-loop north-star-investigation arch-flow arch-skills-guide agent-definition-auditor agents-md-authoring prompt-authoring chatgpt-web skill-authoring figma-best-practices fal-ai-tools flutter-reference pr-authoring commit-history-authoring amir-publish codex-review-yolo fresh-consult agent-delegate plan-audit plan-implement plan-conductor model-consensus contact-sheet-builder fc-branded-pdf cf-share cynical-code-review cynical-architecture-review cynical-cruft-removal exhaustive-code-review stepwise arch-epic codex-cleanup thermo-nuclear-code-quality-review
 CURSOR_TEAM_KIT_SKILLS_DIR := vendor/cursor/plugins/cursor-team-kit/skills
 VENDORED_CURSOR_TEAM_KIT_SKILLS := thermo-nuclear-code-quality-review
 LOCAL_SKILLS := $(filter-out $(VENDORED_CURSOR_TEAM_KIT_SKILLS),$(SKILLS))
@@ -90,6 +91,11 @@ CODEX_HOOKS_FILE ?= $(HOME)/.codex/hooks.json
 CLAUDE_SKILLS_DIR ?= $(HOME)/.claude/skills
 CLAUDE_SETTINGS_FILE ?= $(HOME)/.claude/settings.json
 GEMINI_SKILLS_DIR ?= $(HOME)/.gemini/skills
+# Hermes Agent reads skills from category subdirectories under per-profile
+# skill roots. Install mirrors the agents surface into every Hermes root that
+# already exists on this machine; it never creates a Hermes home or profile.
+HERMES_HOME ?= $(HOME)/.hermes
+HERMES_SKILLS_SUBDIR := arch_skill
 
 ifeq ($(NO_GEMINI),1)
 INSTALL_GEMINI :=
@@ -99,7 +105,43 @@ INSTALL_GEMINI := gemini_install
 VERIFY_GEMINI := verify_gemini_install
 endif
 
-install: clean_codex_stale_surfaces clean_claude_stale_surfaces clean_installed_hooks install_skill claude_install_skill $(INSTALL_GEMINI)
+ifeq ($(NO_HERMES),1)
+INSTALL_HERMES :=
+VERIFY_HERMES :=
+else
+INSTALL_HERMES := hermes_install_skill
+VERIFY_HERMES := verify_hermes_install
+endif
+
+install: clean_codex_stale_surfaces clean_claude_stale_surfaces clean_installed_hooks install_skill claude_install_skill $(INSTALL_GEMINI) $(INSTALL_HERMES)
+
+# CRG is an optional agent accelerator. Missing tooling is loud but non-fatal.
+crg-setup:
+	@echo "🕸️  Ensuring code-review-graph is installed..."
+	@if command -v code-review-graph >/dev/null 2>&1; then \
+		echo "✅ code-review-graph already installed"; \
+	elif command -v uv >/dev/null 2>&1; then \
+		echo "📦 Installing code-review-graph with uv tool..."; \
+		uv tool install code-review-graph || { \
+			echo "⚠️  WARNING: code-review-graph install failed; setup will continue because CRG is optional."; \
+			exit 0; \
+		}; \
+	elif command -v pipx >/dev/null 2>&1; then \
+		echo "📦 Installing code-review-graph with pipx..."; \
+		pipx install code-review-graph || { \
+			echo "⚠️  WARNING: code-review-graph install failed; setup will continue because CRG is optional."; \
+			exit 0; \
+		}; \
+	else \
+		echo "⚠️  WARNING: code-review-graph was not installed."; \
+		echo "⚠️  Install uv and run: uv tool install code-review-graph"; \
+		echo "⚠️  Or install pipx and run: pipx install code-review-graph"; \
+		exit 0; \
+	fi
+	@if command -v code-review-graph >/dev/null 2>&1; then \
+		bash scripts/code_review_graph.sh ensure || \
+			echo "⚠️  WARNING: code-review-graph graph setup failed; setup will continue because CRG is optional."; \
+	fi
 
 clean_codex_stale_surfaces:
 	@mkdir -p ~/.codex/prompts/_backup
@@ -235,8 +277,48 @@ gemini_install_skill:
 		find $(GEMINI_SKILLS_DIR)/$$item -name 'arch_controller_stop_hook.py' -delete; \
 	done
 
-verify_install: verify_agents_install verify_codex_install verify_claude_install $(VERIFY_GEMINI)
-	@echo "OK: active skill surface installed for agents, Claude Code, and requested Gemini targets; no arch_skill hooks installed"
+# Mirror the agents skill surface into every Hermes Agent skill root that
+# already exists: the default profile root ($(HERMES_HOME)/skills) and each
+# named profile root ($(HERMES_HOME)/profiles/<name>/skills). Skills land
+# under the $(HERMES_SKILLS_SUBDIR) category directory. Machines without a
+# Hermes home are skipped; pass NO_HERMES=1 to opt out entirely.
+hermes_install_skill:
+	@roots=""; \
+	if [ -d "$(HERMES_HOME)/skills" ]; then roots="$(HERMES_HOME)/skills"; fi; \
+	for profile in $(HERMES_HOME)/profiles/*/; do \
+		if [ -d "$$profile" ]; then roots="$$roots $${profile%/}/skills"; fi; \
+	done; \
+	if [ -z "$$roots" ]; then \
+		echo "SKIP: no Hermes skill roots under $(HERMES_HOME); nothing to install"; \
+		exit 0; \
+	fi; \
+	for root in $$roots; do \
+		dest="$$root/$(HERMES_SKILLS_SUBDIR)"; \
+		mkdir -p "$$dest"; \
+		for skill in $(REMOVED_SKILLS) $(SKILLS); do \
+			rm -rf "$$dest/$$skill"; \
+		done; \
+		for skill in $(LOCAL_SKILLS); do \
+			cp -R skills/$$skill "$$dest/$$skill"; \
+		done; \
+		for skill in $(VENDORED_SKILLS); do \
+			cp -R $(CURSOR_TEAM_KIT_SKILLS_DIR)/$$skill "$$dest/$$skill"; \
+		done; \
+		for shared in $(SHARED_DIRS); do \
+			rm -rf "$$dest/$$shared"; \
+			cp -R skills/$$shared "$$dest/$$shared"; \
+		done; \
+		for item in $(SKILLS) $(SHARED_DIRS); do \
+			find "$$dest/$$item" \( -name build -o -name prompts -o -name __pycache__ \) -type d -prune -exec rm -rf {} +; \
+			find "$$dest/$$item" -name '*.pyc' -delete; \
+			find "$$dest/$$item" -name 'upsert_*hook.py' -delete; \
+			find "$$dest/$$item" -name 'arch_controller_stop_hook.py' -delete; \
+		done; \
+		echo "OK: Hermes skills installed to $$dest"; \
+	done
+
+verify_install: verify_agents_install verify_codex_install verify_claude_install $(VERIFY_GEMINI) $(VERIFY_HERMES)
+	@echo "OK: active skill surface installed for agents, Claude Code, requested Gemini targets, and existing Hermes skill roots; no arch_skill hooks installed"
 
 verify_agents_install:
 	@for skill in $(SKILLS); do \
@@ -250,6 +332,8 @@ verify_agents_install:
 		test ! -d $(AGENTS_SKILLS_DIR)/$$skill; \
 	done
 	@test -f $(AGENTS_SKILLS_DIR)/_shared/depth-first-planning.md
+	@test -f $(AGENTS_SKILLS_DIR)/_shared/scope-and-convergence.md
+	@test -f $(AGENTS_SKILLS_DIR)/_shared/agent-orchestration-policy.md
 	@test -f $(AGENTS_SKILLS_DIR)/_shared/model_resolution.py
 	@test ! -e $(AGENTS_SKILLS_DIR)/arch-step/scripts/arch_controller_stop_hook.py
 	@test ! -e $(AGENTS_SKILLS_DIR)/arch-step/scripts/upsert_codex_stop_hook.py
@@ -285,6 +369,8 @@ verify_claude_install:
 		test ! -d $(CLAUDE_SKILLS_DIR)/$$skill; \
 	done
 	@test -f $(CLAUDE_SKILLS_DIR)/_shared/depth-first-planning.md
+	@test -f $(CLAUDE_SKILLS_DIR)/_shared/scope-and-convergence.md
+	@test -f $(CLAUDE_SKILLS_DIR)/_shared/agent-orchestration-policy.md
 	@test -f $(CLAUDE_SKILLS_DIR)/_shared/model_resolution.py
 	@test ! -e $(CLAUDE_SKILLS_DIR)/arch-step/scripts/arch_controller_stop_hook.py
 	@test ! -e $(CLAUDE_SKILLS_DIR)/arch-step/scripts/upsert_codex_stop_hook.py
@@ -315,12 +401,42 @@ verify_gemini_install:
 		test ! -d $(GEMINI_SKILLS_DIR)/$$skill; \
 	done
 	@test -f $(GEMINI_SKILLS_DIR)/_shared/depth-first-planning.md
+	@test -f $(GEMINI_SKILLS_DIR)/_shared/scope-and-convergence.md
+	@test -f $(GEMINI_SKILLS_DIR)/_shared/agent-orchestration-policy.md
 	@test -f $(GEMINI_SKILLS_DIR)/_shared/model_resolution.py
 	@test ! -e $(GEMINI_SKILLS_DIR)/arch-step/scripts/arch_controller_stop_hook.py
 	@test ! -e $(GEMINI_SKILLS_DIR)/arch-step/scripts/upsert_codex_stop_hook.py
 	@test ! -e $(GEMINI_SKILLS_DIR)/arch-step/scripts/upsert_claude_stop_hook.py
 	@test ! -e $(GEMINI_SKILLS_DIR)/arch-step/scripts/upsert_claude_session_start_hook.py
 	@echo "OK: Gemini active skills installed; stale command surfaces removed"
+
+verify_hermes_install:
+	@roots=""; \
+	if [ -d "$(HERMES_HOME)/skills" ]; then roots="$(HERMES_HOME)/skills"; fi; \
+	for profile in $(HERMES_HOME)/profiles/*/; do \
+		if [ -d "$$profile" ]; then roots="$$roots $${profile%/}/skills"; fi; \
+	done; \
+	if [ -z "$$roots" ]; then \
+		echo "OK: no Hermes skill roots under $(HERMES_HOME); nothing to verify"; \
+		exit 0; \
+	fi; \
+	for root in $$roots; do \
+		dest="$$root/$(HERMES_SKILLS_SUBDIR)"; \
+		for skill in $(SKILLS); do \
+			if [ ! -f "$$dest/$$skill/SKILL.md" ]; then echo "ERROR: missing $$dest/$$skill/SKILL.md"; exit 1; fi; \
+		done; \
+		for skill in $(REMOVED_SKILLS); do \
+			if [ -d "$$dest/$$skill" ]; then echo "ERROR: removed skill still installed at $$dest/$$skill"; exit 1; fi; \
+		done; \
+		if [ ! -f "$$dest/_shared/depth-first-planning.md" ]; then echo "ERROR: missing $$dest/_shared/depth-first-planning.md"; exit 1; fi; \
+		if [ ! -f "$$dest/_shared/model_resolution.py" ]; then echo "ERROR: missing $$dest/_shared/model_resolution.py"; exit 1; fi; \
+		for item in $(SKILLS) $(SHARED_DIRS); do \
+			if find "$$dest/$$item" \( -name build -o -name prompts -o -name __pycache__ \) -type d -print -quit | grep -q .; then echo "ERROR: source/build internals installed under $$dest/$$item"; exit 1; fi; \
+			if find "$$dest/$$item" -name '*.pyc' -print -quit | grep -q .; then echo "ERROR: Python bytecode installed under $$dest/$$item"; exit 1; fi; \
+			if find "$$dest/$$item" \( -name 'upsert_*hook.py' -o -name 'arch_controller_stop_hook.py' \) -print -quit | grep -q .; then echo "ERROR: hook scripts installed under $$dest/$$item"; exit 1; fi; \
+		done; \
+		echo "OK: Hermes skills verified at $$dest"; \
+	done
 
 remote_install:
 	@if [ -z "$(HOST)" ]; then echo "HOST is required. Usage: make remote_install HOST=<user@host>"; exit 1; fi
@@ -378,7 +494,7 @@ remote_install:
 		for skill in $(VENDORED_GEMINI_SKILLS); do \
 			scp -r $(CURSOR_TEAM_KIT_SKILLS_DIR)/$$skill $(HOST):~/.gemini/skills/; \
 		done; \
-		ssh $(HOST) "for skill in $(GEMINI_SKILLS); do f=~/.gemini/skills/\$$skill/SKILL.md; tmp=\$$f.tmp; awk 'NR==1 && $$0==\"---\" {front=1; next} front && $$0==\"---\" {front=0; next} !front {print}' \"\$$f\" > \"\$$tmp\" && mv \"\$$tmp\" \"\$$f\"; done"; \
+		ssh $(HOST) "for skill in $(GEMINI_SKILLS); do f=~/.gemini/skills/\$$skill/SKILL.md; tmp=\$$f.tmp; awk 'NR==1 && \$$0==\"---\" {front=1; next} front && \$$0==\"---\" {front=0; next} !front {print}' \"\$$f\" > \"\$$tmp\" && mv \"\$$tmp\" \"\$$f\"; done"; \
 		for shared in $(SHARED_DIRS); do \
 			ssh $(HOST) "rm -rf ~/.gemini/skills/$$shared"; \
 			scp -r skills/$$shared $(HOST):~/.gemini/skills/; \

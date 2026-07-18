@@ -1,14 +1,29 @@
 # Model And Invocation
 
-Use this reference to resolve what the user meant by "Claude", "Codex",
-"Cursor Agent", "Grok", "fable 5 high", "opus high", "gpt 5.5 xhigh",
-"fugu high", "fugu-ultra xhigh", "composer-2.5-fast", "grok-build", or
+Use this reference after the caller has deliberately selected the external
+worker lane under `../../_shared/agent-orchestration-policy.md`. It owns model
+resolution, command syntax, exact external-session continuation, and receipt
+capture; it does not decide the worker's role, decompose the task, or integrate
+the result.
+
+Use it to resolve what the user meant by "Claude", "Codex",
+"Cursor Agent", "Grok", "fable 5 high", "opus high", "gpt-5.6-sol xhigh",
+"luna xhigh", "terra high", "fugu high", "fugu-ultra xhigh",
+"composer-2.5-fast", "grok-build", or
 similar phrasing, and to run the
 selected worker subprocess or explicit parallel group of worker subprocesses.
 Fresh-resumable is the default: new children start cold but capture a session
 handle for later exact resume. Provider routing is fixed: Codex runs
 GPT/GBT/OpenAI model ids and Fugu profiles, Claude Code runs supported Claude
 models, Cursor Agent runs Composer 2.5 Fast, and Grok CLI runs Grok models.
+
+## External Context
+
+External context is explicit: `fresh-one-shot` and `fresh-resumable` start
+clean from the prompt and disk; `resume` continues the exact captured worker.
+None inherits bounded or full parent chat automatically. Context remains
+separate from the shared worktree, unsandboxed permissions, and process
+isolation used below.
 
 ## Required Values
 
@@ -17,7 +32,8 @@ Every delegation child needs:
 - `mode` - `fresh-one-shot`, `fresh-resumable`, or `resume`
 - `runtime` - `claude`, `codex`, `agent`, or `grok`
 - `model` - the runnable CLI model identifier or Codex profile name, or the
-  previous session model/profile when a resume intentionally reuses it
+  previous session model/profile when a resume intentionally reuses it.
+  An omitted model on a Codex lane resolves to `gpt-5.6-sol`.
 - `effort` - the reasoning effort level, or the previous session effort when a
   resume intentionally reuses it
 
@@ -28,13 +44,14 @@ Resume mode also needs either:
 - `run_dir` - a previous `agent-delegate` run directory containing
   `session_id.txt` and `execution.json`
 
-If any value is missing or ambiguous, ask one consolidated question before
-invoking:
+If any required value is missing or ambiguous after applying the Codex model
+default, ask one consolidated question before invoking:
 
 ```text
-I need the delegate runtime, model, effort, and resume handle before invoking
-an external agent. The delegate runs as a foreground subprocess, can edit the
-shared worktree, and can spend real model budget. What should I use?
+I need the delegate runtime, effort, non-Codex model/profile when applicable,
+and resume handle before invoking an external agent. The delegate runs as a
+foreground subprocess, can edit the shared worktree, and can spend real model
+budget. What should I use?
 ```
 
 Add only the missing facts to the question when some values are already known.
@@ -70,9 +87,10 @@ skill.
 
 Infer runtime only when the user's wording makes it unambiguous:
 
-- `codex`, `openai`, `gpt`, `gbt`, `gpt-5.5`, `GBT55XI`,
-  `gpt 5.5 high`, `gpt-5.3-codex`, `fugu high`, or `fugu-ultra xhigh` implies
-  `runtime=codex`.
+- `codex`, `openai`, `gpt`, `gbt`, `sol`, `luna`, `terra`,
+  `gpt-5.6-sol`, `gpt-5.6-luna`, `gpt-5.6-terra`, `GPT56SOLXI`,
+  `GPT56LUNAXI`, `GPT56TERRAXI`, `gpt-5.3-codex`, `fugu high`, or
+  `fugu-ultra xhigh` implies `runtime=codex`.
 - `claude fable`, `fable`, `claude opus`, or `opus` implies
   `runtime=claude`.
 - `sonnet` and `haiku` are not supported by this repo's subprocess doctrine;
@@ -89,26 +107,33 @@ Infer runtime only when the user's wording makes it unambiguous:
   Fugu profiles, or Claude models through Cursor Agent.
 - If a phrase mixes Grok with GPT/GBT model ids, Fugu profiles, Claude, or
   Cursor Agent, fail loud instead of choosing a side.
-- If the user names only an effort level, such as "xhigh", ask for runtime and
-  model.
+- If the user names only an effort level, such as "xhigh", ask for runtime.
+  If the answer is Codex and still omits a model, use `gpt-5.6-sol`.
 - If the user says only "delegate this" or "have another agent do this", ask
-  for runtime, model, and effort.
+  for runtime and effort; ask for a model/profile only when the selected lane
+  is not Codex.
 
-Do not choose a favorite default. The selected model changes both cost and
-quality, so the user supplies it.
+The Codex default is deliberately narrow: when the lane is Codex and no model
+or profile is named, use `gpt-5.6-sol`. Do not default the runtime itself, and
+do not invent defaults for Claude, Cursor Agent, Grok, or Fugu profiles.
 
 ## Model Phrase Resolution
 
 Treat model text as intent, not a loose alias:
 
-- Preserve model family and numeric version exactly. `gpt 5.5` may normalize to
-  `gpt-5.5`; it must not become `gpt-5.4`. `fable 5` may normalize to
+- Accept `sol`, `luna`, and `terra` as the Codex 5.6 choices. They resolve to
+  `gpt-5.6-sol`, `gpt-5.6-luna`, and `gpt-5.6-terra`; compact forms such as
+  `GPT56LUNAXI` and `GPT56TERRAXI` preserve the named variant and imply
+  `xhigh`. If a Codex lane names no model or profile, resolve it to
+  `gpt-5.6-sol` and report that the model came from the default.
+- Preserve model family and numeric version exactly. `gpt-5.6-luna` may normalize to
+  `gpt-5.6-luna`; it must not become `gpt-5.6-sol`, `gpt-5.4`, or `gpt-5.5`. `fable 5` may normalize to
   `claude-fable-5`, and `opus 4.7` may normalize to `claude-opus-4-7`;
   neither may become another Claude family or version.
-- If the user says `gpt 5.4` or a `gpt-5.4` variant while choosing a model,
-  pause before execution and ask whether they meant `gpt-5.5` or explicitly
-  want `gpt-5.4`. This is an intent check, not an alias rule: do not rewrite
-  the version yourself.
+- If the user says `gpt 5.4`, `gpt 5.5`, or a variant of either while choosing
+  a model, do not execute it. Say that the old model is blocked and ask whether
+  they meant `gpt-5.6-sol`. This is an intent check, not an alias rule: do not
+  rewrite the version yourself.
 - For ordinary Codex model ids, inspect `codex debug models` when needed and
   choose an available identifier with the same family and exact version. For
   Fugu, resolve `fugu` and `fugu-ultra` as Codex profiles, not model-list ids;
@@ -136,12 +161,15 @@ Always announce the raw-to-resolved mapping before execution:
 ```text
 Claude Fable 5 high -> runtime=claude, model=claude-fable-5, effort=high
 Claude Opus 4.7 xhigh -> runtime=claude, model=claude-opus-4-7, effort=xhigh
+Codex high -> runtime=codex, model=gpt-5.6-sol, effort=high, model_source=default
+Luna xhigh -> runtime=codex, model=gpt-5.6-luna, effort=xhigh
+Terra high -> runtime=codex, model=gpt-5.6-terra, effort=high
 Fugu Ultra xhigh -> runtime=codex, model=fugu-ultra, codex_profile=fugu-ultra, effort=xhigh
 Grok Build high -> runtime=grok, model=grok-build, effort=high
 ```
 
 For deterministic script plumbing that needs the same rules, use
-`skills/_shared/model_resolution.py` instead of creating a local model alias
+`../../_shared/model_resolution.py` instead of creating a local model alias
 table. The helper exists to keep fresh-consult, agent-delegate,
 model-consensus, Stepwise-style orchestrators, and arch-epic automatic
 harnesses aligned on
@@ -205,6 +233,10 @@ Write `execution.json` before invocation with at least:
 
 ```json
 {
+  "transport": "external",
+  "external_benefit": "<concrete provider/model/lifecycle/isolation/automation/receipt benefit>",
+  "starting_context": "clean-prompt-and-disk | existing-exact-session-context",
+  "continuation": "new-one-shot | new-resumable-session | exact-session-resume",
   "mode": "fresh-one-shot | fresh-resumable | resume",
   "runtime": "claude | codex | agent | grok",
   "model": "<resolved model or reused-from-session>",
@@ -221,9 +253,13 @@ session id to `resume_from.txt`.
 ## Parallel Delegation Group
 
 Use the parallel group path only when the user asks for parallel agents or gives
-multiple delegated tasks for this skill. Parallel workers are still ordinary
-delegate children; the group only gives the parent a place to organize prompts,
-streams, finals, execution metadata, and the combined report.
+multiple delegated tasks for this skill and the parent can review every result.
+Parallel workers are still ordinary external delegates; the group only gives
+the parent a place to organize prompts, streams, finals, execution metadata,
+and the combined report. The parent owns the concurrency budget and assigns
+non-overlapping owner paths when edits would otherwise collide; children do
+not create their own children unless an explicit nested scope and budget says
+otherwise.
 
 Create one group directory:
 
@@ -264,9 +300,10 @@ the child directory if the host shell makes that convenient, but do not
 introduce a script, controller, detached monitor, separate worktree, or merge
 layer.
 
-Do not block launch because siblings might touch nearby files. Brief every
-child that other workers may be editing the same repo, that unfamiliar changes
-must not be reverted, and that actual conflicts should be reported with file
+Nearby files alone do not prove a collision, but sequence work that shares one
+owner or assign non-overlapping write scopes where practical. Brief every child
+that other workers may be editing the same repo, that unfamiliar changes must
+not be reverted, and that actual conflicts should be reported with file
 evidence. After all children finish, inspect repo state and child reports before
 presenting the combined result.
 
