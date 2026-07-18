@@ -14,8 +14,9 @@ Use these as illustrations, not rigid templates.
 - Do not redo unless stale: command-service caller map read at
   `src/commands/*` and `src/session/*`; stale if those files change.
 - Known blockers: none.
-- Native subagents used or useful next: useful next for docs/prompts drift
-  after side-door cleanup.
+- Native children used or useful next: one new clean read-only docs/prompts
+  critic after side-door cleanup; no child handle exists yet.
+- Pre/post-dispatch repository-state check: not yet applicable.
 ```
 
 ## Clean Proof Freshness Entry
@@ -36,12 +37,18 @@ Use these as illustrations, not rigid templates.
 
 ## Good Plan Update
 
-Good: after code truth shows the old adapter must be deleted now, the plan's
-delete list and phase exit criteria are updated with that surface and the proof
-needed to confirm it is unreachable.
+Good: code truth confirms an old adapter already named in the frozen initial
+convergence closure; the plan's completion state and proof anchors are updated.
 
 Why it is good: the plan stays source of truth instead of hiding the delete in
 the implementation log.
+
+Bad: warm review discovers a different adapter, adds it to the plan, and sends
+the implementer to delete it because convergence would be cleaner.
+
+Why it is bad: review discovered new scope after freeze. Record
+`new-scope-needs-human`; do not implement it unless a human approves and
+re-freezes the plan.
 
 ## Anti-Example: Ceremony
 
@@ -89,5 +96,7 @@ parallelism sounds useful.
 Why it is bad: that turns a lightweight implementation habit into a delegation
 workflow.
 
-Better: use native subagents when available. Use `plan-swarm` or
-`agent-delegate` only when the user explicitly asks for external workers.
+Better: use same-host native children when they provide useful independent
+coverage. If the user explicitly requests an external worker or conductor,
+route to `agent-delegate` or `plan-conductor` under the shared policy and name
+the concrete benefit that makes the additional process worthwhile.

@@ -9,7 +9,7 @@ metadata:
 
 Use this skill when the user wants the full arch shape and full auto support, but does not need the broader helper surface of `arch-step`.
 
-The primary object is one canonical full-arch plan doc. `miniarch-step` keeps the same artifact discipline and full-work posture as `arch-step`, but with a trimmed public command surface. It is not a lower-effort workflow.
+The primary object is one canonical full-arch plan doc. `miniarch-step` keeps the same artifact discipline and full-work posture as `arch-step`, but with a trimmed public command surface. It is not a lower-effort workflow: finish the requested outcome completely, but do not confuse completeness with more machinery.
 
 ## When to use
 
@@ -36,11 +36,29 @@ The primary object is one canonical full-arch plan doc. `miniarch-step` keeps th
 - No command may leave the doc less canonical, less honest, or more contradictory than it found it.
 - Present-but-weak sections are not done.
 - A plan is not ready, complete, or implementation-ready while any unresolved decision remains about requested behavior, adjacent surfaces that must stay in sync, compatibility posture, architecture, canonical owner path, required deletes, fallback policy, acceptance evidence, or implementation scope.
+- Section 0 must contain the binding Scope and Simplicity Contract from
+  `references/artifact-contract.md`: human authorization, smallest sufficient
+  solution, initial convergence closure or `none`, scope freeze, enough proof,
+  do-not-build boundary, and accepted residual risk.
+- Treat overbuilding as a known default failure mode. Agents often confuse thoroughness with quality and keep adding abstractions, harnesses, edge cases, and proof after the real fix is already sufficient. Assume that bias is active; before adding machinery, try to reuse, delete, or simplify.
+- Match the size of the solution and its proof to the demonstrated failure and blast radius. A systemic fix belongs at the narrowest shared boundary that eliminates the failure class; "systemic" does not mean "build a framework around the incident."
+- Every Section 7 item must directly serve the human outcome, the pre-freeze
+  minimal convergence closure, or enough proof. Remove items that serve none
+  before calling the plan implementation-ready.
+- Initial architecture may add only the smallest evidenced same-contract
+  convergence closure before implementation readiness. The frozen contract
+  outranks later plan expansion. A later planner, worker, review, audit, or
+  Decision Log entry cannot authorize new work; only explicit human approval
+  recorded as `Scope expansion (human-approved)` can widen it.
+- During implementation, adding an unapproved adjacent path, framework,
+  harness, verifier, abstraction, command, dependency, operational surface, or
+  test category is a hard stop. Ask for human approval before changing plan or
+  code. Apply `../_shared/scope-and-convergence.md`.
 - Correctness and approved intent outrank convenience or scope trimming.
 - The agent has no authority to cut requested behavior, acceptance criteria, or required implementation work unless the user or the governing plan already marked that item out of scope.
 - Cutting, downgrading, deferring, or "simplifying away" approved behavior, acceptance criteria, or phase obligations is a hard stop. Surface to the user with what you want to cut, why, what Section 0 / TL;DR / Section 7 say about it, and the exact approval you need. Do not proceed until the user explicitly approves; record the approved cut in the Decision Log using the `Scope cut (user-approved)` shape.
-- `miniarch-step` is a trimmed command surface, not a lower-effort workflow.
-- Section 7 uses the depth-first doctrine in `skills/_shared/depth-first-planning.md`: protect the full destination map, prove the first real working slice through the highest-risk seam, then expand along named axes.
+- `miniarch-step` is a trimmed command surface, not a lower-effort workflow. Full effort means a complete result at the simplest sufficient architecture, not maximum code, testing, or ceremony.
+- Section 7 uses the depth-first doctrine in `../_shared/depth-first-planning.md`: protect the full destination map, prove the first real working slice through the highest-risk seam, then expand along named axes.
 - Phase boundaries are proof boundaries. Phase count is an outcome of dependency edges, proof gates, reversibility or migration boundaries, and user-review boundaries; split only when a phase blends separately provable work.
 - A phase is not complete while any checklist item or exit criterion in that phase remains unmet.
 - For modern Section 7 docs, `Work` is explanatory only. Every required phase obligation must live in `Checklist (must all be done)` or `Exit criteria (all required)`, and fresh audit must validate both before a phase can stay complete.
@@ -50,15 +68,40 @@ The primary object is one canonical full-arch plan doc. `miniarch-step` keeps th
 - If the doc is materially non-canonical, repair only the safe owned portion or route to `reformat`.
 - Keep one planning source of truth. Do not create sidecar plan docs or competing checklists.
 - All planning commands are docs-only. Only `implement` and `implement-loop` may change code; `full-auto` may reach code changes only by routing to `implement-loop`.
-- In Codex, if a miniarch planning step explicitly uses parallel agents, spawn those planning agents with model `gpt-5.4-mini` and reasoning effort `xhigh`.
-- Distinguish requested behavior scope from architectural convergence scope.
+- When planning benefits from child planners or `implement-loop` benefits from
+  an independent auditor, prefer new clean same-host native children when the
+  active host can satisfy the role's capabilities. In Codex, set
+  `fork_turns: "none"`; in Claude Code, use clean named or custom subagents
+  rather than a conversation fork.
+- Planner and auditor children are analysis-only: use a read-only capability
+  when the host confirms one, also give explicit no-edit/no-write guidance,
+  and let the parent verify repo state, synthesize returns, and own all
+  `DOC_PATH` or audit-block writes. Children do not fan out without a bounded
+  nested scope and budget assigned by the parent; fanout stays proportional to
+  independent work, host slots, collision risk, and parent integration capacity.
+- For miniarch planner and auditor roles, prefer `gpt-5.4-mini` with `xhigh`
+  reasoning only when the active native tool schema can select and confirm
+  both. Otherwise use the inherited native capability and do not claim the
+  child used an unconfirmed model or effort. If exact identity is genuinely
+  load-bearing, an external exact-model lane remains available; the dispatch
+  must explain the concrete quality, provider, profile, lifecycle, isolation,
+  automation, or receipt benefit that makes its added process and integration
+  cost worthwhile.
+- Distinguish the human-authorized outcome from the initial minimal convergence
+  closure, and freeze both before implementation.
 - Search for the canonical existing path before designing a new one. Reuse it, refactor it as much as required to fully own the change, or justify why it cannot own the change.
-- Internal convergence work may broaden touched files or nearby adopters when needed to avoid parallel paths or shadow contracts, but it must not invent new product functionality, modes, or speculative infrastructure.
+- During initial planning, convergence may include the smallest evidenced
+  touched-file or adopter set needed to eliminate a directly competing owner.
+  After freeze, a newly found path requires a human decision.
 - Any refactor, shared-path extraction, or consolidation must preserve existing behavior and name a credible verification signal before it is considered done.
 - Use repo evidence first. Ask only for true product, UX, external-constraint, access, or doc-path gaps.
 - Before asking the user any plan-shaping question, consult approved intent on the plan doc: Section 0 (North Star), TL;DR, and the Section 7 phase frontier. Only ask when intent plus repo evidence genuinely leave two credible branches. Record intent-derived resolutions in the Decision Log using the `Intent-derived` shape.
 - If repo evidence cannot settle a plan-shaping decision, ask the user instead of guessing, defaulting, or parking the choice as a pseudo-complete plan.
-- Before hardening target architecture or Section 7, inspect adjacent surfaces tied to the same contract family, source of truth, migration boundary, or parity story. Include them now, assign them to a named later phase, explicitly exclude them, or ask the exact blocker question when repo truth and approved intent do not settle the disposition.
+- Before hardening target architecture or Section 7, inspect adjacent surfaces
+  tied to the exact changed contract, source of truth, or migration boundary.
+  Put directly competing paths in the pre-freeze closure, sequence them inside
+  the frozen destination map, exclude merely similar neighbors, or ask the exact
+  blocker question. Pattern parity alone is not scope authority.
 - Compatibility posture is a first-class plan decision separate from `fallback_policy`.
 - When the changed behavior is agent- or LLM-driven, inspect current prompt surfaces, runtime or agent configuration, native model capabilities, and existing tool/file/context exposure before designing.
 - For agent-backed systems, prefer prompt engineering, grounding/context shaping, and better use of native capabilities before custom harnesses, wrappers, parsers, OCR stacks, fuzzy matchers, or deterministic sidecars.
@@ -72,8 +115,8 @@ The primary object is one canonical full-arch plan doc. `miniarch-step` keeps th
 - `status` is compact, read-only, and grounded in the actual artifact.
 - `advance` owns the longer checklist surface and optional one-step execution.
 - **No-progress rule.** After two consecutive passes with no real change (no repo file edit, no plan/doc edit, no new evidence a fresh audit has not seen), stop with the exact blocker instead of firing another identical pass.
-- **No invented budgets.** Do not call work blocked because it feels expensive. In goal mode, keep moving until the objective is complete or a real blocker meets the native goal-mode stop rule.
-- **Exhaust the frontier before auditing.** Do not hand to audit after one local fix when later approved phases are reachable. Finish the current approved ordered implementation frontier or record the real blocker plainly.
+- **No invented budgets.** Do not call authorized work blocked because it feels expensive. This does not authorize violating the frozen Scope and Simplicity Contract or adding unapproved machinery. In goal mode, keep moving until the objective is complete or a real blocker meets the native goal-mode stop rule.
+- **Exhaust the frontier before auditing.** Do not hand to audit after one local fix when later frozen-contract-compliant phases are reachable. Finish that frontier or record the real blocker plainly.
 - **Respect the tree state the user gave you.** Do not stash changes, create new branches, split the work across multiple PRs, or rewrite history. Commit hygiene, branch strategy, and PR shape are the user's decisions.
 - **Parallel-agent edits are a pause signal, not a revert signal.** If the working tree contains edits this pass did not make (foreign file, unexpected compiler error, unfamiliar commit), pause briefly to let the other agent land its fix. Do not revert. Escalate to the user only after two pause-retry cycles fail.
 
@@ -81,11 +124,13 @@ The primary object is one canonical full-arch plan doc. `miniarch-step` keeps th
 
 1. Read `references/artifact-contract.md`.
 2. Read `references/shared-doctrine.md`.
-3. Resolve the requested command and `DOC_PATH` when the command needs an existing doc.
-4. If the ask is generic mini full-arch execution rather than a named command:
+3. Before creating or resuming another agent, read
+   `../_shared/agent-orchestration-policy.md`.
+4. Resolve the requested command and `DOC_PATH` when the command needs an existing doc.
+5. If the ask is generic mini full-arch execution rather than a named command:
    - no doc yet: treat the first move as `new`
    - doc exists or the user gave a doc path: treat the first move as `advance`
-5. Inspect the current doc against:
+6. Inspect the current doc against:
    - required frontmatter
    - `# TL;DR`
    - `planning_passes`
@@ -93,9 +138,10 @@ The primary object is one canonical full-arch plan doc. `miniarch-step` keeps th
    - command-owned blocks
    - obvious contradictions across TL;DR, Section 0, target architecture, call-site audit, phase plan, verification, rollout, and decision log
    - canonical-path ownership and behavior-preservation claims
-6. Read `references/section-quality.md` for the sections this command depends on.
-7. Read the matching command reference. If the command is `full-auto`, read `references/full-auto.md`.
-8. If the command is `advance`, read `references/advance.md`, choose the one move that most improves artifact integrity or flow progress, and stop unless `RUN=1` explicitly asks for that one step to execute.
+   - a concrete Scope and Simplicity Contract and whether planned work stays inside it
+7. Read `references/section-quality.md` for the sections this command depends on.
+8. Read the matching command reference. If the command is `full-auto`, read `references/full-auto.md`.
+9. If the command is `advance`, read `references/advance.md`, choose the one move that most improves artifact integrity or flow progress, and stop unless `RUN=1` explicitly asks for that one step to execute.
 
 ## Workflow
 
@@ -230,7 +276,11 @@ Workflow:
 
 - `references/artifact-contract.md` - canonical mini full-arch artifact, exact section shape, frontmatter, block inventory, and worklog contract
 - `references/shared-doctrine.md` - cross-cutting doctrine: question policy, alignment checks, evidence, SSOT, scope defaults, and consistency repair
-- `skills/_shared/depth-first-planning.md` - destination map, first working slice, expansion map, proof gates, scope-cut distinction, and failure-mode recognition tests
+- `../_shared/agent-orchestration-policy.md` - transport, clean context,
+  continuation, isolation, topology, and return evidence for optional planners
+  and independent auditors
+- `../_shared/scope-and-convergence.md` - human scope authority, initial planning convergence, scope freeze, finding dispositions, and scope-cycling prohibition
+- `../_shared/depth-first-planning.md` - destination map, first working slice, expansion map, proof gates, scope-cut distinction, and failure-mode recognition tests
 - `references/section-quality.md` - purpose, strong/weak bar, trust rules, and failure modes for each section and supporting block
 - `references/arch-new.md` - bootstrap the canonical artifact and stop for North Star confirmation
 - `references/arch-reformat.md` - convert an existing doc into the canonical artifact without losing meaning

@@ -1,29 +1,56 @@
-# Session resume mechanics
+# Native continuation and external session adapter
 
 Verified against Claude Code CLI 2.1.119, Codex CLI 0.124.0-alpha.3, and Grok
 CLI 0.2.22. When a CLI version drifts, re-run the relevant verification block
 at the bottom of this file before trusting that invocation.
 
-## Why sessions matter for this skill
+## Transport ownership
 
-A step runs in a fresh subprocess. The critic inspects the output and returns
-an observational verdict. On failure, Stepwise may resume worker sessions in
-two different ways: read-only diagnostic conversation, then operational repair
-after root cause is located. Claude, Codex, and Grok expose different session
-handles; this reference is the single place the exact mechanics live.
+The orchestrator chooses transport under
+`../../_shared/agent-orchestration-policy.md`; this file does not. Same-host
+workers and critics normally use native children. `run_stepwise.py` and the CLI
+forms below are the deterministic external adapter when a concrete provider,
+exact model/profile, lifecycle, isolation, automation, structured receipt, or
+another deliberate benefit warrants an external process.
 
-## Runtime behavior contract
+## Native context and continuation
 
-- Step sub-sessions are resumable. Do not pass `--ephemeral` (Codex) or
+- Initial workers and every independent critic start clean. In Codex native
+  dispatch always set `fork_turns: "none"`; use a positive count only for
+  bounded chat-only context and `"all"` only for a genuinely full-conversation
+  dependency. In Claude, use a clean named subagent. An explicit conversation
+  fork carries full conversation; a skill with `context: fork` instead runs in
+  an isolated clean subagent context.
+- Diagnostic and repair turns resume the exact worker child through its native
+  handle. Never resume a convenient old child for another role. Every critic
+  rejudgement is another new clean child.
+- Context inheritance is separate from permissions, capabilities, filesystem
+  sharing, background lifetime, and worktree isolation. Record those choices
+  independently in the dispatch receipt.
+- The parent owns fanout and integration. Children may not create more agents
+  or invoke delegation/consult skills unless the parent assigned a bounded
+  nested scope and budget.
+
+## Why external sessions matter
+
+On failure, Stepwise may resume an external worker in two ways: read-only
+diagnostic conversation, then operational repair after root cause is located.
+Claude, Codex, and Grok expose different external session handles; this
+reference is the single place those exact mechanics live.
+
+## External runtime behavior contract
+
+- External worker sessions are resumable. Do not pass `--ephemeral` (Codex) or
   `--no-session-persistence` (Claude) to them.
-- Critic sub-sessions are stateless. Pass `--ephemeral` for Codex, rely on a
-  fresh process for Claude and Grok, and never resume a critic.
-- Diagnostic and repair turns both resume worker sessions. Diagnostic turns
-  are read-only by prompt contract and do not consume repair bounces. Repair
-  turns are operational and do consume repair bounces.
-- All runtimes run with dangerous/skip-permissions/no-sandbox. This is a
-  user-set constraint on this skill. Read-only discipline for the critic is
-  enforced in the critic prompt, not with a sandbox flag.
+- External critic sessions are stateless. Pass `--ephemeral` for Codex, rely on
+  a new clean process for Claude and Grok, and never resume a critic.
+- Diagnostic and repair turns both resume exact external worker sessions.
+  Diagnostic turns are read-only by prompt contract and do not consume repair
+  bounces. Repair turns are operational and do consume repair bounces.
+- External runtimes use the existing dangerous/skip-permissions/no-sandbox
+  convention. This does not define native child permissions. Read-only
+  discipline for every critic remains in the prompt, is enforced by capability
+  when available, and is checked by the parent against repository state.
 
 ## Claude — step session (resumable)
 
@@ -130,8 +157,7 @@ codex exec \
   --cd <target_repo> \
   --dangerously-bypass-approvals-and-sandbox \
   --skip-git-repo-check \
-  --model <resolved_step_model> \
-  -c model_reasoning_effort='"<resolved_step_effort>"' \
+  <codex_model_or_profile_flags> \
   --json \
   -o <final_message_file> \
   <step_prompt>
@@ -165,8 +191,8 @@ codex exec resume <thread_id> \
 ```
 
 `codex exec resume` does not accept `--cd` — the session carries the cwd from
-its original invocation. It keeps `--model` optional; omit it to reuse the
-session's model, or pass it if you want to force a specific model on resume.
+its original invocation. Omit model/profile and effort flags on ordinary
+resumes so Codex reuses the session's original execution choice.
 
 ## Codex — critic (stateless, structured)
 
@@ -176,8 +202,7 @@ codex exec \
   --ephemeral \
   --dangerously-bypass-approvals-and-sandbox \
   --skip-git-repo-check \
-  --model <resolved_critic_model> \
-  -c model_reasoning_effort='"<resolved_critic_effort>"' \
+  <codex_model_or_profile_flags> \
   --output-schema <schema_file> \
   --json \
   -o <verdict_json_file> \
@@ -191,6 +216,12 @@ every object level and requires every object property to be listed in
 required-but-nullable. `scripts/run_stepwise.py` writes a normalized
 `critic/schema.codex.json` before invoking Codex, then validates the returned
 observational StepVerdict semantically.
+
+Set `<codex_model_or_profile_flags>` this way:
+
+- Ordinary Codex model id: `--model <resolved_model> -c model_reasoning_effort='"<resolved_effort>"'`
+- Fugu profile at its default effort: `-p <resolved_codex_profile>`
+- Fugu Ultra explicit non-default effort: `-p fugu-ultra -c model_reasoning_effort='"<resolved_effort>"'`
 
 ## Grok — step session (resumable)
 
@@ -259,8 +290,12 @@ final text as JSON, and then runs the same semantic verdict validation.
 - Claude's `--effort` accepts: `low`, `medium`, `high`, `xhigh`, `max`.
 - Claude's `--permission-mode` is separate from `--dangerously-skip-permissions`;
   do not set both.
-- Codex uses `-c model_reasoning_effort='"<level>"'` — note the TOML-quoted
-  string inside a shell-quoted argument. The inner double quotes are required.
+- For ordinary Codex model ids, Codex uses
+  `-c model_reasoning_effort='"<level>"'` — note the TOML-quoted string inside
+  a shell-quoted argument. The inner double quotes are required.
+- For Fugu profiles, use `-p fugu` or `-p fugu-ultra`. Omit `-c` at the
+  profile default (`fugu=high`, `fugu-ultra=xhigh`); add `-c` only for an
+  explicit supported non-default Fugu Ultra effort.
 - Codex 0.124 rejects schema files where properties exist in `properties` but
   not in `required`. This is recoverable orchestration drift: normalize the
   schema and retry, do not halt the whole run if the schema semantics are
@@ -304,7 +339,7 @@ claude -p --output-format stream-json --verbose --include-partial-messages \
 
 # 4 Codex step
 codex exec --cd /tmp/smoke --dangerously-bypass-approvals-and-sandbox \
-  --skip-git-repo-check --model gpt-5.5 -c model_reasoning_effort='"low"' \
+  --skip-git-repo-check --model gpt-5.6-sol -c model_reasoning_effort='"low"' \
   --json -o /tmp/smoke/step.txt "Say PING." < /dev/null
 
 # 5 Codex resume (reuse thread_id from step 4)
@@ -315,7 +350,7 @@ codex exec resume <THREAD_ID> --dangerously-bypass-approvals-and-sandbox \
 # property in required)
 codex exec --cd /tmp/smoke --ephemeral \
   --dangerously-bypass-approvals-and-sandbox --skip-git-repo-check \
-  --model gpt-5.5 -c model_reasoning_effort='"low"' \
+  --model gpt-5.6-sol -c model_reasoning_effort='"low"' \
   --output-schema /tmp/smoke/schema.json --json -o /tmp/smoke/verdict.json \
   "Return verdict pass." < /dev/null
 

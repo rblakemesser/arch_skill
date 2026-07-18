@@ -1,27 +1,27 @@
 #!/usr/bin/env python3
-"""arch-epic orchestration plumbing.
+"""arch-epic external-harness adapter plumbing.
 
-This script is deterministic infrastructure for the arch-epic skill.
-It does NOT make judgments about decomposition, scope changes,
-verdicts, or routing. Those decisions live in the orchestrator's
-prose reasoning.
+This script is deterministic infrastructure for arch-epic's deliberately
+selected external Claude, Codex, or Grok lane. It does NOT choose transport or
+make judgments about decomposition, scope changes, verdicts, or routing. Those
+decisions live in the orchestrator's prose reasoning.
 
 Subcommands:
 
-  critic-spawn   Spawn a fresh ephemeral critic sub-session (claude,
+  critic-spawn   Spawn a fresh ephemeral external critic session (claude,
                  codex, or grok), capture the EpicVerdict JSON, and write
                  run-directory artifacts.
   resolve-execution
-                 Resolve automatic-mode role execution policy.
-  auto-init      Create an automatic-mode run directory and state.json.
-  worker-spawn   Spawn a resumable automatic-mode worker sub-session.
-  worker-resume  Resume an automatic-mode worker sub-session.
+                 Resolve external-harness role execution policy.
+  auto-init      Create an external-harness run directory and state.json.
+  worker-spawn   Spawn a resumable external worker session.
+  worker-resume  Resume an external worker session.
   auto-critic-spawn
-                 Spawn a structured critic inside an automatic-mode run.
-  auto-status    Print compact automatic-mode state.
+                 Spawn a structured critic inside an external-harness run.
+  auto-status    Print compact external-harness state.
   report-scaffold
                  Write or print a deterministic automatic-mode report.
-  child-status   Classify a spawned child from process state and stream recency.
+  child-status   Classify an external child from process state and stream recency.
   child-tail     Print the latest child stream lines.
   child-wait     Wait with long-run polling expectations.
   child-finalize Parse completed child output into session/verdict artifacts.
@@ -50,6 +50,7 @@ if str(_SHARED_DIR) not in sys.path:
 
 from model_resolution import (  # noqa: E402
     ModelResolutionError,
+    codex_model_or_profile_args,
     resolve_role_execution_policy,
 )
 
@@ -822,6 +823,9 @@ def _state_role_execution(state: dict[str, Any], role: str) -> dict[str, str]:
         if not isinstance(value, str) or not value:
             _die(f"role {role!r} policy missing {key}")
         out[key] = value
+    codex_profile = block.get("codex_profile", "")
+    if isinstance(codex_profile, str):
+        out["codex_profile"] = codex_profile
     return out
 
 
@@ -837,6 +841,8 @@ def _codex_worker_argv(
     effort: str,
     final_path: Path,
     prompt: str,
+    *,
+    codex_profile: str = "",
 ) -> list[str]:
     return [
         "codex",
@@ -847,10 +853,11 @@ def _codex_worker_argv(
         "codex_hooks",
         "--dangerously-bypass-approvals-and-sandbox",
         "--skip-git-repo-check",
-        "--model",
-        model,
-        "-c",
-        f'model_reasoning_effort="{effort}"',
+        *codex_model_or_profile_args(
+            model,
+            effort,
+            codex_profile=codex_profile,
+        ),
         "--json",
         "-o",
         str(final_path),
@@ -932,6 +939,8 @@ def _codex_critic_argv(
     schema_path: Path,
     final_path: Path,
     prompt: str,
+    *,
+    codex_profile: str = "",
 ) -> list[str]:
     return [
         "codex",
@@ -943,10 +952,11 @@ def _codex_critic_argv(
         "codex_hooks",
         "--dangerously-bypass-approvals-and-sandbox",
         "--skip-git-repo-check",
-        "--model",
-        model,
-        "-c",
-        f'model_reasoning_effort="{effort}"',
+        *codex_model_or_profile_args(
+            model,
+            effort,
+            codex_profile=codex_profile,
+        ),
         "--output-schema",
         str(schema_path),
         "--json",
@@ -1262,6 +1272,7 @@ def _run_worker(
                 execution["effort"],
                 final_path,
                 prompt,
+                codex_profile=execution.get("codex_profile", ""),
             )
         cwd = None
     elif runtime == "grok":
@@ -1293,6 +1304,7 @@ def _run_worker(
             "runtime": runtime,
             "model": execution["model"],
             "effort": execution["effort"],
+            "codex_profile": execution.get("codex_profile", ""),
             "session_id": None,
             "input_session_id": session_id,
             "resumed": session_id is not None,
@@ -1399,6 +1411,7 @@ def cmd_auto_critic_spawn(args: argparse.Namespace) -> int:
             schema_path,
             final_path,
             prompt,
+            codex_profile=execution.get("codex_profile", ""),
         )
         cwd = None
     elif runtime == "grok":
@@ -1432,6 +1445,7 @@ def cmd_auto_critic_spawn(args: argparse.Namespace) -> int:
             "runtime": runtime,
             "model": execution["model"],
             "effort": execution["effort"],
+            "codex_profile": execution.get("codex_profile", ""),
             "run_mode": selected_run_mode,
             "expected_duration": args.expected_duration,
             "final_path": str(final_path),
@@ -1590,7 +1604,7 @@ def _render_report(state: dict[str, Any]) -> str:
     policy = state.get("auto_execution", {})
     roles = policy.get("roles", {}) if isinstance(policy, dict) else {}
     lines = [
-        "# Arch-Epic Automatic Run Report",
+        "# Arch-Epic External Harness Report",
         "",
         f"Run id: {state.get('run_id', '')}",
         f"Status: {state.get('status', '')}",
@@ -1708,6 +1722,7 @@ def cmd_critic_spawn(args: argparse.Namespace) -> int:
             schema_path,
             final_path,
             prompt,
+            codex_profile=args.codex_profile,
         )
         subprocess_cwd = None
     elif args.runtime == "grok":
@@ -1739,6 +1754,7 @@ def cmd_critic_spawn(args: argparse.Namespace) -> int:
             "runtime": args.runtime,
             "model": args.model,
             "effort": args.effort,
+            "codex_profile": args.codex_profile,
             "run_mode": selected_run_mode,
             "expected_duration": args.expected_duration,
             "final_path": str(final_path),
@@ -1807,7 +1823,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
     resolve = sub.add_parser(
         "resolve-execution",
-        help="Resolve automatic-mode role execution policy",
+        help="Resolve external-harness role execution policy",
     )
     resolve.add_argument("--policy-file", required=True)
     resolve.add_argument("--output", default=None)
@@ -1815,7 +1831,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
     auto_init = sub.add_parser(
         "auto-init",
-        help="Create an arch-epic automatic-mode run directory",
+        help="Create an arch-epic external-harness run directory",
     )
     auto_init.add_argument("--epic-doc", required=True)
     auto_init.add_argument("--policy-file", required=True)
@@ -1824,7 +1840,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
     worker_spawn = sub.add_parser(
         "worker-spawn",
-        help="Spawn a resumable automatic-mode worker",
+        help="Spawn a resumable external-harness worker",
     )
     for a in ["--run-dir", "--target-repo", "--role", "--sub-plan-name", "--prompt-file"]:
         worker_spawn.add_argument(a, required=True)
@@ -1834,7 +1850,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
     worker_resume = sub.add_parser(
         "worker-resume",
-        help="Resume an automatic-mode worker",
+        help="Resume an external-harness worker",
     )
     for a in [
         "--run-dir",
@@ -1851,7 +1867,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
     auto_critic = sub.add_parser(
         "auto-critic-spawn",
-        help="Spawn an automatic-mode structured critic",
+        help="Spawn an external-harness structured critic",
     )
     for a in [
         "--run-dir",
@@ -1868,7 +1884,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
     child_status = sub.add_parser(
         "child-status",
-        help="Classify a spawned child from process state and stream recency",
+        help="Classify an external child from process state and stream recency",
     )
     add_monitor_args(child_status)
     child_status.add_argument("--json", action="store_true")
@@ -1911,14 +1927,14 @@ def _build_parser() -> argparse.ArgumentParser:
 
     auto_status = sub.add_parser(
         "auto-status",
-        help="Print compact automatic-mode run status",
+        help="Print compact external-harness run status",
     )
     auto_status.add_argument("--run-dir", required=True)
     auto_status.set_defaults(func=cmd_auto_status)
 
     report = sub.add_parser(
         "report-scaffold",
-        help="Print or write an automatic-mode report scaffold",
+        help="Print or write an external-harness report scaffold",
     )
     report.add_argument("--run-dir", required=True)
     report.add_argument("--write", action="store_true")
@@ -1926,7 +1942,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
     critic = sub.add_parser(
         "critic-spawn",
-        help="Spawn a fresh ephemeral critic sub-session",
+        help="Spawn a fresh ephemeral external critic session",
     )
     for a in [
         "--epic-doc",
@@ -1941,6 +1957,7 @@ def _build_parser() -> argparse.ArgumentParser:
     critic.add_argument(
         "--runtime", required=True, choices=["claude", "codex", "grok"]
     )
+    critic.add_argument("--codex-profile", default="")
     critic.add_argument(
         "--orchestrator-root",
         required=False,

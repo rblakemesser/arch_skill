@@ -1,15 +1,16 @@
-.PHONY: install install_skill agents_install_skill clean_codex_skill_mirror clean_installed_hooks clean_codex_installed_hooks clean_claude_installed_hooks claude_install_skill gemini_install gemini_install_skill hermes_install_skill verify_install verify_agents_install verify_codex_install verify_claude_install verify_gemini_install verify_hermes_install remote_install clean_codex_stale_surfaces clean_claude_stale_surfaces clean_gemini_stale_surfaces
+.PHONY: install crg-setup install_skill agents_install_skill clean_codex_skill_mirror clean_installed_hooks clean_codex_installed_hooks clean_claude_installed_hooks claude_install_skill gemini_install gemini_install_skill hermes_install_skill verify_install verify_agents_install verify_codex_install verify_claude_install verify_gemini_install verify_hermes_install remote_install clean_codex_stale_surfaces clean_claude_stale_surfaces clean_gemini_stale_surfaces
 
 # Purge removed packages from installed skill dirs before copying the active set.
-REMOVED_SKILLS := arch-skill arch-plan codemagic-builds customerio arch-loop delay-poll wait code-review
+REMOVED_SKILLS := arch-skill arch-plan codemagic-builds customerio arch-loop delay-poll wait code-review plan-swarm skill-flow codex-babysit eli10
 # Shared doctrine directories that ship alongside the named skills. Multiple
-# SKILL.md files reference shared planning/model-resolution files,
-# so these dirs must land in every install root next to the per-skill dirs.
+# SKILL.md files reference shared planning, agent-orchestration, and
+# model-resolution files, so these directories must land next to the
+# per-skill directories in every install root.
 SHARED_DIRS := _shared
 # `SKILLS` is the active agents/Codex surface. Claude mirrors it.
-SKILLS := arch-step miniarch-step arch-docs arch-mini-plan lilarch bugs-flow audit-loop comment-loop audit-loop-sim goal-loop north-star-investigation arch-flow arch-skills-guide agent-definition-auditor agents-md-authoring prompt-authoring chatgpt-web skill-authoring figma-best-practices fal-ai-tools flutter-reference eli10 pr-authoring pr-review-followthrough commit-history-authoring skill-flow amir-publish codex-review-yolo fresh-consult agent-delegate plan-audit plan-implement plan-swarm agent-history model-consensus contact-sheet-builder exhaustive-code-review stepwise arch-epic codex-cleanup thermo-nuclear-code-quality-review
-CLAUDE_SKILLS := arch-step miniarch-step arch-docs arch-mini-plan lilarch bugs-flow audit-loop comment-loop audit-loop-sim goal-loop north-star-investigation arch-flow arch-skills-guide agent-definition-auditor agents-md-authoring prompt-authoring chatgpt-web skill-authoring figma-best-practices fal-ai-tools flutter-reference eli10 pr-authoring pr-review-followthrough commit-history-authoring skill-flow amir-publish codex-review-yolo fresh-consult agent-delegate plan-audit plan-implement plan-swarm agent-history model-consensus contact-sheet-builder exhaustive-code-review stepwise arch-epic codex-cleanup thermo-nuclear-code-quality-review
-GEMINI_SKILLS := arch-step miniarch-step arch-docs arch-mini-plan lilarch bugs-flow audit-loop comment-loop audit-loop-sim goal-loop north-star-investigation arch-flow arch-skills-guide agent-definition-auditor agents-md-authoring prompt-authoring chatgpt-web skill-authoring figma-best-practices fal-ai-tools flutter-reference eli10 pr-authoring commit-history-authoring skill-flow amir-publish codex-review-yolo fresh-consult agent-delegate plan-audit plan-implement plan-swarm model-consensus contact-sheet-builder exhaustive-code-review stepwise arch-epic codex-cleanup thermo-nuclear-code-quality-review
+SKILLS := arch-step arch-step-goal-prompt miniarch-step arch-docs arch-mini-plan lilarch bugs-flow audit-loop comment-loop audit-loop-sim goal-loop north-star-investigation arch-flow arch-skills-guide agent-definition-auditor agents-md-authoring prompt-authoring chatgpt-web skill-authoring figma-best-practices fal-ai-tools flutter-reference pr-authoring pr-review-followthrough commit-history-authoring amir-publish codex-review-yolo fresh-consult agent-delegate plan-audit plan-implement plan-conductor agent-history model-consensus contact-sheet-builder fc-branded-pdf cf-share cynical-code-review cynical-architecture-review cynical-cruft-removal exhaustive-code-review stepwise arch-epic codex-cleanup thermo-nuclear-code-quality-review
+CLAUDE_SKILLS := arch-step arch-step-goal-prompt miniarch-step arch-docs arch-mini-plan lilarch bugs-flow audit-loop comment-loop audit-loop-sim goal-loop north-star-investigation arch-flow arch-skills-guide agent-definition-auditor agents-md-authoring prompt-authoring chatgpt-web skill-authoring figma-best-practices fal-ai-tools flutter-reference pr-authoring pr-review-followthrough commit-history-authoring amir-publish codex-review-yolo fresh-consult agent-delegate plan-audit plan-implement plan-conductor agent-history model-consensus contact-sheet-builder fc-branded-pdf cf-share cynical-code-review cynical-architecture-review cynical-cruft-removal exhaustive-code-review stepwise arch-epic codex-cleanup thermo-nuclear-code-quality-review
+GEMINI_SKILLS := arch-step arch-step-goal-prompt miniarch-step arch-docs arch-mini-plan lilarch bugs-flow audit-loop comment-loop audit-loop-sim goal-loop north-star-investigation arch-flow arch-skills-guide agent-definition-auditor agents-md-authoring prompt-authoring chatgpt-web skill-authoring figma-best-practices fal-ai-tools flutter-reference pr-authoring commit-history-authoring amir-publish codex-review-yolo fresh-consult agent-delegate plan-audit plan-implement plan-conductor model-consensus contact-sheet-builder fc-branded-pdf cf-share cynical-code-review cynical-architecture-review cynical-cruft-removal exhaustive-code-review stepwise arch-epic codex-cleanup thermo-nuclear-code-quality-review
 CURSOR_TEAM_KIT_SKILLS_DIR := vendor/cursor/plugins/cursor-team-kit/skills
 VENDORED_CURSOR_TEAM_KIT_SKILLS := thermo-nuclear-code-quality-review
 LOCAL_SKILLS := $(filter-out $(VENDORED_CURSOR_TEAM_KIT_SKILLS),$(SKILLS))
@@ -113,6 +114,34 @@ VERIFY_HERMES := verify_hermes_install
 endif
 
 install: clean_codex_stale_surfaces clean_claude_stale_surfaces clean_installed_hooks install_skill claude_install_skill $(INSTALL_GEMINI) $(INSTALL_HERMES)
+
+# CRG is an optional agent accelerator. Missing tooling is loud but non-fatal.
+crg-setup:
+	@echo "🕸️  Ensuring code-review-graph is installed..."
+	@if command -v code-review-graph >/dev/null 2>&1; then \
+		echo "✅ code-review-graph already installed"; \
+	elif command -v uv >/dev/null 2>&1; then \
+		echo "📦 Installing code-review-graph with uv tool..."; \
+		uv tool install code-review-graph || { \
+			echo "⚠️  WARNING: code-review-graph install failed; setup will continue because CRG is optional."; \
+			exit 0; \
+		}; \
+	elif command -v pipx >/dev/null 2>&1; then \
+		echo "📦 Installing code-review-graph with pipx..."; \
+		pipx install code-review-graph || { \
+			echo "⚠️  WARNING: code-review-graph install failed; setup will continue because CRG is optional."; \
+			exit 0; \
+		}; \
+	else \
+		echo "⚠️  WARNING: code-review-graph was not installed."; \
+		echo "⚠️  Install uv and run: uv tool install code-review-graph"; \
+		echo "⚠️  Or install pipx and run: pipx install code-review-graph"; \
+		exit 0; \
+	fi
+	@if command -v code-review-graph >/dev/null 2>&1; then \
+		bash scripts/code_review_graph.sh ensure || \
+			echo "⚠️  WARNING: code-review-graph graph setup failed; setup will continue because CRG is optional."; \
+	fi
 
 clean_codex_stale_surfaces:
 	@mkdir -p ~/.codex/prompts/_backup
@@ -303,6 +332,8 @@ verify_agents_install:
 		test ! -d $(AGENTS_SKILLS_DIR)/$$skill; \
 	done
 	@test -f $(AGENTS_SKILLS_DIR)/_shared/depth-first-planning.md
+	@test -f $(AGENTS_SKILLS_DIR)/_shared/scope-and-convergence.md
+	@test -f $(AGENTS_SKILLS_DIR)/_shared/agent-orchestration-policy.md
 	@test -f $(AGENTS_SKILLS_DIR)/_shared/model_resolution.py
 	@test ! -e $(AGENTS_SKILLS_DIR)/arch-step/scripts/arch_controller_stop_hook.py
 	@test ! -e $(AGENTS_SKILLS_DIR)/arch-step/scripts/upsert_codex_stop_hook.py
@@ -338,6 +369,8 @@ verify_claude_install:
 		test ! -d $(CLAUDE_SKILLS_DIR)/$$skill; \
 	done
 	@test -f $(CLAUDE_SKILLS_DIR)/_shared/depth-first-planning.md
+	@test -f $(CLAUDE_SKILLS_DIR)/_shared/scope-and-convergence.md
+	@test -f $(CLAUDE_SKILLS_DIR)/_shared/agent-orchestration-policy.md
 	@test -f $(CLAUDE_SKILLS_DIR)/_shared/model_resolution.py
 	@test ! -e $(CLAUDE_SKILLS_DIR)/arch-step/scripts/arch_controller_stop_hook.py
 	@test ! -e $(CLAUDE_SKILLS_DIR)/arch-step/scripts/upsert_codex_stop_hook.py
@@ -368,6 +401,8 @@ verify_gemini_install:
 		test ! -d $(GEMINI_SKILLS_DIR)/$$skill; \
 	done
 	@test -f $(GEMINI_SKILLS_DIR)/_shared/depth-first-planning.md
+	@test -f $(GEMINI_SKILLS_DIR)/_shared/scope-and-convergence.md
+	@test -f $(GEMINI_SKILLS_DIR)/_shared/agent-orchestration-policy.md
 	@test -f $(GEMINI_SKILLS_DIR)/_shared/model_resolution.py
 	@test ! -e $(GEMINI_SKILLS_DIR)/arch-step/scripts/arch_controller_stop_hook.py
 	@test ! -e $(GEMINI_SKILLS_DIR)/arch-step/scripts/upsert_codex_stop_hook.py
@@ -459,7 +494,7 @@ remote_install:
 		for skill in $(VENDORED_GEMINI_SKILLS); do \
 			scp -r $(CURSOR_TEAM_KIT_SKILLS_DIR)/$$skill $(HOST):~/.gemini/skills/; \
 		done; \
-		ssh $(HOST) "for skill in $(GEMINI_SKILLS); do f=~/.gemini/skills/\$$skill/SKILL.md; tmp=\$$f.tmp; awk 'NR==1 && $$0==\"---\" {front=1; next} front && $$0==\"---\" {front=0; next} !front {print}' \"\$$f\" > \"\$$tmp\" && mv \"\$$tmp\" \"\$$f\"; done"; \
+		ssh $(HOST) "for skill in $(GEMINI_SKILLS); do f=~/.gemini/skills/\$$skill/SKILL.md; tmp=\$$f.tmp; awk 'NR==1 && \$$0==\"---\" {front=1; next} front && \$$0==\"---\" {front=0; next} !front {print}' \"\$$f\" > \"\$$tmp\" && mv \"\$$tmp\" \"\$$f\"; done"; \
 		for shared in $(SHARED_DIRS); do \
 			ssh $(HOST) "rm -rf ~/.gemini/skills/$$shared"; \
 			scp -r skills/$$shared $(HOST):~/.gemini/skills/; \

@@ -1,17 +1,18 @@
 # Codex Goal Prompts
 
-Use this reference when the artifact is a Codex `/goal` prompt or a persistent
-goal objective for a long-running agent session.
+Use this reference when the artifact is a Codex goal prompt file, paste-sized
+`/goal` prompt, or persistent goal objective for a long-running agent session.
 
 The job is not to fill out a form or duplicate a plan. The job is to write a
-short mission brief that tells a future agent what world should be true, which
+mission brief that tells a future agent what world should be true, which
 sources control the details, what false success looks like, and what evidence
-proves done.
+proves done. For substantial goals, prefer a Markdown prompt file over forcing
+the work through paste-sized `/goal` text.
 
 ## Table of contents
 
 - Mental model
-- Form factor budget
+- Output medium and budget
 - Source truth compression
 - Authoring workflow
 - Signoff as part of done
@@ -22,9 +23,9 @@ proves done.
 
 ## Mental model
 
-A `/goal` prompt is an index card for future work. It may guide many turns,
+A goal prompt is an index card for future work. It may guide many turns,
 survive context compaction, resume after interruptions, call tools, or bring in
-reviewers. It should be smaller than the plan, not a second plan.
+reviewers. It should be smaller than the source truth, not a second plan.
 
 Good goal prompts teach judgment:
 
@@ -36,40 +37,52 @@ Good goal prompts teach judgment:
 - what evidence proves done
 - when outside signoff is required
 - how to keep moving when the path is unclear without silently cutting scope
+- how to keep review from silently expanding a frozen plan
 
 Weak goal prompts either under-specify the result or over-specify the source
 material. Both create guessing. A tiny "fix it properly" goal makes the agent
 invent the acceptance test. A giant pasted plan makes the goal a competing
 source of truth and hides the actual mission.
 
-## Form factor budget
+## Output medium and budget
 
-Codex `/goal` prompts have a hard cap of 4,000 characters. Treat that as an
-emergency ceiling, not the target.
+Prefer a Markdown prompt file when the goal is source-doc-backed,
+long-running, reviewer-gated, architecture-heavy, or likely to need more room
+than paste-sized `/goal` text allows. A Markdown prompt file does not have the
+4,000-character `/goal` cap, but it still must not become a copied source doc
+or alternate plan.
+
+Use paste-sized `/goal` text when the user asks for pasteable output, the host
+surface requires direct `/goal` entry, or the goal is small enough that a file
+would add ceremony.
+
+Paste-sized Codex `/goal` prompts have a hard cap of 4,000 characters. Treat
+that as an emergency ceiling, not the target.
 
 - Complex goals should usually land around 2,000-3,000 characters.
 - Goals that point at a rich source doc should usually be 800-1,800 characters.
 - Small repair goals can be one paragraph.
-- If drafting in a file or shell and the prompt may be near the ceiling, check
-  the `/goal` text with `wc -m` or an equivalent character count before handing
-  it back.
+- If drafting paste-sized `/goal` text in a file or shell and the prompt may be
+  near the ceiling, check it with `wc -m` or an equivalent character count
+  before handing it back.
 
-The budget belongs to the copyable `/goal` text. Explanatory notes can sit
-after it, but keep them short. If the note becomes another plan, the goal is
-probably carrying the wrong job.
+The 4,000-character budget belongs only to copyable `/goal` text. Markdown
+goal prompt files can be longer, but length is not permission to duplicate
+linked files. If the prompt file starts restating the plan, the prompt is
+carrying the wrong job.
 
 ## Source truth compression
 
 When an authoritative document, plan, consensus output, fixture, skill, or diff
 already exists, reference it by path or exact name. Do not summarize it
-paragraph by paragraph inside the goal.
+paragraph by paragraph inside the goal prompt file.
 
-The `/goal` owns:
+The goal prompt owns:
 
 - mission
 - source truth pointers
 - the false finish line
-- the few workflow rules that matter
+- the workflow rules that change execution
 - likely shortcuts to avoid
 - evidence and signoff gates
 - completion and persistence rules
@@ -98,7 +111,8 @@ Paste the whole plan doc into the goal, then add a second list of the same examp
 
 If the source path is missing or inaccessible, either ask for it or include only
 the minimum context needed to keep the goal executable. Do not invent invisible
-source truth.
+source truth, and do not compensate by copying stale context into the prompt as
+if it were authoritative.
 
 ## Authoring workflow
 
@@ -114,15 +128,19 @@ source truth.
 7. Ban the smallest set of shortcuts that would poison the outcome.
 8. Define proof: tests, artifacts, inspections, generated outputs, screenshots,
    review receipts, or final report details.
-9. Add signoff when requested or when the work should not self-certify.
+9. Add signoff when requested or when the work should not self-certify. For
+   plan-backed work, point to the plan's scope contract and require finding
+   disposition; reviewer rejection is not automatic expansion authority.
 10. For execution and repair goals, add persistence rules for uncertainty: read
     deeper source truth, form sharper theories, build disproof tests, instrument
     the real path, use required reviewers to choose the next move, and keep
     repairing until the desired state is real.
-11. Compress. If a sentence restates the source doc instead of changing
+11. Choose the output medium: Markdown prompt file for substantial goals,
+    paste-sized `/goal` only when needed.
+12. Compress. If a sentence restates the source doc instead of changing
     execution, remove it.
 
-Do not ask the user to choose a prompt type. Infer the blend. Codex `/goal`
+Do not ask the user to choose a prompt type. Infer the blend. Codex goal
 prompts usually combine outcome-first task prompting, evidence policy,
 validation, tool-use rules, and completion behavior.
 
@@ -147,8 +165,9 @@ Good signoff names:
 - model and effort when known;
 - non-leading rule: do not provide the expected verdict;
 - done rule: the reviewer agrees the goal is satisfied. If review rejects the
-  result, its objection becomes the next repair input, not the ending, unless
-  the user explicitly requested a planning-only or review-only artifact.
+  result, authorized objections become repair input, unauthorized built scope
+  becomes subtraction, and new scope stops for a human decision. A reviewer
+  cannot expand a frozen plan.
 
 Bad signoff:
 
@@ -170,7 +189,31 @@ Use `$agent-delegate` with Claude Fable 5 high for one fresh testing/signoff pas
 
 ## Lightweight shapes
 
-Use prose by default:
+For Markdown goal prompt files, use light headings when they make the future
+run easier to follow:
+
+```markdown
+# Goal Prompt: [Outcome]
+
+[Mission in one sentence.]
+
+Use `[source doc]` as controlling source truth for [short role labels]. Treat
+[weak or stale sources] as context only. Do not restate linked files or create
+a second plan.
+
+False finish lines:
+- [result that could look done while violating intent]
+- [result that could look done while skipping proof]
+
+Workflow rules:
+- [skill, command, reviewer, or model rule that changes execution]
+- [persistence rule for uncertainty, repair, or review rejection]
+
+Done means [the intended outcome works], [evidence], [validation], [report],
+and [signoff gate].
+```
+
+For paste-sized `/goal` text, use prose by default:
 
 ```text
 /goal [Mission in one sentence.]
@@ -188,7 +231,8 @@ When the path is unclear, keep moving by reading source truth, forming sharper t
 Done means [the intended outcome works], [evidence], [validation], [report], and [signoff gate].
 ```
 
-Use this shape when a rich source doc already exists:
+Use this paste-sized shape when a rich source doc already exists and a
+Markdown file is not needed:
 
 ```text
 /goal Implement [outcome] using `[source doc]` as controlling source truth.
@@ -228,7 +272,7 @@ Use `$skill-authoring` and `$prompt-authoring` for reusable skill/prompt edits. 
 
 Do not hardcode Track 4, hand-write final learner copy as proof, bypass PokerKB/owner skills, add keyword detectors, lead reviewers toward the desired verdict, or treat reviewer rejection as a finish line.
 
-Done means generated outputs are refreshed through repo commands, validation runs, bad examples and thought exercises are tested without answer leakage, GPT-5.5 X-High and `$agent-delegate` Opus 4.7 xhigh independently sign off that the goal is satisfied, and the final report lists changed files, commands, artifacts, signoff results, and risks. If review rejects the result, use the objection to keep fixing and rerun validation.
+Done means generated outputs are refreshed through repo commands, validation runs, bad examples and thought exercises are tested without answer leakage, gpt-5.6-sol X-High and `$agent-delegate` Opus 4.7 xhigh independently sign off that the goal is satisfied, and the final report lists changed files, commands, artifacts, signoff results, and risks. If review rejects the result, use the objection to keep fixing and rerun validation.
 ```
 
 Why this works: one path carries the full doctrine. The goal carries mission,
@@ -259,7 +303,7 @@ bar without listing every possible repair branch.
 
 Use `docs/PACKS/post_game_analysis_2026-05/README.md`, `docs/PACKS/mock_post_game/`, current repo code, owner paths, and existing research as source truth.
 
-Use `$model-consensus` with `opus 4.7 max` and `gpt 5.5 xhigh` to decide the plan shape. The plan should be depth-first: know the final destination, prove the architecture with the smallest real working slice, then expand.
+Use `$model-consensus` with `opus 4.7 max` and `gpt-5.6-sol xhigh` to decide the plan shape. The plan should be depth-first: know the final destination, prove the architecture with the smallest real working slice, then expand.
 
 Do not substitute a manual phase design when models disagree, hide final scope as "later," force a preset phase count, or write a breadth-first Phase 1 that touches everything without proving the risky path.
 
@@ -312,10 +356,16 @@ staying small enough to paste into `/goal`.
 - A fixed field list that makes every goal look the same.
 - A giant process script that hides the desired world state.
 - A pasted source doc that turns the goal into a competing source of truth.
+- A Markdown prompt file that uses its extra space to duplicate the linked
+  plan, source doc, reviewer prompt, or implementation checklist.
 - A goal that reprints examples, thought exercises, command lists, reviewer
   prompts, or implementation-plan detail already owned by a referenced doc.
 - A quality bar that only says "good," "proper," "polished," or "high quality."
 - A source-truth line that treats stale artifacts as equal to live owner paths.
+- A goal that treats an agent-authored plan revision or reviewer finding as
+  human scope authority.
+- A repair loop that keeps accepting review-created work until implementation
+  exceeds the frozen initial scope.
 - A review line that is not part of done.
 - A consensus line that does not define convergence.
 - A signoff line that makes reviewer rejection or model disagreement sound like
@@ -325,13 +375,20 @@ staying small enough to paste into `/goal`.
 - A forbidden-shortcuts list so broad that it becomes a brittle rulebook.
 - A goal that asks the agent to use a named skill but not what that skill is
   meant to preserve.
-- A goal that exceeds the 4,000-character hard cap or uses the cap as the
-  normal target.
+- A paste-sized `/goal` prompt that exceeds the 4,000-character hard cap or
+  uses the cap as the normal target.
+- A rich goal forced into paste-sized text when a Markdown prompt file would be
+  clearer and less brittle.
 
 ## Final self-check
 
 - Does the first sentence name the desired world state?
-- Is the goal under 4,000 characters, and preferably 2,000-3,000 or less?
+- Did you choose the right medium: Markdown prompt file for rich goals,
+  paste-sized `/goal` only when needed?
+- If paste-sized, is the goal under 4,000 characters, and preferably
+  2,000-3,000 or less?
+- If Markdown-backed, is the extra space used for completion clarity rather
+  than copied source truth?
 - If a rich source doc exists, does the goal reference it instead of duplicating
   it?
 - Does the prompt teach the intuition, not just the steps?
