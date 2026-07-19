@@ -31,6 +31,10 @@ and completion rules.
    - Explain the larger system or downstream impact.
 6. **Inputs & ground truth**
    - Clarify what is authoritative, optional, and unavailable.
+   - For a model-agent brief, distinguish user- or source-backed outcomes,
+     facts, decisions, and constraints from caller hypotheses, preferences,
+     and suggested evidence paths. Useful conjecture may travel, but it must
+     remain challengeable.
 7. **Tools & calling rules**
    - Say what tools exist, when to call them, and what not to do.
 8. **Operating principles**
@@ -163,3 +167,7 @@ If the problem is:
 - Are the lower sections still elevated, or do they decay into heuristics?
 - Could the prompt handle a new input without a hardcoded list?
 - Does every referenced source actually exist in the context the prompt provides?
+- Could the recipient reject the caller's theory and still satisfy the
+  authoritative task?
+- Does an authoritative checklist define done without silently defining the
+  only permissible reasoning, investigation, or implementation path?

@@ -1,8 +1,9 @@
 # Worker Prompt Contract
 
-Prompt workers as engineers entering cold, with a tighter contract than a
-frontier-model peer would need: explicit checklist, named verification, and
-explicit delete obligations. Tight contract, loose leash — the worker owns
+Prompt workers as engineers entering cold. Give them the explicit checklist,
+named verification, and delete obligations because those items are authorized
+by the plan and materially define done, not because the worker is presumed
+naive. Tight contract, loose leash: the worker owns investigation and
 implementation judgment inside the slice.
 
 ## Slice Prompt Skeleton
@@ -15,11 +16,10 @@ You are a delegated implementation worker for one slice of a larger plan.
 You do not have the parent chat context. Read the repo and the referenced
 plan sections directly from disk.
 
-# Dispatch
-- Transport: <active-host native child | external session + concrete benefit>
+# Worker Context
 - Starting context: clean
 - Continuation: new child; accepted repair findings resume this exact handle
-- Isolation and capabilities: <shared worktree or named worktree; permissions
+- Workspace and capabilities: <shared worktree or named worktree; permissions
   and tools actually available>
 - Parallel group: <group objective + sibling slice names, or "single">
 
@@ -45,8 +45,10 @@ report the files and evidence instead of guessing.>
 - Verification you must run: <commands/scenarios from the plan plus
   slice-local checks>; quote real output in your report.
 - Constraints: <style rules, no-go areas, or "none">
-- Parent hints (advisory): <likely fix paths, suspected files, evidence to
-  inspect — you still own the implementation judgment>
+- Unverified parent leads (optional and advisory): <likely fix paths,
+  suspected files, or evidence that may help; treat them as hypotheses, inspect
+  source truth, and reject them when another path better satisfies the slice
+  contract>
 
 # Required Local Instructions
 Before editing, read applicable local instructions (AGENTS.md and similar)
@@ -76,7 +78,9 @@ or edit the plan to bless it.
 Read the plan anchors and local instructions; inspect current state;
 implement the smallest change satisfying the full checklist; execute the
 delete obligations; run the named verification; re-read your diff before
-finalizing; if blocked, stop with a precise blocker.
+finalizing. If an advisory lead or summary premise conflicts with source truth,
+report the contradiction and follow the plan-authorized outcome. If blocked,
+stop with a precise blocker.
 
 # Report Contract
 Your report is a claims manifest, not a verdict: every line will be audited
@@ -141,3 +145,5 @@ End with the same report footer as the original contract.
 - Prompting the worker to self-certify: the footer reports claims; the
   conductor's audit decides truth.
 - Sending findings one at a time. Batch the round.
+- Turning a conductor diagnosis, preferred abstraction, or selected file list
+  into a binding method when the frozen plan did not authorize it.

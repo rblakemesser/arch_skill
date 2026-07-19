@@ -98,8 +98,8 @@ skills.
    wrong to you at the time?
 
 End with exactly one line:
-CONFIRMATION: <one sentence naming what you now understand about the issue,
-citing the owner-runbook clause that implies the correct behavior>.
+ASSESSMENT: supported | disputed | unresolved — <one sentence stating what the
+evidence supports and citing the relevant owner-runbook clause>.
 ```
 
 If the answer invents a stricter rule than the owner doctrine supports, stay in
@@ -118,33 +118,46 @@ turn an overcorrection into a new constraint.
 ## Repair prompt
 
 Stepwise authors repair prompts only after the diagnostic conversation
-converges on root cause.
+produces enough evidence to name a likely root cause. The worker remains free
+to dispute that diagnosis with evidence and choose another in-scope repair
+path.
 
-The prompt teaches the worker the diagnosed issue without importing Stepwise's
-internal process. Source tags are not decoration: they are the guardrail that
-keeps Stepwise from turning its own speculation into a worker command.
+The prompt gives the worker the evidence-backed concern without importing
+Stepwise's internal process. Authority tags are not decoration: they are the
+guardrail that keeps evidence or Stepwise's synthesis from becoming a worker
+command.
 
 ```text
-Your prior attempt on this step did not honor its contract. We have diagnosed
-the issue.
+Evidence from the prior attempt indicates a contract problem. The observed
+issue and leads below are challengeable; they are not task authority.
 
-Execute the repair below. Do not add constraints beyond the user prompt,
-manifest, owner runbook, and confirmed repair.
+Satisfy the authoritative step outcome inside the boundaries below. Own the
+diagnosis and repair path. Do not add constraints beyond the user prompt,
+manifest, and owner runbook.
 Do not create or coordinate other model agents or invoke delegation/consult
 skills unless this prompt explicitly assigns a bounded nested scope and budget.
 
-## Confirmed issue
+## Observed issue
 
-{{one paragraph grounded in the diagnostic conversation}}
+{{one paragraph grounded in critic and diagnostic evidence; the worker may
+dispute it with evidence}}
 
 ## Hard boundaries
 
 - {{boundary}} [source: manifest]
 
-## Repair steps
+## Repair requirements
 
 1. {{instruction}} [source: owner runbook]
-2. {{instruction}} [source: confirmed diagnosis]
+2. {{instruction}} [source: manifest]
+
+## Non-binding evidence and leads
+
+- {{critic observation or artifact evidence}}
+- {{parent synthesis of the likely root cause or repair direction}}
+
+If those leads conflict with repo truth, say so and use a better evidence-backed
+path that still satisfies the authoritative outcome and boundaries.
 
 ## Evidence to leave
 
@@ -157,17 +170,17 @@ skills unless this prompt explicitly assigns a bounded nested scope and budget.
 When the fixes are in place, end your turn.
 ```
 
-Every hard-boundary bullet and every numbered repair step must carry one source
-tag. Valid source tags are:
+Every hard-boundary bullet and every numbered repair requirement must carry one
+authority tag. Valid authority tags are:
 
 - `[source: user]`
 - `[source: manifest]`
 - `[source: owner runbook]`
-- `[source: critic evidence]`
-- `[source: confirmed diagnosis]`
 
-If a hard boundary or numbered step has no source tag, it is invented and must
-be removed before the prompt is sent.
+`Critic evidence` and `confirmed diagnosis` are not valid authority tags.
+Include them only as ordinary, explicitly non-binding evidence or leads. If a
+hard boundary or numbered requirement has no authority tag, it is invented and
+must be removed before the prompt is sent.
 
 `Evidence to leave` bullets do not require source tags. They name the records
 the worker should leave behind so the next reader can inspect the repair. They
@@ -187,9 +200,9 @@ Do not put these internal terms in worker-facing prompts:
 - orchestrator
 - stepwise
 
-The worker acts on owner doctrine, evidence from its own attempt, and
-source-grounded repair instructions. Internal process names are for Stepwise's
-run record only.
+The worker acts on user, manifest, and owner-doctrine authority while using
+evidence from its own attempt and challengeable leads to choose the repair.
+Internal process names are for Stepwise's run record only.
 
 ## Session continuity
 

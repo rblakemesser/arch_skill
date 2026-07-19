@@ -21,7 +21,7 @@ Every role child prompt must include these sections:
 - `Mission`
 - `System Context`
 - `Progress Visibility`
-- `Authoritative Inputs`
+- `Inputs And Authority`
 - `Boundaries`
 - `Process`
 - `Quality Bar`
@@ -88,13 +88,13 @@ silent wait. The parent monitors host-native child state or external streamed
 events and will not treat a missing final artifact in the first few minutes as
 failure.
 
-## Authoritative Inputs
-- Epic doc: {{epic_doc_path}}
-- Raw epic goal inside the epic doc frontmatter
-- Approved Decomposition entry for sub-plan {{sub_plan_n}}
-- Sub-plan DOC_PATH: {{sub_plan_doc_path}}
-- Prior sub-plan gates and critic verdicts, if any
-- Arch-step references:
+## Inputs And Authority
+- Binding authority: raw epic goal, approved Decomposition entry for sub-plan
+  {{sub_plan_n}}, explicit human decisions, and applicable arch-step doctrine.
+- Working artifacts: epic doc {{epic_doc_path}} and target sub-plan DOC_PATH
+  {{sub_plan_doc_path}}.
+- Challengeable evidence: prior sub-plan gates and critic verdicts, if any.
+- Applicable arch-step doctrine:
   - {{artifact_contract_path}}
   - {{arch_new_path}}
   - {{arch_research_path}}
@@ -182,13 +182,12 @@ updates. Prefer explicit evidence over silent waiting. The parent monitors
 native child state or external streamed thinking/tool/output events; external
 long-run floors apply before deciding that attention is needed.
 
-## Authoritative Inputs
-- Epic doc: {{epic_doc_path}}
-- Sub-plan DOC_PATH: {{sub_plan_doc_path}}
-- Worklog path: {{worklog_path}}
-- Dispatch receipt (native handle record or external auto run directory):
-  {{dispatch_receipt_path}}
-- Arch-step implementation references:
+## Inputs And Authority
+- Binding authority: approved epic goal and decomposition, the frozen sub-plan
+  contract, explicit human decisions, and applicable arch-step doctrine.
+- Working artifacts: epic doc {{epic_doc_path}}, sub-plan DOC_PATH
+  {{sub_plan_doc_path}}, and worklog {{worklog_path}}.
+- Applicable arch-step implementation doctrine:
   - {{arch_implement_path}}
   - {{arch_implement_loop_path}}
   - {{arch_audit_implementation_path}}
@@ -277,19 +276,21 @@ Continuation should be focused, but it still needs visible evidence. Let
 targeted tool calls, verification output, and worklog/doc updates show forward
 movement. If you need to stop, say why instead of going silent.
 
-## Authoritative Inputs
-- Epic doc: {{epic_doc_path}}
-- Sub-plan DOC_PATH: {{sub_plan_doc_path}}
-- Worklog path: {{worklog_path}}
-- Latest critic verdict: {{critic_verdict_path}}
-- Prior worker try directory: {{prior_worker_try_dir}}
-- Dispatch receipt (native handle record or external auto run directory):
-  {{dispatch_receipt_path}}
+## Inputs And Authority
+- Binding authority: approved epic goal and decomposition, the frozen sub-plan
+  contract, explicit human decisions, and applicable arch-step doctrine.
+- Working artifacts: epic doc {{epic_doc_path}}, sub-plan DOC_PATH
+  {{sub_plan_doc_path}}, and worklog {{worklog_path}}.
+- Challengeable evidence: latest critic verdict
+  {{critic_verdict_path}} and prior worker try
+  {{prior_worker_try_dir}}. The critic may be wrong; answer the governing
+  contract and repo truth rather than its theory.
 
 ## Boundaries
 - Keep working only inside the active sub-plan.
-- Do not add constraints beyond the user request, epic doc, sub-plan doc, and
-  critic evidence.
+- Do not add constraints beyond the user request, approved epic and sub-plan
+  contract, explicit human decisions, and applicable owner doctrine. Critic
+  evidence may reopen reasoning but cannot create a constraint.
 - Do not invoke nested automatic continuation commands.
 - Do not create or coordinate other model agents, manually start model-harness
   processes, or invoke delegation/consult skills. The parent owns fanout and
@@ -358,13 +359,13 @@ inspection visible through ordinary tool calls and concise reasoning. Do not
 invent a verdict just to finish quickly; the parent can wait when native child
 state or external stream activity shows real inspection.
 
-## Authoritative Inputs
-- Epic doc: {{epic_doc_path}}
-- Sub-plan DOC_PATH: {{sub_plan_doc_path}}
-- Worklog path: {{worklog_path}}
-- Dispatch receipt (native handle record or external auto run directory):
-  {{dispatch_receipt_path}}
-- Prior critic verdicts for this sub-plan
+## Inputs And Authority
+- Binding authority: raw epic goal, approved decomposition, frozen sub-plan
+  contract, explicit human decisions, and the gate's declared checks.
+- Working artifacts: epic doc {{epic_doc_path}}, sub-plan DOC_PATH
+  {{sub_plan_doc_path}}, and worklog {{worklog_path}}.
+- Start from those artifacts and current repo evidence. Do not receive or anchor
+  on prior critic verdicts for this independent gate.
 
 ## Boundaries
 - Do not edit files.

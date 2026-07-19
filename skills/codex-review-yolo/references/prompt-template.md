@@ -1,7 +1,10 @@
 # Review Prompt Template
 
 Use this skeleton when drafting a namespaced prompt file such as `$PROMPT_PATH`.
-Fill every `<...>` placeholder.
+Fill every `<...>` placeholder, then apply `$prompt-authoring` to the actual
+brief. Keep the requested decision and real constraints binding. If caller
+conjecture is useful, mark it as an optional hypothesis the reviewer may reject
+instead of embedding it in the approval standard.
 
 ## Skeleton
 

@@ -12,8 +12,9 @@ in the chain break, reasons about where the break actually lives, and authors a
 repair prompt that cites its sources.
 
 The critic's verdict is evidence. The worker's answer is evidence. The
-manifest is evidence. Owner doctrine is evidence. None of them is the repair
-prompt. The repair prompt is Stepwise's synthesis, grounded in those sources.
+manifest and owner doctrine also carry task authority. None of those artifacts
+is itself the repair prompt. Stepwise synthesizes the evidence, but its
+diagnosis remains falsifiable and cannot create operational authority.
 
 ## Protocol
 
@@ -47,7 +48,8 @@ prompt. The repair prompt is Stepwise's synthesis, grounded in those sources.
      represented in manifest inputs. The helper reports exact matches and
      unmatched inputs; Stepwise still decides what the result means.
    - Resume that exact upstream child with the same diagnostic prompt shape.
-   - If the upstream worker confirms its output was wrong, repair upstream.
+   - If the evidence supports that the upstream output was wrong, repair
+     upstream.
    - If the upstream output was correct but the downstream received something
      else, inspect intermediate handoff steps.
    - Continue walking the chain until the earliest broken link is located.
@@ -58,15 +60,19 @@ prompt. The repair prompt is Stepwise's synthesis, grounded in those sources.
      be replaced cleanly.
    - Author one repair prompt for the root-cause child.
    - Every hard-boundary bullet and numbered operational step carries a source
-     tag:
-     `[source: user]`, `[source: manifest]`, `[source: owner runbook]`,
-     `[source: critic evidence]`, or `[source: confirmed diagnosis]`.
+     tag: `[source: user]`, `[source: manifest]`, or
+     `[source: owner runbook]`.
+   - Include critic observations and the diagnosed root cause only as
+     non-binding evidence or leads the worker may dispute. They do not source a
+     command.
    - Delete any instruction that cannot be source-tagged.
    - Keep internal Stepwise vocabulary out of the worker-facing prompt.
 
 5. **Repair execution**
    - Resume the exact root-cause child through its original transport with the
      repair prompt.
+   - Let the worker reject the diagnosed lead with evidence and choose another
+     in-scope repair path that satisfies the authoritative contract.
    - This consumes one repair bounce on that worker.
    - Run a new clean critic against the repaired attempt.
 

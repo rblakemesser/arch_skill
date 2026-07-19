@@ -46,6 +46,10 @@ This skill is intentionally narrow in mechanism, not in review subject. It teach
 - **Run codex with `-p yolo` explicitly.** The profile carries gpt-5.6-sol + ultra reasoning + fast service tier + `danger-full-access` sandbox. Any other profile changes the contract.
 - **Use `codex exec` (non-interactive), not `codex` (interactive TUI).** You are orchestrating, not babysitting a session.
 - **Brief codex like a colleague who just walked in.** It has no memory of your session. Name the review goal, work root, exact user-named artifacts or target paths, hard constraints, and the verdict contract.
+- **Apply `$prompt-authoring` to the actual populated review brief.** Preserve
+  the user's requested decision and approval bar. Do not turn the parent's
+  diagnosis, preferred repair, or selected evidence path into the review
+  conclusion; label a materially useful lead as challengeable.
 - **Require a structured verdict block at the end.** Without it, codex drifts into narrative and you cannot act on the result.
 - **Treat the prompt examples as examples.** Adapt the sections to the actual review objective instead of cargo-culting one review mode.
 - **Never pass secrets in the prompt.** If codex needs `FIGMA_ACCESS_TOKEN` or similar, source `.env` into the codex env and instruct codex to read it from the environment.
@@ -90,7 +94,9 @@ This skill is intentionally narrow in mechanism, not in review subject. It teach
    ```
 
 4. If the review needs API tokens, confirm `.env` has them and plan to `set -a; source .env; set +a` before invoking.
-5. Draft the prompt to `$PROMPT_PATH` (never inline — prompts get long and multi-line is inevitable).
+5. Draft the prompt to `$PROMPT_PATH` and apply `$prompt-authoring` to the
+   populated brief before launch (never inline — prompts get long and
+   multi-line is inevitable).
 6. Note that this dispatch is a new clean external review with no continuation
    handle. Tell the reviewer not to edit or spawn children. Record the current
    repository status and diff before launch; this is required because the
@@ -105,7 +111,8 @@ This skill is intentionally narrow in mechanism, not in review subject. It teach
 
 ### 1. Shape the prompt
 
-A good prompt for codex review has these sections, in this order:
+A good prompt for codex review preserves independent judgment and has these
+sections in this order:
 
 1. **Role + posture.** One line. "You are auditing X. Be skeptical. If the work is wrong, say so plainly."
 2. **Review objective and work root.** State what approval means for this review and where codex should run.

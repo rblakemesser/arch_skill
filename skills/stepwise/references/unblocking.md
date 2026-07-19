@@ -26,7 +26,7 @@ Stepwise may not:
 - fabricate worker evidence,
 - rewrite an owner runbook,
 - convert a critic observation into a pass,
-- invent a repair instruction without a valid source tag.
+- invent a repair instruction without a valid authority tag.
 
 ## Worker-owned unblocks
 
@@ -66,4 +66,4 @@ Fail loud when:
 - the critic writes to disk,
 - the StepVerdict contains stale prescriptive fields,
 - repair would require claiming an event happened before it actually happened,
-- owner doctrine is ambiguous and no safe source-tagged repair exists.
+- owner doctrine is ambiguous and no safe authority-backed repair exists.

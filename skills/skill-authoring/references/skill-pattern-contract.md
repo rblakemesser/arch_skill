@@ -30,7 +30,11 @@ This file is the contract for what a strong skill must contain, what it must not
 7. **Runtime-specific machine behavior**
    - Encode host-specific invocation, gating, or command behavior in frontmatter or supported machine-readable fields rather than hiding it in prose.
 8. **Agent-orchestration ownership when applicable**
-   - Require agent-using skills to load the installed shared orchestration policy, keep role-local workflow in the owning skill, and avoid duplicating shared transport, context, continuation, isolation, topology, or integration doctrine.
+   - Require agent-using skills to load the installed shared orchestration
+     policy, apply `$prompt-authoring` to the actual populated child brief,
+     keep role-local workflow in the owning skill, and avoid duplicating shared
+     transport, context, brief-authority, continuation, isolation, topology,
+     or integration doctrine.
 9. **Core runtime contract**
    - Put the durable workflow, boundaries, and output expectations in `SKILL.md`.
 10. **Progressive disclosure**
@@ -173,7 +177,9 @@ If the problem is:
 - Is the `description` precise enough to control triggering?
 - Is the `description` at or under 1024 characters unless the target runtime has a stricter cap?
 - Are runtime-specific invocation and gating rules encoded in machine-readable form where the host supports them?
-- If the skill dispatches agents, does it load the installed shared orchestration policy while keeping only role-local workflow doctrine in the package?
+- If the skill dispatches agents, does it load the installed shared
+  orchestration policy, apply `$prompt-authoring` to the populated brief, and
+  keep only role-local workflow doctrine in the package?
 - Is agent dispatch still a judgment-led prompt contract rather than a skill-local controller or orchestration-owned script?
 - Does `SKILL.md` contain only the durable contract and workflow?
 - Are detailed examples and doctrine in `references/` instead of bloating the entrypoint?

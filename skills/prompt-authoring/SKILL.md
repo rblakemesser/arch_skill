@@ -54,6 +54,12 @@ make install
 - For execution or repair goal prompts, make forward motion explicit: when the path is unclear, the agent should read source truth, form sharper theories, build disproof tests, inspect the real path, use required reviewers to choose the next move, and keep repairing until the desired state is real.
 - Teach principles and recognition tests, not keyword lists, lookup tables, or canned action menus.
 - When a prompt creates, resumes, replaces, or coordinates another model agent, read the installed sibling policy at `../_shared/agent-orchestration-policy.md` and use its seven dispatch dimensions as the authoring and audit lens: role, transport, starting context, continuation, isolation and capabilities, topology, and return contract.
+- Apply that audit to the actual populated child brief before first dispatch
+  and after a material reframe, not only to the reusable skeleton. Preserve
+  independent judgment by separating authoritative outcomes, facts, decisions,
+  and constraints from the caller's hypotheses, preferences, and proposed
+  evidence path. The recipient must be free to reject caller conjecture and
+  still satisfy the authoritative task.
 - Treat bare `fresh`, `fork`, `resume`, or `parallel` language as ambiguous in an agent prompt unless the prompt gives it an operational meaning or clearly delegates that meaning to the shared policy. Do not infer context, isolation, continuation, or topology from one of those words alone.
 - Keep the prompt's role, task-local workflow, and acceptance evidence local. Let the shared policy own reusable cross-skill orchestration semantics instead of copying a mini-policy into the prompt.
 - Treat skill prose as prompt prose. Keep it intent-driven and anti-heuristic; leave packaging, trigger metadata, and runtime boundaries to `$skill-authoring`.
@@ -81,7 +87,12 @@ make install
 1. Lock the user's real job and desired outcome before touching wording.
 2. Choose the lightest prompt shape that can work. Use a full sectioned contract only when durability, reuse, tools, validation, or risk justifies it.
 3. Blend prompt-type guidance when the job needs it, such as personality plus evidence rules plus completion conditions.
-4. For an agent-dispatch prompt, make the seven dispatch choices coherent at the point where work is launched. State them in the smallest useful place rather than turning them into a serialized form or routing table.
+4. For an agent-dispatch prompt, make the seven dispatch choices coherent at
+   the point where work is launched and audit the populated brief for hidden
+   caller framing. State the choices in the smallest useful place rather than
+   turning them into a serialized form or routing table. A fixed template does
+   not excuse parent-filled goals, success criteria, reading lists, or
+   checklists that silently promote conjecture into authority.
 5. Keep commander’s intent and success/failure higher than process mechanics.
 6. Make the rich sections carry real weight: system context, quality bar, output contract, evidence policy, completion rules, and error handling should teach stakes and judgment, not just fill space.
 7. For goal prompts, put the desired world state first, then only add context, workflow rules, signoff, and evidence requirements that change behavior. Reference authoritative docs by path instead of restating them.
@@ -94,7 +105,7 @@ make install
 - `author` / create: return the finished prompt, plus only the shortest note needed to explain any important assumption.
 - `edit` / patch: return the patched prompt and a short explanation of which section changed and why.
 - `refactor` / restructure: return the rewritten prompt and a short note on what useful behavior was preserved versus relocated.
-- `audit` / review: return findings first. Name the issue, why it is risky, and exactly which section should change. For an agent-dispatch prompt, identify any missing, conflated, or contradictory dispatch decisions rather than merely counting vocabulary.
+- `audit` / review: return findings first. Name the issue, why it is risky, and exactly which section should change. For an agent-dispatch prompt, identify any missing, conflated, or contradictory dispatch decisions and any caller conjecture laundered into the goal, success bar, evidence boundary, or checklist rather than merely counting vocabulary.
 
 ## Reference map
 

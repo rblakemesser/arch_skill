@@ -18,23 +18,19 @@ from disk.
 Your job is to complete the delegated task in the shared worktree, verify it,
 and report exactly what changed.
 
-# Delegation Mode
+# Worker Context
 
-- Transport: external process/session
-- External benefit: <provider, exact model/profile, lifecycle, process
-  isolation, automation, structured receipt, or another concrete reason>
 - Starting context: <clean prompt-and-disk context | existing exact session context>
 - Continuation: <new one-shot | new resumable session | exact-session resume>
-- Mode: fresh-one-shot | fresh-resumable | resume
-- Resume source: <previous run directory, session id, or "none">
-
-# Parallel Group
-
 - Group: <group objective, or "none">
-- Child id: <stable child id, or "single">
 - Sibling tasks: <short names of sibling tasks, or "none">
 - Nested fanout: <"prohibited" by default, or an explicit bounded scope and
   concurrency budget assigned by the parent>
+
+Keep the external benefit, runtime/model/effort, delegation mode, session
+handle, run directory, and receipt bookkeeping in the parent dispatch record.
+Do not make the worker parse operational metadata that does not change its
+capabilities, continuity, or work.
 
 <For resume mode only: Continue the same delegated task using your existing
 session history. Apply the new instruction or evidence below. The original
@@ -49,12 +45,19 @@ instead of guessing.>
 
 # Delegated Task
 
-- Task: <the exact work to do>
-- Success bar: <what makes the task complete>
+- Task: <a faithful user-, plan-, issue-, or source-backed outcome; do not
+  replace the outcome with the parent's chosen method>
+- Authority: <the user request, plan anchor, issue, local doctrine, or verified
+  acceptance condition that makes the task and success bar binding>
+- Success bar: <observable completion backed by that authority, not merely the
+  presence of the parent's preferred implementation>
 - Work root: <absolute path>
 - Allowed write scope: <paths, file families, or "repo-wide if needed for this task">
 - Constraints: <commands, style rules, no-go areas, deadlines, or "none">
 - User-named inputs: <paths, failing command, repro steps, doc section, issue, or "none">
+- Verified evidence: <reproduction, command output, accepted finding, or "none">
+- Parent leads (optional and advisory): <unverified diagnosis, likely files, or
+  proposed fix path; the worker may reject these from repo evidence>
 
 # Required Local Instructions
 
@@ -74,6 +77,8 @@ You may:
 4. Use installed skills when their trigger and contract fit the delegated task.
 5. Make pragmatic implementation decisions that are implied by repo evidence.
 6. Make local implementation choices inside the assigned scope.
+7. Reject an advisory parent lead and follow a better evidence-backed path
+   while still satisfying the authoritative task.
 
 You must not:
 
@@ -96,12 +101,15 @@ Please do all of the following:
 1. Read the local instructions and user-named inputs, then inspect whatever repo
    evidence is needed to complete the task.
 2. Inspect the current repo state before editing.
-3. Implement the smallest change that satisfies the success bar.
+3. Choose the evidence and implementation path needed to satisfy the
+   authoritative success bar, then implement the smallest sufficient change.
 4. Use installed skills only when they directly improve the delegated work and
    do not violate the parent-owned fanout boundary.
 5. Run verification proportional to the changed surface.
 6. Re-read changed files or inspect the diff before finalizing.
-7. If blocked, stop with a precise blocker instead of inventing a workaround.
+7. If the brief's premise conflicts with repo truth, report the contradiction
+   and continue toward the authoritative outcome when the allowed scope permits
+   it; otherwise stop with a precise blocker instead of inventing a workaround.
 
 # Report Contract
 
@@ -169,6 +177,8 @@ file, phase, worker scope, or review finding for that continuation.
 Do not:
 
 - Delegate vague work without naming the success bar or write scope.
+- Launder the parent's diagnosis, preferred helper, suspected files, or chosen
+  evidence path into the task or success bar without source-backed authority.
 - Use this skill for a read-only cold read. Use `$fresh-consult`.
 - Launch an external same-provider process merely to get clean context,
   parallelism, or continuation that the active host's native children already

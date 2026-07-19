@@ -62,9 +62,10 @@ happens to be open without deciding which one the user wants.
   parallel ChatGPT Web runs, explain that this skill runs serially to avoid web
   session rate limits, then proceed sequentially. If simultaneous ChatGPT Web
   runs are mandatory, fail loudly instead of opening parallel tabs.
-- Use `$prompt-authoring` discipline before submission when the user's prompt is
-  rough, underspecified, high-stakes, or likely to benefit from a stronger
-  reusable prompt shape.
+- Apply `$prompt-authoring` to the actual populated prompt before every
+  submission. Preserve the user's intent and any explicitly requested verbatim
+  relay; otherwise remove hidden caller assumptions, leading success criteria,
+  and closed evidence paths before sending.
 - Default to ChatGPT `Pro` with `Extended` thinking when the user does not name
   a mode or effort.
 - Respect explicit user choices for `Instant`, `Thinking`, `Pro`, `Light`,
@@ -88,8 +89,10 @@ happens to be open without deciding which one the user wants.
 
 1. Resolve the user's desired ChatGPT ask and any explicit mode, effort, model,
    or attachment requests.
-2. If the prompt needs shaping, apply `$prompt-authoring` before touching
-   ChatGPT. Keep the prompt faithful to the user's intent.
+2. Apply `$prompt-authoring` to the populated prompt before touching ChatGPT.
+   Keep it faithful to the user's intent, preserve an explicitly requested
+   verbatim relay, and make caller hypotheses challengeable rather than task
+   truth.
 3. Resolve `conversation = new-clean | continue-exact`. Default to `new-clean`;
    use `continue-exact` only from an explicit user request and an identifiable
    target conversation.

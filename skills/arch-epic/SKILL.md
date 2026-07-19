@@ -116,12 +116,13 @@ Must happen every run:
   Decomposition approval does not authorize hidden infrastructure in later
   sub-plans. Apply `../_shared/scope-and-convergence.md`.
 - Apply `../_shared/agent-orchestration-policy.md` whenever a planner,
-  worker, or critic is dispatched. Prefer a clean native child for ordinary
-  same-host work. Use the explicit external harness when a concrete provider,
-  exact model/profile, durable or detached lifecycle, worktree/process
-  isolation, automation surface, structured receipt, or another real benefit
-  is worth the added process and integration cost. These examples are
-  recognition aids, not an allowlist.
+  worker, or critic is dispatched, and apply `$prompt-authoring` to every
+  actual populated first brief or materially reframed follow-up. Prefer a clean
+  native child for ordinary same-host work. Use the explicit external harness
+  when a concrete provider, exact model/profile, durable or detached lifecycle,
+  worktree/process isolation, automation surface, structured receipt, or
+  another real benefit is worth the added process and integration cost. These
+  examples are recognition aids, not an allowlist.
 - Native starting context is explicit. Codex dispatch always sets
   `fork_turns` to `"none"` for clean planner/worker/critic roles, to a positive
   count only for deliberately bounded chat context, or to `"all"` only when

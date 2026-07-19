@@ -61,7 +61,10 @@ add a universal runner, controller, state machine, or harness for this skill.
 
 - Apply `../_shared/agent-orchestration-policy.md`. Keep transport, starting
   context, continuation, capabilities, isolation, topology, and return evidence
-  explicit at each dispatch without turning them into a serialized form.
+  explicit at each dispatch without turning them into a serialized form. Apply
+  `$prompt-authoring` to the actual populated consult brief so the raw ask and
+  acceptance bar remain authoritative while the parent's diagnosis and
+  preferred evidence path stay out of a cold review.
 - For a new Codex-native consult, set `fork_turns: "none"`. Do not omit it and
   assume the child is clean. A positive count is bounded recent context and
   `"all"` is a full parent fork; neither is the default for an independent
@@ -126,7 +129,8 @@ add a universal runner, controller, state machine, or harness for this skill.
 2. Read `references/consult-prompt-and-output.md`.
 3. Identify the consult objective, work root, user-named artifacts or target
    paths, hard constraints, and whether this is a new independent gate or a
-   bounded follow-up in an existing consult line.
+   bounded follow-up in an existing consult line. Apply `$prompt-authoring` to
+   the populated brief before dispatch.
 4. Inspect the active host's native child surface. Choose a new clean native
    child for ordinary same-host review when it can satisfy the role. Record the
    explicit native context mechanism: Codex `fork_turns: "none"`, or a clean
@@ -144,9 +148,9 @@ add a universal runner, controller, state machine, or harness for this skill.
 
 ## Workflow
 
-1. **Shape the consult.** State the user's question, strict acceptance bar,
-   work root, exact user-named artifacts, and hard constraints without adding
-   the parent's diagnosis.
+1. **Shape the consult.** Apply `$prompt-authoring` to the actual brief. State
+   the user's question, strict acceptance bar, work root, exact user-named
+   artifacts, and hard constraints without adding the parent's diagnosis.
 2. **Choose continuity.** Start a new clean reviewer for a new line or
    independent gate. Resume the exact reviewer only for a bounded same-line
    follow-up. Rotate after the third turn unless the user asks to continue.

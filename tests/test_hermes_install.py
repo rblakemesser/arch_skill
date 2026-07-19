@@ -96,6 +96,10 @@ class HermesInstallFunctionalTests(unittest.TestCase):
             self.assertFalse((dest / skill).exists(), f"{dest}/{skill}")
 
         self.assertTrue((dest / "_shared/depth-first-planning.md").is_file())
+        self.assertEqual(
+            read(dest / "_shared/agent-orchestration-policy.md"),
+            read(REPO_ROOT / "skills/_shared/agent-orchestration-policy.md"),
+        )
         self.assertTrue((dest / "_shared/model_resolution.py").is_file())
 
         leftovers = [
@@ -169,6 +173,29 @@ class HermesInstallFunctionalTests(unittest.TestCase):
             verify = run_make("verify_hermes_install", hermes_home)
             self.assertNotEqual(verify.returncode, 0)
             self.assertIn("ERROR:", verify.stdout)
+
+    def test_verify_rejects_stale_shared_policy_in_every_hermes_root(self) -> None:
+        for root_kind in ("default", "profile"):
+            with (
+                self.subTest(root_kind=root_kind),
+                tempfile.TemporaryDirectory() as tmpdir,
+            ):
+                hermes_home = Path(tmpdir) / ".hermes"
+                if root_kind == "default":
+                    root = hermes_home / "skills"
+                else:
+                    root = hermes_home / "profiles" / "work" / "skills"
+                root.mkdir(parents=True)
+
+                install = run_make("hermes_install_skill", hermes_home)
+                self.assertEqual(install.returncode, 0, install.stderr)
+
+                policy = root / HERMES_SUBDIR / "_shared/agent-orchestration-policy.md"
+                policy.write_text("stale policy\n", encoding="utf-8")
+
+                verify = run_make("verify_hermes_install", hermes_home)
+                self.assertNotEqual(verify.returncode, 0)
+                self.assertIn(f"ERROR: missing or stale {policy}", verify.stdout)
 
 
 if __name__ == "__main__":

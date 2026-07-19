@@ -85,12 +85,13 @@ safe reads explicitly allowed below. Do not attempt repair.
    wrong to you at the time?
 
 End with exactly one line:
-CONFIRMATION: <one sentence naming what you now understand about the issue,
-citing the owner-runbook clause that implies the correct behavior>.
+ASSESSMENT: supported | disputed | unresolved — <one sentence stating what the
+evidence supports and citing the relevant owner-runbook clause>.
 ```
 
 The worker says it treated placeholder cleanup as reuse of existing copy, not a
-copy-lane write. It confirms that this was not an owner-doctrine exception.
+copy-lane write. Its assessment agrees that the owner doctrine contains no such
+exception.
 
 If the worker overcorrects and says every support skill must emit a receipt id,
 Stepwise asks the same conversation's follow-up:
@@ -107,28 +108,34 @@ grounding primitives need real receipts where their runbook requires them.
 
 ### Repair prompt
 
-Stepwise authors an operational repair prompt with source tags:
+Stepwise authors an operational repair prompt with authority tags:
 
 ```text
-Your prior attempt on this step did not honor its contract. We have diagnosed
-the issue.
+Evidence from the prior attempt indicates a contract problem. The observed
+issue and leads below are challengeable; they are not task authority.
 
-Execute the repair below. Do not add constraints beyond the user prompt,
-manifest, owner runbook, and confirmed repair.
+Satisfy the authoritative step outcome inside the boundaries below. Own the
+diagnosis and repair path. Do not add constraints beyond the user prompt,
+manifest, and owner runbook.
 
-## Confirmed issue
+## Observed issue
 
 The artifact is currently clean, but the original copy write happened before
 the owner-declared copy gate. The recovery must not claim the original write
 was pre-gated; it must either reapply the copy under the gate or record an
 honest post-gate audit if the owner primitive performs an idempotent write.
 
-## Repair steps
+## Repair requirements
 
 1. Load the owner copy baseline and declared support before any recovery write. [source: owner runbook]
 2. Ground the learner-visible headline through the owner-declared grounding primitive and record the returned evidence. [source: owner runbook]
 3. Use the owner-declared read/write primitive to reapply or audit the four headline fields. [source: manifest]
-4. Rewrite the proof note so it states the true timeline: the first write was not pre-gated; this repair is the compliant recovery event. [source: confirmed diagnosis]
+4. Leave proof that accurately distinguishes the original attempt from the recovery event. [source: manifest]
+
+## Non-binding evidence and leads
+
+- The transcript shows the first learner-facing write preceded the owner copy gate.
+- The diagnostic conversation suggests either reapplying the copy under the gate or using an owner-supported idempotent audit. Reject that lead if source truth supports a better compliant recovery.
 
 ## Evidence to leave
 

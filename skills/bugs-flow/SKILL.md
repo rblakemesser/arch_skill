@@ -41,6 +41,11 @@ Use this skill for the bug workflow family: analyze, fix, and optionally review.
   review remains available when its concrete provider, model, lifecycle,
   isolation, automation, receipt, or other benefit is worth the added process
   and integration cost under the shared agent policy.
+- Apply `$prompt-authoring` to every actual populated implementer or critic
+  brief. The human-authorized corrected behavior, frozen closure, safety
+  constraints, and proof obligations are binding. The bug doc's ranked
+  hypotheses, most likely cause, investigation narrative, and candidate fix
+  plan remain challengeable evidence unless a human explicitly selected them.
 - Do not let "review" become an excuse to reopen generic architecture planning.
 
 ## First move
@@ -97,8 +102,12 @@ Use this skill for the bug workflow family: analyze, fix, and optionally review.
 
 ### 2) Fix mode
 
-- Read the bug doc as the spec.
-- Write or tighten the fix plan in the doc.
+- Read the bug doc as the canonical evidence and scope record. Treat its
+  human-authorized corrected behavior, frozen closure, constraints, and proof
+  obligations as the implementation contract; do not treat its hypotheses,
+  likely cause, or candidate fix plan as unquestionable.
+- Write or tighten the candidate fix plan in the doc without making it the
+  only permissible implementation path.
 - Implement the smallest credible fix locally.
 - If an implementer child owns the fix, preserve its exact handle so accepted
   review repairs resume that same role and scope.
@@ -108,9 +117,11 @@ Use this skill for the bug workflow family: analyze, fix, and optionally review.
 
 - Only when explicitly requested by the user.
 - Start a new clean independent critic and audit the implementation against the
-  bug doc without letting the critic write files.
+  human-authorized bug contract and current code without letting the critic
+  write files or anchoring it on the bug doc's diagnosis.
 - The parent integrates only accepted feedback. Resume the exact implementer
-  for those repairs, then use another new clean critic for every independent
+  for those repairs, allowing it to rebut the finding or proposed direction
+  with code evidence, then use another new clean critic for every independent
   recheck.
 - If no explicit review ask exists, do not launch review side work.
 

@@ -3,7 +3,8 @@
 Use this policy whenever a skill or repository instruction asks an agent to
 create, resume, replace, or coordinate another model agent. The calling skill
 owns the workflow and role; this file owns the shared meaning of transport,
-starting context, continuation, isolation, topology, and return evidence.
+starting context and brief authority, continuation, isolation, topology, and
+return evidence.
 
 Do not copy this policy into every skill. Read it, keep the skill-specific role
 contract local, and make the dispatch choices below explicit where the work is
@@ -16,7 +17,9 @@ Every child should have seven clear properties:
 1. **Role** — the bounded job and the decision or files it owns.
 2. **Transport** — active-host native child, host-native background child, or
    external runtime process/session.
-3. **Starting context** — clean, bounded recent context, or full parent context.
+3. **Starting context and brief authority** — clean, bounded recent context, or
+   full parent context, plus which inputs are binding authority versus
+   challengeable evidence or caller hypotheses.
 4. **Continuation** — new child, exact-child resume, or fresh replacement.
 5. **Isolation and capabilities** — read/write scope, tools, permissions,
    filesystem/worktree behavior, and any device or browser access.
@@ -81,6 +84,34 @@ a substitute for writing down a small load-bearing fact.
 the conversation as a whole. A full fork carries the parent's framing,
 assumptions, and persuasive completion story as well as useful facts; it is
 usually the wrong default for an independent critic.
+
+### Preserve independent judgment in the brief
+
+A clean child has no inherited conversation, but a leading brief can still
+carry the caller's framing. Before the first model-agent dispatch, and before a
+follow-up materially changes the goal, authority, scope, theory, or success
+bar, apply `$prompt-authoring` to the actual populated child brief. Applying it
+only to a reusable template is insufficient. For an exact same-role resume,
+audit the new delta instead of rebuilding the whole prompt. Preserve an exact
+verbatim relay when the user explicitly requests one.
+
+Build the brief from the user's goal, source artifacts, verified facts,
+binding decisions and constraints, assigned scope, and return contract. Do not
+silently turn the parent's diagnosis, preferred solution, or chosen evidence
+path into task truth. When a parent belief is materially useful, expose it as a
+non-binding hypothesis with its evidence or provenance and let the child reject
+it. Omit it when an unanchored cold read is the point.
+
+An authoritative checklist may define completion without defining the only
+investigation, reasoning, or implementation path. If finite checks are the
+whole role, report the result as scoped verification rather than broad
+independent review. Keep parent-only transport rationale, session bookkeeping,
+and receipt metadata out of the child brief unless they change the child's
+capabilities, continuity, or work.
+
+Recognition test: could the child reject the parent's theory and still satisfy
+the authoritative task? If not, either the theory is genuinely binding or the
+brief is overconstrained.
 
 Use these terms consistently. "Fresh" means a new clean child unless the
 workflow explicitly says otherwise. "Fork" must say whether it is bounded or

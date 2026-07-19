@@ -4,7 +4,9 @@ The consult brief must make the reviewer useful whether it is a clean native
 child, a clean external session, or a bounded exact-child follow-up. A new
 clean turn has no parent-chat context. A resumed turn has only that reviewer's
 own history plus the bounded delta. Transport, context, and continuation are
-separate choices.
+separate choices. Apply `$prompt-authoring` to the actual populated brief
+before dispatch; a clean session with a caller-led prompt is not an independent
+review.
 
 Fresh consult is a strict yes/no arbiter. The child decides whether the user's
 ask is fully satisfied. If the answer is not a clean yes, the verdict is
@@ -30,24 +32,16 @@ not have the parent chat context beyond what is in this prompt. Re-read files
 when the answer depends on current repo state. Do not assume old file contents
 are still current.
 
-# Consult Mode
+# Review Context
 
-- Transport: <active-host native child | external runtime/session>
 - Starting context: <clean | exact-reviewer history>
 - Continuation: <new-clean | exact-resume | clean-rotation>
-- Native mechanism: <Codex fork_turns "none" | Claude clean named/custom
-  subagent | exact-child resume | other explicit host mechanism | "external">
-- Child/session handle: <exact handle or "pending">
-- External receipt mode: <fresh-resumable | resume | fresh-forced |
-  fresh-rotated | "not applicable">
-- Chain directory: <absolute external chain path or "not applicable">
-- Turn: <n>
-- Resume source: <exact native child handle, prior external turn dir, explicit
-  external session id, or "none">
-- Reason for fresh start: <none | new_independent_gate | user_forced_cold |
-  chain_turn_limit | changed_execution | missing_session | ambiguous_chain>
 - Nested fanout: <"prohibited" by default, or an explicit bounded scope and
   concurrency budget assigned by the parent>
+
+Keep transport rationale, native mechanism, session handles, chain paths,
+receipt mode, turn counters, and rotation bookkeeping in the parent dispatch
+record rather than this child-facing brief.
 
 # User Ask
 

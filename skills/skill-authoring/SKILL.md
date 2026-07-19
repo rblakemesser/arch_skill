@@ -56,7 +56,7 @@ make install
 - Shape trigger boundaries against the visible peer group when related skills exist; do not judge a skill only in isolation.
 - Encode runtime-specific behavior in machine-readable fields when the host supports them; do not hide load, gating, or invocation rules only in prose.
 - Keep the shipped skill self-contained; do not depend on repo docs, hidden context, or local prompt packs at runtime.
-- If a skill creates, resumes, replaces, or coordinates model agents, make the running agent read the installed sibling `../_shared/agent-orchestration-policy.md` before dispatch. That policy owns shared transport, starting-context, continuation, isolation, topology, and integration semantics; the skill should retain only its role, domain judgment, task slicing, handoffs, and result contract.
+- If a skill creates, resumes, replaces, or coordinates model agents, make the running agent read the installed sibling `../_shared/agent-orchestration-policy.md` before dispatch and apply `$prompt-authoring` to the actual populated child brief. That policy owns shared transport, starting-context, brief-authority, continuation, isolation, topology, and integration semantics; the skill should retain only its role, domain judgment, task slicing, handoffs, and result contract.
 - Do not copy a local orchestration mini-policy into an agent-using skill or add a dispatcher, controller, or skill-local script that owns those cross-skill decisions. Runtime adapters may still own narrow deterministic invocation and receipt mechanics when that is their actual job.
 - Keep `SKILL.md` lean and move heavy detail into `references/`.
 - Add `scripts/` only when deterministic reliability or repeated complexity justifies them, and record why a simple prompt-only package is not enough.
@@ -89,7 +89,10 @@ make install
 3. Start with the lean prompt-only shape. Add references only when they reduce repeated prompting or keep `SKILL.md` small.
 4. If the skill has visible peers, name the target lane and the nearest lookalike before rewriting trigger prose.
 5. Define scope, one strong out-of-scope lookalike, and the runtime boundaries.
-6. For an agent-using skill, point to the shared policy once, keep role-local doctrine in the owning skill, and leave launch-time choices to the agent applying both contracts.
+6. For an agent-using skill, point to the shared policy once, require
+   `$prompt-authoring` on the actual dispatch brief, keep role-local doctrine
+   in the owning skill, and leave launch-time choices to the agent applying
+   both contracts.
 7. Write the trigger description so it says what the skill does, when to use it, and when not to.
 8. Encode any runtime-specific load, gating, slash-command, or invocation behavior in the runtime's machine-readable schema before treating the prose as done.
 9. Build the minimum viable package: `SKILL.md` first, then only the `references/`, `scripts/`, `assets/`, and `agents/` metadata the workflow truly needs.

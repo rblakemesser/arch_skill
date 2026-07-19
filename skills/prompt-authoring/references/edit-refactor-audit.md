@@ -56,6 +56,12 @@ Ask these before you change anything:
 19. For execution or repair prompts, could the agent honestly finish without the desired state becoming real?
 20. Could an agent or reviewer expand a plan-backed goal without an explicit
     human scope decision, or cycle review findings into new authority?
+21. For a model-agent brief, could the recipient reject the caller's theory
+    and still satisfy the authoritative task?
+22. Did a caller hypothesis, preferred solution, selected file list, or
+    proposed evidence path become task truth without source-backed authority?
+23. Does a finite-check role report only scoped verification, or does its
+    result imply a broader independent review than it performed?
 
 ## Edit discipline
 

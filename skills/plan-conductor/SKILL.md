@@ -8,7 +8,7 @@ metadata:
 # Plan Conductor
 
 Use this skill when the user wants an entire existing plan document implemented
-by phase workers while the smart parent agent preserves its own context and
+by phase workers while the parent agent preserves its own context and
 serves as architect and deeply cynical reviewer.
 
 The role economy is the point. The parent spends its scarce context on
@@ -44,8 +44,8 @@ log beside the plan is its durable memory.
   range) implemented by delegated phase workers with the parent as reviewer;
   an exact cheaper/faster external fleet may be selected when that is part of
   the desired execution policy.
-- The user wants "smart parent, dumb fast hands": an expensive model checking
-  work it did not write.
+- The user wants the parent to preserve architectural and review context while
+  capable workers own implementation and proof inside plan-authorized slices.
 - The plan is arch-step, miniarch-step, arch-mini-plan, or lilarch shaped — or
   any format with recoverable requirements, phases, and done-ness.
 - The user wants implementation velocity plus cost control on one long-running
@@ -77,12 +77,14 @@ log beside the plan is its durable memory.
   resume state — never a second plan.
 - Whole plan is the default boundary; honor an explicit phase range exactly.
 - Apply `../_shared/agent-orchestration-policy.md` at every worker and
-  reviewer dispatch. Ordinary same-host slices start as clean native children
-  from the plan and conductor-log artifacts. Use an external session when a
-  concrete provider, exact cheaper model/profile, durable lifecycle, worktree
-  isolation, automation surface, structured receipt, or another real benefit
-  is worth the added process and integration cost. These are recognition aids,
-  not an allowlist. Honor explicit user choices.
+  reviewer dispatch, and apply `$prompt-authoring` to every actual populated
+  first brief or materially reframed follow-up. Ordinary same-host slices start
+  as clean native children from the plan and conductor-log artifacts. Use an
+  external session when a concrete provider, exact cheaper model/profile,
+  durable lifecycle, worktree isolation, automation surface, structured
+  receipt, or another real benefit is worth the added process and integration
+  cost. These are recognition aids, not an allowlist. Honor explicit user
+  choices.
 - For an external lane, runtime and normally model/profile plus effort are
   supplied by the user. An external Codex worker with no named model defaults
   to `gpt-5.6-sol`, and an omitted effort on that Sol worker defaults to

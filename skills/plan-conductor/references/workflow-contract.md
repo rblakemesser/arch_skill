@@ -66,8 +66,10 @@ delegate. The line is hard:
   One more resume round is cheap; parent role decay is not.
 - The conductor may read files, inspect diffs, and run cheap read-only
   commands (`git status`, `git diff`, searches) as audit work.
-- Parent diagnosis is context for workers, not a script. Give likely fix
-  paths and evidence hints; let workers own the implementation judgment.
+- A materially useful parent diagnosis may travel only as a challengeable lead
+  with its evidence or provenance, not as task truth. Let workers reject it,
+  choose the evidence path, and own implementation judgment inside the frozen
+  contract.
 
 ## Git Posture
 

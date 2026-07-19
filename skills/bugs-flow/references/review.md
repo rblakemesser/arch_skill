@@ -15,8 +15,12 @@ repairs return to the exact implementer that owns the fix.
   `fork_turns: "none"`; in Claude use a clean named or custom subagent, not a
   bare conversation fork or skill `context: fork` shorthand.
 - Pass `DOC_PATH`, exact implementation paths, verification evidence, and the
-  frozen closure directly. Use bounded or full inherited context only for a
-  named dependency that exists solely in chat.
+  frozen closure directly. Apply `$prompt-authoring` to the populated brief:
+  identify the human-authorized corrected behavior, frozen closure, safety
+  constraints, and proof obligations as authority; present the bug doc's root
+  cause and fix plan only as challengeable context, or omit them when a cold
+  read is the point. Use bounded or full inherited context only for a named
+  dependency that exists solely in chat.
 - Select the strongest read-only capability available and explicitly tell the
   critic not to edit or write code, the bug doc, or any other file. The critic
   may not create children or invoke delegation, consult, or review skills
@@ -58,7 +62,9 @@ git status and diff with the pre-dispatch state, spot-checks the evidence, and
 decides which findings to accept.
 
 Send accepted repair findings to the exact implementer handle that produced or
-owns the fix. Keep the repair inside the frozen closure. After repair and
-verification, start a different new clean critic for the next independent
-gate; do not resume or recycle the prior critic. The parent alone updates the
-bug doc and declares the final verdict.
+owns the fix. Keep the repair inside the frozen closure, include the finding's
+evidence and contract anchor, keep any proposed repair direction advisory, and
+let the implementer rebut it with code evidence. After repair and verification,
+start a different new clean critic for the next independent gate; do not resume
+or recycle the prior critic. The parent alone updates the bug doc and declares
+the final verdict.

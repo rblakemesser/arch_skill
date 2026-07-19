@@ -73,16 +73,20 @@ automation.
 ## Non-Negotiables
 
 - Apply `../_shared/agent-orchestration-policy.md` before selecting this lane.
-  Connect external transport to a concrete benefit, but do not turn that
-  explanation into a permission checklist or ask for approval merely because
-  the process is external.
+  Apply `$prompt-authoring` to the actual populated worker brief before launch
+  and after a material reframe. Connect external transport to a concrete
+  benefit, but do not turn that explanation into a permission checklist or ask
+  for approval merely because the process is external.
 - On a Codex host, account for the real cost of launching another Codex
   process: separate processes can contend on shared Codex SQLite/WAL state and
   have caused host-wide stalls. This is a tradeoff, not a ban, approval gate,
   or fixed process-count limit.
-- Resolve each delegated task, success bar, work root, allowed write scope,
-  constraints, delegation mode, and exact user-named inputs before launching
-  child processes.
+- Derive each delegated task and success bar from the user's request, a
+  canonical plan or issue, local doctrine, or verified acceptance evidence.
+  Resolve the work root, allowed write scope, constraints, delegation mode,
+  and exact user-named inputs before launch. Keep the parent's diagnosis,
+  preferred implementation, and selected evidence path advisory unless the
+  authoritative source actually chose them.
 - Runtime must be known. Effort must also be known except that GPT-5.6 Sol
   defaults an omitted effort to `ultra` and Kimi K3 defaults it to `max`.
   Model or profile must be known except that a Codex lane with no named model
@@ -124,11 +128,14 @@ automation.
   not add a controller, detached monitor, separate worktree, or merge layer.
   The parent owns the fanout, concurrency budget, scope separation, and final
   integration.
-- Brief the child like a capable colleague walking in cold: include the task,
-  success criteria, work root, allowed write scope, constraints, exact
-  user-named inputs, the parent-owned topology and nested-fanout boundary, and
-  report contract. For resume prompts, state the new instruction or evidence
-  and what remains unchanged from the original delegation.
+- Brief the child like a capable colleague walking in cold: include the
+  authoritative outcome and success criteria, source evidence, work root,
+  allowed write scope, real constraints, exact user-named inputs, the
+  parent-owned topology and nested-fanout boundary, and report contract. Let
+  the child choose the evidence and implementation path inside that contract
+  and report when the brief's premise conflicts with repo truth. For resume
+  prompts, state the new instruction or evidence and what remains unchanged
+  from the original delegation.
 - Tell the child to read local instructions such as `AGENTS.md` before editing
   covered files.
 - In parallel groups, tell each child it is not alone in the codebase, must not
@@ -165,7 +172,10 @@ automation.
    Otherwise state the concrete benefit of the external lane.
 5. Identify the delegated task or parallel delegated tasks, success bar, work
    root, exact user-named inputs, allowed write scope, constraints, and
-   requested runtime/model/effort from the user's words.
+   requested runtime/model/effort from the user's words. Apply
+   `$prompt-authoring` to the populated brief: preserve source-backed authority,
+   mark useful parent conjecture as advisory, and leave the worker free to
+   reject it from repo evidence.
 6. Identify the delegation mode. Use `fresh-resumable` unless the caller
    explicitly asks for a stateless one-shot worker or to resume a previous
    delegate.
@@ -187,9 +197,11 @@ automation.
    caller. Record why this worker is external, whether it is a new clean
    session or an exact resume, its capabilities, its write scope, and the
    parent-owned return contract.
-2. **Shape the delegation.** State the concrete work, allowed write scope,
-   success bar, constraints, and exact user-named inputs such as paths, failing
-   commands, repro steps, or docs. Do not assume parent-chat inheritance.
+2. **Shape the delegation.** State the source-backed outcome, allowed write
+   scope, observable success bar, real constraints, verified evidence, and
+   exact user-named inputs such as paths, failing commands, repro steps, or
+   docs. Do not assume parent-chat inheritance or promote a parent diagnosis,
+   preferred fix, or selected file list into task authority.
 3. **Resolve execution.** Map the raw model phrase to
    `runtime=<claude|codex|agent|grok|kimi>`, `model=<runnable id>`, and
    `effort=<level-or-encoded-in-model>`.

@@ -57,6 +57,10 @@ architecture, and avoids kitchen-sink plans.
   role, transport, starting context, continuation, capabilities/isolation,
   topology, and return contract explicit without reducing the choice to a
   rigid dispatch form.
+- Before each first-pass dispatch and after any material reframe, apply
+  `$prompt-authoring` to the actual populated participant brief. On an
+  exact-participant resume, audit the new relay and instructions rather than
+  treating the fixed prompt shape as sufficient.
 - Resolve transport independently. Prefer a native child for a same-host
   participant when it can honor the requested capability. Use an external
   session when a different provider, load-bearing exact model/profile,
@@ -133,8 +137,10 @@ Read these references before dispatching participants:
 Then:
 
 1. Capture the raw user goal and whether one participant is adversarial.
-2. Build a faithful goal brief with the goal, hard constraints, desired output,
-   and exact user-named inputs, without adding the caller's theory or file map.
+2. Build a faithful goal brief with `$prompt-authoring`: include the goal, hard
+   constraints, desired output, and exact user-named inputs without adding the
+   caller's theory or file map. Audit the actual populated participant prompt,
+   not only the reusable shape.
 3. Resolve both participant provider/model/profile/effort choices exactly. Use
    the Codex `gpt-5.6-sol`/`ultra` preference defaults and Kimi's
    `kimi-code/k3`/`max` defaults, then ask one concise question if another

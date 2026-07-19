@@ -1468,6 +1468,16 @@ class SourceTagChecker(unittest.TestCase):
             self.assertEqual(cst.check_file(good), [])
             self.assertEqual(len(cst.check_file(bad)), 1)
 
+    def test_evidence_and_diagnosis_are_not_operational_authority(self):
+        with tempfile.TemporaryDirectory() as td:
+            for tag in ("critic evidence", "confirmed diagnosis"):
+                prompt = Path(td) / f"{tag.replace(' ', '-')}.md"
+                prompt.write_text(
+                    f"1. Apply the proposed repair. [source: {tag}]\n",
+                    encoding="utf-8",
+                )
+                self.assertEqual(len(cst.check_file(prompt)), 1, tag)
+
     def test_hard_boundary_bullets_require_source_tags_but_evidence_does_not(self):
         with tempfile.TemporaryDirectory() as td:
             good = Path(td) / "good.md"

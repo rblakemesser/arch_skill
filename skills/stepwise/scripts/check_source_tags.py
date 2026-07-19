@@ -11,8 +11,8 @@ from pathlib import Path
 STEP_RE = re.compile(r"^\s*\d+\.\s+")
 BULLET_RE = re.compile(r"^\s*-\s+")
 HEADING_RE = re.compile(r"^\s*##\s+(.+?)\s*$")
-SOURCE_RE = re.compile(
-    r"\[source:\s*(user|manifest|owner runbook|critic evidence|confirmed diagnosis)\]",
+AUTHORITY_RE = re.compile(
+    r"\[source:\s*(user|manifest|owner runbook)\]",
     re.IGNORECASE,
 )
 
@@ -30,14 +30,14 @@ def check_file(path: Path) -> list[str]:
         if heading:
             current_section = heading.group(1).strip().lower()
             continue
-        if STEP_RE.match(line) and not SOURCE_RE.search(line):
-            errors.append(f"{path}:{lineno}: numbered repair step lacks source tag")
+        if STEP_RE.match(line) and not AUTHORITY_RE.search(line):
+            errors.append(f"{path}:{lineno}: numbered repair step lacks authority tag")
         if (
             current_section == "hard boundaries"
             and BULLET_RE.match(line)
-            and not SOURCE_RE.search(line)
+            and not AUTHORITY_RE.search(line)
         ):
-            errors.append(f"{path}:{lineno}: hard boundary lacks source tag")
+            errors.append(f"{path}:{lineno}: hard boundary lacks authority tag")
     return errors
 
 

@@ -16,7 +16,9 @@ owns diagnosis and repair authorship after reading the critic's observation.
 
 The critic judges process adherence and artifact truth, not general quality.
 It does not review code style, suggest refactors, or critique content beyond
-what the step descriptor declared.
+what the step descriptor declared. A pass proves only the declared active
+checks; it is not a broad implementation, architecture, or quality review and
+must not be reported upstream as one.
 
 ## The five checks
 

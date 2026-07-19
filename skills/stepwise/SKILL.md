@@ -51,11 +51,13 @@ break.
 - Produce a Step Manifest and confirm it with the user before any step
   executes. Strictness tunes the gate's behavior; it never removes it.
 - Apply `../_shared/agent-orchestration-policy.md` at every dispatch.
-  Prefer clean native children for ordinary same-host workers and critics. Use
-  an external session when a concrete provider, exact model/profile, durable
-  lifecycle, worktree/process isolation, automation surface, structured
-  receipt, or another real benefit is worth the extra process and integration
-  cost. These examples are recognition aids, not an allowlist.
+  Apply `$prompt-authoring` to every actual populated first brief or materially
+  reframed follow-up. Prefer clean native children for ordinary same-host
+  workers and critics. Use an external session when a concrete provider, exact
+  model/profile, durable lifecycle, worktree/process isolation, automation
+  surface, structured receipt, or another real benefit is worth the extra
+  process and integration cost. These examples are recognition aids, not an
+  allowlist.
 - Every worker step starts as a new clean child. Diagnostic and repair messages
   resume that exact child so the worker keeps its own role history.
 - Every critic is a new clean, independent child. The critic observes and
@@ -83,10 +85,11 @@ break.
   upstream worker that owns the bad input. Downstream steps start new clean
   replacements after upstream repair; resuming downstream children would
   compound broken context.
-- Every hard boundary and operational instruction in a repair prompt carries a
-  source tag: user, manifest, owner runbook, critic evidence, or confirmed
-  diagnosis. Unsourced boundaries or instructions are invented and must be
-  removed.
+- Every hard boundary and operational instruction in a repair prompt carries
+  an authority tag: user, manifest, or owner runbook. Critic evidence and a
+  parent-confirmed diagnosis may travel only as non-binding, falsifiable
+  context; they cannot create a worker command. Unsourced boundaries or
+  instructions are invented and must be removed.
 - Learnings are consulted with applicability tests and surfaced in Stepwise's
   reasoning. They never appear as worker-facing doctrine. Workers act on owner
   doctrine, not on Stepwise process memory.
