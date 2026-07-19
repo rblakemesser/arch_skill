@@ -8,7 +8,7 @@ isolation, automation, or receipt benefit justifies the added process.
 
 For the external lane, use this reference to resolve what the user meant by
 "Claude", "Codex", "Cursor Agent", "Grok", "Kimi", "fable 5 high", "opus high",
-"gpt-5.6-sol xhigh", "luna xhigh", "terra high", "GPT56SOLXI", "fugu high",
+"gpt-5.6-sol ultra", "luna xhigh", "terra high", "GPT56SOLXI", "fugu high",
 "fugu-ultra xhigh", "composer-2.5-fast", "grok-4.5", "kimi k3", or similar phrasing,
 and to run the selected read-only consult subprocess.
 
@@ -68,7 +68,8 @@ Every external consult child needs three execution values:
   Fugu. An omitted model on a Codex lane resolves to `gpt-5.6-sol`; an omitted
   Kimi model resolves to `kimi-code/k3`.
 - `effort` - the reasoning effort level, `encoded-in-model` for Cursor Agent,
-  or Kimi K3's `max` model default when omitted
+  GPT-5.6 Sol's `ultra` preference default when omitted, or Kimi K3's `max`
+  model default when omitted
 
 If external transport has been selected and a required value is missing or
 ambiguous after applying the Codex and Kimi defaults, ask one consolidated
@@ -77,10 +78,10 @@ review. For Cursor Agent Composer, effort resolves to `encoded-in-model`; do
 not ask for a separate effort level.
 
 ```text
-I need the fresh consult runtime, effort, and model/profile outside the Codex
-and Kimi defaults when
-applicable before invoking an external model. The consult runs as a clean
-subprocess and can spend real model budget. What should I use?
+I need the fresh consult runtime, any non-default effort, and a model/profile
+outside the Codex and Kimi defaults when applicable before invoking an
+external model. The consult runs as a clean subprocess and can spend real
+model budget. What should I use?
 ```
 
 Add only the missing facts to the question when some values are already known.
@@ -120,9 +121,11 @@ Infer runtime only when the user's wording makes it unambiguous:
   selected and those values are load-bearing.
 
 The defaults are deliberately narrow: when the lane is Codex and no model or
-profile is named, use `gpt-5.6-sol`; when the lane is Kimi, use `kimi-code/k3`
-and default an omitted effort to `max`. Do not default the runtime itself, and
-do not invent defaults for Claude, Cursor Agent, Grok, or Fugu profiles.
+profile is named, use `gpt-5.6-sol`; when a Sol lane omits effort, use `ultra`
+with `effort_source=preference_default`; when the lane is Kimi, use
+`kimi-code/k3` and default an omitted effort to `max`. Do not default the
+runtime itself, and do not invent defaults for Claude, Cursor Agent, Grok,
+other Codex models, or Fugu profiles.
 
 ## Model Phrase Resolution
 
@@ -132,7 +135,9 @@ Treat model text as intent, not a loose alias:
   `gpt-5.6-sol`, `gpt-5.6-luna`, and `gpt-5.6-terra`; compact forms such as
   `GPT56LUNAXI` and `GPT56TERRAXI` preserve the named variant and imply
   `xhigh`. If a Codex lane names no model or profile, resolve it to
-  `gpt-5.6-sol` and report that the model came from the default.
+  `gpt-5.6-sol` and report that the model came from the default. If the
+  resulting Sol lane names no effort, resolve it to `ultra` and report
+  `effort_source=preference_default`.
 - Preserve model family and numeric version exactly. `gpt-5.6-terra` may normalize to
   `gpt-5.6-terra`; it must not become `gpt-5.6-sol`, `gpt-5.4`, or `gpt-5.5`. `fable 5` may normalize to
   `claude-fable-5`, and `opus 4.7` may normalize to `claude-opus-4-7`;
@@ -173,6 +178,7 @@ Always announce the raw-to-resolved mapping before execution:
 ```text
 Claude Fable 5 high -> runtime=claude, model=claude-fable-5, effort=high
 Claude Opus 4.7 xhigh -> runtime=claude, model=claude-opus-4-7, effort=xhigh
+Codex -> runtime=codex, model=gpt-5.6-sol, effort=ultra, model_source=default, effort_source=preference_default
 Codex high -> runtime=codex, model=gpt-5.6-sol, effort=high, model_source=default
 Luna xhigh -> runtime=codex, model=gpt-5.6-luna, effort=xhigh
 Terra high -> runtime=codex, model=gpt-5.6-terra, effort=high
@@ -198,7 +204,8 @@ visible output contract to verdict, evidence, session metadata, and directories.
 
 - Claude accepts `low`, `medium`, `high`, `xhigh`, and `max` via `--effort`.
 - For ordinary Codex model ids, pass effort as
-  `-c model_reasoning_effort='"<level>"'`.
+  `-c model_reasoning_effort='"<level>"'`. GPT-5.6 Sol uses `ultra` when the
+  effort is omitted; preserve any explicit supported effort instead.
 - For Fugu profiles, use `-p fugu` or `-p fugu-ultra`. Omit `-c` when using
   the profile default (`fugu` defaults to `high`; `fugu-ultra` defaults to
   `xhigh`). Add `-c model_reasoning_effort='"<level>"'` only when the user
@@ -215,9 +222,9 @@ visible output contract to verdict, evidence, session metadata, and directories.
 - For ordinary Codex model ids, confirm the selected model supports the
   requested effort when `codex debug models` is needed for model resolution.
   `codex debug models` does not prove whether local Fugu profiles exist.
-- Outside Kimi, if a required effort is missing or the selected model does not
-  support the requested effort, ask. Kimi alone defaults an omitted effort to
-  `max`.
+- Outside the Sol and Kimi defaults, if a required effort is missing or the
+  selected model does not support the requested effort, ask. Sol defaults an
+  omitted effort to `ultra`; Kimi defaults one to `max`.
 
 ## Transport-Neutral Consult Continuity
 

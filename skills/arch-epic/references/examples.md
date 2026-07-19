@@ -358,7 +358,7 @@ sub-plan 1 passes its critic gates.
 ### Explicit external-harness variant
 
 If the user instead says, "Use external harnesses: planner Claude Fable 5 high,
-implementation Codex gpt-5.6-sol xhigh, critic Codex gpt-5.6-sol xhigh," those
+implementation Codex gpt-5.6-sol ultra, critic Codex gpt-5.6-sol ultra," those
 provider/model choices are the concrete external benefit. The skill resolves
 and pins that role table, writes `auto_execution`, initializes
 `.arch_skill/arch-epic/auto/payments-migration/run-<ts>/`, and uses

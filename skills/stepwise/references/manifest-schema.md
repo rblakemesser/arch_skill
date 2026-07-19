@@ -203,7 +203,7 @@ The manifest is a read-then-think product, not a template.
 
 The user said: "Work in ../lessons_studio. Ramp up on track 3 section 3 and
 implement lesson 2 strictly according to the skill order, no fabrication.
-Default steps on Codex gpt-5.6-sol high, critic on Codex gpt-5.6-sol xhigh. Use
+Default steps on Codex gpt-5.6-sol high, critic on Codex gpt-5.6-sol ultra. Use
 Claude Fable 5 for copywriting steps."
 
 Assume the active host cannot confirm those exact model/effort choices; the
@@ -235,7 +235,7 @@ doctrine, Stepwise drafts an abbreviated manifest:
       "continuation": "new-each-verdict",
       "runtime": "codex",
       "model": "gpt-5.6-sol",
-      "effort": "xhigh",
+      "effort": "ultra",
       "source": "user prompt"
     }
   },
@@ -282,7 +282,7 @@ doctrine, Stepwise drafts an abbreviated manifest:
         "continuation": "new-each-verdict",
         "runtime": "codex",
         "model": "gpt-5.6-sol",
-        "effort": "xhigh",
+        "effort": "ultra",
         "source": "execution_defaults.critic",
         "reason": "No critic override was provided."
       },

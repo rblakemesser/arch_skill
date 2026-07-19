@@ -20,8 +20,9 @@ from typing import Any
 
 
 VALID_RUNTIMES = {"agent", "claude", "codex", "grok", "kimi"}
-VALID_EFFORTS = {"low", "medium", "high", "xhigh", "max"}
+VALID_EFFORTS = {"low", "medium", "high", "xhigh", "max", "ultra"}
 PREFERRED_CODEX_MODEL = "gpt-5.6-sol"
+PREFERRED_CODEX_EFFORT = "ultra"
 PREFERRED_GROK_MODEL = "grok-4.5"
 PREFERRED_KIMI_MODEL = "kimi-code/k3"
 KIMI_DEFAULT_EFFORT = "max"
@@ -59,6 +60,9 @@ _FUGU_PROFILE_DEFAULT_EFFORTS = {
     "fugu": "high",
     "fugu-ultra": "xhigh",
 }
+_CODEX_ULTRA_MODELS = {"gpt-5.6-sol", "gpt-5.6-terra"}
+_CLAUDE_EFFORTS = {"low", "medium", "high", "xhigh", "max"}
+_KIMI_EFFORTS = {"low", "medium", "high", "xhigh", "max"}
 _CLAUDE_FAMILY_RE = re.compile(
     r"\b(?P<family>fable|opus|sonnet|haiku)"
     r"(?:[\s_-]*(?P<version>\d+(?:[\.-]\d+)*))?\b",
@@ -280,6 +284,8 @@ def resolve_execution_phrase(
     - "Claude Opus 4.7 xhigh" -> claude / claude-opus-4-7 / xhigh
     - "codex gpt 5.4 mini high" -> codex / gpt-5.4-mini / high
     - "GPT56SOLXI" -> codex / gpt-5.6-sol / xhigh
+    - "codex" -> codex / gpt-5.6-sol / ultra
+    - "gpt-5.6-sol" -> codex / gpt-5.6-sol / ultra
     - "luna xhigh" -> codex / gpt-5.6-luna / xhigh
     - "GPT56TERRAXI" -> codex / gpt-5.6-terra / xhigh
     - "codex high" -> codex / gpt-5.6-sol / high
@@ -311,17 +317,6 @@ def resolve_execution_phrase(
     fugu_candidate = (
         _extract_fugu_model_candidate(lowered) if runtime == "codex" else None
     )
-    effort_source = "explicit"
-    if effort is None and fugu_candidate is not None:
-        effort = _FUGU_PROFILE_DEFAULT_EFFORTS[fugu_candidate]
-        effort_source = "profile_default"
-    if effort is None and runtime == "kimi":
-        effort = KIMI_DEFAULT_EFFORT
-        effort_source = "model_default"
-    if effort is None and runtime != "agent":
-        raise ModelResolutionError(
-            f"could not infer effort from {raw!r}; use one of {sorted(VALID_EFFORTS)}"
-        )
 
     codex_profile = ""
     model_source = "explicit"
@@ -333,15 +328,44 @@ def resolve_execution_phrase(
         )
         if fugu_candidate is not None:
             codex_profile = model
-        _validate_codex_effort(model, effort or "", raw)
     elif runtime == "agent":
         model = _resolve_agent_model(raw, agent_models=agent_models)
-        effort = f"encoded-in-model:{effort}" if effort else "encoded-in-model"
     elif runtime == "grok":
         model, model_source = _resolve_grok_model(raw, grok_models=grok_models)
-        _validate_grok_effort(model, effort or "", raw)
     else:
         model, model_source = _resolve_kimi_model(raw, kimi_models=kimi_models)
+
+    effort_source = "explicit"
+    if effort is None and fugu_candidate is not None:
+        effort = _FUGU_PROFILE_DEFAULT_EFFORTS[fugu_candidate]
+        effort_source = "profile_default"
+    if (
+        effort is None
+        and runtime == "codex"
+        and model == PREFERRED_CODEX_MODEL
+    ):
+        effort = PREFERRED_CODEX_EFFORT
+        effort_source = "preference_default"
+    if effort is None and runtime == "kimi":
+        effort = KIMI_DEFAULT_EFFORT
+        effort_source = "model_default"
+    if effort is None and runtime != "agent":
+        raise ModelResolutionError(
+            f"could not infer effort from {raw!r}; name an effort supported "
+            "by the selected runtime and model"
+        )
+
+    if runtime == "claude":
+        _validate_claude_effort(effort or "", raw)
+    elif runtime == "codex":
+        _validate_codex_effort(model, effort or "", raw)
+    elif runtime == "agent":
+        _validate_agent_effort(effort or "", raw)
+        effort = f"encoded-in-model:{effort}" if effort else "encoded-in-model"
+    elif runtime == "grok":
+        _validate_grok_effort(model, effort or "", raw)
+    else:
+        _validate_kimi_effort(effort or "", raw)
 
     return ResolvedExecution(
         runtime=runtime,
@@ -454,9 +478,14 @@ def resolve_role_execution_policy(
 
 def _extract_effort(lowered: str) -> str | None:
     normalized = re.sub(
+        r"\bfugu[\s_-]*ultra\b",
+        " fugu_profile ",
+        lowered,
+    )
+    normalized = re.sub(
         r"\b(?:extra[\s_-]*high|x[\s_-]*high)\b",
         " xhigh ",
-        lowered,
+        normalized,
     )
     normalized = re.sub(
         rf"\b(?:gpt|gbt)[\s_-]*(?:55|56[\s_-]*(?:{_CODEX_56_VARIANT_PATTERN}))"
@@ -649,11 +678,41 @@ def _extract_fugu_model_candidate(lowered: str) -> str | None:
 
 def _validate_codex_effort(model: str, effort: str, raw: str) -> None:
     allowed = _FUGU_EFFORTS.get(model)
-    if allowed is None or effort in allowed:
+    if allowed is not None and effort not in allowed:
+        allowed_text = ", ".join(sorted(allowed))
+        raise ModelResolutionError(
+            f"{raw!r} uses effort {effort!r}, but {model!r} supports only: {allowed_text}"
+        )
+    if effort != "ultra" or model in _CODEX_ULTRA_MODELS:
         return
-    allowed_text = ", ".join(sorted(allowed))
     raise ModelResolutionError(
-        f"{raw!r} uses effort {effort!r}, but {model!r} supports only: {allowed_text}"
+        f"{raw!r} uses effort 'ultra', but {model!r} does not advertise ultra"
+    )
+
+
+def _validate_claude_effort(effort: str, raw: str) -> None:
+    if effort in _CLAUDE_EFFORTS:
+        return
+    allowed_text = ", ".join(sorted(_CLAUDE_EFFORTS))
+    raise ModelResolutionError(
+        f"{raw!r} uses effort {effort!r}, but Claude supports only: {allowed_text}"
+    )
+
+
+def _validate_agent_effort(effort: str, raw: str) -> None:
+    if effort != "ultra":
+        return
+    raise ModelResolutionError(
+        f"{raw!r} requests ultra, but Cursor Agent effort is encoded in the model id"
+    )
+
+
+def _validate_kimi_effort(effort: str, raw: str) -> None:
+    if effort in _KIMI_EFFORTS:
+        return
+    allowed_text = ", ".join(sorted(_KIMI_EFFORTS))
+    raise ModelResolutionError(
+        f"{raw!r} uses effort {effort!r}, but Kimi supports only: {allowed_text}"
     )
 
 

@@ -36,7 +36,7 @@ raw_goal_sha256: <hex digest of the raw_goal string>
 sub_plans_approved: false
 critic_runtime: null | claude | codex | grok | kimi  # legacy/external critic only
 critic_model: null | <resolved external CLI model, e.g. claude-fable-5>
-critic_effort: null | <low | medium | high | xhigh | max>
+critic_effort: null | <low | medium | high | xhigh | max | ultra>
 models_sha256: null | <hex digest of external {runtime, model, effort} tuple>
 auto_execution: null | <explicit external-harness policy block>
 ---
@@ -69,9 +69,10 @@ Frontmatter rules:
   critic leaves them null and records its clean child handle in the
   Orchestration Log. For an external critic, values are user-supplied per
   `model-and-effort.md`, except an omitted Codex model defaults to
-  `gpt-5.6-sol` and Kimi defaults to `kimi-code/k3` at `max`; store the resolved
-  runnable identifier and default provenance, not raw shorthand. Natural Grok
-  wording resolves to `grok-4.5`; explicit legacy Grok ids remain exact.
+  `gpt-5.6-sol`, an omitted effort on that Sol role defaults to `ultra`, and
+  Kimi defaults to `kimi-code/k3` at `max`; store the resolved runnable
+  identifier and default provenance, not raw shorthand. Natural Grok wording
+  resolves to `grok-4.5`; explicit legacy Grok ids remain exact.
   During same-session `auto-plan` these fields may stay null because no critic
   runs. External-harness critics use `auto_execution.roles.critic`.
 - `models_sha256` is computed over the runtime/model/effort tuple when
@@ -98,23 +99,23 @@ auto_execution:
   auto_run_dir: .arch_skill/arch-epic/auto/<epic-slug>/run-<ts>
   source_quotes:
     epic_planner: claude fable 5 high
-    implementation_worker: codex gpt-5.6-sol xhigh
-    critic: codex gpt-5.6-sol xhigh
+    implementation_worker: codex gpt-5.6-sol ultra
+    critic: codex gpt-5.6-sol ultra
   roles:
     epic_planner:
       runtime: claude
       model: claude-fable-5
-      effort: xhigh
+      effort: high
       source: user_table
     implementation_worker:
       runtime: codex
       model: gpt-5.6-sol
-      effort: xhigh
+      effort: ultra
       source: user_table
     critic:
       runtime: codex
       model: gpt-5.6-sol
-      effort: xhigh
+      effort: ultra
       source: user_table
   execution_sha256: <hex digest of the normalized policy>
 ```

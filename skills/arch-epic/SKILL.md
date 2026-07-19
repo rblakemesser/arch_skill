@@ -186,10 +186,11 @@ Must happen every run:
   explicit external harness, the user supplies role execution for
   `epic_planner`, `implementation_worker`, and `critic`; ask once for missing
   load-bearing values. An omitted model on an external Codex role defaults to
-  `gpt-5.6-sol`. An external Kimi role defaults to `kimi-code/k3` and the
-  model-default `max` effort; other runtimes and efforts never silently
-  default. Natural Grok wording resolves to `grok-4.5`, while explicitly named
-  legacy Grok ids remain exact. Existing external
+  `gpt-5.6-sol`, and an omitted effort on that Sol role defaults to `ultra`.
+  An external Kimi role defaults to `kimi-code/k3` and the model-default `max`
+  effort; other runtimes, Codex models, and efforts never silently default.
+  Natural Grok wording resolves to `grok-4.5`, while explicitly named legacy
+  Grok ids remain exact. Existing external
   policies with legacy `repair_worker` values may load, but ordinary critic
   failures resume the exact original planner or implementation worker.
   Same-session `auto-plan` needs no role table. Same-session

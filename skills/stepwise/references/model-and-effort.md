@@ -19,11 +19,12 @@ fully external worker-and-critic policy has six values:
 - `execution_defaults.critic.model` - external critic model or profile
 - `execution_defaults.critic.effort` - external critic reasoning effort
 
-External runtime and normally effort come from the user or target doctrine. Models do
-too, except that an external Codex worker or critic with no named model uses
-`gpt-5.6-sol`; an external Kimi lane uses `kimi-code/k3` and defaults an omitted
-effort to `max`. When an external Codex lane uses Fugu, its execution block also
-stores `codex_profile` as `fugu` or `fugu-ultra`.
+External runtime and normally effort come from the user or target doctrine.
+Models do too, except that an external Codex worker or critic with no named
+model uses `gpt-5.6-sol`; that Sol lane uses `ultra` when effort is omitted. An
+external Kimi lane uses `kimi-code/k3` and defaults an omitted effort to `max`.
+When an external Codex lane uses Fugu, its execution block also stores
+`codex_profile` as `fugu` or `fugu-ultra`.
 
 The manifest may contain per-step transport and external-execution overrides
 resolved from explicit user preferences or hard target-repo doctrine. See
@@ -34,8 +35,9 @@ resolved from explicit user preferences or hard target-repo doctrine. See
 Different external work deserves different price points. A lesson-authoring
 run may want strong worker steps and a strong critic. A many-step drill may want
 cheap workers and a stronger critic. The right runtime and effort baseline is a
-user judgment. The single model exception is the established Codex fallback:
-omitted means `gpt-5.6-sol`.
+user judgment. The narrow preference exceptions are the established Codex
+fallback and its Sol effort default: omitted model means `gpt-5.6-sol`, and
+omitted effort on that Sol lane means `ultra`.
 
 Ask only after the orchestrator has selected an external lane. Guessing wrong
 is expensive: wrong runtime or model wastes money or quality; wrong effort
@@ -48,14 +50,14 @@ provider/model choice load-bearing. Honor it natively only when the active host
 exposes and confirms that choice; otherwise the external adapter supplies the
 requested capability. Any of these is clear:
 
-- "use Claude Fable 5 high for steps and Codex gpt-5.6-sol xhigh for critic"
+- "use Claude Fable 5 high for steps and Codex gpt-5.6-sol ultra for critic"
 - "use Codex Fugu high for steps and Codex Fugu Ultra xhigh for critic"
 - "Codex gpt-5.6-sol high everywhere" (one value reused for all defaults)
 - "Codex luna high for steps and terra xhigh for critic"
 - "Codex high everywhere" (`gpt-5.6-sol` is the omitted model default)
-- "Grok Build high for steps and Codex gpt-5.6-sol xhigh for critic"
+- "Grok Build high for steps and Codex gpt-5.6-sol ultra for critic"
 - "Kimi K3 high for steps and Kimi max for critic"
-- "steps on gpt-5.6-sol high, critic on gpt-5.6-sol xhigh"
+- "steps on gpt-5.6-sol high, critic on gpt-5.6-sol ultra"
 - "default to Codex gpt-5.6-sol high, but use Claude Fable 5 for copywriting"
 
 None of these is magic. The intake reads the phrase, maps the baseline into
@@ -85,11 +87,12 @@ This is reasoning, not a lookup table:
   `gpt-5.6-sol`, `gpt-5.6-luna`, and `gpt-5.6-terra`. Compact forms such as
   `GPT56LUNAXI` and `GPT56TERRAXI` preserve the variant and imply `xhigh`.
   When a Codex lane names no model or profile, use `gpt-5.6-sol` and report
-  `model_source=default`. Inspect the installed CLI's model list when
-  needed (`codex debug models`) and choose the available identifier with the
-  same family and exact version. For example, "gpt-5.6-sol" resolves to
-  `gpt-5.6-sol` if that exact model appears, and "gpt 5.3 codex" resolves to
-  `gpt-5.3-codex`. Fugu is different: resolve `fugu` and `fugu-ultra` as
+  `model_source=default`. When that Sol lane names no effort, use `ultra` and
+  report `effort_source=preference_default`. Inspect the installed CLI's model
+  list when needed (`codex debug models`) and choose the available identifier
+  with the same family and exact version. For example, "gpt-5.6-sol" resolves
+  to `gpt-5.6-sol` if that exact model appears, and "gpt 5.3 codex" resolves
+  to `gpt-5.3-codex`. Fugu is different: resolve `fugu` and `fugu-ultra` as
   Codex profiles, preserve those profile names exactly, and launch them with
   `-p`.
 - For Grok, natural `grok`, `grok cli`, and `grok build` wording resolves to
@@ -119,6 +122,9 @@ Always announce the raw-to-resolved mapping before execution, for example:
 effort=high` or `Grok Build high -> runtime=grok, model=grok-4.5,
 effort=high`. `Kimi -> runtime=kimi, model=kimi-code/k3, effort=max,
 effort_source=model_default` records the K3 default explicitly.
+`Codex -> runtime=codex, model=gpt-5.6-sol, effort=ultra,
+model_source=default, effort_source=preference_default` records the Sol
+preference defaults.
 `Fugu Ultra xhigh -> runtime=codex, model=fugu-ultra,
 codex_profile=fugu-ultra, effort=xhigh` is the same kind of exact Codex
 mapping.
@@ -144,10 +150,11 @@ exact-version preservation and fail-loud behavior.
 ## Asking when missing
 
 Do not ask for runtime/model/effort merely to run a capable same-host native
-child. After an external lane has been selected, apply the omitted-Codex-model
-default and Kimi's `kimi-code/k3`/`max` defaults; if a load-bearing external value is still unspecified and cannot be
-inferred unambiguously, ask ONE consolidated question listing what is missing
-and what it controls:
+child. After an external lane has been selected, apply the Codex
+`gpt-5.6-sol`/`ultra` preference defaults and Kimi's
+`kimi-code/k3`/`max` defaults; if a load-bearing external value is still
+unspecified and cannot be inferred unambiguously, ask ONE consolidated
+question listing what is missing and what it controls:
 
 ```
 I need the external execution choices before dispatching these roles.
@@ -163,10 +170,10 @@ I need the external execution choices before dispatching these roles.
 What should I use?
 ```
 
-Do not ask six separate questions. Do not invent runtime or effort defaults,
-or model defaults beyond the two documented exceptions. Ask and wait. If native children can do
-the job and no external benefit was requested or discovered, proceed natively
-instead of manufacturing this question.
+Do not ask six separate questions. Do not invent runtime, model, or effort
+defaults beyond the documented Sol and Kimi exceptions. Ask and wait. If
+native children can do the job and no external benefit was requested or
+discovered, proceed natively instead of manufacturing this question.
 
 If the user answers with one complete value ("Codex gpt-5.6-sol medium
 everywhere"), apply it to both worker and critic defaults and announce that

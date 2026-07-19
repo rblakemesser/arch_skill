@@ -24,7 +24,7 @@ boundary, or lower the plan's quality bar to finish faster.
 1. Intake: plan path, boundary (whole plan default), per-role transport and
    starting context, any external runtime/model/effort, max parallelism, wave
    cap, and cold-verifier toggle. An external Codex worker with no named model
-   uses `gpt-5.6-sol`.
+   uses `gpt-5.6-sol`; that Sol worker uses `ultra` when effort is omitted.
 2. Plan read and extraction in context; capture the start commit and inherited
    worktree state before writing the conductor log.
 3. Write the log, recording the start commit, then apply and record the

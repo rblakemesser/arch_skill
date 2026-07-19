@@ -83,10 +83,10 @@ automation.
 - Resolve each delegated task, success bar, work root, allowed write scope,
   constraints, delegation mode, and exact user-named inputs before launching
   child processes.
-- Runtime and effort must be known except that Kimi K3 defaults an omitted
-  effort to `max`. Model or profile must also be known except that a Codex lane
-  with no named model defaults to `gpt-5.6-sol` and a Kimi lane defaults to
-  `kimi-code/k3`. Codex runs
+- Runtime must be known. Effort must also be known except that GPT-5.6 Sol
+  defaults an omitted effort to `ultra` and Kimi K3 defaults it to `max`.
+  Model or profile must be known except that a Codex lane with no named model
+  defaults to `gpt-5.6-sol` and a Kimi lane defaults to `kimi-code/k3`. Codex runs
   GPT/GBT/OpenAI model ids and Fugu profiles, Claude Code runs supported
   Claude models, Cursor Agent runs `composer-2.5-fast`, Grok CLI naturally
   resolves to `grok-4.5`, and Kimi Code runs `kimi-code/k3`. Explicit legacy
@@ -169,11 +169,12 @@ automation.
 6. Identify the delegation mode. Use `fresh-resumable` unless the caller
    explicitly asks for a stateless one-shot worker or to resume a previous
    delegate.
-7. Apply the `gpt-5.6-sol` default when the external lane is Codex and no model
-   was named. For Kimi, apply `kimi-code/k3` and the model-default `max` effort
-   when omitted. If another required execution value, write scope, or resume
-   handle is incomplete, ask one question that names exactly what is missing
-   and what it controls.
+7. When an external Codex lane omits its model, apply `gpt-5.6-sol`; when that
+   Sol lane also omits effort, apply the preference default `ultra`. For Kimi,
+   apply `kimi-code/k3` and the model-default `max` effort when omitted. If
+   another required execution value, write scope, or resume handle is
+   incomplete, ask one question that names exactly what is missing and what it
+   controls.
 8. Confirm the selected CLI exists with `command -v codex`, `command -v
    claude`, `command -v agent`, `command -v grok`, or `command -v kimi`.
 9. Create the run directory or group directory and write each delegation prompt

@@ -94,9 +94,9 @@ add a universal runner, controller, state machine, or harness for this skill.
   and Fugu profiles; Claude Code runs supported Claude models; Cursor Agent
   runs `composer-2.5-fast`; natural Grok wording resolves to `grok-4.5`; Kimi
   runs `kimi-code/k3` and defaults an omitted effort to `max`. An omitted
-  external Codex model defaults to `gpt-5.6-sol`. Preserve explicitly named
-  legacy Grok ids exactly. Never silently substitute a nearby model or cross
-  runtimes.
+  external Codex model defaults to `gpt-5.6-sol`, and an omitted effort on
+  that Sol lane defaults to `ultra`. Preserve explicitly named legacy Grok ids
+  exactly. Never silently substitute a nearby model or cross runtimes.
 - Use bounded continuity by default: turn 1 is a new clean reviewer, turns 2
   and 3 resume the exact healthy same-line reviewer, and turn 4 starts clean
   unless the user explicitly asks to continue. Strictness is an acceptance bar,

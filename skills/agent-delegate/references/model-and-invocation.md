@@ -7,7 +7,7 @@ capture; it does not decide the worker's role, decompose the task, or integrate
 the result.
 
 Use it to resolve what the user meant by "Claude", "Codex",
-"Cursor Agent", "Grok", "Kimi", "fable 5 high", "opus high", "gpt-5.6-sol xhigh",
+"Cursor Agent", "Grok", "Kimi", "fable 5 high", "opus high", "gpt-5.6-sol ultra",
 "luna xhigh", "terra high", "fugu high", "fugu-ultra xhigh",
 "composer-2.5-fast", "grok-4.5", "kimi k3", or
 similar phrasing, and to run the
@@ -37,7 +37,8 @@ Every delegation child needs:
   An omitted model on a Codex lane resolves to `gpt-5.6-sol`; an omitted model
   on a Kimi lane resolves to `kimi-code/k3`.
 - `effort` - the reasoning effort level, or the previous session effort when a
-  resume intentionally reuses it. Kimi K3 defaults an omitted effort to `max`.
+  resume intentionally reuses it. GPT-5.6 Sol defaults an omitted effort to
+  `ultra`; Kimi K3 defaults one to `max`.
 
 Resume mode also needs either:
 
@@ -47,14 +48,15 @@ Resume mode also needs either:
 - `run_dir` - a previous `agent-delegate` run directory containing
   `session_id.txt` and `execution.json`
 
-If any required value is missing or ambiguous after applying the Codex model
-default, ask one consolidated question before invoking:
+If any required value is missing or ambiguous after applying the Codex
+model/Sol-effort defaults and the Kimi defaults, ask one consolidated question
+before invoking:
 
 ```text
-I need the delegate runtime, effort, non-Codex model/profile when applicable,
-and resume handle before invoking an external agent. The delegate runs as a
-foreground subprocess, can edit the shared worktree, and can spend real model
-budget. What should I use?
+I need the delegate runtime, any non-default effort, a model/profile outside
+the Codex and Kimi defaults when applicable, and the resume handle before
+invoking an external agent. The delegate runs as a foreground subprocess, can
+edit the shared worktree, and can spend real model budget. What should I use?
 ```
 
 Add only the missing facts to the question when some values are already known.
@@ -118,14 +120,17 @@ Infer runtime only when the user's wording makes it unambiguous:
 - If the user names only an effort level, such as "xhigh", ask for runtime.
   If the answer is Codex and still omits a model, use `gpt-5.6-sol`.
 - If the user says only "delegate this" or "have another agent do this", ask
-  for runtime and effort; ask for a model/profile only when the selected lane
-  is neither Codex nor Kimi. Omitted Kimi effort is the deliberate `max`
-  model default and does not require a question.
+  for runtime; ask for effort or a model/profile only when the selected lane
+  falls outside the Sol and Kimi defaults. Omitted Sol effort is the deliberate
+  `ultra` preference default; omitted Kimi effort is the deliberate `max`
+  model default.
 
 The defaults are deliberately narrow: when the lane is Codex and no model or
-profile is named, use `gpt-5.6-sol`; when the lane is Kimi, use `kimi-code/k3`
-and default an omitted effort to `max`. Do not default the runtime itself, and
-do not invent defaults for Claude, Cursor Agent, Grok, or Fugu profiles.
+profile is named, use `gpt-5.6-sol`; when a Sol lane omits effort, use `ultra`
+with `effort_source=preference_default`; when the lane is Kimi, use
+`kimi-code/k3` and default an omitted effort to `max`. Do not default the
+runtime itself, and do not invent defaults for Claude, Cursor Agent, Grok,
+other Codex models, or Fugu profiles.
 
 ## Model Phrase Resolution
 
@@ -135,7 +140,9 @@ Treat model text as intent, not a loose alias:
   `gpt-5.6-sol`, `gpt-5.6-luna`, and `gpt-5.6-terra`; compact forms such as
   `GPT56LUNAXI` and `GPT56TERRAXI` preserve the named variant and imply
   `xhigh`. If a Codex lane names no model or profile, resolve it to
-  `gpt-5.6-sol` and report that the model came from the default.
+  `gpt-5.6-sol` and report that the model came from the default. If the
+  resulting Sol lane names no effort, resolve it to `ultra` and report
+  `effort_source=preference_default`.
 - Preserve model family and numeric version exactly. `gpt-5.6-luna` may normalize to
   `gpt-5.6-luna`; it must not become `gpt-5.6-sol`, `gpt-5.4`, or `gpt-5.5`. `fable 5` may normalize to
   `claude-fable-5`, and `opus 4.7` may normalize to `claude-opus-4-7`;
@@ -177,6 +184,7 @@ Always announce the raw-to-resolved mapping before execution:
 ```text
 Claude Fable 5 high -> runtime=claude, model=claude-fable-5, effort=high
 Claude Opus 4.7 xhigh -> runtime=claude, model=claude-opus-4-7, effort=xhigh
+Codex -> runtime=codex, model=gpt-5.6-sol, effort=ultra, model_source=default, effort_source=preference_default
 Codex high -> runtime=codex, model=gpt-5.6-sol, effort=high, model_source=default
 Luna xhigh -> runtime=codex, model=gpt-5.6-luna, effort=xhigh
 Terra high -> runtime=codex, model=gpt-5.6-terra, effort=high
@@ -203,7 +211,8 @@ verification, blockers, session metadata, and run directories.
 
 - Claude accepts `low`, `medium`, `high`, `xhigh`, and `max` via `--effort`.
 - For ordinary Codex model ids, pass effort as
-  `-c model_reasoning_effort='"<level>"'`.
+  `-c model_reasoning_effort='"<level>"'`. GPT-5.6 Sol uses `ultra` when the
+  effort is omitted; preserve any explicit supported effort instead.
 - For Fugu profiles, use `-p fugu` or `-p fugu-ultra`. Omit `-c` when using
   the profile default (`fugu` defaults to `high`; `fugu-ultra` defaults to
   `xhigh`). Add `-c model_reasoning_effort='"<level>"'` only when the user
@@ -223,8 +232,9 @@ verification, blockers, session metadata, and run directories.
 - For ordinary Codex model ids, confirm the selected model supports the
   requested effort when `codex debug models` is needed for model resolution.
   `codex debug models` does not prove whether local Fugu profiles exist.
-- Outside Kimi, if a required effort is missing or the selected model does not
-  support it, ask. Kimi alone defaults an omitted effort to `max`.
+- Outside the Sol and Kimi defaults, if a required effort is missing or the
+  selected model does not support it, ask. Sol defaults an omitted effort to
+  `ultra`; Kimi defaults one to `max`.
 - A caller rule like "copywriting always xhigh" is execution intent from the
   caller. Apply it only to the delegated turn it clearly controls; do not add a
   built-in task taxonomy inside this skill.

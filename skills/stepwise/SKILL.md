@@ -100,9 +100,10 @@ break.
   external lane, base runtime and normally effort are supplied by the user or target
   doctrine for worker and critic independently. Models are also supplied
   except that an external Codex lane with no named model defaults to
-  `gpt-5.6-sol`; Kimi defaults to `kimi-code/k3` and an omitted effort to `max`.
-  Natural Grok wording resolves to `grok-4.5`, while explicit legacy Grok ids
-  stay exact. Ask once only for missing load-bearing external values.
+  `gpt-5.6-sol`, and that Sol lane defaults an omitted effort to `ultra`; Kimi
+  defaults to `kimi-code/k3` and an omitted effort to `max`. Natural Grok
+  wording resolves to `grok-4.5`, while explicit legacy Grok ids stay exact.
+  Ask once only for missing load-bearing external values.
 - Optional execution preferences are interpreted after the Step Manifest is
   drafted. A phrase like "copywriting steps use Claude Fable 5" is a routing
   preference to resolve against real steps, not a built-in category.

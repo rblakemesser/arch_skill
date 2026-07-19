@@ -59,15 +59,16 @@ prompt rule, and have the conductor compare repository state before and after.
 Resolve these values only when an external lane was selected. The user supplies
 worker runtime and normally effort plus a model/profile outside the Codex and Kimi
 defaults. When the selected external lane is Codex and the model is omitted,
-use `gpt-5.6-sol`. When it is Kimi, use `kimi-code/k3` and default omitted effort
-to `max`. For Codex, accept explicit `sol`, `luna`, and `terra` as
-`gpt-5.6-sol`, `gpt-5.6-luna`, and `gpt-5.6-terra`. Ask one consolidated
-question for other missing execution values. The intended fleet is "smart but
-not the smartest" — fast, cheap implementation models — while the conductor
-runs on the expensive model. Announce the raw-to-resolved model mapping before
-the first launch, per agent-delegate's resolution doctrine. Do not silently
-change runtime, model, or effort mid-run; if a worker model is clearly failing
-the work, that is a user decision, not a silent substitution.
+use `gpt-5.6-sol`; when that Sol lane also omits effort, use `ultra`. When it
+is Kimi, use `kimi-code/k3` and default omitted effort to `max`. For Codex,
+accept explicit `sol`, `luna`, and `terra` as `gpt-5.6-sol`,
+`gpt-5.6-luna`, and `gpt-5.6-terra`. Ask one consolidated question for other
+missing execution values. The intended fleet is "smart but not the smartest"
+— fast, cheap implementation models — while the conductor runs on the
+expensive model. Announce the raw-to-resolved model mapping before the first
+launch, per agent-delegate's resolution doctrine. Do not silently change
+runtime, model, or effort mid-run; if a worker model is clearly failing the
+work, that is a user decision, not a silent substitution.
 
 Natural `grok`, `grok cli`, or `grok build` wording resolves to `grok-4.5`;
 explicit legacy `grok-*` ids remain exact. A Kimi worker inherits

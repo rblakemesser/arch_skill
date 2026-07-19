@@ -20,7 +20,7 @@ frontmatter still supports an external critic execution block:
 
 - `critic_runtime`: `claude`, `codex`, `grok`, or `kimi`
 - `critic_model`: runnable CLI model identifier
-- `critic_effort`: `low | medium | high | xhigh | max`
+- `critic_effort`: `low | medium | high | xhigh | max | ultra`
 
 These values live in the epic doc frontmatter for compatibility with existing
 epic docs. They may remain null for a native critic or while an explicit
@@ -41,8 +41,8 @@ Example table:
 
 ```text
 epic_planner: claude fable 5 high
-implementation_worker: codex gpt-5.6-sol xhigh
-critic: codex gpt-5.6-sol xhigh
+implementation_worker: codex gpt-5.6-sol ultra
+critic: codex gpt-5.6-sol ultra
 poll_seconds: 180
 quiet_floor_seconds: 900
 stuck_floor_seconds: 1800
@@ -77,7 +77,8 @@ the same doctrine used by Stepwise and fresh-consult:
 - preserve model family and numeric version exactly
 - infer runtime only from unambiguous family evidence
 - accept `sol`, `luna`, and `terra` as the exact Codex 5.6 variants and use
-  `gpt-5.6-sol` when a Codex role omits its model
+  `gpt-5.6-sol` when a Codex role omits its model; use `ultra` when that Sol
+  role also omits effort
 - inspect `codex debug models` when ordinary Codex model availability matters
 - resolve `fugu` and `fugu-ultra` as Codex profiles, not model-list ids
 - inspect `grok models` when Grok model availability matters
@@ -102,13 +103,13 @@ that deliberate value selects the external harness. They are valid when they
 include a role:
 
 - "planner on Claude Fable 5 high"
-- "implementation worker on Codex gpt-5.6-sol xhigh"
+- "implementation worker on Codex gpt-5.6-sol ultra"
 - "implementation worker on Luna xhigh"
 - "critic on Terra high"
 - "implementation worker on Codex Fugu Ultra xhigh"
 - "planner on Grok Build high"
 - "implementation worker on Kimi K3 max"
-- "critics on gpt-5.6-sol xhigh"
+- "critics on gpt-5.6-sol ultra"
 - "codex gpt-5.6-sol high everywhere"
 
 If the user gives one complete "everywhere" value, the orchestrator may fill
@@ -122,7 +123,9 @@ Treat model text as intent, not a loose alias:
 - `sol`, `luna`, and `terra` normalize to `gpt-5.6-sol`, `gpt-5.6-luna`, and
   `gpt-5.6-terra`. Compact forms such as `GPT56LUNAXI` and `GPT56TERRAXI`
   preserve the named variant and imply `xhigh`. A Codex role with no model or
-  profile uses `gpt-5.6-sol`, reported with `model_source=default`.
+  profile uses `gpt-5.6-sol`, reported with `model_source=default`. If that Sol
+  role also omits effort, use `ultra` and report
+  `effort_source=preference_default`.
 - An explicit `gpt-5.6-luna` may normalize to `gpt-5.6-luna`; it must not
   become `gpt-5.6-sol`, `gpt-5.4`, or `gpt-5.5`.
 - `gpt 5.3 codex` may normalize to `gpt-5.3-codex`.
@@ -176,7 +179,8 @@ fallback. Kimi critics receive the verdict schema inline in their prompt.
 Always print the raw-to-resolved mapping before execution:
 
 ```text
-critic: "codex gpt-5.6-sol xhigh" -> runtime=codex, model=gpt-5.6-sol, effort=xhigh
+planner: "codex" -> runtime=codex, model=gpt-5.6-sol, effort=ultra, model_source=default, effort_source=preference_default
+critic: "codex gpt-5.6-sol ultra" -> runtime=codex, model=gpt-5.6-sol, effort=ultra
 implementation_worker: "codex high" -> runtime=codex, model=gpt-5.6-sol, effort=high, model_source=default
 implementation_worker: "luna xhigh" -> runtime=codex, model=gpt-5.6-luna, effort=xhigh
 critic: "terra high" -> runtime=codex, model=gpt-5.6-terra, effort=high
@@ -204,12 +208,13 @@ choices control real external processes and model budget.
 - implementation_worker: edits code/docs and runs verification
 - critic: checks North Star, plan readiness, completion, and scope drift
 
-Please give runtime plus any non-default effort for each role and a model/profile
-outside the Codex and Kimi defaults, or say which roles should be "same as" another role. A Codex
-role with no model uses gpt-5.6-sol; a Kimi role uses kimi-code/k3 and defaults
-an omitted effort to max. Ordinary critic failures resume the exact relevant
-planner or implementation worker session; there is no separate repair-worker
-choice in new external-harness policies.
+Please give runtime plus any non-default effort for each role and a
+model/profile outside the Codex and Kimi defaults, or say which roles should be
+"same as" another role. A Codex role with no model uses gpt-5.6-sol, and that
+Sol role uses ultra when effort is omitted; a Kimi role uses kimi-code/k3 and
+defaults an omitted effort to max. Ordinary critic failures resume the exact
+relevant planner or implementation worker session; there is no separate
+repair-worker choice in new external-harness policies.
 ```
 
 If one role is complete and another is missing, preserve the complete role and

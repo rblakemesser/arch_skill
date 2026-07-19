@@ -54,8 +54,9 @@ Each participant needs a requested identity and role:
 - `model`: runnable model id, Codex profile name, or exact model phrase. An
   omitted model on a Codex lane resolves to `gpt-5.6-sol`; an omitted model on
   a Kimi lane resolves to `kimi-code/k3`.
-- `effort`: `low`, `medium`, `high`, `xhigh`, or `max` when supported by the
-  selected runtime/model; omitted Kimi effort resolves to the K3 model default,
+- `effort`: `low`, `medium`, `high`, `xhigh`, `max`, or `ultra` when supported
+  by the selected runtime/model; omitted Sol effort resolves to the `ultra`
+  preference default, and omitted Kimi effort resolves to the K3 model default,
   `max`
 - `role`: `collaborator` or `adversary`
 - `transport`: active-host native child or external runtime session, chosen
@@ -69,13 +70,14 @@ participants resolved to the external lane create external model sessions:
 
 ```text
 Before I run model-consensus, I need the two participant choices. Please give
-provider/effort for Model A and Model B, plus a model/profile for participants
-outside the Codex and Kimi defaults, and say whether either should be
-adversarial. Codex defaults to gpt-5.6-sol when its model is omitted; Kimi
-defaults to kimi-code/k3 at max. I will use native children where the
-active host can honor the requested capability and external sessions for the
-remaining participants; external sessions spend separate model budget. Cursor
-Agent is Composer-only; natural Grok wording resolves to grok-4.5.
+provider and any non-default effort for Model A and Model B, plus a
+model/profile for participants outside the Codex and Kimi defaults, and say
+whether either should be adversarial. Codex defaults to gpt-5.6-sol at ultra
+when its model and effort are omitted; Kimi defaults to kimi-code/k3 at max. I
+will use native children where the active host can honor the requested
+capability and external sessions for the remaining participants; external
+sessions spend separate model budget. Cursor Agent is Composer-only; natural
+Grok wording resolves to grok-4.5.
 ```
 
 ## Model Phrase Resolution
@@ -86,7 +88,9 @@ Follow the shared model-resolution doctrine:
   `gpt-5.6-sol`, `gpt-5.6-luna`, and `gpt-5.6-terra`; compact forms such as
   `GPT56LUNAXI` and `GPT56TERRAXI` preserve the named variant and imply
   `xhigh`. If a Codex lane names no model or profile, resolve it to
-  `gpt-5.6-sol` and report that the model came from the default.
+  `gpt-5.6-sol` and report that the model came from the default. If the
+  resulting Sol lane names no effort, resolve it to `ultra` and report
+  `effort_source=preference_default`.
 - Preserve family and numeric version exactly. `gpt-5.6-luna` may normalize to
   `gpt-5.6-luna`; it must not become `gpt-5.6-sol`, `gpt-5.4`, or `gpt-5.5`. `fable 5` may normalize to
   `claude-fable-5`, and `opus 4.7` may normalize to `claude-opus-4-7`;
@@ -145,13 +149,14 @@ Always announce the mapping before execution:
 ```text
 Model A: "Claude Fable 5 high" -> runtime=claude, model=claude-fable-5, effort=high
 Model B: "Claude Opus 4.7 xhigh" -> runtime=claude, model=claude-opus-4-7, effort=xhigh
-Model C: "codex high" -> runtime=codex, model=gpt-5.6-sol, effort=high, model_source=default
-Model D: "luna xhigh" -> runtime=codex, model=gpt-5.6-luna, effort=xhigh
-Model E: "terra high" -> runtime=codex, model=gpt-5.6-terra, effort=high
-Model F: "Fugu Ultra xhigh" -> runtime=codex, model=fugu-ultra, codex_profile=fugu-ultra, effort=xhigh
-Model G: "Grok Build high" -> runtime=grok, model=grok-4.5, effort=high
-Model H: "Kimi K3 high" -> runtime=kimi, model=kimi-code/k3, effort=high
-Model I: "Kimi" -> runtime=kimi, model=kimi-code/k3, effort=max, effort_source=model_default
+Model C: "codex" -> runtime=codex, model=gpt-5.6-sol, effort=ultra, model_source=default, effort_source=preference_default
+Model D: "codex high" -> runtime=codex, model=gpt-5.6-sol, effort=high, model_source=default
+Model E: "luna xhigh" -> runtime=codex, model=gpt-5.6-luna, effort=xhigh
+Model F: "terra high" -> runtime=codex, model=gpt-5.6-terra, effort=high
+Model G: "Fugu Ultra xhigh" -> runtime=codex, model=fugu-ultra, codex_profile=fugu-ultra, effort=xhigh
+Model H: "Grok Build high" -> runtime=grok, model=grok-4.5, effort=high
+Model I: "Kimi K3 high" -> runtime=kimi, model=kimi-code/k3, effort=high
+Model J: "Kimi" -> runtime=kimi, model=kimi-code/k3, effort=max, effort_source=model_default
 ```
 
 Effort follows the selected model's real contract. `grok-4.5` supports

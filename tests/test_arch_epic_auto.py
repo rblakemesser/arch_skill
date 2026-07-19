@@ -87,6 +87,76 @@ class ArchEpicAutoModeTests(unittest.TestCase):
         self.assertEqual(resolved.model, "gpt-5.6-sol")
         self.assertEqual(resolved.effort, "xhigh")
 
+    def test_codex_sol_defaults_to_ultra_when_effort_is_omitted(self):
+        cases = [
+            ("codex", "default"),
+            ("sol", "explicit"),
+            ("gpt-5.6-sol", "explicit"),
+        ]
+
+        for phrase, model_source in cases:
+            with self.subTest(phrase=phrase):
+                resolved = self.model_resolution.resolve_execution_phrase(
+                    phrase,
+                    codex_models=["gpt-5.6-sol"],
+                )
+
+                self.assertEqual(resolved.runtime, "codex")
+                self.assertEqual(resolved.model, "gpt-5.6-sol")
+                self.assertEqual(resolved.model_source, model_source)
+                self.assertEqual(resolved.effort, "ultra")
+                self.assertEqual(
+                    resolved.effort_source,
+                    "preference_default",
+                )
+
+    def test_codex_sol_preserves_explicit_xhigh_override(self):
+        resolved = self.model_resolution.resolve_execution_phrase(
+            "gpt-5.6-sol xhigh",
+            codex_models=["gpt-5.6-sol"],
+        )
+
+        self.assertEqual(resolved.effort, "xhigh")
+        self.assertEqual(resolved.effort_source, "explicit")
+
+    def test_codex_terra_accepts_explicit_ultra(self):
+        resolved = self.model_resolution.resolve_execution_phrase(
+            "terra ultra",
+            codex_models=["gpt-5.6-terra"],
+        )
+
+        self.assertEqual(resolved.model, "gpt-5.6-terra")
+        self.assertEqual(resolved.effort, "ultra")
+        self.assertEqual(resolved.effort_source, "explicit")
+
+    def test_ultra_is_rejected_where_the_selected_runtime_does_not_support_it(self):
+        cases = [
+            (
+                "Claude Opus 4.7 ultra",
+                {},
+            ),
+            (
+                "luna ultra",
+                {"codex_models": ["gpt-5.6-luna"]},
+            ),
+            (
+                "cursor agent composer 2.5 ultra",
+                {"agent_models": ["composer-2.5-fast"]},
+            ),
+            (
+                "kimi ultra",
+                {"kimi_models": ["kimi-code/k3"]},
+            ),
+        ]
+
+        for phrase, kwargs in cases:
+            with self.subTest(phrase=phrase):
+                with self.assertRaises(self.model_resolution.ModelResolutionError):
+                    self.model_resolution.resolve_execution_phrase(
+                        phrase,
+                        **kwargs,
+                    )
+
     def test_codex_resolution_rejects_blocked_base_models(self):
         for phrase in (
             "codex gpt 5.4 xhigh",
@@ -137,11 +207,13 @@ class ArchEpicAutoModeTests(unittest.TestCase):
                 self.assertEqual(resolved.model_source, "codex_profile")
 
     def test_codex_fugu_refuses_unsupported_effort(self):
-        with self.assertRaises(self.model_resolution.ModelResolutionError):
-            self.model_resolution.resolve_execution_phrase(
-                "fugu xhigh",
-                codex_models=["fugu", "fugu-ultra"],
-            )
+        for phrase in ("fugu xhigh", "Fugu Ultra ultra"):
+            with self.subTest(phrase=phrase):
+                with self.assertRaises(self.model_resolution.ModelResolutionError):
+                    self.model_resolution.resolve_execution_phrase(
+                        phrase,
+                        codex_models=["fugu", "fugu-ultra"],
+                    )
 
     def test_cursor_agent_model_resolves_with_encoded_effort(self):
         resolved = self.model_resolution.resolve_execution_phrase(
@@ -382,7 +454,7 @@ class ArchEpicAutoModeTests(unittest.TestCase):
         self.assertEqual(resolved.model_source, "explicit")
 
     def test_grok_45_rejects_efforts_outside_cli_catalog(self):
-        for effort in ("xhigh", "max"):
+        for effort in ("xhigh", "max", "ultra"):
             with self.subTest(effort=effort):
                 with self.assertRaisesRegex(
                     self.model_resolution.ModelResolutionError,
@@ -467,7 +539,7 @@ class ArchEpicAutoModeTests(unittest.TestCase):
         argv = self.run_arch_epic._codex_worker_argv(
             Path("/repo"),
             "gpt-5.6-sol",
-            "xhigh",
+            "ultra",
             Path("/tmp/final.json"),
             "Do work.",
         )
@@ -478,7 +550,7 @@ class ArchEpicAutoModeTests(unittest.TestCase):
         self.assertNotIn("--ephemeral", argv)
         self.assertIn("--model", argv)
         self.assertIn("gpt-5.6-sol", argv)
-        self.assertIn('model_reasoning_effort="xhigh"', argv)
+        self.assertIn('model_reasoning_effort="ultra"', argv)
 
     def test_shared_kimi_cli_primitives_are_canonical(self):
         self.assertEqual(
