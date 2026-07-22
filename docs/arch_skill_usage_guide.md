@@ -60,7 +60,7 @@ Other shipped skills:
 - `agent-delegate`
 - `plan-audit`
 - `plan-implement`
-- `plan-conductor`
+- `conductor`
 - `agent-history`
 - `model-consensus`
 - `contact-sheet-builder`
@@ -122,7 +122,7 @@ Default local path:
 - `~/.agents/skills/agent-delegate/`
 - `~/.agents/skills/plan-audit/`
 - `~/.agents/skills/plan-implement/`
-- `~/.agents/skills/plan-conductor/`
+- `~/.agents/skills/conductor/`
 - `~/.agents/skills/agent-history/`
 - `~/.agents/skills/model-consensus/`
 - `~/.agents/skills/contact-sheet-builder/`
@@ -172,7 +172,7 @@ Installed skills:
   - `agent-delegate`
   - `plan-audit`
   - `plan-implement`
-  - `plan-conductor`
+  - `conductor`
   - `agent-history`
   - `model-consensus`
   - `contact-sheet-builder`
@@ -215,7 +215,7 @@ Installed skills:
   - `agent-delegate`
   - `plan-audit`
   - `plan-implement`
-  - `plan-conductor`
+  - `conductor`
   - `agent-history`
   - `model-consensus`
   - `contact-sheet-builder`
@@ -258,7 +258,7 @@ Installed skills:
   - `agent-delegate`
   - `plan-audit`
   - `plan-implement`
-  - `plan-conductor`
+  - `conductor`
   - `model-consensus`
   - `contact-sheet-builder`
   - `cynical-code-review`
@@ -275,7 +275,7 @@ The shared agent policy is installed on all supported skill surfaces. Ordinary
 same-host work uses native children; deliberate external lanes still require
 the matching local `claude`, `codex`, `agent`, `grok`, or `kimi` CLI. Provider and
 model ids remain exact and never cross runtimes. `agent-delegate` owns external
-editful sessions, while `fresh-consult`, `model-consensus`, `plan-conductor`,
+editful sessions, while `fresh-consult`, `model-consensus`, `conductor`,
 `stepwise`, and `arch-epic` select transport for each role under the shared
 policy. `browseros` is the canonical preflight before direct BrowserOS MCP
 calls. `chatgpt-web` applies it and still requires BrowserOS plus a logged-in
@@ -769,41 +769,48 @@ Practical rule:
 
 - Use `plan-implement` for normal plan-backed implementation with lightweight logs, proof freshness, and warm review.
 - Use `plan-audit` for review-only work.
-- Use `plan-conductor` when the parent should remain the non-implementing
-  architect/reviewer while transport-selected workers execute the plan.
+- Use `conductor` when the parent should remain the non-implementing
+  architect/reviewer while delegated workers execute the plan or outcome.
 
-### `plan-conductor`
+### `conductor`
 
-Use when the user wants an existing plan, or an explicit phase range,
-implemented by phase workers while the parent remains the non-implementing
-architect and cynical reviewer. The parent extracts a conductor log and stops
-before dispatch when done-state or frozen scope is not defensible.
+Use when the user wants a finished plan, a partial plan, or a described
+outcome conducted to verified completion by delegated workers while the
+parent remains the executive architect, scope judge, and cynical reviewer.
+Outcome and partial-plan intake first run an executive shaping stage: worker
+research as evidence, a parent trim to the smallest sufficient solution, an
+outcome map with observable done-ness and non-goals, and one scope approval
+that freezes the boundary. The parent extracts a conductor log and stops
+before dispatch when done-state or frozen scope is not defensible; the
+readiness gate is never waived.
 
-Each phase-sized slice starts as a new clean same-host native child by default.
-The parent uses `$agent-delegate` only when a concrete external benefit is worth
-the added process cost. Accepted findings resume the exact worker through its
-original transport; independent review gates start clean. The parent audits
-every claim, delegates proof, records checkpoints, and closes only on the
-plan-required proof and final whole-plan gate.
+Execution defaults to the cheap parallel external fleet — fresh-resumable
+Codex `gpt-5.6-sol` workers at `ultra` through `$agent-delegate`, with
+one-word fleet swaps to Kimi, Grok, Cursor, or Claude — and native children
+by request or fit. Codex usage limits rotate via `aim` with exact-session
+resume, so a rate-limited worker continues instead of being replaced.
+Accepted findings resume the exact worker through its original transport;
+independent review gates start clean. The parent audits every claim,
+delegates proof, records checkpoints, and closes only on the plan-required
+proof and final whole-plan gate.
 
 The parent never edits source code or accepts worker self-reports as truth.
-Runtime/model/effort are requested only for a selected external lane; native
-roles use capabilities the host can confirm.
 
-The explicit `plan-conductor terra` shortcut remains the external end-to-end
+The explicit `conductor terra` shortcut remains the external end-to-end
 lane: dedicated worktree, Terra xhigh roles, three new clean external cynical
 reviews, repair/re-review, PR publication, and review follow-through. Merely
 naming Terra does not activate that shortcut.
 
 Examples:
 
-- `Use $plan-conductor to implement docs/PAYMENTS_MIGRATION_2026-07-01.md end to end with Cursor Agent workers`
-- `Use $plan-conductor to drive phases 2-4 of docs/example-plan.md with two Codex gpt-5.6-luna medium workers; you review everything`
-- `Use $plan-conductor terra on docs/example-plan.md`
+- `Use $conductor to implement docs/PAYMENTS_MIGRATION_2026-07-01.md end to end`
+- `Use $conductor: here is the outcome I need — decompose it, have the fleet research, get my approval on scope, then drive it to done`
+- `Use $conductor to drive phases 2-4 of docs/example-plan.md with two Codex gpt-5.6-luna medium workers; you review everything`
+- `Use $conductor terra on docs/example-plan.md`
 
 Practical rule:
 
-- Use `plan-conductor` for whole-plan worker execution with parent review.
+- Use `conductor` for plan-or-outcome worker execution with parent review.
 - Use `plan-implement` when the parent should implement the plan itself.
 - Use `agent-delegate` for one concrete external delegated task.
 - Use `plan-audit` to audit a plan rather than implement it.

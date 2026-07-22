@@ -58,7 +58,7 @@ Other shipped skills are:
 - `agent-delegate` — explicit external editful worker/session adapter for cross-provider, load-bearing exact model/profile, durable-session, process-isolation, automation, or receipt benefits; ordinary same-host work uses native children directly
 - `plan-audit` — prompt-first generic audit for existing planning artifacts plus plan-backed implementation code review; verifies human scope provenance and the pre-freeze minimal convergence closure, never adds scope from audit, and blocks unauthorized built scope without running tests or dictating workflow
 - `plan-implement` — prompt-first plan-backed implementation loop that advances only through the frozen authorized frontier, dispositions warm-review findings before repair, subtracts unauthorized work, and keeps plan/audit/implementation logs and proof freshness aligned
-- `plan-conductor` — prompt-first whole-plan implementation conductor with parent-owned architecture/review and per-worker native-or-external transport; its explicit Terra shortcut remains the deliberate external exact-model/worktree/PR lane
+- `conductor` — prompt-first plan-or-outcome conductor with an executive shaping stage, parent-owned scope judgment and cynical review, and a default cheap parallel external fleet; its explicit Terra shortcut remains the deliberate external exact-model/worktree/PR lane
 - `agent-history` — searches local Codex or Claude Code session history for prior prompts, goals, commands, corrections, tool use, and timelines from natural-language asks, using bundled read-only JSONL/SQLite helpers and concise evidence summaries
 - `model-consensus` — prompt-only parent-relayed dialogue between two exact participants, resolving native or external transport separately for each, resuming each exact handle across rounds, and converging or exposing the smallest unresolved decision
 - `contact-sheet-builder` — builds quick local contact sheet PNGs from existing images, folders, globs, or attached local image paths using a lean prompt contract plus one Pillow renderer; defaults to dense labeled sheets, dynamic near-native edge-to-edge canvas sizing, safe temp output, Preview opening on macOS, and concise receipts
@@ -158,7 +158,7 @@ Installed skills:
   - `~/.agents/skills/agent-delegate/`
   - `~/.agents/skills/plan-audit/`
   - `~/.agents/skills/plan-implement/`
-  - `~/.agents/skills/plan-conductor/`
+  - `~/.agents/skills/conductor/`
   - `~/.agents/skills/agent-history/`
   - `~/.agents/skills/model-consensus/`
   - `~/.agents/skills/contact-sheet-builder/`
@@ -205,7 +205,7 @@ Installed skills:
   - `~/.claude/skills/agent-delegate/`
   - `~/.claude/skills/plan-audit/`
   - `~/.claude/skills/plan-implement/`
-  - `~/.claude/skills/plan-conductor/`
+  - `~/.claude/skills/conductor/`
   - `~/.claude/skills/agent-history/`
   - `~/.claude/skills/model-consensus/`
   - `~/.claude/skills/contact-sheet-builder/`
@@ -251,7 +251,7 @@ Installed skills:
   - `~/.gemini/skills/agent-delegate/`
   - `~/.gemini/skills/plan-audit/`
   - `~/.gemini/skills/plan-implement/`
-  - `~/.gemini/skills/plan-conductor/`
+  - `~/.gemini/skills/conductor/`
   - `~/.gemini/skills/model-consensus/`
   - `~/.gemini/skills/contact-sheet-builder/`
   - `~/.gemini/skills/fc-branded-pdf/`
@@ -266,7 +266,7 @@ Installed skills:
 
 Codex reads the same installed skill surface from `~/.agents/skills/`. `make install` also removes stale pre-skill command surfaces, removed skill packages, older `~/.codex/skills/<skill>` mirrors, and local source/build internals so runtime routing stays unambiguous.
 
-`arch-loop`, `delay-poll`, `wait`, `code-review`, `codex-babysit`, and `eli10` are removed from the live installed surface; `codex-babysit` and `eli10` remain in this repository for manual use, while `make install` and `make remote_install` remove previously installed copies. Use native `/goal` for free-form completion, the host's native scheduling/reminder surface for timed waiting or polling, and ordinary host review behavior for generic code review. `agent-history` and `pr-review-followthrough` are installed on the agents/Codex and Claude Code surfaces. `agent-history` covers Codex and Claude Code local history; `pr-review-followthrough` owns live GitHub PR follow-through with replies and same-branch fixes. `contact-sheet-builder` is installed on all three skill surfaces and requires Python with Pillow at runtime. `fc-branded-pdf` is installed on all three skill surfaces and requires `pandoc` plus Chrome or Chromium at runtime. `cf-share` is installed on all three skill surfaces and requires `curl`, `python3`, and a secret env file at `~/.config/cf-share/env` at runtime. `arch-step-goal-prompt`, `figma-best-practices`, `fal-ai-tools`, `flutter-reference`, `browseros`, `chatgpt-web`, `fresh-consult`, `agent-delegate`, `plan-audit`, `plan-implement`, `model-consensus`, `plan-conductor`, `codex-cleanup`, `cynical-code-review`, `cynical-architecture-review`, `cynical-cruft-removal`, `exhaustive-code-review`, and `thermo-nuclear-code-quality-review` are installed on all three skill surfaces. `browseros` is the canonical preflight before direct BrowserOS MCP use. `chatgpt-web` applies it for browser mechanics, requires an already logged-in ChatGPT browser session, and does not automate login.
+`arch-loop`, `delay-poll`, `wait`, `code-review`, `codex-babysit`, and `eli10` are removed from the live installed surface; `codex-babysit` and `eli10` remain in this repository for manual use, while `make install` and `make remote_install` remove previously installed copies. `plan-conductor` is renamed to `conductor`, and install removes previously installed `plan-conductor` copies. Use native `/goal` for free-form completion, the host's native scheduling/reminder surface for timed waiting or polling, and ordinary host review behavior for generic code review. `agent-history` and `pr-review-followthrough` are installed on the agents/Codex and Claude Code surfaces. `agent-history` covers Codex and Claude Code local history; `pr-review-followthrough` owns live GitHub PR follow-through with replies and same-branch fixes. `contact-sheet-builder` is installed on all three skill surfaces and requires Python with Pillow at runtime. `fc-branded-pdf` is installed on all three skill surfaces and requires `pandoc` plus Chrome or Chromium at runtime. `cf-share` is installed on all three skill surfaces and requires `curl`, `python3`, and a secret env file at `~/.config/cf-share/env` at runtime. `arch-step-goal-prompt`, `figma-best-practices`, `fal-ai-tools`, `flutter-reference`, `browseros`, `chatgpt-web`, `fresh-consult`, `agent-delegate`, `plan-audit`, `plan-implement`, `model-consensus`, `conductor`, `codex-cleanup`, `cynical-code-review`, `cynical-architecture-review`, `cynical-cruft-removal`, `exhaustive-code-review`, and `thermo-nuclear-code-quality-review` are installed on all three skill surfaces. `browseros` is the canonical preflight before direct BrowserOS MCP use. `chatgpt-web` applies it for browser mechanics, requires an already logged-in ChatGPT browser session, and does not automate login.
 
 External lanes still require the selected local `claude`, `codex`, `agent`,
 `grok`, or `kimi` CLI at invocation time. Ordinary same-host work uses the active host's
@@ -278,8 +278,9 @@ models, Cursor Agent runs `composer-2.5-fast`, natural Grok requests use
 `agent-delegate` owns external editful sessions and receipts. `fresh-consult`
 and `model-consensus` select native or external transport per role while
 preserving exact continuation. `plan-implement` is the parent-implemented
-native lane; `plan-conductor`, `stepwise`, and `arch-epic` are transport-neutral
-orchestrators with deliberate external modes. The cynical and exhaustive
+native lane; `stepwise` and `arch-epic` are transport-neutral orchestrators
+with deliberate external modes, while `conductor` defaults to the cheap
+parallel external fleet with native children by request or fit. The cynical and exhaustive
 reviews use clean native read-only slices and remain prompt-only.
 
 ### Remote install
@@ -616,37 +617,44 @@ and proof. An explicitly requested external worker or conductor remains a
 deliberate route under the shared policy.
 
 Use `plan-implement` when the parent implements with optional native children.
-Use `plan-conductor` when the parent should remain a non-implementing architect
-and reviewer while transport-selected workers drive the plan.
+Use `conductor` when the parent should remain a non-implementing architect
+and reviewer while delegated workers drive the plan or outcome.
 
-### `plan-conductor`
+### `conductor`
 
-Use when the user wants an entire existing plan document, or an explicit phase
-range, implemented by phase workers while the parent remains the
-non-implementing architect and deeply cynical reviewer. The parent extracts an
-execution map into `<PLAN_STEM>_CONDUCTOR_LOG.md` and stops before dispatch if
-the plan has no observable done-state or defensible frozen scope.
+Use when the user wants a goal conducted to verified completion by delegated
+workers while the parent remains the executive architect, scope judge, and
+deeply cynical reviewer. Intake spans a spectrum: a finished plan document, a
+partial plan, or a described outcome. Outcome and partial-plan intake first
+run an executive shaping stage — parallel research workers propose as
+evidence, the parent trims to the smallest sufficient solution and writes an
+outcome map with observable done-ness and non-goals, and one user scope
+approval freezes the boundary. The parent extracts an execution map into
+`<PLAN_STEM>_CONDUCTOR_LOG.md` and stops before dispatch if the conducted
+artifact has no observable done-state or defensible frozen scope; the
+readiness gate is never waived.
 
-Each phase-sized slice starts as a new clean same-host native child by default.
-The parent uses `$agent-delegate` only when a concrete external provider,
-exact-model/profile, lifecycle, worktree/process isolation, automation, or
-receipt benefit is worth the added cost. Accepted findings return to the exact
-worker through its original transport; independent reviewers and the cold
-verifier start clean. The parent audits every claim against code, delegates
-proof, records checkpoints, and closes only on plan-required proof plus the
-final whole-plan gate.
+Execution defaults to the cheap parallel external fleet: fresh-resumable
+Codex `gpt-5.6-sol` workers at `ultra` through `$agent-delegate`, with
+one-word fleet swaps to Kimi (`kimi-code/k3` at `max`), Grok (`grok-4.5`),
+Cursor (`composer-2.5-fast`), or Claude. Native children remain available by
+request or fit. Codex usage limits rotate via `aim` with exact-session
+resume, so a rate-limited worker continues instead of being replaced.
+Accepted findings return to the exact worker through its original transport;
+independent reviewers and the cold verifier start clean. The parent audits
+every claim against code, delegates proof, records checkpoints, and closes
+only on plan-required proof plus the final whole-plan gate.
 
 The parent never edits source code during the conductor stage or accepts worker
-self-reports as truth. Runtime/model/effort are requested only for a selected
-external lane; native roles use only capabilities the active host can confirm.
+self-reports as truth.
 
-`$plan-conductor terra` remains the explicit external delivery shortcut. Its
+`$conductor terra` remains the explicit external delivery shortcut. Its
 dedicated worktree, Codex `gpt-5.6-terra` at `xhigh`, three new clean external
 reviews, repair/re-review loop, PR publication, and PR follow-through are the
 point of that lane. Merely naming Terra in an ordinary conductor request does
 not activate it.
 
-Use `plan-conductor` for whole-plan worker execution with parent review. Use
+Use `conductor` for plan-or-outcome worker execution with parent review. Use
 `plan-implement` when the parent should implement the plan itself. Use
 `agent-delegate` for one concrete **external** delegated task, and `plan-audit`
 to audit a plan rather than implement it.

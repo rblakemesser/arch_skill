@@ -1,14 +1,14 @@
 # Terra Delivery Shortcut
 
-`plan-conductor terra` is the explicit end-to-end delivery preset for a user
+`conductor terra` is the explicit end-to-end delivery preset for a user
 who wants the standard high-rigor path without restating every handoff. It
 composes existing skills; it does not replace their contracts or add a runner.
 
 ## Trigger Boundary
 
-Activate this preset when the user explicitly asks for `plan-conductor terra`
+Activate this preset when the user explicitly asks for `conductor terra`
 or clearly asks for the standard Terra delivery path. A normal
-`plan-conductor` request that happens to choose a Terra worker is still the
+`conductor` request that happens to choose a Terra worker is still the
 normal conductor workflow unless the user also asks for the preset's
 worktree, three-review, and PR follow-through path.
 
@@ -48,7 +48,7 @@ scope such as an explicit phase range remains binding.
 1. **Worktree.** Select the safe matching worktree or create the dedicated
    worktree and branch. Record the worktree path and branch in the conductor
    log's Resume Snapshot.
-2. **Conductor implementation.** Run the normal plan-conductor lifecycle with
+2. **Conductor implementation.** Run the normal conductor lifecycle with
    external Codex `gpt-5.6-terra` at `xhigh`: intake, readiness, phase-sized
    `$agent-delegate` fresh-resumable workers, independent verification,
    cynical parent audit, send-backs, checkpoints, plan completion annotations,

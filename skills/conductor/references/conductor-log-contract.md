@@ -14,8 +14,8 @@ constraints).
 ## Layout
 
 ```markdown
-# Plan Conductor Log
-Plan: <path>
+# Conductor Log
+Plan: <path to the conducted plan or outcome map>
 Start commit: <hash>
 Workers: <transport/context; external runtime/model/effort when selected>
 Max parallel: <N>   Wave cap: <N>

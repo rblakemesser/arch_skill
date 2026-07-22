@@ -98,5 +98,5 @@ workflow.
 
 Better: use same-host native children when they provide useful independent
 coverage. If the user explicitly requests an external worker or conductor,
-route to `agent-delegate` or `plan-conductor` under the shared policy and name
+route to `agent-delegate` or `conductor` under the shared policy and name
 the concrete benefit that makes the additional process worthwhile.

@@ -1,15 +1,18 @@
 ---
-name: plan-conductor
-description: "Drive an existing plan or phase range to verified completion with the parent as architect and cynical reviewer while transport-selected workers handle implementation, repair, and proof. Use for whole-plan delegated execution with resumable phase-sized slices, a conductor log, diff audits, send-backs, checkpoint commits, and a final gate. Same-host work normally uses clean native children; external sessions remain available when their provider, exact model/profile, lifecycle, isolation, automation, or receipt benefit is deliberate. The explicit `plan-conductor terra` preset keeps its dedicated-worktree, Terra xhigh, three-review, PR-publication, and PR-follow-through path. Not for plan writing, one delegated task, parent-implemented plans, plan audits, multi-plan epics, foreign ordered processes, or read-only opinions."
+name: conductor
+description: "Conduct work to verified completion from a finished plan, a partial plan, or a described outcome; the parent is executive architect and cynical reviewer while workers implement, repair, and prove. Outcome or partial-plan intake first runs an executive shaping stage — parallel worker research, a parent trim to the smallest sufficient solution, a lightweight outcome map, one scope approval — and workers never dispatch before observable done-ness and a frozen scope boundary exist. Default execution is the cheap parallel external fleet (Codex gpt-5.6-sol at ultra via agent-delegate, one-word swaps to Kimi, Grok, Cursor, or Claude); native children remain available by request or fit, and Codex usage limits rotate via aim without losing sessions. The `conductor terra` preset keeps its dedicated-worktree, Terra xhigh, three-review, PR-publication, and follow-through path. Not for single bugs, open-ended metric loops, multi-plan epics, plan audits, one delegated task, parent-implemented plans, or read-only opinions."
 metadata:
-  short-description: "Whole-plan conductor with Terra delivery shortcut"
+  short-description: "Plan-or-outcome conductor with executive shaping and a cheap external fleet"
 ---
 
-# Plan Conductor
+# Conductor
 
-Use this skill when the user wants an entire existing plan document implemented
-by phase workers while the parent agent preserves its own context and
-serves as architect and deeply cynical reviewer.
+Use this skill when the user wants a goal conducted to verified completion by
+delegated workers while the parent agent preserves its own context and serves
+as executive architect and deeply cynical reviewer. Intake spans a spectrum —
+a finished plan document, a partial plan, or a described outcome. What already
+exists on disk decides how much shaping happens first; the execution
+machinery is identical for all three.
 
 The role economy is the point. The parent spends its scarce context on
 judgment, not keystrokes: it reads the plan once, designs well-sized slices,
@@ -25,9 +28,14 @@ log beside the plan is its durable memory.
 
 ## North Stars
 
-- The plan goes in; verified, reviewed, plan-faithful code comes out.
+- A plan or outcome goes in; verified, reviewed, contract-faithful code comes
+  out.
 - Parent tokens go to plan understanding, slice design, and cynical audit.
   Worker tokens go to implementation, repair, and proof runs.
+- The parent is the scope judge. Fast cheap workers are genuinely smart but
+  over-scope and over-iterate; the parent trims every proposal to the
+  smallest sufficient solution and holds the frozen boundary against
+  expansion pressure from any direction.
 - Chunk size balances two failure modes: micro-tasks turn the parent into a
   slow programmer with extra round-trips; mega-tasks produce unreviewable
   diffs. Default one plan phase per worker.
@@ -41,24 +49,31 @@ log beside the plan is its durable memory.
 ## Use When
 
 - The user names an existing plan doc and wants the whole thing (or a phase
-  range) implemented by delegated phase workers with the parent as reviewer;
-  an exact cheaper/faster external fleet may be selected when that is part of
-  the desired execution policy.
+  range) implemented by delegated phase workers with the parent as reviewer.
+- The user has a described outcome or a partial plan — not a finished plan —
+  and wants the parent to decompose it, using worker research where useful,
+  approve a scope boundary once, and then conduct execution without a
+  separate planning invocation.
 - The user wants the parent to preserve architectural and review context while
   capable workers own implementation and proof inside plan-authorized slices.
 - The plan is arch-step, miniarch-step, arch-mini-plan, or lilarch shaped — or
   any format with recoverable requirements, phases, and done-ness.
 - The user wants implementation velocity plus cost control on one long-running
   plan execution.
-- The user explicitly invokes `plan-conductor terra` or asks for their
+- The user explicitly invokes `conductor terra` or asks for their
   standard Terra delivery path: dedicated worktree, Terra xhigh execution,
   three new clean external cynical reviews, PR publication, and PR
   follow-through.
 
 ## Do Not Use When
 
-- The plan does not exist yet. Use `$arch-step`, `$arch-mini-plan`, or
-  `$lilarch`.
+- The plan artifact itself is the deliverable, or the work needs full
+  architecture ceremony (research, deep-dives, staged review gates) before
+  any execution. Use `$arch-step`, `$arch-mini-plan`, or `$lilarch`, then
+  hand the finished plan back here.
+- The goal is clear but no definable done-state exists even in principle —
+  open-ended optimization or metric improvement. Use `$goal-loop`; the
+  conductor requires observable done-ness before dispatch.
 - The user wants the parent to implement the plan itself rather than remain a
   non-implementing architect. Use `$plan-implement`.
 - The user wants one concrete external delegated task rather than plan-sized
@@ -72,19 +87,23 @@ log beside the plan is its durable memory.
 
 ## Non-Negotiables
 
-- The plan remains the single source of truth. The conductor log
-  (`<PLAN_STEM>_CONDUCTOR_LOG.md` beside the plan) is schedule, evidence, and
+- The conducted artifact — the finished plan, or the approved outcome map
+  when shaping produced one — is the single source of truth, and "the plan"
+  below always means that artifact. The conductor log
+  (`<PLAN_STEM>_CONDUCTOR_LOG.md` beside it) is schedule, evidence, and
   resume state — never a second plan.
 - Whole plan is the default boundary; honor an explicit phase range exactly.
 - Apply `../_shared/agent-orchestration-policy.md` at every worker and
   reviewer dispatch, and apply `$prompt-authoring` to every actual populated
-  first brief or materially reframed follow-up. Ordinary same-host slices start
-  as clean native children from the plan and conductor-log artifacts. Use an
-  external session when a concrete provider, exact cheaper model/profile,
-  durable lifecycle, worktree isolation, automation surface, structured
-  receipt, or another real benefit is worth the added process and integration
-  cost. These are recognition aids, not an allowlist. Honor explicit user
-  choices.
+  first brief or materially reframed follow-up. The conductor's default
+  execution lane is the cheap parallel external fleet — clean resumable
+  Codex workers through `$agent-delegate` — as a deliberate standing policy
+  choice: conduction exists to preserve parent context and buy fast cheap
+  worker cycles, and that exact cheaper/faster model is the concrete benefit
+  the shared policy asks external transport to name. Use a native child
+  instead when the user asks, when a slice genuinely fits one better (small
+  read-only checks, same-host verification), or when the external runtime is
+  unavailable. Honor explicit user choices in both directions.
 - For an external lane, runtime and normally model/profile plus effort are
   supplied by the user. An external Codex worker with no named model defaults
   to `gpt-5.6-sol`, and an omitted effort on that Sol worker defaults to
@@ -96,16 +115,28 @@ log beside the plan is its durable memory.
   Claude models, Cursor Agent runs `composer-2.5-fast`, natural Grok wording
   resolves to `grok-4.5`, and Kimi runs `kimi-code/k3` with an omitted-effort
   default of `max`. Explicit legacy Grok ids remain exact and discovery-gated.
+- When intake is a described outcome or a partial plan, run the executive
+  shaping stage per `references/shaping-and-outcome-map.md` before any plan
+  intake: worker research as evidence, a parent-owned trim to the smallest
+  sufficient solution, an outcome map written beside the work, and one user
+  approval of the scope boundary — skippable only by an explicit user
+  `full-auto` grant. Research workers propose; they never decide, and no
+  worker implements anything during shaping.
 - Read the plan once, end to end, at intake. If it yields no observable
   done-ness anywhere — no requirements, checklists, exit criteria, or
   verification obligations — stop before dispatching any worker and report
-  what is missing instead of inventing scope.
+  what is missing instead of inventing scope. The readiness gate applies to
+  a shaped outcome map exactly as to a finished plan and is never waived;
+  shaping happens before the gate, never around it.
 - Apply `../_shared/scope-and-convergence.md`. Intake must recover the
   human-authorized outcome and approval anchors, smallest sufficient solution,
   initial minimal convergence closure, scope-freeze boundary, enough proof,
   do-not-build boundary, and accepted residual risk. Observable checklists are
   insufficient when that provenance is missing, contradictory, or obviously
-  overbroad. Do not dispatch an unfrozen or scope-laundered plan.
+  overbroad. Do not dispatch an unfrozen or scope-laundered plan. When
+  shaping produced the outcome map, the recorded scope approval (or the
+  explicit `full-auto` grant) is the human authorization anchor and the
+  freeze.
 - The initial architecture window is already closed when conductor execution
   begins. Workers, the conductor, warm audits, cold verification, cynical
   reviews, PR feedback, and repeated findings cannot add to the frozen closure.
@@ -169,6 +200,11 @@ log beside the plan is its durable memory.
   brief, then escalate the slice and continue independent work. The same finding surviving
   two consecutive send-backs marks the worker unhealthy immediately. Two
   consecutive malformed or failed child runs on one slice escalate it.
+- A Codex fleet worker that dies on a hard usage limit is continued, not
+  replaced: rotate accounts and resume the exact captured session per
+  `$agent-delegate`'s usage-limit continuity and
+  `../_shared/aim-rotation.md`. Rotation is not a send-back, respawn, or
+  failed run for cap purposes; record it in the conductor log.
 - Delegate all verification runs (tests, builds, generators, simulators) to
   workers. The parent runs only cheap read-only inspection commands. Reuse
   fresh passing proof; rerun only on a real invalidator.
@@ -196,20 +232,26 @@ log beside the plan is its durable memory.
 1. If the user explicitly invoked the Terra delivery shortcut, read
    `references/terra-delivery-shortcut.md` and apply its locked execution and
    delivery policy. Do not activate the shortcut merely because an ordinary
-   plan-conductor request selected a Terra worker.
+   conductor request selected a Terra worker.
 2. Read `references/workflow-contract.md`.
-3. Read `references/plan-intake-and-readiness.md`.
-4. Read `../_shared/scope-and-convergence.md`.
-5. Resolve the plan path, boundary (whole plan unless the user named a phase
-   range), per-role transport and starting context, max parallelism, wave cap,
-   and cold-verifier toggle. Prefer clean native same-host roles. Resolve and
-   ask for runtime/model/effort only when the chosen external lane needs them;
-   default an omitted external Codex model to `gpt-5.6-sol` and its omitted Sol
-   effort to `ultra`, and an omitted Kimi model/effort pair to
-   `kimi-code/k3`/`max`. The Terra shortcut supplies its own external execution
-   values, so do not ask for them.
-6. Read the plan once end to end and extract the execution map in context.
-7. Before creating or updating the conductor log, inspect `git status` and
+3. Place the intake on the spectrum. A finished plan with recoverable
+   done-ness continues directly. A described outcome or a partial plan first
+   runs the shaping stage — read `references/shaping-and-outcome-map.md`,
+   produce the approved outcome map, and continue with that map as the
+   conducted artifact.
+4. Read `references/plan-intake-and-readiness.md`.
+5. Read `../_shared/scope-and-convergence.md`.
+6. Resolve the artifact path, boundary (whole plan unless the user named a
+   phase range), per-role transport and starting context, max parallelism,
+   wave cap, and cold-verifier toggle. The fleet default is external Codex
+   `gpt-5.6-sol` at `ultra`; a user-named provider swaps the whole fleet —
+   Kimi to `kimi-code/k3` at `max`, Grok to `grok-4.5`, Cursor to
+   `composer-2.5-fast`, Claude to a supported Claude model — resolved
+   through `$agent-delegate`. Ask one consolidated question only for
+   load-bearing missing values. The Terra shortcut supplies its own external
+   execution values, so do not ask for them.
+7. Read the plan once end to end and extract the execution map in context.
+8. Before creating or updating the conductor log, inspect `git status` and
    capture the start commit and inherited worktree state. Then write the
    extracted execution map to `<PLAN_STEM>_CONDUCTOR_LOG.md` and record the
    start commit, then apply and record the readiness gate. If the gate passes,
@@ -217,52 +259,59 @@ log beside the plan is its durable memory.
    inherited worktree already held plan work to preserve (per Git Posture) —
    never an empty checkpoint just to mark intake. Skip it on a concrete safety
    issue such as secrets or clearly unrelated files.
-8. Read `references/chunking-and-parallelism.md`, then design and dispatch
+9. Read `references/chunking-and-parallelism.md`, then design and dispatch
    the first wave.
 
 ## Workflow
 
-1. Extract the plan into the conductor log: requirements, non-goals, phases
+1. If intake is a described outcome or a partial plan, run the shaping stage
+   per `references/shaping-and-outcome-map.md`: worker research as evidence,
+   parent trim to the smallest sufficient solution, the outcome map written
+   beside the work, one scope approval, freeze. The approved map is the
+   conducted artifact everywhere "the plan" appears below.
+2. Extract the plan into the conductor log: requirements, non-goals, phases
    with dependency order, per-phase checklist, verification, exit criteria,
    and cleanup/delete obligations — as anchors into the plan, not copied
    prose.
-2. Each wave: pick the next dependency-ready slice or slices, sized by the
+3. Each wave: pick the next dependency-ready slice or slices, sized by the
    chunking doctrine.
-3. Dispatch each slice as a new clean child using the worker prompt contract.
-   Prefer the active host's native child; use `$agent-delegate` only for the
-   selected external lane. Record transport, starting context, exact child or
-   session handle, and any external run directory in the log.
-4. Arm the slice's size-scoped watchdog, then wait patiently per the
-   monitoring doctrine.
-5. On return, audit per `references/audit-and-send-back.md`: enumerate the
+4. Dispatch each slice as a new clean child using the worker prompt contract —
+   by default a fresh-resumable external fleet worker through
+   `$agent-delegate`, or a native child when that lane was selected. Record
+   transport, starting context, exact child or session handle, and any
+   external run directory in the log.
+5. Arm the slice's size-scoped watchdog, then wait patiently per the
+   monitoring doctrine. A hard usage-limit death is continued by rotate and
+   exact-session resume, not by replacement.
+6. On return, audit per `references/audit-and-send-back.md`: enumerate the
    claims to falsify, check them against git, trace the authority path
    beyond the diff, apply the three lens groups, and require decisive proof
    to be independently reproduced. Judge factual validity separately from
    scope disposition. Only factually valid findings already inside the frozen
    contract become repair work.
-6. Route: batch accepted findings into one resume prompt and send the session
+7. Route: batch accepted findings into one resume prompt and send the session
    back; or accept the slice with evidence anchors and commit a checkpoint;
    or respawn fresh; or escalate and continue independent slices.
-7. When a phase's slices are accepted, delegate the phase's plan-required
+8. When a phase's slices are accepted, delegate the phase's plan-required
    verification, record proof in the log, and record phase completion in the
    plan's own format.
-8. Repeat until the execution map is clean or a hard stop triggers.
-9. Run the final gate: whole-plan cynical audit sweep, the cynical review
+9. Repeat until the execution map is clean or a hard stop triggers.
+10. Run the final gate: whole-plan cynical audit sweep, the cynical review
    instruments when installed (`$cynical-code-review` by default for
    non-trivial plans, `$cynical-architecture-review` and
    `$cynical-cruft-removal` by judgment from what the plan changed), then
    the delegated cold verifier unless disabled. Triage and repair findings
    through the same send-back machinery. Under the Terra shortcut, defer the
-   instrument portion to step 10's three new clean external sessions instead of
+   instrument portion to step 11's three new clean external sessions instead of
    duplicating those reviews; still run the conductor sweep and cold verifier.
    Give every final reviewer the plan path, human baseline anchors, approval
    entries, frozen initial closure, and freeze anchor. Their findings use the
    same scope triage and cannot expand the plan.
-10. If the Terra delivery shortcut is active, run its stronger delivery gate:
+11. If the Terra delivery shortcut is active, run its stronger delivery gate:
     all three cynical reviews in independent new clean external Terra sessions,
     repair and re-review accepted findings, then hand off in order to
     `$pr-authoring` and `$pr-review-followthrough` until the PR is merge-ready.
-11. Write the final report, commit the final checkpoint, and stop at the
+12. Write the final report, commit the final checkpoint, and stop at the
     requested boundary.
 
 ## Progress Updates
@@ -276,7 +325,8 @@ answering. Keep chat lean; detail lives in the log.
 
 Report compactly:
 
-- plan path, boundary, and conductor log path
+- conducted artifact path (plan or outcome map), boundary, and conductor log
+  path
 - worker policy (transport, starting context, and any external
   runtime/model/effort) and max parallelism
 - per-wave status table
@@ -292,6 +342,8 @@ Report compactly:
 
 ## Reference Map
 
+- `references/shaping-and-outcome-map.md` - executive shaping stage for
+  outcome or partial-plan intake, and the outcome map contract
 - `references/workflow-contract.md` - conductor lifecycle, roles, git posture,
   and stop discipline
 - `references/plan-intake-and-readiness.md` - format-agnostic extraction,

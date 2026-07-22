@@ -7,8 +7,7 @@ against the running version (`codex --version`); the TUI wording can drift.
 ## Table of contents
 
 - Pane signal strings
-- aim rotation facts
-- codex CLI facts that matter
+- Shared aim + codex rotation facts
 - Runbook: rotate + restart + resume + verify
 - No-tight-loop poll pattern
 - Self-spawned delegate caveat
@@ -39,39 +38,14 @@ Read everything from `tmux capture-pane -t <target> -p`. Grep the footer/body fo
 - **Empty-composer ghost text** rotates among placeholders such as
   `Implement {feature}` — it is not a state signal; ignore it.
 
-## aim rotation facts
+## Shared aim + codex rotation facts
 
-- `aim status` — pool summary; the `CODEX` block at the bottom shows the live
-  `active_label` and `account_id`.
-- `aim status --accounts` — per-account `5h_used`, `5h_in` (reset), `wk_used`,
-  `wk_in`, status, and flags.
-- `aim codex use [label]` — rewrites `~/.codex/auth.json`. No label = round-robin
-  auto-pick (may land on a high-weekly account); pass an explicit `<label>` to
-  control the choice.
-- Prefer a `ready` account with low `5h_used` AND low `wk_used`. Auto-pick only
-  weighs round-robin/5h, so it can choose a 90%+-weekly account — override it.
-- Skip accounts with `st=reauth` / `missing_credentials`, and skip any flagged
-  `5h_full`.
-- `aim`'s `5h_full` / 100% is a *leading* flag, not a hard block. codex commonly
-  keeps working 10+ minutes past it. Rotate on the PANE usage-limit string, not on
-  the percentage.
-- Do not use the aim "Tend" path (`aim codex run --tend`) for this — drive the
-  rotation explicitly with `aim codex use` + a manual restart.
-
-## codex CLI facts that matter
-
-- **Auth is cached at startup.** codex reads `~/.codex/auth.json` once when the
-  process starts and caches it in memory. Swapping the file mid-session does
-  nothing until the process restarts. So: `aim codex use` ⇒ restart codex.
-- **Resume appends to the same session.** `codex resume <SESSION_ID>` reopens the
-  existing rollout file (same id) and appends — the goal and history are preserved.
-  `codex resume --last` resumes the most recent; prefer the explicit id so a stray
-  newer session can't be picked by mistake.
-- **Profile flag is global-before-subcommand in practice**, e.g.
-  `codex -p yolo resume <SESSION_ID>` works (this is how such sessions are usually
-  launched). Match however the session was originally launched.
-- Find the session id from the footer or the newest file under
-  `~/.codex/sessions/<YYYY>/<MM>/<DD>/rollout-*-<SESSION_ID>.jsonl`.
+Account mechanics, the codex auth/resume facts, and the core rotation
+sequence live in `../../_shared/aim-rotation.md` — read that file before
+acting on a limit. The pane-specific judgment stays here: rotate on the PANE
+usage-limit string, never on aim's percentage flags, and take the session id
+from the TUI footer when it shows one (fall back to the sessions directory
+per the shared file).
 
 ## Runbook: rotate + restart + resume + verify
 

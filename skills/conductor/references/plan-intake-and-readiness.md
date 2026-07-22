@@ -1,7 +1,9 @@
 # Plan Intake And Readiness
 
 The conductor works with any plan document that has recoverable requirements
-and phases. Intake is a one-time extraction pass by the parent, not format
+and phases. An approved outcome map from the shaping stage is such a
+document by construction; its Approval block is the human authorization
+anchor and freeze. Intake is a one-time extraction pass by the parent, not format
 parsing, and it is the single largest deliberate spend of parent tokens —
 worth it because every later decision keys off this read.
 

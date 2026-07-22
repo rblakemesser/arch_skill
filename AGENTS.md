@@ -198,18 +198,23 @@ Claude Code, and Gemini.
   native subagents when helpful, and do not manually spawn `codex`, `claude`,
   `agent`, `grok`, or `kimi` executables for ordinary acceleration. Route a deliberate
   external worker or conductor through `$agent-delegate` or
-  `$plan-conductor` under the shared policy.
-- Use `$plan-conductor` when the user wants an entire existing plan document
-  (or an explicit phase range) driven to verified completion by delegated
-  workers while the parent agent stays the
-  architect and cynical reviewer: it extracts the plan into a conductor log,
-  gives phase-sized slices to clean same-host native children when capable or
-  to deliberate external sessions through `$agent-delegate`, parallelizes only
-  naturally independent slices, audits every diff assuming workers cut
-  corners, resumes the exact worker with batched findings until exit criteria
-  are true in code, and closes with a new clean whole-plan audit plus optional
-  cold verifier. The explicit Terra preset remains an external exact-model
-  lane. The parent never writes plans or implements code.
+  `$conductor` under the shared policy.
+- Use `$conductor` when the user wants a goal driven to verified completion
+  by delegated workers while the parent stays the executive architect, scope
+  judge, and cynical reviewer. Intake spans a finished plan, a partial plan,
+  or a described outcome: non-finished intake first runs an executive
+  shaping stage (parallel worker research as evidence, a parent trim to the
+  smallest sufficient solution, a lightweight outcome map, one scope
+  approval that freezes the boundary), and workers never dispatch before
+  observable done-ness exists. Execution defaults to the cheap parallel
+  external fleet — Codex `gpt-5.6-sol` at `ultra` through `$agent-delegate`,
+  one-word fleet swaps to Kimi, Grok, Cursor, or Claude — with `aim`
+  rotation and exact-session resume across Codex usage limits; the parent
+  audits every diff assuming workers cut corners, resumes the exact worker
+  with batched findings until exit criteria are true in code, and closes
+  with a new clean whole-plan audit plus optional cold verifier. The
+  explicit Terra preset remains an external exact-model lane. The parent
+  never implements code.
 - Use `$model-consensus` when the user wants two selected Claude, Codex,
   Cursor Agent, Grok, or Kimi models to iterate on a plan, architecture, design, or
   concept until they converge or expose the smallest unresolved decision, including

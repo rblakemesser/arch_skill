@@ -1,8 +1,10 @@
 # Workflow Contract
 
-`plan-conductor` turns one existing plan document into delegated, reviewed,
-verified implementation. It does not write a new plan, broaden the requested
-boundary, or lower the plan's quality bar to finish faster.
+`conductor` turns one conducted artifact — an existing plan document, or the
+outcome map the shaping stage produced and the user approved — into
+delegated, reviewed, verified implementation. Once execution starts it does
+not rewrite that artifact, broaden the requested boundary, or lower the
+quality bar to finish faster.
 
 ## Roles
 

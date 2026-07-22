@@ -43,7 +43,7 @@ state machine, or script-backed completion judge.
   normal review response.
 - The user explicitly wants delegated external workers, resumable child
   sessions, or plan-wide worker orchestration with the parent acting as
-  conductor and cynical reviewer. Route to `plan-conductor` under the shared
+  conductor and cynical reviewer. Route to `conductor` under the shared
   agent policy.
 - The user wants one explicit external worker. Route to `agent-delegate` under
   the shared agent policy.
@@ -89,7 +89,7 @@ state machine, or script-backed completion judge.
 - Do not manually spawn separate coding-harness executables such as `codex`,
   `claude`, `agent`, `grok`, or `kimi` for ordinary acceleration. This lightweight lane may
   still hand an explicitly requested external worker or conductor to
-  `agent-delegate` or `plan-conductor` under the shared policy; external
+  `agent-delegate` or `conductor` under the shared policy; external
   execution is a deliberate route, not a blanket ban.
 - Do not claim a plan item complete from logs or checkboxes alone. Read code
   anchors and confirm the outcome is true.

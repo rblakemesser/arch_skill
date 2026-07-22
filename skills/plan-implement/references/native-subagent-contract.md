@@ -78,7 +78,7 @@ ordinary same-host acceleration. An explicitly requested external worker or
 conductor remains a valid route when its provider, model, lifecycle, isolation,
 automation, or receipt benefit is worth the added process and integration cost.
 
-Use `plan-conductor` when the user wants plan-wide delegated external workers.
+Use `conductor` when the user wants plan-wide delegated external workers.
 Use `agent-delegate` when the user wants one explicit external worker. Resolve
 either handoff under the shared policy rather than treating external execution
 as forbidden.
