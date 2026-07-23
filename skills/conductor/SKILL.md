@@ -234,11 +234,16 @@ log beside the plan is its durable memory.
   belongs to the parent and is never delegated for economy. Reuse fresh
   passing proof; rerun only on a real invalidator.
 - The parent commits local checkpoints after accepted slices and meaningful
-  batches. During the conductor stage it never pushes or opens PRs. Only the
-  explicit Terra delivery shortcut continues past that boundary, by handing
-  the clean implementation to `$pr-authoring` and then
-  `$pr-review-followthrough`. Workers never commit, push, stash, or revert
-  unrelated work.
+  batches. During the conductor stage it never pushes or opens PRs. Delivery
+  past that boundary — when the user asked for the work to be published, and
+  always under the Terra shortcut — is itself delegated: a dedicated
+  delivery worker, a child and never the parent, runs `$pr-authoring` and
+  then `$pr-review-followthrough` on the finished branch until CI is green
+  and the PR is merge-ready. The parent verifies the outcome first-hand —
+  the published PR loaded and read, CI state checked — before closing, and
+  never merges or enables auto-merge without a separate user ask. Other
+  workers never commit, push, stash, or revert unrelated work; only the
+  explicitly assigned delivery worker touches push and PR operations.
 - Before phase closure, plan-required proof must be recorded passing. Before
   plan closure, run the final gate: one whole-plan cynical audit sweep —
   which personally loads the plan's end-state work products, a check no
@@ -336,10 +341,17 @@ log beside the plan is its durable memory.
    entries, frozen initial closure, and freeze anchor. Their findings use the
    same scope triage and cannot expand the plan.
 11. If the Terra delivery shortcut is active, run its stronger delivery gate:
-    all three cynical reviews in independent new clean external Terra sessions,
-    repair and re-review accepted findings, then hand off in order to
-    `$pr-authoring` and `$pr-review-followthrough` until the PR is merge-ready.
-12. Write the final report, commit the final checkpoint, and stop at the
+    all three cynical reviews in independent new clean external Terra
+    sessions, with accepted findings repaired and re-reviewed.
+12. When the user asked for the work to be published (always true under
+    Terra), dispatch a dedicated delivery worker — a child, never the
+    parent — to run `$pr-authoring` and then `$pr-review-followthrough` on
+    the finished branch until CI is green and the PR is merge-ready. Track
+    it with the normal heartbeat doctrine, then verify the result
+    first-hand: load the published PR, read what was posted, and check CI
+    state. Give the user the Delivery Report when the PR goes up and again,
+    refreshed, at merge-ready.
+13. Write the final report, commit the final checkpoint, and stop at the
     requested boundary.
 
 ## Progress Updates
@@ -348,6 +360,33 @@ After each wave and whenever the user asks for status, give one compact
 Markdown table: slice, goal, worker/handle, state, attempts, and current
 blocker or next action. Refresh from the conductor log and repo state before
 answering. Keep chat lean; detail lives in the log.
+
+## Delivery Report
+
+When the delivery worker publishes the PR, and again when follow-through
+reaches merge-ready, give the user the same at-a-glance report, refreshed
+from the conductor log and first-hand-verified PR state — never from memory
+or the worker's narrative:
+
+| Field | Value |
+|---|---|
+| PR | \<url\> (\<branch\> → \<base\>) |
+| State | published \| merge-ready |
+| CI | passing \| failing (name the check) \| pending |
+
+Then four short bullet sections:
+
+- **Accomplished** — what shipped, stated against the plan's requirements
+  with their anchors.
+- **Tested** — the decisive proof: each check, its scope, its result, and
+  who ran it (from the proof ledger's `Ran by`).
+- **Reviewed** — which audits, review instruments, and verifiers ran, their
+  verdicts, and finding counts: accepted / repaired / rejected.
+- **Issues** — escalations, notable send-backs, usage-limit rotations,
+  deferred items, and anything the user should know; `none` when true.
+
+The merge-ready report updates the publication report; it does not retell
+the run story.
 
 ## Output
 
@@ -366,6 +405,8 @@ Report compactly:
   cycles found, and unauthorized work subtracted
 - commits made, files changed, and plan completion annotations written
 - escalations with the specific user decision each one needs
+- the Delivery Report when delivery ran (PR, CI, accomplished / tested /
+  reviewed / issues)
 - next action or final verdict with evidence
 
 ## Reference Map

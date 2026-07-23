@@ -212,9 +212,12 @@ Claude Code, and Gemini.
   rotation and exact-session resume across Codex usage limits; the parent
   audits every diff assuming workers cut corners, resumes the exact worker
   with batched findings until exit criteria are true in code, and closes
-  with a new clean whole-plan audit plus optional cold verifier. The
-  explicit Terra preset remains an external exact-model lane. The parent
-  never implements code.
+  with a new clean whole-plan audit plus optional cold verifier. When the
+  user wants the work shipped, a dedicated delivery worker — never the
+  parent — runs `$pr-authoring` and `$pr-review-followthrough` through CI
+  to merge-ready, with a standard at-a-glance delivery report at PR-up and
+  at merge-ready. The explicit Terra preset remains an external exact-model
+  lane. The parent never implements code.
 - Use `$model-consensus` when the user wants two selected Claude, Codex,
   Cursor Agent, Grok, or Kimi models to iterate on a plan, architecture, design, or
   concept until they converge or expose the smallest unresolved decision, including

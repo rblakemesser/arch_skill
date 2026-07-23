@@ -75,24 +75,32 @@ scope such as an explicit phase range remains binding.
    cruft. After material repairs, rerun every affected review in another new
    clean external Terra xhigh session. `coverage-incomplete`, `scope-incomplete`,
    `unsafe-to-judge`, or open required repairs do not pass the gate.
-6. **Publish the PR.** After all plan proof and all three review lanes are
-   clean and the scope-provenance gate is `frozen-clean`, invoke
-   `$pr-authoring` against the same branch and worktree. Let that
-   skill inspect repo truth, publish or update the GitHub PR, and return the PR
-   URL.
-7. **Follow through.** Treat this preset as the user's explicit authorization
-   to invoke `$pr-review-followthrough` on that PR. Poll live GitHub state,
-   answer every actionable thread, make and verify warranted same-branch
-   fixes, push, and continue until its merge-ready stop line is true. Do not
-   merge, enable auto-merge, or enter a merge queue unless the user separately
-   asks.
+6. **Publish the PR (delegated).** After all plan proof and all three review
+   lanes are clean and the scope-provenance gate is `frozen-clean`, dispatch
+   a dedicated delivery worker in the same worktree and branch — a child,
+   never the conductor — to invoke `$pr-authoring`: inspect repo truth,
+   publish or update the GitHub PR, and return the PR URL. The conductor
+   loads the published PR and reads what was actually posted before
+   continuing.
+7. **Follow through (delegated).** Treat this preset as the user's explicit
+   authorization for the delivery worker to run `$pr-review-followthrough`
+   on that PR: poll live GitHub state, answer every actionable thread, make
+   and verify warranted same-branch fixes, push, and continue until its
+   merge-ready stop line is true. The conductor tracks the worker with the
+   normal heartbeat doctrine and verifies merge-readiness first-hand — PR
+   head state and CI green — before declaring the shortcut complete. No one
+   merges, enables auto-merge, or enters a merge queue unless the user
+   separately asks.
 
 ## Completion Line
 
 The shortcut is complete only when the plan and conductor log are complete,
 the cold verifier and all three new clean external cynical review lanes are
-clean on the accepted code, the PR exists, and `$pr-review-followthrough`
-reports the current PR head merge-ready. A missing CLI, unsafe worktree state,
+clean on the accepted code, the PR exists, the delivery worker's
+`$pr-review-followthrough` reports the current PR head merge-ready, and the
+conductor has confirmed that PR state and CI result first-hand. Announce
+publication and completion with the standard Delivery Report from
+`SKILL.md`. A missing CLI, unsafe worktree state,
 unavailable review skill, GitHub authorization failure, irreducible CI failure,
 or real human product decision is a blocker to report, not a reason to skip a
 stage.

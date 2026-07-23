@@ -795,6 +795,11 @@ delegates proof, records checkpoints, and closes only on the plan-required
 proof and final whole-plan gate.
 
 The parent never edits source code or accepts worker self-reports as truth.
+When the user wants the work published, a dedicated delivery worker — never
+the parent — runs `$pr-authoring` and `$pr-review-followthrough` until CI is
+green and the PR is merge-ready, with a standard at-a-glance delivery report
+(PR, CI, accomplished, tested, reviewed, issues) at publication and at
+merge-ready.
 
 The explicit `conductor terra` shortcut remains the external end-to-end
 lane: dedicated worktree, Terra xhigh roles, three new clean external cynical

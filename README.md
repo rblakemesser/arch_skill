@@ -646,7 +646,12 @@ every claim against code, delegates proof, records checkpoints, and closes
 only on plan-required proof plus the final whole-plan gate.
 
 The parent never edits source code during the conductor stage or accepts worker
-self-reports as truth.
+self-reports as truth. When the user wants the finished work published,
+delivery is delegated too: a dedicated worker — never the parent — runs
+`$pr-authoring` and `$pr-review-followthrough` until CI is green and the PR is
+merge-ready, the parent verifies the published PR first-hand, and the user
+gets a standard at-a-glance delivery report (PR, CI, accomplished, tested,
+reviewed, issues) at publication and again at merge-ready.
 
 `$conductor terra` remains the explicit external delivery shortcut. Its
 dedicated worktree, Codex `gpt-5.6-terra` at `xhigh`, three new clean external
